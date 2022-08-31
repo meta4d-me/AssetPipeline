@@ -1,3 +1,4 @@
 build
 *.sln
 .vs
+x64
