@@ -1,0 +1,29 @@
+#pragma once
+
+#include <chrono>
+
+namespace cdtools
+{
+
+class PerformanceProfiler
+{
+public:
+	PerformanceProfiler(std::string tag) :
+		m_tag(std::move(tag))
+	{
+		m_startTimePoint = std::chrono::steady_clock::now();
+	}
+
+	~PerformanceProfiler()
+	{
+		std::chrono::steady_clock::time_point endTimePoint = std::chrono::steady_clock::now();
+		std::chrono::duration<double> elapsedTime = endTimePoint - m_startTimePoint;
+		printf("%s costs %f seconds\n", m_tag.c_str(), elapsedTime.count());
+	}
+
+private:
+	std::string m_tag;
+	std::chrono::steady_clock::time_point m_startTimePoint;
+};
+
+}

@@ -1,0 +1,66 @@
+#pragma once
+
+#include "Material.h"
+#include "Mesh.h"
+#include "Texture.h"
+
+#include <optional>
+#include <unordered_map>
+
+namespace cdtools
+{
+
+class SceneDatabase
+{
+public:
+	using TextureMap = std::unordered_map<std::string, TextureID>;
+
+public:
+	SceneDatabase() = default;
+	SceneDatabase(const SceneDatabase&) = default;
+	SceneDatabase& operator=(const SceneDatabase&) = default;
+	SceneDatabase(SceneDatabase&&) = default;
+	SceneDatabase& operator=(SceneDatabase&&) = default;
+	~SceneDatabase() = default;
+
+	void SetName(std::string sceneName);
+	const std::string& GetName() const { return m_name; }
+
+	// mesh
+	void AddMesh(Mesh mesh);
+	const std::vector<Mesh>& GetMeshes() const { return m_meshes; }
+	void SetMeshCount(uint32_t meshCount);
+	const Mesh& GetMesh(uint32_t index) const { return m_meshes[index];  }
+	uint32_t GetMeshCount() const { return static_cast<uint32_t>(m_meshes.size()); }
+
+	// material
+	void AddMaterial(Material material);
+	const std::vector<Material>& GetMaterials() const { return m_materials; }
+	void SetMaterialCount(uint32_t materialCount);
+	const Material& GetMaterial(uint32_t index) const { return m_materials[index]; }
+	uint32_t GetMaterialCount() const { return static_cast<uint32_t>(m_materials.size()); }
+
+	// texture
+	const std::vector<Texture>& GetTextures() const { return m_textures; }
+	void SetTextureCount(uint32_t textureCount);
+	const Texture& GetTexture(uint32_t index) const { return m_textures[index]; }
+	uint32_t GetTextureCount() const { return static_cast<uint32_t>(m_textures.size()); }
+	std::optional<TextureID> TryGetTextureID(const char* pTexturePath) const;
+	void AddTexture(Texture texture);
+	const TextureMap& GetTextureMap() const { return m_mapPathToTextureIDs; }
+
+private:
+	std::string m_name;
+
+	// mesh data
+	std::vector<Mesh> m_meshes;
+
+	// material data
+	std::vector<Material> m_materials;
+
+	// texture data
+	std::vector<Texture> m_textures;
+	TextureMap m_mapPathToTextureIDs;
+};
+
+}
