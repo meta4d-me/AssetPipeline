@@ -73,6 +73,7 @@ GenericProducer::GenericProducer(std::string filePath) :
 
 void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 {
+	constexpr bool doDuplicateVertices = true;
 	// glTF file format
 	//     - right hand coordinate system.
 	//     - forward vector towards +z.
@@ -176,7 +177,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 					}
 
 					std::optional<TextureID> optTextureID = pSceneDatabase->TryGetTextureID(ai_path.C_Str());
-					if(!optTextureID.has_value())
+					if (!optTextureID.has_value())
 					{
 						Texture texture(TextureID(totalTextureCount), ai_path.C_Str());
 						optTextureID = texture.GetID();
@@ -204,14 +205,51 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 		const aiMesh* pMesh = pScene->mMeshes[meshIndex];
 		assert(pMesh && "pMesh is invalid");
 
-		printf("\tMesh vertex number : %d\n", pMesh->mNumVertices);
-		assert(pMesh->mVertices && pMesh->mNumVertices > 0 && "No vertex data.");
-
 		printf("\tMesh face number : %d\n", pMesh->mNumFaces);
 		assert(pMesh->mFaces && pMesh->mNumFaces > 0 && "No polygon data.");
 
+		uint32_t numVertices = pMesh->mNumVertices;
+		if (doDuplicateVertices)
+		{
+			numVertices = pMesh->mNumFaces * 3;
+		}
+
+		printf("\tMesh vertex number : %d\n", numVertices);
+		assert(pMesh->mVertices && numVertices > 0 && "No vertex data.");
+
 		// Start to fill mesh data structure
-		Mesh mesh(MeshID(meshIndex), pMesh->mName.C_Str(), pMesh->mNumVertices, pMesh->mNumFaces);
+		Mesh mesh(MeshID(meshIndex), pMesh->mName.C_Str(), numVertices, pMesh->mNumFaces);
+
+		// Or we can optimize these two variables by using template specialization
+		std::map<uint32_t, uint32_t> mapNewIndexToOriginIndex;
+		uint32_t currentVertexID = 0U;
+		for (uint32_t faceIndex = 0; faceIndex < pMesh->mNumFaces; ++faceIndex)
+		{
+			const aiFace& face = pMesh->mFaces[faceIndex];
+			assert(face.mNumIndices == 3 && "tjj : Do you forget to open importer's triangulate flag?");
+
+			uint32_t originIndex0 = face.mIndices[0];
+			uint32_t originIndex1 = face.mIndices[1];
+			uint32_t originIndex2 = face.mIndices[2];
+
+			uint32_t index0 = originIndex0;
+			uint32_t index1 = originIndex1;
+			uint32_t index2 = originIndex2;
+			if (doDuplicateVertices)
+			{
+				index0 = currentVertexID;
+				index1 = currentVertexID + 1;
+				index2 = currentVertexID + 2;
+
+				mapNewIndexToOriginIndex[index0] = originIndex0;
+				mapNewIndexToOriginIndex[index1] = originIndex1;
+				mapNewIndexToOriginIndex[index2] = originIndex2;
+
+				currentVertexID += 3;
+			}
+			mesh.SetPolygon(faceIndex, VertexID(index0), VertexID(index1), VertexID(index2));
+		}
+
 		UV tempUV;
 		Color tempColor;
 		Point tempPoint;
@@ -219,27 +257,43 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 
 		if (pMesh->mVertices)
 		{
-			for (uint32_t vertexIndex = 0; vertexIndex < pMesh->mNumVertices; ++vertexIndex)
+			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
-				const aiVector3D& position = pMesh->mVertices[vertexIndex];
+				uint32_t vertexDataIndex = vertexIndex;
+				if (doDuplicateVertices)
+				{
+					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
+					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
+					vertexDataIndex = itNewIndex->second;
+				}
+
+				const aiVector3D& position = pMesh->mVertices[vertexDataIndex];
 				tempPoint.Set(position.x, position.y, position.z);
 				mesh.SetVertexPosition(vertexIndex, tempPoint);
 			}
 		}
 
 		// bounding box
-		// pMesh->mAABB.mMin.x
-		// pMesh->mAABB.mMin.y
-		// pMesh->mAABB.mMin.z
-		// pMesh->mAABB.mMax.x
-		// pMesh->mAABB.mMax.y
-		// pMesh->mAABB.mMax.z
+		pMesh->mAABB.mMin.x;
+		pMesh->mAABB.mMin.y;
+		pMesh->mAABB.mMin.z;
+		pMesh->mAABB.mMax.x;
+		pMesh->mAABB.mMax.y;
+		pMesh->mAABB.mMax.z;
 
 		if (pMesh->mNormals)
 		{
-			for (uint32_t vertexIndex = 0; vertexIndex < pMesh->mNumVertices; ++vertexIndex)
+			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
-				const aiVector3D& normal = pMesh->mNormals[vertexIndex];
+				uint32_t vertexDataIndex = vertexIndex;
+				if (doDuplicateVertices)
+				{
+					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
+					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
+					vertexDataIndex = itNewIndex->second;
+				}
+
+				const aiVector3D& normal = pMesh->mNormals[vertexDataIndex];
 				tempDirection.Set(normal.x, normal.y, normal.z);
 				mesh.SetVertexNormal(vertexIndex, tempDirection);
 			}
@@ -247,10 +301,17 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 
 		if (pMesh->mTangents)
 		{
-
-			for (uint32_t vertexIndex = 0; vertexIndex < pMesh->mNumVertices; ++vertexIndex)
+			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
-				const aiVector3D& tangent = pMesh->mTangents[vertexIndex];
+				uint32_t vertexDataIndex = vertexIndex;
+				if (doDuplicateVertices)
+				{
+					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
+					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
+					vertexDataIndex = itNewIndex->second;
+				}
+
+				const aiVector3D& tangent = pMesh->mTangents[vertexDataIndex];
 				tempDirection.Set(tangent.x, tangent.y, tangent.z);
 				mesh.SetVertexTangent(vertexIndex, tempDirection);
 			}
@@ -258,9 +319,17 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 
 		if (pMesh->mBitangents)
 		{
-			for (uint32_t vertexIndex = 0; vertexIndex < pMesh->mNumVertices; ++vertexIndex)
+			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
-				const aiVector3D& biTangent = pMesh->mBitangents[vertexIndex];
+				uint32_t vertexDataIndex = vertexIndex;
+				if (doDuplicateVertices)
+				{
+					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
+					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
+					vertexDataIndex = itNewIndex->second;
+				}
+
+				const aiVector3D& biTangent = pMesh->mBitangents[vertexDataIndex];
 				tempDirection.Set(biTangent.x, biTangent.y, biTangent.z);
 				mesh.SetVertexBiTangent(vertexIndex, tempDirection);
 			}
@@ -291,9 +360,17 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 				continue;
 			}
 
-			for (uint32_t vertexIndex = 0; vertexIndex < pMesh->mNumVertices; ++vertexIndex)
+			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
-				const aiVector3D& uv = vertexUVArray[vertexIndex];
+				uint32_t vertexDataIndex = vertexIndex;
+				if (doDuplicateVertices)
+				{
+					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
+					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
+					vertexDataIndex = itNewIndex->second;
+				}
+
+				const aiVector3D& uv = vertexUVArray[vertexDataIndex];
 				tempUV.Set(uv.x, uv.y);
 				mesh.SetVertexUV(uvSetIndex, vertexIndex, tempUV);
 			}
@@ -316,26 +393,20 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 		for (uint32_t colorSetIndex = 0; colorSetIndex < colorSetCount; ++colorSetIndex)
 		{
 			const aiColor4D* vertexColorArray = pMesh->mColors[colorSetIndex];
-			for (uint32_t vertexIndex = 0; vertexIndex < pMesh->mNumVertices; ++vertexIndex)
+			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
-				const aiColor4D& color = vertexColorArray[vertexIndex];
+				uint32_t vertexDataIndex = vertexIndex;
+				if (doDuplicateVertices)
+				{
+					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
+					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
+					vertexDataIndex = itNewIndex->second;
+				}
+
+				const aiColor4D& color = vertexColorArray[vertexDataIndex];
 				tempColor.Set(color.r, color.g, color.b, color.a);
 				mesh.SetVertexColor(colorSetIndex, vertexIndex, tempColor);
 			}
-		}
-
-		VertexID tempV0;
-		VertexID tempV1;
-		VertexID tempV2;
-		for (uint32_t faceIndex = 0; faceIndex < pMesh->mNumFaces; ++faceIndex)
-		{
-			const aiFace& face = pMesh->mFaces[faceIndex];
-			assert(face.mNumIndices == 3 && "tjj : Do you forget to open importer's triangulate flag?");
-
-			tempV0 = face.mIndices[0];
-			tempV1 = face.mIndices[1];
-			tempV2 = face.mIndices[2];
-			mesh.SetPolygon(faceIndex, tempV0, tempV1, tempV2);
 		}
 
 		mesh.SetMaterialID(pMesh->mMaterialIndex);
