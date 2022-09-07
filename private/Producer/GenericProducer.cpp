@@ -1,7 +1,7 @@
 #include "GenericProducer.h"
 #include "Scene/Mesh.h"
 #include "Scene/SceneDatabase.h"
-#include "Utilities/Utils.h"
+#include "../Utilities/Utils.h"
 
 // 3rdParty
 //#define ASSIMP_DOUBLE_PRECISION
