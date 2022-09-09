@@ -95,7 +95,7 @@ project("AssetPipeline")
 	allRemoveFiles = {}
 	if FBX_SDK_DIR == nil then
 		table.insert(allRemoveFiles, "private/consumer/fbxconsumer.*")
-		table.insert(allRemoveFiles, "private/consumer/fbxproducer.*")
+		table.insert(allRemoveFiles, "private/producer/fbxproducer.*")
 	end
 
 	removefiles {
