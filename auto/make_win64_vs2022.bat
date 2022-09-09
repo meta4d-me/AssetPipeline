@@ -15,6 +15,7 @@ cd ..
 echo\
 
 cd ..
+call "./auto/commercial_sdk_locations.bat"
 call "./auto/premake5" "vs2022"
 
 pause
