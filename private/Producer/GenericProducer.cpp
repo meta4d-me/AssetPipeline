@@ -1,5 +1,4 @@
 #include "GenericProducer.h"
-#include "Scene/Mesh.h"
 #include "Scene/SceneDatabase.h"
 #include "../Utilities/Utils.h"
 

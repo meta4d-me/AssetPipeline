@@ -2,6 +2,7 @@
 #include "Consumer/FbxConsumer.h"
 #include "Processor/Processor.h"
 #include "Producer/CatDogProducer.h"
+#include "Producer/FbxProducer.h"
 #include "Producer/GenericProducer.h"
 #include "Utilities/PerformanceProfiler.h"
 
@@ -25,6 +26,5 @@ int main(int argc, char** argv)
 	CatDogConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);
 	processor.Run();
-
 	return 0;
 }

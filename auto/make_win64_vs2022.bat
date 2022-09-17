@@ -14,6 +14,7 @@ cd ..
 echo\
 
 cd ..
+call "./auto/commercial_sdk_locations.bat"
 call "./auto/Premake/Windows/premake5" "vs2022"
 
 pause

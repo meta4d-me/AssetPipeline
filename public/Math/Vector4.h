@@ -119,13 +119,13 @@ private:
 	Value m_data[4];
 };
 
-using Point = Vector4<float, Vector4Type::Point>;
-using Direction = Vector4<float, Vector4Type::Direction>;
-using Color = Vector4<float, Vector4Type::Color>;
+using Point = Vector4<double, Vector4Type::Point>;
+using Direction = Vector4<double, Vector4Type::Direction>;
+using Color = Vector4<double, Vector4Type::Color>;
 using U8Color = Vector4<uint8_t, Vector4Type::Color>;
 
 // TJJ TODO : Add a Vector2 class but no repeat!
 // Here is the workaround. As we can wrap uv and lightmap's uv into a vector4.
-using UV = Vector4<float, Vector4Type::UV>;
+using UV = Vector4<double, Vector4Type::UV>;
 
 }

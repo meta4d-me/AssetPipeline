@@ -1,7 +1,37 @@
 --------------------------------------------------------------
 -- @Description : Makefile of CatDog Engine Tools
 --------------------------------------------------------------
+CommercialSDKConfigs = {}
+FBX_SDK_DIR = os.getenv("FBX_SDK_DIR")
+if FBX_SDK_DIR and not os.isdir(FBX_SDK_DIR) then
+	FBX_SDK_DIR = nil
+end
+
+SPEEDTREE_SDK_DIR = os.getenv("SPEEDTREE_SDK_DIR")
+if SPEEDTREE_SDK_DIR and not os.isdir(SPEEDTREE_SDK_DIR) then
+	SPEEDTREE_SDK_DIR = nil
+end
+
+if FBX_SDK_DIR then
+	print("Found FBX_SDK_DIR...")
+	CommercialSDKConfigs["fbx"] = {}
+	CommercialSDKConfigs["fbx"].include = path.join(FBX_SDK_DIR, "include")
+	CommercialSDKConfigs["fbx"].lib_dir = path.join(FBX_SDK_DIR, "lib")
+	CommercialSDKConfigs["fbx"].lib_names = { "libfbxsdk" }
+	CommercialSDKConfigs["fbx"].dll_paths = { path.join(FBX_SDK_DIR, "runtime") }
+end
+
+if SPEEDTREE_SDK_DIR then
+	print("Found SPEEDTREE_SDK_DIR...")
+	CommercialSDKConfigs["st"] = {}
+	CommercialSDKConfigs["st"].include = ""
+	CommercialSDKConfigs["st"].lib_dir = ""
+	CommercialSDKConfigs["st"].lib_names = { }
+	CommercialSDKConfigs["st"].dll_paths = { }
+end
+
 workspace("AssetPipeline")
+	architecture "x64"
 	configurations { "Debug", "Release" }
 	filter "configurations:Debug"
 		defines { "_DEBUG" }
@@ -16,11 +46,6 @@ workspace("AssetPipeline")
 	filter "system:Windows"
 		-- For Windows OS, we want to use latest Windows SDK installed in the PC.
 		systemversion("latest")
-	filter {}
-
-	platforms { "x64" }
-	filter "platforms:x64"
-		architecture "x64"
 	filter {}
 
 function DeclareExternalProject(projectName, projectKind, projectPath)
@@ -41,23 +66,11 @@ group ""
 function SetupAssimpLib(assimpLibName, configName)
 	libdirs {
 		path.join("build/assimp/lib", configName),
-		--path.join(ThirdPartySourcePath, "fbx/2020.2/lib/vs2017/x64/release"),
 	}
 
 	links {
 		assimpLibName,
-		--"libfbxsdk",
 	}
-
-	-- copy dll into binary folder automatically.
-	local assimpSourcePath = "build\\assimp\\bin"
-	local assimpTargetPath = "build\\bin"
-	local currentPath = os.getcwd()
-	postbuildcommands {
-		"cd "..currentPath,
-		"{COPYDIR} "..assimpSourcePath.." "..assimpTargetPath,
-	}
-	postbuildmessage "Copying dependencies..."
 end
 
 project("AssetPipeline")
@@ -67,16 +80,26 @@ project("AssetPipeline")
 	dependson { "assimp" }
 
 	location("build")
-	targetdir("build/bin")
+
+	filter { "configurations:Debug" }
+		targetdir("build/bin/Debug")
+	filter { "configurations:Release" }
+		targetdir("build/bin/Release")
+	filter {}
 
 	files {
 		path.join("public/**.*"),
 		path.join("private/**.*"),
 	}
 	
+	allRemoveFiles = {}
+	if FBX_SDK_DIR == nil then
+		table.insert(allRemoveFiles, "private/consumer/fbxconsumer.*")
+		table.insert(allRemoveFiles, "private/producer/fbxproducer.*")
+	end
+
 	removefiles {
-		"private/consumer/fbxconsumer.*",
-		"private/producer/fbxproducer.*",
+		table.unpack(allRemoveFiles)
 	}
 	
 	vpaths {
@@ -88,15 +111,35 @@ project("AssetPipeline")
 		},
 	}
 
+	commercialSDKIncludeDirs = {}
+	commercialSDKLibDirs = {}
+	commercialSDKLibNames = {}
+	for _, config in pairs(CommercialSDKConfigs) do
+		table.insert(commercialSDKIncludeDirs, config.include)
+		table.insert(commercialSDKLibDirs, config.lib_dir)
+		for _, libName in pairs(config.lib_names) do
+			table.insert(commercialSDKLibNames, libName)
+		end
+	end
+
 	includedirs {
 		"public",
-		
+		table.unpack(commercialSDKIncludeDirs)
+	}
+
+	libdirs {
+		table.unpack(commercialSDKLibDirs),
+	}
+
+	links {
+		table.unpack(commercialSDKLibNames),
+	}
+
+	-- assimp
+	includedirs {
 		-- assimp lib will build a config.h file for the call side to include
 		"assimp/include",
 		"build/assimp/include",
-		
-		-- fbx only allow to upload runtime files, not sdk files
-		--"fbx/2020.2/include",
 	}
 
 	filter { "system:Windows", "configurations:Debug", "action:vs2022" }
@@ -108,3 +151,35 @@ project("AssetPipeline")
 	filter { "system:Windows", "configurations:Release", "action:vs2019" }
 			SetupAssimpLib("assimp-vc142-mt", "Release")
 	filter{}
+
+	-- Auto copy dlls
+	local currentWorkingPath = os.getcwd()
+	commercialSDKPostCmds = {}
+	filter { "configurations:Debug" }
+		for _, config in pairs(CommercialSDKConfigs) do
+			for _, dllPath in pairs(config.dll_paths) do
+				local copyCommand = "{COPYDIR} "..dllPath.." ".."build\\bin\\Debug"
+				table.insert(commercialSDKPostCmds, copyCommand)
+			end
+		end
+
+		postbuildcommands {
+			"cd "..currentWorkingPath,
+			table.unpack(commercialSDKPostCmds),
+			"{COPYDIR} ".."build\\assimp\\bin".." ".."build\\bin",
+		}
+	filter { "configurations:Release" }
+		for _, config in pairs(CommercialSDKConfigs) do
+			for _, dllPath in pairs(config.dll_paths) do
+				local copyCommand = "{COPYDIR} "..dllPath.." ".."build\\bin\\Release"
+				table.insert(commercialSDKPostCmds, copyCommand)
+			end
+		end
+
+		postbuildcommands {
+			"cd "..currentWorkingPath,
+			table.unpack(commercialSDKPostCmds),
+			"{COPYDIR} ".."build\\assimp\\bin".." ".."build\\bin",
+		}
+	filter {}
+	postbuildmessage "Copying dependencies..."
