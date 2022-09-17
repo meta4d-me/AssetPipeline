@@ -1,6 +1,4 @@
-@echo on
-
-cd auto
+cd ./auto
 
 cd ..
 if not exist build\. mkdir build
@@ -14,8 +12,6 @@ cd ..
 echo\
 
 cd ..
-set FBX_SDK_DIR=D:/fbx
-set SPEEDTREE_SDK_DIR=D:/speedtree
-call "./auto/Premake/Windows/premake5" "vs2022"
-
-pause
+set FBX_SDK_DIR=/usr/local/lib/fbx
+set SPEEDTREE_SDK_DIR=/usr/local/lib/speedtree
+./auto/Premake/Mac/premake5 xcode4

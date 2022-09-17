@@ -14,7 +14,8 @@ cd ..
 echo\
 
 cd ..
-call "./auto/commercial_sdk_locations.bat"
+set FBX_SDK_DIR=D:/fbx
+set SPEEDTREE_SDK_DIR=D:/speedtree
 call "./auto/Premake/Windows/premake5" "vs2019"
 
 pause
