@@ -1,0 +1,27 @@
+name: linux_ubuntu_gmake2
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-ubuntn:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check CMake version
+      run: cmake -version
+    
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    - name: Checkout submodules
+      run: git submodule update --init --recursive
+
+    - name: Make 3rdParty and generate makefile
+      run: ${{github.workspace}}/auto/make_linux_gmake2.bat
+
+    - name: Use makefile to compile
+      run: make

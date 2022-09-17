@@ -9,11 +9,11 @@ cd build
 echo [ ASSIMP ] Start making project...
 if not exist assimp\. mkdir assimp
 cd assimp
-cmake ../../assimp -G "Visual Studio 17 2022" -A x64
+cmake ../../assimp -G "Unix Makefiles"
 cd ..
 echo\
 
 cd ..
-call "./auto/Premake/Windows/premake5" "vs2022"
+call "./auto/Linux/Premake/premake5" "gmake2"
 
 pause
