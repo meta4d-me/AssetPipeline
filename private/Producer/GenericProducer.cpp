@@ -3,7 +3,7 @@
 #include "../Utilities/Utils.h"
 
 // 3rdParty
-//#define ASSIMP_DOUBLE_PRECISION
+#define ASSIMP_DOUBLE_PRECISION
 #include <assimp/cimport.h>
 #include <assimp/material.h>
 #include <assimp/postprocess.h>
