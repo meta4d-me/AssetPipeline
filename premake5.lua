@@ -82,8 +82,10 @@ project("AssetPipeline")
 	location("build")
 
 	filter { "configurations:Debug" }
+		objdir("build/obj/Debug")
 		targetdir("build/bin/Debug")
 	filter { "configurations:Release" }
+		objdir("build/obj/Release")
 		targetdir("build/bin/Release")
 	filter {}
 
@@ -124,6 +126,7 @@ project("AssetPipeline")
 
 	includedirs {
 		"public",
+		"private",
 		table.unpack(commercialSDKIncludeDirs)
 	}
 

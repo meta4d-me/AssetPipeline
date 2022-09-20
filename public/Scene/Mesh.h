@@ -1,7 +1,8 @@
 #pragma once
 
-#include "ObjectIDTypes.h"
+#include "Core/ISerializable.h"
 #include "Math/Vector4.h"
+#include "ObjectIDTypes.h"
 
 #include <string>
 #include <vector>
@@ -9,7 +10,7 @@
 namespace cdtools
 {
 
-class Mesh final
+class Mesh final : public ISerializable
 {
 public:
 	// TJJ TODO : replace POD with well-designed data structure.
@@ -31,12 +32,15 @@ public:
 
 public:
 	Mesh() = delete;
+	explicit Mesh(std::ifstream& fin);
 	explicit Mesh(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount);
 	Mesh(const Mesh&) = default;
 	Mesh& operator=(const Mesh&) = default;
 	Mesh(Mesh&&) = default;
 	Mesh& operator=(Mesh&&) = default;
 	~Mesh() = default;
+
+	void Init(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount);
 
 	const MeshID& GetID() const { return m_id; }
 	const std::string& GetName() const { return m_name; }
@@ -82,6 +86,10 @@ public:
 	std::vector<Polygon>& GetPolygons() { return m_polygons; }
 	const std::vector<Polygon>& GetPolygons() const { return m_polygons; }
 	const Polygon& GetPolygon(uint32_t polygonIndex) const { return m_polygons[polygonIndex]; }
+
+	// ISerializable
+	virtual void ImportBinary(std::ifstream& fin) override;
+	virtual void ExportBinary(std::ofstream& fout) const override;
 
 public:
 	static constexpr uint32_t MaxUVSetNumber = 8;
