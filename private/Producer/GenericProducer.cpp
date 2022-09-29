@@ -3,7 +3,7 @@
 #include "../Utilities/Utils.h"
 
 // 3rdParty
-#define ASSIMP_DOUBLE_PRECISION
+//#define ASSIMP_DOUBLE_PRECISION
 #include <assimp/cimport.h>
 #include <assimp/material.h>
 #include <assimp/postprocess.h>
@@ -72,7 +72,7 @@ GenericProducer::GenericProducer(std::string filePath) :
 
 void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 {
-	constexpr bool doDuplicateVertices = true;
+	constexpr bool doDuplicateVertices = false;
 	// glTF file format
 	//     - right hand coordinate system.
 	//     - forward vector towards +z.
@@ -249,11 +249,6 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 			mesh.SetPolygon(faceIndex, VertexID(index0), VertexID(index1), VertexID(index2));
 		}
 
-		UV tempUV;
-		Color tempColor;
-		Point tempPoint;
-		Direction tempDirection;
-
 		if (pMesh->mVertices)
 		{
 			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
@@ -267,8 +262,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 				}
 
 				const aiVector3D& position = pMesh->mVertices[vertexDataIndex];
-				tempPoint.Set(position.x, position.y, position.z);
-				mesh.SetVertexPosition(vertexIndex, tempPoint);
+				mesh.SetVertexPosition(vertexIndex, Point(position.x, position.y, position.z));
 			}
 		}
 
@@ -293,8 +287,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 				}
 
 				const aiVector3D& normal = pMesh->mNormals[vertexDataIndex];
-				tempDirection.Set(normal.x, normal.y, normal.z);
-				mesh.SetVertexNormal(vertexIndex, tempDirection);
+				mesh.SetVertexNormal(vertexIndex, Direction(normal.x, normal.y, normal.z));
 			}
 		}
 
@@ -311,8 +304,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 				}
 
 				const aiVector3D& tangent = pMesh->mTangents[vertexDataIndex];
-				tempDirection.Set(tangent.x, tangent.y, tangent.z);
-				mesh.SetVertexTangent(vertexIndex, tempDirection);
+				mesh.SetVertexTangent(vertexIndex, Direction(tangent.x, tangent.y, tangent.z));
 			}
 		}
 
@@ -329,8 +321,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 				}
 
 				const aiVector3D& biTangent = pMesh->mBitangents[vertexDataIndex];
-				tempDirection.Set(biTangent.x, biTangent.y, biTangent.z);
-				mesh.SetVertexBiTangent(vertexIndex, tempDirection);
+				mesh.SetVertexBiTangent(vertexIndex, Direction(biTangent.x, biTangent.y, biTangent.z));
 			}
 		}
 
@@ -370,8 +361,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 				}
 
 				const aiVector3D& uv = vertexUVArray[vertexDataIndex];
-				tempUV.Set(uv.x, uv.y);
-				mesh.SetVertexUV(uvSetIndex, vertexIndex, tempUV);
+				mesh.SetVertexUV(uvSetIndex, vertexIndex, UV(uv.x, uv.y));
 			}
 		}
 
@@ -403,8 +393,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 				}
 
 				const aiColor4D& color = vertexColorArray[vertexDataIndex];
-				tempColor.Set(color.r, color.g, color.b, color.a);
-				mesh.SetVertexColor(colorSetIndex, vertexIndex, tempColor);
+				mesh.SetVertexColor(colorSetIndex, vertexIndex, Color(color.r, color.g, color.b, color.a));
 			}
 		}
 

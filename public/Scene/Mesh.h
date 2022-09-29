@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core/ISerializable.h"
-#include "Math/Vector4.h"
+#include "Math/VectorDerived.hpp"
 #include "ObjectIDTypes.h"
 
 #include <string>
