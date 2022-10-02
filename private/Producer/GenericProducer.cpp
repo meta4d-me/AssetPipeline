@@ -18,21 +18,12 @@ namespace
 
 constexpr uint32_t BasicImportModelFlags[] =
 {
-	aiProcess_Triangulate,
-	aiProcess_GenBoundingBoxes,			// Generate bounding boxes for every mesh in the scene.
-	aiProcess_PreTransformVertices,
-};
-
-constexpr uint32_t AdvancedImportModelFlags[] =
-{
+	aiProcess_ConvertToLeftHanded,
 	aiProcess_ImproveCacheLocality,		// Improve GPU vertex data cache miss rate. That is, ACMR.
 };
 
 // Speed first. Only open flags which are necessary.
 constexpr uint32_t DefaultImportModelFlags = cdtools::array_sum(BasicImportModelFlags);
-
-// Quality first. Open extra flags which will have benefits for engine rendering.
-constexpr uint32_t ReleaseImportModelFlags = DefaultImportModelFlags + cdtools::array_sum(AdvancedImportModelFlags);
 
 // Parameters
 // all textures for PBR Metalness-Roughness workflow purpose.
@@ -72,20 +63,23 @@ GenericProducer::GenericProducer(std::string filePath) :
 
 void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 {
-	constexpr bool doDuplicateVertices = false;
-	// glTF file format
-	//     - right hand coordinate system.
-	//     - forward vector towards +z.
-	//     - up vector towards +y.
-	// bgfx geometryc tool
-	//     - left hand coordinate system.
-	//     - forward vector towards +z.
-	//     - up vector towards +y.
-	uint32_t glTFImportModelFlags[] =
+	uint32_t importFlags = DefaultImportModelFlags;
+	if (IsTriangulateServiceActive())
 	{
-		aiProcess_ConvertToLeftHanded
-	};
-	uint32_t importFlags = DefaultImportModelFlags + array_sum(glTFImportModelFlags);
+		importFlags += aiProcess_Triangulate;
+	}
+
+	if (IsBoundingBoxServiceActive())
+	{
+		importFlags += aiProcess_GenBoundingBoxes;
+	}
+
+	if (IsFlattenHierarchyServiceActive())
+	{
+		importFlags += aiProcess_PreTransformVertices;
+	}
+
+	bool doDuplicateVertices = IsDuplicateVertexServiceActive();
 
 	// Run
 	printf("ImportStaticMesh : %s\n", m_filePath.c_str());
