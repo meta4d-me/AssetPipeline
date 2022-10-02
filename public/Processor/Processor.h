@@ -12,12 +12,11 @@ class Processor final
 public:
 	Processor() = delete;
 	Processor(IProducer* pProducer, IConsumer* pConsumer);
-	~Processor();
-
 	Processor(const Processor&) = delete;
 	Processor& operator=(const Processor&) = delete;
 	Processor(Processor&&) = delete;
 	Processor& operator=(Processor&&) = delete;
+	~Processor();
 
 	void Run();
 
