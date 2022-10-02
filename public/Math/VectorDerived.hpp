@@ -8,9 +8,9 @@ namespace cdtools
 // Define explicit vector types to create vector instances.
 // So that we can specialize behaviors for different vector types.
 // For example, Point is (0, 0, 0, 1) and Direction is (0, 0, 0, 0) by default.
-enum class VectorType
+enum class VectorType : uint8_t
 {
-	Point,
+	Point = 0,
 	Direction,
 	Color,
 	UV,
@@ -31,51 +31,35 @@ public:
 	using Base::Base;
 
 public:
-	void Set(T inX = DefaultValueX(), T inY = DefaultValueY(), T inZ = DefaultValueZ(), T inW = DefaultValueW())
+	explicit VectorDerived()
 	{
-		data[0] = inX;
-		data[1] = inY;
-
-		if constexpr(N >= 3)
+		if constexpr (4 == N)
 		{
-			data[2] = inZ;
+			if constexpr (VectorType::Point == Vty)
+			{
+				data[0] = data[1] = data[2] = static_cast<T>(0);
+				data[3] = static_cast<T>(1);
+			}
 		}
-		
-		if constexpr(N >= 4)
+		else if constexpr (2 == N)
 		{
-			data[2] = inZ;
-			data[3] = inW;
-		}
-	}
-
-private:
-	static constexpr T DefaultValueX() { return static_cast<T>(0); }
-
-	static constexpr T DefaultValueY()
-	{
-		if constexpr (VectorType::UV == Vty)
-		{
-			return static_cast<T>(1);
+			if constexpr (VectorType::UV == Vty)
+			{
+				data[0] = static_cast<T>(0);
+				data[1] = static_cast<T>(1);
+			}
 		}
 		else
 		{
-			return static_cast<T>(0);
+			std::fill(std::begin(data), std::end(data), static_cast<T>(0));
 		}
 	}
 
-	// unsafe
-	static constexpr T DefaultValueZ() { return static_cast<T>(0); }
-
-	static constexpr T DefaultValueW()
+	template <typename... Args>
+	explicit VectorDerived(Args... args) :
+		data{ static_cast<T>(args)... }
 	{
-		if constexpr (VectorType::Direction == Vty)
-		{
-			return static_cast<T>(0);
-		}
-		else
-		{
-			return static_cast<T>(1);
-		}
+		static_assert(sizeof...(Args) == N);
 	}
 
 private:

@@ -23,22 +23,19 @@ public:
 	static constexpr Derived Zero()
 	{
 		Derived derived;
-		std::fill(std::begin(derived.data), std::end(derived.data), T(0));
+		std::fill(std::begin(derived.data), std::end(derived.data), static_cast<T>(0));
 		return derived;
 	}
 
 	static constexpr Derived One()
 	{
 		Derived derived;
-		std::fill(std::begin(derived.data), std::end(derived.data), T(1));
+		std::fill(std::begin(derived.data), std::end(derived.data), static_cast<T>(1));
 		return derived;
 	}
 
 public:
-	VectorBase() { CRTP().Set(); }
-	explicit VectorBase(T x, T y) { CRTP().Set(x, y); }
-	explicit VectorBase(T x, T y, T z) { CRTP().Set(x, y, z); }
-	explicit VectorBase(T x, T y, T z, T w) { CRTP().Set(x, y, z, w); }
+	VectorBase() = default;
 	VectorBase(const VectorBase&) = default;
 	VectorBase& operator=(const VectorBase&) = default;
 	VectorBase(VectorBase&&) = default;
@@ -52,19 +49,6 @@ public:
 	const_iterator begin() const { return &CRTP().data[0]; }
 	const_iterator end() const { return &CRTP().data[0] + size(); }
 	constexpr std::size_t size() const { return std::extent<decltype(Derived::data)>::value; }
-
-	// Getters and Setters.
-	// At least : x, y.
-	T& x() { return CRTP().data[0]; }
-	const T& x() const { return CRTP().data[0]; }
-	T& y() { return CRTP().data[1]; }
-	const T& y() const { return CRTP().data[1]; }
-
-	// Unsafe
-	T& z() { return CRTP().data[2]; }
-	const T& z() const { return CRTP().data[2]; }
-	T& w() { return CRTP().data[3]; }
-	const T& w() const { return CRTP().data[3]; }
 
 	// operators
 	T& operator[](int index) { return CRTP().data[index]; }
