@@ -2,6 +2,8 @@
 
 #include "Constants.h"
 
+#include <algorithm>
+
 namespace cdtools
 {
 
@@ -19,22 +21,6 @@ private:
 	const Derived& CRTP() const { return static_cast<const Derived&>(*this); }
 
 public:
-	// Static methods.
-	static constexpr Derived Zero()
-	{
-		Derived derived;
-		std::fill(std::begin(derived.data), std::end(derived.data), static_cast<T>(0));
-		return derived;
-	}
-
-	static constexpr Derived One()
-	{
-		Derived derived;
-		std::fill(std::begin(derived.data), std::end(derived.data), static_cast<T>(1));
-		return derived;
-	}
-
-public:
 	VectorBase() = default;
 	VectorBase(const VectorBase&) = default;
 	VectorBase& operator=(const VectorBase&) = default;
@@ -50,11 +36,78 @@ public:
 	const_iterator end() const { return &CRTP().data[0] + size(); }
 	constexpr std::size_t size() const { return std::extent<decltype(Derived::data)>::value; }
 
-	// operators
-	T& operator[](int index) { return CRTP().data[index]; }
-	const T& operator[](int index) const { return CRTP().data[index]; }
+	// Mathemmatics
+	// Single value method is used to operate all components with the same value.
+	// TODO : check bad cases, such as infinity(or think it as a good usage), nan(absolutely bad)...
+	// TODO : Avoid duplicated codes in a good way?
+	Derived& Add(T value)
+	{
+		std::for_each(this->begin(), this->end(), [&value](T& component) { component += value; });
+		return CRTP();
+	}
+	Derived& Add(const Derived& other)
+	{
+		int count = 0;
+		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component += other[count]; });
+		return CRTP();
+	}
 
-	bool operator==(const VectorBase& other)
+	Derived& Minus(T value)
+	{
+		std::for_each(this->begin(), this->end(), [&value](T& component) { component -= value; });
+		return CRTP();
+	}
+	Derived& Minus(const Derived& other)
+	{
+		int count = 0;
+		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component -= other[count]; });
+		return CRTP();
+	}
+
+	Derived& Multiply(T value)
+	{
+		std::for_each(this->begin(), this->end(), [&value](T& component) { component *= value; });
+		return CRTP();
+	}
+	Derived& Multiply(const Derived& other)
+	{
+		int count = 0;
+		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component *= other[count]; });
+		return CRTP();
+	}
+
+	Derived& Divide(T value)
+	{
+		std::for_each(this->begin(), this->end(), [&value](T& component) { component /= value; });
+		return CRTP();
+	}
+	Derived& Divide(const Derived& other)
+	{
+		int count = 0;
+		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component /= other[count]; });
+		return CRTP();
+	}
+
+	T Length() const { return std::sqrt(LengthSquare()); }
+	T LengthSquare() const
+	{
+		T result {};
+		std::for_each(this->begin(), this->end(), [&result](const T& component) { result += component * component; });
+		return result;
+	}
+	
+	void Normalize()
+	{
+		T length = Length();
+		std::for_each(this->begin(), this->end(), [&length](T& component) { component /= length; });
+	}
+
+	// Operators
+	constexpr T& operator[](int index) { return CRTP().data[index]; }
+	constexpr const T& operator[](int index) const { return CRTP().data[index]; }
+
+	bool operator!=(const Derived& other) { return !this == other; }
+	bool operator==(const Derived& other)
 	{
 		for (std::size_t index = 0; index < size(); ++index)
 		{
@@ -77,10 +130,20 @@ public:
 		return true;
 	}
 
-	bool operator!=(const VectorBase& other)
-	{
-		return !this == other;
-	}
+	Derived operator+(const Derived& other) const { return Derived(*this).Add(other); }
+	Derived& operator+=(const Derived& other) { return Add(other); }
+
+	Derived operator-() const { return Derived(*this).Multiply(-1); }
+	Derived operator-(const Derived& other) const { return Derived(*this).Minus(other); }
+	Derived& operator-=(const Derived& other) { return Minus(other); }
+
+	Derived operator*(const Derived& other) const { return Derived(*this).Multiply(other); }
+	Derived& operator*=(const Derived& other) { return Multiply(other); }
+
+	Derived operator/(const Derived& other) const { return Derived(*this).Divide(other); }
+	Derived& operator/=(const Derived& other) { return Divide(other); }
+
+	// TODO : Support casting Derived<T, N-1> -> Derived<T, N>, Derived<T, N> -> Derived<T, N - 1> ?
 };
 
 }

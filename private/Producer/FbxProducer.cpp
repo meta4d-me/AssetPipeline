@@ -179,7 +179,7 @@ bool FbxProducer::TraverseMeshNode(fbxsdk::FbxNode* pMeshNode, SceneDatabase* pS
 					normal = pVertexNormalSet->GetDirectArray().GetAt(normalIndex);
 				}
 
-				mesh.SetVertexNormal(vertexID, Direction(normal[0], normal[1], normal[2], normal[3]));
+				mesh.SetVertexNormal(vertexID, Direction(normal[0], normal[1], normal[2]));
 			}
 
 			// uv
@@ -192,7 +192,7 @@ bool FbxProducer::TraverseMeshNode(fbxsdk::FbxNode* pMeshNode, SceneDatabase* pS
 					pFbxMesh->GetPolygonVertexUV(polygonIndex, vertexIndex, pUVSet->GetName(), uv, unmappedUV);
 					uv[1] = 1.0f - uv[1];
 
-					mesh.SetVertexUV(uvSetIndex, vertexIndex, UV(uv[0], uv[1], 0.0f, 0.0f));
+					mesh.SetVertexUV(uvSetIndex, vertexIndex, UV(uv[0], uv[1]));
 				}
 			}
 
