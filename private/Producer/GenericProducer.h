@@ -19,25 +19,25 @@ public:
 	/// <summary>
 	/// Duplicate vertices from the unique vertex in the same positions.
 	/// </summary>
-	void ActivateDuplicateVertexService(bool flag) { m_bWantDuplicatedVertex = flag; }
+	void ActivateDuplicateVertexService() { m_bWantDuplicatedVertex = true; }
 	bool IsDuplicateVertexServiceActive() const { return m_bWantDuplicatedVertex; }
 
 	/// <summary>
 	/// Generate bounding boxes for every mesh.
 	/// </summary>
-	void ActivateBoundingBoxService(bool flag) { m_bWantBoundingBox = flag; }
+	void ActivateBoundingBoxService() { m_bWantBoundingBox = true; }
 	bool IsBoundingBoxServiceActive() const { return m_bWantBoundingBox; }
 
 	/// <summary>
 	/// Flatten the whole model's hierarchy in the same level.
 	/// </summary>
-	void ActivateFlattenHierarchyService(bool flag) { m_bWantFlattenHierarchy = flag; }
+	void ActivateFlattenHierarchyService() { m_bWantFlattenHierarchy = true; }
 	bool IsFlattenHierarchyServiceActive() const { return m_bWantFlattenHierarchy; }
 
 	/// <summary>
 	/// Triangulate the whole model.
 	/// </summary>
-	void ActivateTriangulateService(bool flag) { m_bWantTriangulate = flag; }
+	void ActivateTriangulateService() { m_bWantTriangulate = true; }
 	bool IsTriangulateServiceActive() const { return m_bWantTriangulate; }
 
 private:
