@@ -23,6 +23,8 @@ int main(int argc, char** argv)
 	const char* pInputFilePath = argv[1];
 	const char* pOutputFilePath = argv[2];
 	GenericProducer producer(pInputFilePath);
+	producer.ActivateFlattenHierarchyService();
+	producer.ActivateTriangulateService();
 	CatDogConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);
 	processor.Run();
