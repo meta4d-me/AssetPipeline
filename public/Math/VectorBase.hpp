@@ -48,7 +48,7 @@ public:
 	Derived& Add(const Derived& other)
 	{
 		int count = 0;
-		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component += other[count]; });
+		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component += other[count++]; });
 		return CRTP();
 	}
 
@@ -60,7 +60,7 @@ public:
 	Derived& Minus(const Derived& other)
 	{
 		int count = 0;
-		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component -= other[count]; });
+		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component -= other[count++]; });
 		return CRTP();
 	}
 
@@ -72,7 +72,7 @@ public:
 	Derived& Multiply(const Derived& other)
 	{
 		int count = 0;
-		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component *= other[count]; });
+		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component *= other[count++]; });
 		return CRTP();
 	}
 
@@ -84,7 +84,7 @@ public:
 	Derived& Divide(const Derived& other)
 	{
 		int count = 0;
-		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component /= other[count]; });
+		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component /= other[count++]; });
 		return CRTP();
 	}
 
