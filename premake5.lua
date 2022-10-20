@@ -1,35 +1,41 @@
 --------------------------------------------------------------
 -- @Description : Makefile of CatDog Engine Tools
 --------------------------------------------------------------
+
+--------------------------------------------------------------
+-- All SDK configs
 CommercialSDKConfigs = {}
-FBX_SDK_DIR = os.getenv("FBX_SDK_DIR")
-if FBX_SDK_DIR and not os.isdir(FBX_SDK_DIR) then
-	FBX_SDK_DIR = nil
+function DefineSDKConfig(sdkDirectoryMacro)
+	local sdkDirectory = os.getenv(sdkDirectoryMacro)
+	if sdkDirectory and not os.isdir(sdkDirectory) then
+		sdkDirectory = nil
+	end
+
+	if sdkDirectory then
+		print(sdkDirectoryMacro.." found...")
+		local sdkConfig = {}
+		sdkConfig.include = path.join(sdkDirectory, "include")
+		sdkConfig.lib_dir = path.join(sdkDirectory, "lib")
+		allLinkLibs = os.matchfiles(sdkConfig.lib_dir.."/*.lib")
+		sdkConfig.lib_names = { table.unpack(allLinkLibs) }
+		sdkConfig.dll_paths = { path.join(sdkDirectory, "runtime") }
+		CommercialSDKConfigs[sdkDirectoryMacro] = sdkConfig
+	else
+		print(sdkDirectoryMacro.." not found, skip related features...")
+	end
 end
 
-SPEEDTREE_SDK_DIR = os.getenv("SPEEDTREE_SDK_DIR")
-if SPEEDTREE_SDK_DIR and not os.isdir(SPEEDTREE_SDK_DIR) then
-	SPEEDTREE_SDK_DIR = nil
+function CheckSDKExists(sdkDirectoryMacro)
+	return CommercialSDKConfigs[sdkDirectoryMacro] ~= nil
 end
 
-if FBX_SDK_DIR then
-	print("Found FBX_SDK_DIR...")
-	CommercialSDKConfigs["fbx"] = {}
-	CommercialSDKConfigs["fbx"].include = path.join(FBX_SDK_DIR, "include")
-	CommercialSDKConfigs["fbx"].lib_dir = path.join(FBX_SDK_DIR, "lib")
-	CommercialSDKConfigs["fbx"].lib_names = { "libfbxsdk" }
-	CommercialSDKConfigs["fbx"].dll_paths = { path.join(FBX_SDK_DIR, "runtime") }
-end
+DefineSDKConfig("FBX_SDK_DIR")
+DefineSDKConfig("PHYSX_SDK_DIR")
+DefineSDKConfig("SPEEDTREE_SDK_DIR")
+--------------------------------------------------------------
 
-if SPEEDTREE_SDK_DIR then
-	print("Found SPEEDTREE_SDK_DIR...")
-	CommercialSDKConfigs["st"] = {}
-	CommercialSDKConfigs["st"].include = ""
-	CommercialSDKConfigs["st"].lib_dir = ""
-	CommercialSDKConfigs["st"].lib_names = { }
-	CommercialSDKConfigs["st"].dll_paths = { }
-end
-
+--------------------------------------------------------------
+-- Define solution
 workspace("AssetPipeline")
 	architecture "x64"
 	configurations { "Debug", "Release" }
@@ -47,7 +53,10 @@ workspace("AssetPipeline")
 		-- For Windows OS, we want to use latest Windows SDK installed in the PC.
 		systemversion("latest")
 	filter {}
+--------------------------------------------------------------	
 
+--------------------------------------------------------------
+-- Define ThirdParty projects
 function DeclareExternalProject(projectName, projectKind, projectPath)
 	-- Same with projectName by default
 	projectPath = projectPath or projectName
@@ -72,9 +81,12 @@ function SetupAssimpLib(assimpLibName, configName)
 		assimpLibName,
 	}
 end
+--------------------------------------------------------------
 
+--------------------------------------------------------------
+-- Define lib
 project("AssetPipeline")
-	kind("ConsoleApp")
+	kind("StaticLib")
 	language("C++")
 	cppdialect("C++latest")
 	dependson { "assimp" }
@@ -89,15 +101,21 @@ project("AssetPipeline")
 		targetdir("build/bin/Release")
 	filter {}
 
+	--ignoredefaultlibraries {
+	--	"LIBCMT"
+	--}
+
 	files {
 		path.join("public/**.*"),
 		path.join("private/**.*"),
 	}
 	
 	allRemoveFiles = {}
-	if FBX_SDK_DIR == nil then
+	if not CheckSDKExists("FBX_SDK_DIR") then
 		table.insert(allRemoveFiles, "private/consumer/fbxconsumer.*")
 		table.insert(allRemoveFiles, "private/producer/fbxproducer.*")
+	elseif not CheckSDKExists("PHYSX_SDK_DIR") then
+		table.insert(allRemoveFiles, "private/consumer/physxconsumer.*")
 	end
 
 	removefiles {
@@ -186,3 +204,66 @@ project("AssetPipeline")
 		}
 	filter {}
 	postbuildmessage "Copying dependencies..."
+--------------------------------------------------------------
+
+--------------------------------------------------------------
+-- Define examples
+function MakeExample(exampleProject)
+	if string.contains(exampleProject, "Fbx") and not CheckSDKExists("FBX_SDK_DIR") then
+		print("FBX_SDK_DIR not found, Skip example "..exampleProject)
+		return
+	end
+
+	if string.contains(exampleProject, "Physx") and not CheckSDKExists("PHYSX_SDK_DIR") then
+		print("PHYSX_SDK_DIR not found, Skip example "..exampleProject)
+		return
+	end
+
+	print("Making example : "..exampleProject)
+	project(exampleProject)
+		kind("ConsoleApp")
+		language("C++")
+		cppdialect("C++latest")
+		dependson { "AssetPipeline" }
+		
+		location("build")
+		
+		filter { "configurations:Debug" }
+			objdir("build/obj/Debug")
+			targetdir("build/bin/Debug")
+		filter { "configurations:Release" }
+			objdir("build/obj/Release")
+			targetdir("build/bin/Release")
+		filter {}
+		
+		files {
+			"examples/"..exampleProject.."/**.*"
+		}
+		
+		includedirs {
+			"public",
+			"private",
+		}
+
+		filter { "configurations:Debug" }
+			libdirs {
+				"build/bin/Debug/"
+			}
+		filter { "configurations:Release" }
+			libdirs {
+				"build/bin/Release/"
+			}
+		filter {}
+
+		links {
+			"AssetPipeline"
+		}
+end
+		
+group "Examples"
+exampleProjectFolders = os.matchdirs("examples/*")
+for _, exampleProject in pairs(exampleProjectFolders) do
+	MakeExample(path.getbasename(exampleProject))
+end
+group ""
+--------------------------------------------------------------

@@ -8,11 +8,6 @@
 namespace cdtools
 {
 
-CatDogConsumer::CatDogConsumer(std::string filePath) :
-	m_filePath(std::move(filePath))
-{
-}
-
 void CatDogConsumer::Execute(const SceneDatabase* pSceneDatabase)
 {
 	std::ofstream fout(m_filePath, std::ios::out | std::ios::binary);

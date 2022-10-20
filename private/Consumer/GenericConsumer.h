@@ -5,7 +5,7 @@
 namespace cdtools
 {
 
-class CatDogConsumer final : public BaseConsumer
+class GenericConsumer final : public BaseConsumer
 {
 public:
 	using BaseConsumer::BaseConsumer;

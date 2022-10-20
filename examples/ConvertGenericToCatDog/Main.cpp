@@ -1,8 +1,5 @@
 #include "Consumer/CatDogConsumer.h"
-#include "Consumer/FbxConsumer.h"
 #include "Processor/Processor.h"
-#include "Producer/CatDogProducer.h"
-#include "Producer/FbxProducer.h"
 #include "Producer/GenericProducer.h"
 #include "Utilities/PerformanceProfiler.h"
 

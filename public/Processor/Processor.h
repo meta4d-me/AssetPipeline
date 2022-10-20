@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 namespace cdtools
 {
 
@@ -11,7 +13,7 @@ class Processor final
 {
 public:
 	Processor() = delete;
-	Processor(IProducer* pProducer, IConsumer* pConsumer);
+	explicit Processor(IProducer* pProducer, IConsumer* pConsumer);
 	Processor(const Processor&) = delete;
 	Processor& operator=(const Processor&) = delete;
 	Processor(Processor&&) = delete;
@@ -24,7 +26,7 @@ private:
 	IProducer* m_pProducer = nullptr;
 	IConsumer* m_pConsumer = nullptr;
 
-	SceneDatabase* m_pSceneDatabase = nullptr;
+	std::unique_ptr<SceneDatabase> m_pSceneDatabase;
 };
 
 }

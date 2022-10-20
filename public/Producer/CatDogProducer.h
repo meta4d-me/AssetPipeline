@@ -1,22 +1,15 @@
 #pragma once
 
-#include <string>
-
-#include "Producer/IProducer.h"
+#include "Producer/BaseProducer.h"
 
 namespace cdtools
 {
 
-class CatDogProducer final : public IProducer
+class CatDogProducer final : public BaseProducer
 {
 public:
-	CatDogProducer() = delete;
-	CatDogProducer(std::string filePath);
-
+	using BaseProducer::BaseProducer;
 	virtual void Execute(SceneDatabase* pSceneDatabase) override;
-
-private:
-	std::string m_filePath;
 };
 
 }

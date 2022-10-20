@@ -9,8 +9,7 @@
 namespace cdtools
 {
 
-FbxProducer::FbxProducer(std::string filePath) :
-	m_filePath(std::move(filePath))
+void FbxProducer::Init()
 {
 	m_pSDKManager = fbxsdk::FbxManager::Create();
 	assert(m_pSDKManager && "Failed to init sdk manager.");
@@ -45,6 +44,8 @@ FbxProducer::~FbxProducer()
 
 void FbxProducer::Execute(SceneDatabase* pSceneDatabase)
 {
+	Init();
+
 	fbxsdk::FbxImporter* pSDKImporter = fbxsdk::FbxImporter::Create(m_pSDKManager, "FbxProducer");
 	assert(pSDKImporter && "Failed to init sdk importer.");
 	if (!pSDKImporter->Initialize(m_filePath.c_str()))

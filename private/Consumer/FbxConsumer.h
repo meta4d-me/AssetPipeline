@@ -1,8 +1,6 @@
 #pragma once
 
-#include <string>
-
-#include "Consumer/IConsumer.h"
+#include "Consumer/BaseConsumer.h"
 
 namespace fbxsdk
 {
@@ -16,18 +14,14 @@ class FbxScene;
 namespace cdtools
 {
 
-class FbxConsumer final : public IConsumer
+class FbxConsumer final : public BaseConsumer
 {
 public:
-	FbxConsumer() = delete;
-	FbxConsumer(std::string filePath);
-	~FbxConsumer();
-
+	using BaseConsumer::BaseConsumer;
 	virtual void Execute(const SceneDatabase* pSceneDatabase) override;
+	virtual ~FbxConsumer();
 
 private:
-	std::string m_filePath;
-
 	fbxsdk::FbxManager*		m_pSDKManager = nullptr;
 	fbxsdk::FbxScene*		m_pSDKScene = nullptr;
 	fbxsdk::FbxExporter*	m_pSDKExporter = nullptr;
