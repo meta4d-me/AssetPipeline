@@ -114,8 +114,11 @@ project("AssetPipeline")
 	if not CheckSDKExists("FBX_SDK_DIR") then
 		table.insert(allRemoveFiles, "private/consumer/fbxconsumer.*")
 		table.insert(allRemoveFiles, "private/producer/fbxproducer.*")
-	elseif not CheckSDKExists("PHYSX_SDK_DIR") then
+	end
+	
+	if not CheckSDKExists("PHYSX_SDK_DIR") then
 		table.insert(allRemoveFiles, "private/consumer/physxconsumer.*")
+		table.insert(allRemoveFiles, "private/producer/physxproducer.*")
 	end
 
 	removefiles {

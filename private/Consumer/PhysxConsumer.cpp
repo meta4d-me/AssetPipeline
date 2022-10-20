@@ -76,7 +76,7 @@ void PhysxConsumer::Execute(const SceneDatabase* pSceneDatabase)
 
 		uint32_t collisionMeshBufferSize = collisionMeshBuffer.getSize();
 		fout.write(reinterpret_cast<char*>(&collisionMeshBufferSize), sizeof(collisionMeshBufferSize));
-		fout.write(reinterpret_cast<char*>(collisionMeshBuffer.getData()), sizeof(collisionMeshBufferSize));
+		fout.write(reinterpret_cast<char*>(collisionMeshBuffer.getData()), collisionMeshBufferSize);
 	}
 
 	fout.close();
