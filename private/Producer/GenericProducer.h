@@ -1,19 +1,15 @@
 #pragma once
 
-#include <string>
-
-#include "Producer/IProducer.h"
+#include "Producer/BaseProducer.h"
 
 namespace cdtools
 {
 
 // GenericProducer can be used to import all kinds of model formats, such as fbx, glTF, obj. Powered by assimp.
-class GenericProducer final : public IProducer
+class GenericProducer final : public BaseProducer
 {
 public:
-	GenericProducer() = delete;
-	GenericProducer(std::string filePath);
-
+	using BaseProducer::BaseProducer;
 	virtual void Execute(SceneDatabase* pSceneDatabase) override;
 
 	/// <summary>
@@ -41,8 +37,6 @@ public:
 	bool IsTriangulateServiceActive() const { return m_bWantTriangulate; }
 
 private:
-	std::string m_filePath;
-
 	// Service flags
 	bool m_bWantDuplicatedVertex = false;
 	bool m_bWantBoundingBox = false;

@@ -3,7 +3,6 @@
 #include "../Utilities/Utils.h"
 
 // 3rdParty
-//#define ASSIMP_DOUBLE_PRECISION
 #include <assimp/cimport.h>
 #include <assimp/material.h>
 #include <assimp/postprocess.h>
@@ -55,11 +54,6 @@ constexpr uint32_t numImportTextureTypes = sizeof(ImportTextureTypes) / sizeof(a
 
 namespace cdtools
 {
-
-GenericProducer::GenericProducer(std::string filePath) :
-	m_filePath(std::move(filePath))
-{
-}
 
 void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 {

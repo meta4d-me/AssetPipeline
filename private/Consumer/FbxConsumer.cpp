@@ -6,15 +6,10 @@
 #include <fbxsdk/fileio/fbxiosettings.h>
 
 // C/C++
-#include <assert.h>
+#include <cassert>
 
 namespace cdtools
 {
-
-FbxConsumer::FbxConsumer(std::string filePath) :
-	m_filePath(std::move(filePath))
-{
-}
 
 FbxConsumer::~FbxConsumer()
 {

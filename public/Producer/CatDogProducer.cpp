@@ -9,11 +9,6 @@
 namespace cdtools
 {
 
-CatDogProducer::CatDogProducer(std::string filePath) :
-	m_filePath(std::move(filePath))
-{
-}
-
 void CatDogProducer::Execute(SceneDatabase* pSceneDatabase)
 {
 	std::ifstream fin(m_filePath, std::ios::in | std::ios::binary);

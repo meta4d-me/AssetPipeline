@@ -5,7 +5,7 @@
 namespace cdtools
 {
 
-class CatDogProducer final : public BaseProducer
+class PhysxProducer final : public BaseProducer
 {
 public:
 	using BaseProducer::BaseProducer;
