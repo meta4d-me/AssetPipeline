@@ -14,8 +14,14 @@ cd assimp
 cd ..
 echo\
 
+@echo off
 cd ..
-call "./auto/commercial_sdk_locations.bat"
+if exist "./auto/commercial_sdk_locations.bat" (
+    call "./auto/commercial_sdk_locations.bat"
+) else (
+    echo commercial_sdk_locations does not exist, skipped
+)
+@echo on
 call "./auto/premake5" "vs2022"
 
 pause
