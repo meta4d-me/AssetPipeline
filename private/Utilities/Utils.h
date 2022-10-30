@@ -25,26 +25,30 @@ static bool IsEqual(float a, float b)
 }
 
 template<typename T>
-typename std::enable_if<std::is_arithmetic<T>::value>::type clamp(const T& x, const T& a, const T& b)
+constexpr T clamp(const T& x, const T& a, const T& b)
 {
+	static_assert(std::is_arithmetic<T>::value, "Input must be a number!");
 	return (x < a ? a : (x > b ? b : x));
 }
 
 template<typename T>
-typename std::enable_if<std::is_arithmetic<T>::value>::type step(const T& a, const T& x)
+constexpr T step(const T& a, const T& x)
 {
+	static_assert(std::is_arithmetic<T>::value, "Input must be a number!");
 	return x >= a ? static_cast<T>(1) : static_cast<T>(0);
 }
 
 template<typename T>
-typename std::enable_if<std::is_arithmetic<T>::value>::type pulse(const T& a, const T& b, const T& x)
+constexpr T pulse(const T& a, const T& b, const T& x)
 {
+	static_assert(std::is_arithmetic<T>::value, "Input must be a number!");
 	return (step<T>(a, x) - step<T>(b, x));
 }
 
 template<typename T>
-typename std::enable_if<std::is_floating_point<T>::value>::type smoothstep(const T& a, const T& b, const T& x)
+constexpr T smoothstep(const T& a, const T& b, const T& x)
 {
+	static_assert(std::is_floating_point<T>::value, "Input must be a floating point!");
 	if (x < a)
 	{
 		return static_cast<T>(0);
@@ -58,8 +62,9 @@ typename std::enable_if<std::is_floating_point<T>::value>::type smoothstep(const
 }
 
 template<typename T>
-typename std::enable_if<std::is_floating_point<T>::value>::type smoothstep_high(const T& a, const T& b, const T& x)
+constexpr T smoothstep_high(const T& a, const T& b, const T& x)
 {
+	static_assert(std::is_floating_point<T>::value, "Input must be a floating point!");
 	if (x < a)
 	{
 		return static_cast<T>(0);
@@ -73,8 +78,9 @@ typename std::enable_if<std::is_floating_point<T>::value>::type smoothstep_high(
 }
 
 template<typename T, typename IntType>
-typename std::enable_if<std::is_floating_point<T>::value>::type pmod(T a, T b)
+constexpr T pmod(T a, T b)
 {
+	static_assert(std::is_floating_point<T>::value, "Input must be a floating point!");
 	IntType n = static_cast<IntType>(a / b);
 	a -= n*b;
 	if (a < 0)
