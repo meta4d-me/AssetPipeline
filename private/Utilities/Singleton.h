@@ -4,52 +4,44 @@
 
 // Just throw this in the CPP file that uses the singleton class
 #define DECLARE_SINGLETON_INSTANCE_WITH_TYPE(type) template<>		\
-	std::unique_ptr<type> qe::Singleton<type>::mInstance = nullptr;
+	std::unique_ptr<type> Singleton<type>::mInstance = nullptr;
 
-namespace cdtools
+namespace cdtools 
 {
 
-	template<typename T >
-	class Singleton
+template<typename T >
+class Singleton 
+{
+
+public:
+
+	static T& getInstance() 
 	{
+		return *mInstance;
+	}
 
-	public:
+	template<typename...Args>
+	static T& createInstance(Args&&...args) 
+	{
+		mInstance = std::make_unique<T>(std::forward<Args>(args)...);
+		return *mInstance;
+	}
 
-		static T& getInstance()
-		{
-			QEASSERT(exists());
-			return *mInstance;
-		}
+	static bool exists() 
+	{
+		return mInstance != nullptr;
+	}
 
-		template<typename...Args>
-		static T& createInstance(Args&&...args)
-		{
-			QEASSERT(!mInstance);
-			mInstance = std::make_unique<T>(std::forward<Args>(args)...);
-			return *mInstance;
-		}
+	static void destroyInstance() 
+	{
+		mInstance = nullptr;
+	}
 
-		static bool exists()
-		{
-			return mInstance != nullptr;
-		}
+protected:
+	Singleton() {}
+	~Singleton() {}
 
-		static void destroyInstance()
-		{
-			mInstance = nullptr;
-		}
+	static std::unique_ptr<T> mInstance;
+};
 
-	protected:
-
-		Singleton()
-		{
-			QEASSERT(exists() == false);
-		}
-
-		~Singleton()
-		{}
-
-		static std::unique_ptr<T> mInstance;
-	};
-
-}	// cdtools
+}	// namespace cdtools

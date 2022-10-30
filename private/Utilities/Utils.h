@@ -1,6 +1,6 @@
 #pragma once
 
-#include <algorithm>
+#include <stdint.h>
 
 namespace cdtools
 {
@@ -55,6 +55,21 @@ typename std::enable_if<std::is_floating_point<T>::value>::type smoothstep(const
 	}
 	T f = (x - a) / (b - a);	//Calculate the ratio
 	return (f*f * (3 - 2*f));	//3x^2 - 2x^3
+}
+
+template<typename T>
+typename std::enable_if<std::is_floating_point<T>::value>::type smoothstep_high(const T& a, const T& b, const T& x)
+{
+	if (x < a)
+	{
+		return static_cast<T>(0);
+	}
+	if (x >= b)
+	{
+		return static_cast<T>(1);
+	}
+	T f = (x - a) / (b - a);				//Calculate the ratio
+	return (f*f*f * (6*f*f - 15*f + 10));	//6x^5-15x^4+10x^3
 }
 
 template<typename T, typename IntType>
