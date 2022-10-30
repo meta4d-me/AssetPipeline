@@ -54,7 +54,7 @@ typename std::enable_if<std::is_floating_point<T>::value>::type smoothstep(const
 		return static_cast<T>(1);
 	}
 	T f = (x - a) / (b - a);	//Calculate the ratio
-	return (f*f * (3 - 2.0f));	//3x^2 - 2x^3
+	return (f*f * (3 - 2*f));	//3x^2 - 2x^3
 }
 
 template<typename T, typename IntType>
