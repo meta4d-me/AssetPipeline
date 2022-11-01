@@ -1,5 +1,6 @@
 #include "Noise.h"
 
+// Adopted from https://github.com/KdotJPG/OpenSimplex2/blob/master/java/OpenSimplex2S.java
 namespace Details {
 
     constexpr int64_t PRIME_X = 0x5205402B9270C86FL;
