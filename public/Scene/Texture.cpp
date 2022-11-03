@@ -21,26 +21,19 @@ void Texture::Init(TextureID textureID, std::string texturePath)
 
 void Texture::ImportBinary(std::ifstream& fin)
 {
-	size_t texturePathLength;
 	std::string texturePath;
-	fin.read(reinterpret_cast<char*>(&texturePathLength), sizeof(texturePathLength));
-	texturePath.resize(texturePathLength);
-	fin.read(const_cast<char*>(texturePath.data()), texturePathLength);
+	ImportData(fin, texturePath);
 
 	uint32_t textureID;
-	fin.read(reinterpret_cast<char*>(&textureID), sizeof(textureID));
+	ImportData(fin, textureID);
 
 	Init(TextureID(textureID), std::move(texturePath));
 }
 
 void Texture::ExportBinary(std::ofstream& fout) const
 {
-	size_t texturePathLength = GetPath().size();
-	fout.write(reinterpret_cast<char*>(&texturePathLength), sizeof(texturePathLength));
-	fout.write(GetPath().c_str(), texturePathLength);
-
-	uint32_t textureID = GetID().Data();
-	fout.write(reinterpret_cast<char*>(&textureID), sizeof(textureID));
+	ExportData<std::string>(fout, GetPath());
+	ExportData<uint32_t>(fout, GetID().Data());
 }
 
 }

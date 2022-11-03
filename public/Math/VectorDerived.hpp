@@ -25,28 +25,28 @@ enum class VectorType : uint8_t
 /// <typeparam name="N"> The length of vector : 1, 2, 3, 4, ... </typeparam>
 /// <typeparam name="Vty"> The type of vector usage : Point, Direction, Color, ... </typeparam>
 template<typename T, std::size_t N, VectorType Vty>
-class VectorDerived : public VectorBase<T, VectorDerived<T, N, Vty>>
+class VectorDerived final : public VectorBase<T, VectorDerived<T, N, Vty>>
 {
 public:
-	using Drived = VectorDerived<T, N, Vty>;
-	using Base = VectorBase<T, Drived>;
+	using Derived = VectorDerived<T, N, Vty>;
+	using Base = VectorBase<T, Derived>;
 	using Base::Base;
 
 	// Default zero initialization constructor.
-	explicit VectorDerived() :
+	explicit constexpr VectorDerived() :
 		data {}
 	{
 	}
 
 	// Single value constructor is used to initialize all components to the same value.
-	explicit VectorDerived(T value)
+	explicit constexpr VectorDerived(T value)
 	{
 		std::fill(this->begin(), this->end(), value);
 	}
 
 	// N parameters constructor.
 	template <typename... Args>
-	explicit VectorDerived(Args... args) :
+	explicit constexpr VectorDerived(Args... args) :
 		data { static_cast<T>(args)... }
 	{
 		static_assert(sizeof...(Args) == N);
@@ -120,7 +120,7 @@ public:
 private:
 	// By default, base class can't access private or protected members.
 	// In CRTP design pattern, we use friend class to remove this limitation.
-	friend class VectorBase<T, Drived>;
+	friend class VectorBase<T, Derived>;
 
 private:
 	// Validations about template type parameters.
@@ -137,7 +137,7 @@ using Vec3 = VectorDerived<double, 3, VectorType::Generic>;
 using Vec4 = VectorDerived<double, 4, VectorType::Generic>;
 
 // More safe specific vector types than using generic types.
-using Point = VectorDerived<float, 3, VectorType::Point>;;
+using Point = VectorDerived<float, 3, VectorType::Point>;
 using Direction = VectorDerived<float, 3, VectorType::Direction>;
 using Color = VectorDerived<float, 4, VectorType::Color>;
 using U8Color = VectorDerived<uint8_t, 4, VectorType::U8Color>;

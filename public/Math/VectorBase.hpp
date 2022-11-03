@@ -3,6 +3,7 @@
 #include "Constants.h"
 
 #include <algorithm>
+#include <cmath>
 
 namespace cdtools
 {
@@ -106,21 +107,21 @@ public:
 	constexpr T& operator[](int index) { return CRTP().data[index]; }
 	constexpr const T& operator[](int index) const { return CRTP().data[index]; }
 
-	bool operator!=(const Derived& other) { return !this == other; }
-	bool operator==(const Derived& other)
+	bool operator!=(const Derived& other) const { return !this == other; }
+	bool operator==(const Derived& other) const
 	{
-		for (std::size_t index = 0; index < size(); ++index)
+		for (int index = 0; index < size(); ++index)
 		{
-			if constexpr (std::is_integral(T))
+			if constexpr (std::is_floating_point<T>())
 			{
-				if (CRTP().data[index] != other[index])
+				if (std::abs(CRTP().data[index] - other[index]) > SmallNumberTolerance)
 				{
 					return false;
 				}
 			}
 			else
 			{
-				if (std::abs(CRTP().data[index] - other[index]) > SmallNumberTolerance)
+				if (CRTP().data[index] != other[index])
 				{
 					return false;
 				}

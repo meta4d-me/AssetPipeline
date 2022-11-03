@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/ISerializable.h"
+#include "Core/ISerializable.hpp"
 #include "ObjectIDTypes.h"
 
 #include <string>

@@ -1,9 +1,10 @@
 #pragma once
 
-#include "Core/ISerializable.h"
-#include "Math/VectorDerived.hpp"
+#include "Core/ISerializable.hpp"
+#include "Math/AABB.hpp"
 #include "ObjectIDTypes.h"
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -13,21 +14,8 @@ namespace cdtools
 class Mesh final : public ISerializable
 {
 public:
-	// TJJ TODO : replace POD with well-designed data structure.
-	struct Triangle
-	{
-		// Used to pass compile because we need a constructor for std::vector to use
-		Triangle() {}
-
-		//
-		constexpr int GetVertexCount() const { return 3; }
-
-		VertexID v0;
-		VertexID v1;
-		VertexID v2;
-	};
-
 	// We expect to use triangulated mesh data in game engine.
+	using Triangle = std::array<VertexID, 3>;
 	using Polygon = Triangle;
 
 public:
@@ -41,13 +29,15 @@ public:
 	~Mesh() = default;
 
 	void Init(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount);
+	void SetAABB(AABB aabb) { m_aabb = std::move(aabb); }
 
 	const MeshID& GetID() const { return m_id; }
 	const std::string& GetName() const { return m_name; }
+	const AABB& GetAABB() const { return m_aabb; }
 	uint32_t GetVertexCount() const { return m_vertexCount; }
 	uint32_t GetPolygonCount() const { return m_polygonCount; }
 	
-	void SetMaterialID(uint32_t materialIndex);
+	void SetMaterialID(uint32_t materialIndex) { m_materialID = materialIndex; }
 	const MaterialID& GetMaterialID() const { return m_materialID; }
 
 	void SetVertexPosition(uint32_t vertexIndex, const Point& position);
@@ -92,26 +82,32 @@ public:
 	virtual void ExportBinary(std::ofstream& fout) const override;
 
 public:
-	static constexpr uint32_t MaxUVSetNumber = 8;
-	static constexpr uint32_t MaxColorSetNumber = 8;
+	static constexpr uint32_t MaxUVSetNumber = 4U;
+	static constexpr uint32_t MaxColorSetNumber = 4U;
 
 private:
 	uint32_t				m_vertexCount = 0;
 	uint32_t				m_vertexUVSetCount = 0;
 	uint32_t				m_vertexColorSetCount = 0;
 	uint32_t				m_polygonCount = 0;
+
 	MeshID					m_id;
 	MaterialID				m_materialID;
-
 	std::string				m_name;
+	AABB					m_aabb;
 	
-	// vertex data
+	// vertex geometry data
 	std::vector<Point>		m_vertexPositions;
 	std::vector<Direction>	m_vertexNormals;		// Maybe we wants to use face normals? Or we can help to calculate it.
 	std::vector<Direction>	m_vertexTangents;		// Ditto.
 	std::vector<Direction>	m_vertexBiTangents;		// If not stored in model file, we can help to calculate it.
+
+	// vertex texture data
 	std::vector<UV>			m_vertexUVSets[MaxUVSetNumber];
 	std::vector<Color>		m_vertexColorSets[MaxColorSetNumber];
+
+	// vertex animation data
+	// vertex joint weights...
 
 	// polygon data
 	std::vector<Polygon>	m_polygons;
