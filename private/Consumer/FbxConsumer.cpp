@@ -86,8 +86,6 @@ void FbxConsumer::Execute(const SceneDatabase* pSceneDatabase)
 		for (uint32_t polygonIndex = 0; polygonIndex < mesh.GetPolygonCount(); ++polygonIndex)
 		{
 			const Mesh::Polygon& polygon = mesh.GetPolygon(polygonIndex);
-
-			assert(3 == polygon.GetVertexCount() && "Only support triangles now.");
 			pFbxMesh->BeginPolygon(-1, -1, -1, false);
 			pFbxMesh->AddPolygon(polygon.v0.Data());
 			pFbxMesh->AddPolygon(polygon.v1.Data());

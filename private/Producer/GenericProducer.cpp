@@ -15,15 +15,6 @@
 namespace
 {
 
-constexpr uint32_t BasicImportModelFlags[] =
-{
-	aiProcess_ConvertToLeftHanded,
-	aiProcess_ImproveCacheLocality,		// Improve GPU vertex data cache miss rate. That is, ACMR.
-};
-
-// Speed first. Only open flags which are necessary.
-constexpr uint32_t DefaultImportModelFlags = cdtools::array_sum(BasicImportModelFlags);
-
 // Parameters
 // all textures for PBR Metalness-Roughness workflow purpose.
 constexpr aiTextureType ImportTextureTypes[] =
@@ -55,8 +46,17 @@ constexpr uint32_t numImportTextureTypes = sizeof(ImportTextureTypes) / sizeof(a
 namespace cdtools
 {
 
-void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
+uint32_t GenericProducer::GetImportFlags() const
 {
+	constexpr uint32_t BasicImportModelFlags[] =
+	{
+		aiProcess_ConvertToLeftHanded,
+		aiProcess_ImproveCacheLocality,		// Improve GPU vertex data cache miss rate. That is, ACMR.
+	};
+
+	// Speed first. Only open flags which are necessary.
+	constexpr uint32_t DefaultImportModelFlags = cdtools::array_sum(BasicImportModelFlags);
+
 	uint32_t importFlags = DefaultImportModelFlags;
 	if (IsTriangulateServiceActive())
 	{
@@ -78,11 +78,13 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 		importFlags += aiProcess_CalcTangentSpace;
 	}
 
-	bool doDuplicateVertices = IsDuplicateVertexServiceActive();
+	return importFlags;
+}
 
-	// Run
+void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
+{
 	printf("ImportStaticMesh : %s\n", m_filePath.c_str());
-	const aiScene* pScene = aiImportFile(m_filePath.c_str(), importFlags);
+	const aiScene* pScene = aiImportFile(m_filePath.c_str(), GetImportFlags());
 	if (!pScene || !pScene->HasMeshes())
 	{
 		printf(aiGetErrorString());
@@ -91,7 +93,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 
 	pSceneDatabase->SetName(m_filePath);
 
-	printf("Scene embedded texture number : %d\n", pScene->mNumTextures);
+	printf("[Unsupported] Scene embedded texture number : %d\n", pScene->mNumTextures);
 	//assert(pScene->mNumTextures == 0 && "Don't support embedded texture now.");
 	//for (uint32_t embeddedTextureIndex = 0; embeddedTextureIndex < pScene->mNumTextures; ++embeddedTextureIndex)
 	//{
@@ -188,6 +190,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 		pSceneDatabase->AddMaterial(std::move(material));
 	}
 
+	AABB sceneAABB;
 	pSceneDatabase->SetMeshCount(pScene->mNumMeshes);
 	printf("Scene mesh number : %d\n", pScene->mNumMeshes);
 	for (uint32_t meshIndex = 0; meshIndex < pScene->mNumMeshes; ++meshIndex)
@@ -201,7 +204,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 		assert(pMesh->mFaces && pMesh->mNumFaces > 0 && "No polygon data.");
 
 		uint32_t numVertices = pMesh->mNumVertices;
-		if (doDuplicateVertices)
+		if (IsDuplicateVertexServiceActive())
 		{
 			numVertices = pMesh->mNumFaces * 3;
 		}
@@ -209,10 +212,18 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 		printf("\tMesh vertex number : %d\n", numVertices);
 		assert(pMesh->mVertices && numVertices > 0 && "No vertex data.");
 
-		// Start to fill mesh data structure
 		Mesh mesh(MeshID(meshIndex), pMesh->mName.C_Str(), numVertices, pMesh->mNumFaces);
+		mesh.SetMaterialID(pMesh->mMaterialIndex);
 
-		// Or we can optimize these two variables by using template specialization
+		// By default, aabb will be empty.
+		if(IsBoundingBoxServiceActive())
+		{
+			AABB meshAABB(Point(pMesh->mAABB.mMin.x, pMesh->mAABB.mMin.y, pMesh->mAABB.mMin.z),
+				Point(pMesh->mAABB.mMax.x, pMesh->mAABB.mMax.y, pMesh->mAABB.mMax.z));
+			sceneAABB.Expand(meshAABB);
+			mesh.SetAABB(std::move(meshAABB));
+		}
+
 		std::map<uint32_t, uint32_t> mapNewIndexToOriginIndex;
 		uint32_t currentVertexID = 0U;
 		for (uint32_t faceIndex = 0; faceIndex < pMesh->mNumFaces; ++faceIndex)
@@ -227,7 +238,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 			uint32_t index0 = originIndex0;
 			uint32_t index1 = originIndex1;
 			uint32_t index2 = originIndex2;
-			if (doDuplicateVertices)
+			if (IsDuplicateVertexServiceActive())
 			{
 				index0 = currentVertexID;
 				index1 = currentVertexID + 1;
@@ -246,7 +257,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 		for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 		{
 			uint32_t vertexDataIndex = vertexIndex;
-			if (doDuplicateVertices)
+			if (IsDuplicateVertexServiceActive())
 			{
 				auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
 				assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
@@ -257,20 +268,12 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 			mesh.SetVertexPosition(vertexIndex, Point(position.x, position.y, position.z));
 		}
 
-		// bounding box
-		pMesh->mAABB.mMin.x;
-		pMesh->mAABB.mMin.y;
-		pMesh->mAABB.mMin.z;
-		pMesh->mAABB.mMax.x;
-		pMesh->mAABB.mMax.y;
-		pMesh->mAABB.mMax.z;
-
 		if (pMesh->HasNormals())
 		{
 			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
 				uint32_t vertexDataIndex = vertexIndex;
-				if (doDuplicateVertices)
+				if (IsDuplicateVertexServiceActive())
 				{
 					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
 					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
@@ -287,7 +290,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
 				uint32_t vertexDataIndex = vertexIndex;
-				if (doDuplicateVertices)
+				if (IsDuplicateVertexServiceActive())
 				{
 					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
 					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
@@ -301,7 +304,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
 				uint32_t vertexDataIndex = vertexIndex;
-				if (doDuplicateVertices)
+				if (IsDuplicateVertexServiceActive())
 				{
 					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
 					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
@@ -330,7 +333,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
 				uint32_t vertexDataIndex = vertexIndex;
-				if (doDuplicateVertices)
+				if (IsDuplicateVertexServiceActive())
 				{
 					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
 					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
@@ -351,7 +354,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
 				uint32_t vertexDataIndex = vertexIndex;
-				if (doDuplicateVertices)
+				if (IsDuplicateVertexServiceActive())
 				{
 					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
 					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
@@ -363,10 +366,10 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 			}
 		}
 
-		mesh.SetMaterialID(pMesh->mMaterialIndex);
-
 		pSceneDatabase->AddMesh(std::move(mesh));
 	}
+
+	pSceneDatabase->SetAABB(std::move(sceneAABB));
 
 	aiReleaseImport(pScene);
 	pScene = nullptr;

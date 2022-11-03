@@ -84,128 +84,78 @@ void Mesh::SetVertexColor(uint32_t setIndex, uint32_t vertexIndex, const Color& 
 
 void Mesh::SetPolygon(uint32_t polygonIndex, const VertexID& v0, const VertexID& v1, const VertexID& v2)
 {
-	m_polygons[polygonIndex].v0 = v0;
-	m_polygons[polygonIndex].v1 = v1;
-	m_polygons[polygonIndex].v2 = v2;
-}
-
-void Mesh::SetMaterialID(uint32_t materialIndex)
-{
-	m_materialID = materialIndex;
+	m_polygons[polygonIndex][0] = v0;
+	m_polygons[polygonIndex][1] = v1;
+	m_polygons[polygonIndex][2] = v2;
 }
 
 void Mesh::ImportBinary(std::ifstream& fin)
 {
 	std::string meshName;
-	size_t meshNameLength;
-	fin.read(reinterpret_cast<char*>(&meshNameLength), sizeof(meshNameLength));
-	meshName.resize(meshNameLength);
-	fin.read(const_cast<char*>(meshName.data()), meshNameLength);
+	ImportData(fin, meshName);
 
 	uint32_t meshID;
-	fin.read(reinterpret_cast<char*>(&meshID), sizeof(meshID));
-
 	uint32_t meshMaterialID;
-	fin.read(reinterpret_cast<char*>(&meshMaterialID), sizeof(meshMaterialID));
-
 	uint32_t vertexCount;
-	fin.read(reinterpret_cast<char*>(&vertexCount), sizeof(vertexCount));
-	
 	uint32_t vertexUVSetCount;
-	fin.read(reinterpret_cast<char*>(&vertexUVSetCount), sizeof(vertexUVSetCount));
-
 	uint32_t vertexColorSetCount;
-	fin.read(reinterpret_cast<char*>(&vertexColorSetCount), sizeof(vertexColorSetCount));
-
 	uint32_t polygonCount;
-	fin.read(reinterpret_cast<char*>(&polygonCount), sizeof(polygonCount));
+	ImportData(fin, meshID);
+	ImportData(fin, meshMaterialID);
+	ImportData(fin, vertexCount);
+	ImportData(fin, vertexUVSetCount);
+	ImportData(fin, vertexColorSetCount);
+	ImportData(fin, polygonCount);
 
 	Init(MeshID(meshID), std::move(meshName), vertexCount, polygonCount);
 	SetMaterialID(meshMaterialID);
 	SetVertexUVSetCount(vertexUVSetCount);
 	SetVertexColorSetCount(vertexColorSetCount);
 
-	size_t bufferBytes;
-	fin.read(reinterpret_cast<char*>(&bufferBytes), sizeof(bufferBytes));
-	fin.read(reinterpret_cast<char*>(GetVertexPositions().data()), bufferBytes);
-
-	fin.read(reinterpret_cast<char*>(&bufferBytes), sizeof(bufferBytes));
-	fin.read(reinterpret_cast<char*>(GetVertexNormals().data()), bufferBytes);
-
-	fin.read(reinterpret_cast<char*>(&bufferBytes), sizeof(bufferBytes));
-	fin.read(reinterpret_cast<char*>(GetVertexTangents().data()), bufferBytes);
-
-	fin.read(reinterpret_cast<char*>(&bufferBytes), sizeof(bufferBytes));
-	fin.read(reinterpret_cast<char*>(GetVertexBiTangents().data()), bufferBytes);
+	ImportDataBuffer(fin, GetVertexPositions().data());
+	ImportDataBuffer(fin, GetVertexNormals().data());
+	ImportDataBuffer(fin, GetVertexTangents().data());
+	ImportDataBuffer(fin, GetVertexBiTangents().data());
 
 	for (uint32_t uvSetIndex = 0; uvSetIndex < GetVertexUVSetCount(); ++uvSetIndex)
 	{
-		fin.read(reinterpret_cast<char*>(&bufferBytes), sizeof(bufferBytes));
-		fin.read(reinterpret_cast<char*>(GetVertexUV(uvSetIndex).data()), bufferBytes);
+		ImportDataBuffer(fin, GetVertexUV(uvSetIndex).data());
 	}
 
 	for (uint32_t colorSetIndex = 0; colorSetIndex < GetVertexColorSetCount(); ++colorSetIndex)
 	{
-		fin.read(reinterpret_cast<char*>(&bufferBytes), sizeof(bufferBytes));
-		fin.read(reinterpret_cast<char*>(GetVertexColor(colorSetIndex).data()), bufferBytes);
+		ImportDataBuffer(fin, GetVertexColor(colorSetIndex).data());
 	}
 
-	fin.read(reinterpret_cast<char*>(&bufferBytes), sizeof(bufferBytes));
-	fin.read(reinterpret_cast<char*>(GetPolygons().data()), bufferBytes);
+	ImportDataBuffer(fin, GetPolygons().data());
 }
 
 void Mesh::ExportBinary(std::ofstream& fout) const
 {
-	size_t meshNameLength = GetName().size();
-	fout.write(reinterpret_cast<char*>(&meshNameLength), sizeof(meshNameLength));
-	fout.write(GetName().c_str(), meshNameLength);
-	uint32_t meshID = GetID().Data();
-	uint32_t meshMaterialID = GetMaterialID().Data();
-	uint32_t vertexCount = GetVertexCount();
-	uint32_t vertexUVSetCount = GetVertexUVSetCount();
-	uint32_t vertexColorSetCount = GetVertexColorSetCount();
-	uint32_t polygonCount = GetPolygonCount();
+	ExportData<std::string>(fout, GetName());
+	ExportData<uint32_t>(fout, GetID().Data());
+	ExportData<uint32_t>(fout, GetMaterialID().Data());
+	ExportData<uint32_t>(fout, GetVertexCount());
+	ExportData<uint32_t>(fout, GetVertexUVSetCount());
+	ExportData<uint32_t>(fout, GetVertexColorSetCount());
+	ExportData<uint32_t>(fout, GetPolygonCount());
 
-	fout.write(reinterpret_cast<char*>(&meshID), sizeof(meshID));
-	fout.write(reinterpret_cast<char*>(&meshMaterialID), sizeof(meshMaterialID));
-	fout.write(reinterpret_cast<char*>(&vertexCount), sizeof(vertexCount));
-	fout.write(reinterpret_cast<char*>(&vertexUVSetCount), sizeof(vertexUVSetCount));
-	fout.write(reinterpret_cast<char*>(&vertexColorSetCount), sizeof(vertexColorSetCount));
-	fout.write(reinterpret_cast<char*>(&polygonCount), sizeof(polygonCount));
+	ExportDataBuffer(fout, GetVertexPositions().data(), GetVertexPositions().size());
+	ExportDataBuffer(fout, GetVertexNormals().data(), GetVertexNormals().size());
+	ExportDataBuffer(fout, GetVertexTangents().data(), GetVertexTangents().size());
+	ExportDataBuffer(fout, GetVertexBiTangents().data(), GetVertexBiTangents().size());
 
-	size_t bufferBytes = GetVertexPositions().size() * sizeof(Point);
-	fout.write(reinterpret_cast<const char*>(&bufferBytes), sizeof(bufferBytes));
-	fout.write(reinterpret_cast<const char*>(GetVertexPositions().data()), bufferBytes);
-
-	bufferBytes = GetVertexNormals().size() * sizeof(Direction);
-	fout.write(reinterpret_cast<const char*>(&bufferBytes), sizeof(bufferBytes));
-	fout.write(reinterpret_cast<const char*>(GetVertexNormals().data()), bufferBytes);
-
-	bufferBytes = GetVertexTangents().size() * sizeof(Direction);
-	fout.write(reinterpret_cast<const char*>(&bufferBytes), sizeof(bufferBytes));
-	fout.write(reinterpret_cast<const char*>(GetVertexTangents().data()), bufferBytes);
-
-	bufferBytes = GetVertexBiTangents().size() * sizeof(Direction);
-	fout.write(reinterpret_cast<const char*>(&bufferBytes), sizeof(bufferBytes));
-	fout.write(reinterpret_cast<const char*>(GetVertexBiTangents().data()), bufferBytes);
-
-	for (uint32_t uvSetIndex = 0; uvSetIndex < vertexUVSetCount; ++uvSetIndex)
+	for (uint32_t uvSetIndex = 0; uvSetIndex < GetVertexUVSetCount(); ++uvSetIndex)
 	{
-		bufferBytes = GetVertexUV(uvSetIndex).size() * sizeof(UV);
-		fout.write(reinterpret_cast<const char*>(&bufferBytes), sizeof(bufferBytes));
-		fout.write(reinterpret_cast<const char*>(GetVertexUV(uvSetIndex).data()), bufferBytes);
+		ExportDataBuffer(fout, GetVertexUV(uvSetIndex).data(), GetVertexUV(uvSetIndex).size());
 	}
 
-	for (uint32_t colorSetIndex = 0; colorSetIndex < vertexColorSetCount; ++colorSetIndex)
+	for (uint32_t colorSetIndex = 0; colorSetIndex < GetVertexColorSetCount(); ++colorSetIndex)
 	{
-		bufferBytes = GetVertexColor(colorSetIndex).size() * sizeof(Color);
-		fout.write(reinterpret_cast<const char*>(&bufferBytes), sizeof(bufferBytes));
-		fout.write(reinterpret_cast<const char*>(GetVertexColor(colorSetIndex).data()), bufferBytes);
+		ExportDataBuffer(fout, GetVertexColor(colorSetIndex).data(), GetVertexColor(colorSetIndex).size());
 	}
 
-	bufferBytes = GetPolygons().size() * sizeof(Mesh::Polygon);
-	fout.write(reinterpret_cast<const char*>(&bufferBytes), sizeof(bufferBytes));
-	fout.write(reinterpret_cast<const char*>(GetPolygons().data()), bufferBytes);
+	ExportDataBuffer(fout, GetPolygons().data(), GetPolygons().size());
 }
 
 }

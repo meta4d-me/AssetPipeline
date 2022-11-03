@@ -2,6 +2,8 @@
 -- @Description : Makefile of CatDog Engine Tools
 --------------------------------------------------------------
 
+local currentWorkingPath = os.getcwd()
+
 --------------------------------------------------------------
 -- All SDK configs
 CommercialSDKConfigs = {}
@@ -56,6 +58,30 @@ workspace("AssetPipeline")
 --------------------------------------------------------------	
 
 --------------------------------------------------------------
+-- Define Utility projects
+group("Build")
+project("AutoMake")
+	kind("Utility")
+	location("build")
+	files {
+		"premake5.lua"
+	}
+
+	filter { "system:windows", "action:vs2022" }
+		prebuildcommands {
+			"cd "..currentWorkingPath,
+			"auto/make_win64_vs2022.bat",
+		}
+	filter { "system:windows", "action:vs2019" }
+		prebuildcommands {
+			"cd "..currentWorkingPath,
+			"auto/make_win64_vs2019.bat",
+		}	
+	filter {}
+group("")
+--------------------------------------------------------------
+
+--------------------------------------------------------------
 -- Define ThirdParty projects
 function DeclareExternalProject(projectName, projectKind, projectPath)
 	-- Same with projectName by default
@@ -63,7 +89,7 @@ function DeclareExternalProject(projectName, projectKind, projectPath)
 
 	externalproject(projectName)
 		kind(projectKind)
-		location(path.join(ThirdPartyProjectPath, projectPath))
+		location(projectPath)
 end
 
 group "ThirdParty/assimp"
@@ -177,7 +203,6 @@ project("AssetPipeline")
 	filter{}
 
 	-- Auto copy dlls
-	local currentWorkingPath = os.getcwd()
 	commercialSDKPostCmds = {}
 	filter { "configurations:Debug" }
 		for _, config in pairs(CommercialSDKConfigs) do

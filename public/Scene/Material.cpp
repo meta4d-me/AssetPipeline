@@ -50,27 +50,22 @@ std::optional<TextureID> Material::GetTextureID(MaterialTextureType textureType)
 
 void Material::ImportBinary(std::ifstream& fin)
 {
-	size_t materialNameLength;
 	std::string materialName;
-	fin.read(reinterpret_cast<char*>(&materialNameLength), sizeof(materialNameLength));
-	materialName.resize(materialNameLength);
-	fin.read(const_cast<char*>(materialName.data()), materialNameLength);
+	ImportData(fin, materialName);
 
 	uint32_t materialID;
-	fin.read(reinterpret_cast<char*>(&materialID), sizeof(materialID));
+	ImportData(fin, materialID);
 
 	Init(MaterialID(materialID), std::move(materialName));
 
 	size_t materialTextureCount;
-	fin.read(reinterpret_cast<char*>(&materialTextureCount), sizeof(materialTextureCount));
-
+	ImportData(fin, materialTextureCount);
 	for (uint32_t textureIndex = 0; textureIndex < materialTextureCount; ++textureIndex)
 	{
 		size_t textureType;
-		fin.read(reinterpret_cast<char*>(&textureType), sizeof(textureType));
-
 		uint32_t materialTextureID;
-		fin.read(reinterpret_cast<char*>(&materialTextureID), sizeof(materialTextureID));
+		ImportData(fin, textureType);
+		ImportData(fin, materialTextureID);
 
 		SetTextureID(static_cast<MaterialTextureType>(textureType), TextureID(materialTextureID));
 	}
@@ -78,25 +73,17 @@ void Material::ImportBinary(std::ifstream& fin)
 
 void Material::ExportBinary(std::ofstream& fout) const
 {
-	size_t materialNameLength = GetName().size();
-	fout.write(reinterpret_cast<char*>(&materialNameLength), sizeof(materialNameLength));
-	fout.write(GetName().c_str(), materialNameLength);
-
-	uint32_t materialID = GetID().Data();
-	fout.write(reinterpret_cast<char*>(&materialID), sizeof(materialID));
+	ExportData<std::string>(fout, GetName());
+	ExportData<uint32_t>(fout, GetID().Data());
 
 	const Material::TextureIDMap& textureIDMap = GetTextureIDMap();
-	size_t materialTextureCount = textureIDMap.size();
-	fout.write(reinterpret_cast<char*>(&materialTextureCount), sizeof(materialTextureCount));
+	ExportData<size_t>(fout, textureIDMap.size());
 
 	for (Material::TextureIDMap::const_iterator it = textureIDMap.begin(), itEnd = textureIDMap.end();
 		it != itEnd; ++it)
 	{
-		size_t textureType = static_cast<size_t>(it->first);
-		uint32_t materialTextureID = it->second.Data();
-
-		fout.write(reinterpret_cast<char*>(&textureType), sizeof(textureType));
-		fout.write(reinterpret_cast<char*>(&materialTextureID), sizeof(materialTextureID));
+		ExportData<size_t>(fout, static_cast<size_t>(it->first));
+		ExportData<uint32_t>(fout, it->second.Data());
 	}
 }
 

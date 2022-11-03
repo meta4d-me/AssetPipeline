@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Math/AABB.hpp"
 #include "Material.h"
 #include "Mesh.h"
 #include "Texture.h"
@@ -10,7 +11,7 @@
 namespace cdtools
 {
 
-class SceneDatabase
+class SceneDatabase : public ISerializable
 {
 public:
 	using TextureMap = std::unordered_map<std::string, TextureID>;
@@ -23,8 +24,11 @@ public:
 	SceneDatabase& operator=(SceneDatabase&&) = default;
 	~SceneDatabase() = default;
 
-	void SetName(std::string sceneName);
+	void SetName(std::string sceneName) { m_name = std::move(sceneName); }
 	const std::string& GetName() const { return m_name; }
+	
+	void SetAABB(AABB aabb) { m_aabb = std::move(aabb); }
+	const AABB& GetAABB() const { return m_aabb; }
 
 	// mesh
 	void AddMesh(Mesh mesh);
@@ -49,8 +53,13 @@ public:
 	void AddTexture(Texture texture);
 	const TextureMap& GetTextureMap() const { return m_mapPathToTextureIDs; }
 
+	// ISerializable
+	virtual void ImportBinary(std::ifstream& fin) override;
+	virtual void ExportBinary(std::ofstream& fout) const override;
+
 private:
 	std::string m_name;
+	AABB m_aabb;
 
 	// mesh data
 	std::vector<Mesh> m_meshes;

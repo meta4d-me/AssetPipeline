@@ -37,10 +37,13 @@ public:
 	bool IsTriangulateServiceActive() const { return m_bWantTriangulate; }
 
 	/// <summary>
-	/// Triangulate the whole model.
+	/// Generate tangent space vertex coordinates.
 	/// </summary>
 	void ActivateTangentsSpaceService() { m_bWantTangentsSpace = true; }
 	bool IsTangentsSpaceServiceActive() const { return m_bWantTangentsSpace; }
+
+private:
+	uint32_t GetImportFlags() const;
 
 private:
 	// Service flags
