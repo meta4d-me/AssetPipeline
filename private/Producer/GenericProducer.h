@@ -36,12 +36,19 @@ public:
 	void ActivateTriangulateService() { m_bWantTriangulate = true; }
 	bool IsTriangulateServiceActive() const { return m_bWantTriangulate; }
 
+	/// <summary>
+	/// Triangulate the whole model.
+	/// </summary>
+	void ActivateTangentsSpaceService() { m_bWantTangentsSpace = true; }
+	bool IsTangentsSpaceServiceActive() const { return m_bWantTangentsSpace; }
+
 private:
 	// Service flags
 	bool m_bWantDuplicatedVertex = false;
 	bool m_bWantBoundingBox = false;
 	bool m_bWantFlattenHierarchy = false;
 	bool m_bWantTriangulate = false;
+	bool m_bWantTangentsSpace = false;
 };
 
 }

@@ -22,6 +22,7 @@ int main(int argc, char** argv)
 	GenericProducer producer(pInputFilePath);
 	producer.ActivateFlattenHierarchyService();
 	producer.ActivateTriangulateService();
+	producer.ActivateTangentsSpaceService();
 	FbxConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);
 	processor.Run();

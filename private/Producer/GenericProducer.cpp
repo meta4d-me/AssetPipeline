@@ -73,6 +73,11 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 		importFlags += aiProcess_PreTransformVertices;
 	}
 
+	if (IsTangentsSpaceServiceActive())
+	{
+		importFlags += aiProcess_CalcTangentSpace;
+	}
+
 	bool doDuplicateVertices = IsDuplicateVertexServiceActive();
 
 	// Run
@@ -237,21 +242,19 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 			mesh.SetPolygon(faceIndex, VertexID(index0), VertexID(index1), VertexID(index2));
 		}
 
-		if (pMesh->mVertices)
+		assert(pMesh->HasPositions() && "Mesh doesn't have vertex positions.");
+		for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 		{
-			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
+			uint32_t vertexDataIndex = vertexIndex;
+			if (doDuplicateVertices)
 			{
-				uint32_t vertexDataIndex = vertexIndex;
-				if (doDuplicateVertices)
-				{
-					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-					vertexDataIndex = itNewIndex->second;
-				}
-
-				const aiVector3D& position = pMesh->mVertices[vertexDataIndex];
-				mesh.SetVertexPosition(vertexIndex, Point(position.x, position.y, position.z));
+				auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
+				assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
+				vertexDataIndex = itNewIndex->second;
 			}
+
+			const aiVector3D& position = pMesh->mVertices[vertexDataIndex];
+			mesh.SetVertexPosition(vertexIndex, Point(position.x, position.y, position.z));
 		}
 
 		// bounding box
@@ -262,7 +265,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 		pMesh->mAABB.mMax.y;
 		pMesh->mAABB.mMax.z;
 
-		if (pMesh->mNormals)
+		if (pMesh->HasNormals())
 		{
 			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
@@ -279,7 +282,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 			}
 		}
 
-		if (pMesh->mTangents)
+		if (pMesh->HasTangentsAndBitangents())
 		{
 			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
@@ -294,10 +297,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 				const aiVector3D& tangent = pMesh->mTangents[vertexDataIndex];
 				mesh.SetVertexTangent(vertexIndex, Direction(tangent.x, tangent.y, tangent.z));
 			}
-		}
 
-		if (pMesh->mBitangents)
-		{
 			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
 				uint32_t vertexDataIndex = vertexIndex;
@@ -313,18 +313,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 			}
 		}
 
-		uint32_t uvSetCount = 0;
-		for (uint32_t uvSetIndex = 0; uvSetIndex < AI_MAX_NUMBER_OF_TEXTURECOORDS; ++uvSetIndex)
-		{
-			const aiVector3D* vertexUVArray = pMesh->mTextureCoords[uvSetIndex];
-			if (!vertexUVArray)
-			{
-				break;
-			}
-
-			++uvSetCount;
-		}
-		assert(uvSetCount == pMesh->GetNumUVChannels());
+		uint32_t uvSetCount = pMesh->GetNumUVChannels();
 		mesh.SetVertexUVSetCount(uvSetCount);
 
 		for (uint32_t uvSetIndex = 0; uvSetIndex < uvSetCount; ++uvSetIndex)
@@ -353,18 +342,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 			}
 		}
 
-		uint32_t colorSetCount = 0;
-		for (uint32_t colorSetIndex = 0; colorSetIndex < AI_MAX_NUMBER_OF_COLOR_SETS; ++colorSetIndex)
-		{
-			const aiColor4D* vertexColorArray = pMesh->mColors[colorSetIndex];
-			if (!vertexColorArray)
-			{
-				break;
-			}
-
-			++colorSetCount;
-		}
-		assert(colorSetCount == pMesh->GetNumColorChannels());
+		uint32_t colorSetCount = pMesh->GetNumColorChannels();
 		mesh.SetVertexColorSetCount(colorSetCount);
 
 		for (uint32_t colorSetIndex = 0; colorSetIndex < colorSetCount; ++colorSetIndex)
