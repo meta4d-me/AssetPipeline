@@ -17,6 +17,7 @@ class TAABB final
 {
 private:
 	using PointType = VectorDerived<T, N, VectorType::Point>;
+	using DirectionType = VectorDerived<T, N, VectorType::Direction>;
 
 public:
 	explicit constexpr TAABB() = default;
@@ -41,8 +42,8 @@ public:
 	const PointType& Min() const { return m_min; }
 	const PointType& Max() const { return m_max; }
 	bool Empty() const { return m_min == m_max; }
-	PointType GetCenter() const { return m_min + static_cast<T>(0.5) * (m_max - m_min); }
-	T GetExtents() const { return m_max - m_min; }
+	PointType GetCenter() const { return m_min + (m_max - m_min) * static_cast<T>(0.5); }
+	DirectionType GetExtents() const { return m_max - m_min; }
 
 	void Expand(const TAABB& other)
 	{

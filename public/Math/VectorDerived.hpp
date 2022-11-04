@@ -28,6 +28,7 @@ template<typename T, std::size_t N, VectorType Vty>
 class VectorDerived final : public VectorBase<T, VectorDerived<T, N, Vty>>
 {
 public:
+	using ValueType = T;
 	using Derived = VectorDerived<T, N, Vty>;
 	using Base = VectorBase<T, Derived>;
 	using Base::Base;
@@ -117,6 +118,25 @@ public:
 		return VectorDerived<T, 3, Vty>(x(), y(), z());
 	}
 
+	// TODO : Different vector types should have different behaviors.
+	// For example, Direction * Direction = CrossDot
+	//Derived operator+(const Derived& other) const { return Derived(*this).Add(other); }
+	//Derived& operator+=(const Derived& other) { return Add(other); }
+	//
+	//Derived operator-() const { return Derived(*this).Multiply(-1); }
+	//Derived operator-(const Derived& other) const { return Derived(*this).Minus(other); }
+	//Derived& operator-=(const Derived& other) { return Minus(other); }
+	//
+	Derived operator*(T value) const { return Derived(*this).Multiply(value); }
+	//Derived operator*(const Derived& other) const { return Derived(*this).Multiply(other); }
+	Derived& operator*=(T value) const { return Derived(*this).Multiply(value); }
+	//Derived& operator*=(const Derived& other) { return Multiply(other); }
+	//
+	Derived operator/(T value) const { return Derived(*this).Divide(value); }
+	//Derived operator/(const Derived& other) const { return Derived(*this).Divide(other); }
+	Derived& operator/=(T value) const{ return Derived(*this).Divide(value); }
+	//Derived& operator/=(const Derived& other) { return Divide(other); }
+
 private:
 	// By default, base class can't access private or protected members.
 	// In CRTP design pattern, we use friend class to remove this limitation.
@@ -142,5 +162,38 @@ using Direction = VectorDerived<float, 3, VectorType::Direction>;
 using Color = VectorDerived<float, 4, VectorType::Color>;
 using U8Color = VectorDerived<uint8_t, 4, VectorType::U8Color>;
 using UV = VectorDerived<float, 2, VectorType::UV>;
+
+/////////////////////////////////////////////////////////////////////////////////////
+// Global inline cross type operators
+/////////////////////////////////////////////////////////////////////////////////////
+// Point - Point = Direction
+inline Direction operator-(const Point& lhs, const Point& rhs)
+{
+	return Direction(lhs.x() - rhs.x(), lhs.y() - rhs.y(), lhs.z() - rhs.z());
+}
+
+// Point - Direction = Point
+// Direction - Point = Point
+inline Point operator-(const Point& lhs, const Direction& rhs)
+{
+	return Point(lhs.x() - rhs.x(), lhs.y() - rhs.y(), lhs.z() - rhs.z());
+}
+
+inline Point operator-(const Direction& lhs, const Point& rhs)
+{
+	return rhs - lhs;
+}
+
+// Point + Direction = Point
+// Direction + Point = Point
+inline Point operator+(const Point& lhs, const Direction& rhs)
+{
+	return Point(lhs.x() + rhs.x(), lhs.y() + rhs.y(), lhs.z() + rhs.z());
+}
+
+inline Point operator+(const Direction& lhs, const Point& rhs)
+{
+	return rhs - lhs;
+}
 
 }
