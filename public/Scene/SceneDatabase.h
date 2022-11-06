@@ -17,7 +17,7 @@ public:
 	using TextureMap = std::unordered_map<std::string, TextureID>;
 
 public:
-	SceneDatabase() = default;
+	explicit SceneDatabase() = default;
 	SceneDatabase(const SceneDatabase&) = default;
 	SceneDatabase& operator=(const SceneDatabase&) = default;
 	SceneDatabase(SceneDatabase&&) = default;
@@ -31,6 +31,7 @@ public:
 	const AABB& GetAABB() const { return m_aabb; }
 
 	// mesh
+	uint32_t GetNextMeshID();
 	void AddMesh(Mesh mesh);
 	const std::vector<Mesh>& GetMeshes() const { return m_meshes; }
 	void SetMeshCount(uint32_t meshCount);
@@ -62,6 +63,7 @@ private:
 	AABB m_aabb;
 
 	// mesh data
+	uint32_t m_next_mesh_id = 0;
 	std::vector<Mesh> m_meshes;
 
 	// material data
