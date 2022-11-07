@@ -37,7 +37,7 @@ public:
 	const_iterator end() const { return &CRTP().data[0] + size(); }
 	constexpr std::size_t size() const { return std::extent<decltype(Derived::data)>::value; }
 
-	// Mathemmatics
+	// Mathematics
 	// Single value method is used to operate all components with the same value.
 	// TODO : check bad cases, such as infinity(or think it as a good usage), nan(absolutely bad)...
 	// TODO : Avoid duplicated codes in a good way?
@@ -101,6 +101,16 @@ public:
 	{
 		T length = Length();
 		std::for_each(this->begin(), this->end(), [&length](T& component) { component /= length; });
+	}
+
+	T Dot(const Derived& other) 
+	{
+		T result {};
+		int count = 0;
+		for (uint32_t i = 0; i < size(); ++i) {
+			result += (*this)[i] * other[i];
+		}
+		return result;
 	}
 
 	// Operators

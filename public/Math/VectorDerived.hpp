@@ -2,6 +2,8 @@
 
 #include "VectorBase.hpp"
 
+#include <type_traits>
+
 namespace cdtools
 {
 
@@ -117,6 +119,19 @@ public:
 	{
 		static_assert(3 <= N);
 		return VectorDerived<T, 3, Vty>(x(), y(), z());
+	}
+
+	VectorDerived<T, 3, Vty> Cross(const VectorDerived<T, 3, Vty> rhs) const
+	{
+		// Cross products only make sense for 3D vectors
+		static_assert(3 == N, "Cross products only make sense for 3D vectors!");
+		// Can only do cross products for numeric type vectors
+		static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value, "Cross products only make sense for numeric types!");
+
+		T x_value = y() * rhs.z() - z() * rhs.y();
+		T y_value = -(x() * rhs.z() - z() * rhs.x());
+		T z_value = x() * rhs.y() - y() * rhs.x();
+		return VectorDerived<T, 3, Vty>(static_cast<T>(x_value, y_value, z_value));
 	}
 
 	// TODO : Different vector types should have different behaviors.
