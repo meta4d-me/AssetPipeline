@@ -2,6 +2,9 @@
 
 #include "Producer/BaseProducer.h"
 
+struct aiMaterial;
+struct aiMesh;
+
 namespace cdtools
 {
 
@@ -44,6 +47,8 @@ public:
 
 private:
 	uint32_t GetImportFlags() const;
+	void ParseMaterial(SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial) const;
+	void ParseMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh) const;
 
 private:
 	// Service flags

@@ -51,26 +51,10 @@ uint32_t GenericProducer::GetImportFlags() const
 	return importFlags;
 }
 
-void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
+void GenericProducer::ParseMaterial(SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial) const
 {
-	printf("ImportStaticMesh : %s\n", m_filePath.c_str());
-	const aiScene* pScene = aiImportFile(m_filePath.c_str(), GetImportFlags());
-	if (!pScene || !pScene->HasMeshes())
-	{
-		printf(aiGetErrorString());
-		return;
-	}
-
-	pSceneDatabase->SetName(m_filePath);
-
-	printf("[Unsupported] Scene embedded texture number : %d\n", pScene->mNumTextures);
-	assert(pScene->mNumTextures == 0 && "Don't support embedded texture now.");
-	//for (uint32_t embeddedTextureIndex = 0; embeddedTextureIndex < pScene->mNumTextures; ++embeddedTextureIndex)
-	//{
-	//	const aiTexture* pEmbeddedTexture = pScene->mTextures[embeddedTextureIndex];
-	//	assert(pEmbeddedTexture && "tjj : pTexture is invalid");
-	//	pEmbeddedTexture->mFilename.data;
-	//}
+	static uint32_t totalTextureCount = 0;
+	static uint32_t totalMaterialCount = 0;
 
 	// TODO : What should them map to ?
 	// aiTextureType_SPECULAR,
@@ -93,158 +77,157 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 	materialTextureMapping[aiTextureType_AMBIENT_OCCLUSION] = MaterialTextureType::AO;
 	materialTextureMapping[aiTextureType_LIGHTMAP] = MaterialTextureType::AO;
 
-	aiString ai_path;
-	uint32_t totalTextureCount = 0;
-
-	pSceneDatabase->SetMaterialCount(pScene->mNumMaterials);
-	printf("Scene material number : %d\n", pScene->mNumMaterials);
-	for (uint32_t materialIndex = 0; materialIndex < pScene->mNumMaterials; ++materialIndex)
+	aiString materialName;
+	if (aiReturn_SUCCESS == aiGetMaterialString(pSourceMaterial, AI_MATKEY_NAME, &materialName))
 	{
-		const aiMaterial* pMaterial = pScene->mMaterials[materialIndex];
-		assert(pMaterial && "pMaterial is invalid");
-
-		aiString materialName;
-		if (aiReturn_SUCCESS == aiGetMaterialString(pMaterial, AI_MATKEY_NAME, &materialName))
-		{
-			printf("\tMaterial name is %s\n", materialName.data);
-		}
-		else
-		{
-			// No name ? We should name it by ourselves to identify it.
-			materialName = "MaterialName_" + materialIndex;
-		}
-
-		Material material(MaterialID(materialIndex), materialName.C_Str());
-
-		// Parse material properties
-		int32_t blendFunction = 0;
-		aiGetMaterialIntegerArray(pMaterial, AI_MATKEY_BLEND_FUNC, &blendFunction, 0);
-		if (aiBlendMode_Default == blendFunction)
-		{
-			// SourceColor*SourceAlpha + DestColor*(1-SourceAlpha)
-		}
-		else if (aiBlendMode_Additive == blendFunction)
-		{
-			// SourceColor*1 + DestColor*1
-		}
-
-		for (const auto& [textureType, materialTextureType] : materialTextureMapping)
-		{
-			// Multiple assimp texture types will map to the same texture to increase the successful rate.
-			// So we will skip remain texture types once one texture type already setup successfully.
-			if(material.IsTextureTypeSetup(materialTextureType))
-			{
-				continue;
-			}
-
-			const uint32_t textureCount = aiGetMaterialTextureCount(pMaterial, textureType);
-			if (0 == textureCount)
-			{
-				continue;
-			}
-
-			for (uint32_t textureIndex = 0; textureIndex < textureCount; ++textureIndex)
-			{
-				const aiReturn result = aiGetMaterialTexture(pMaterial, textureType, textureIndex, &ai_path);
-				if (aiReturn_SUCCESS == result)
-				{
-					if(textureType == aiTextureType_NONE)
-					{
-						printf("\t\tTextureType is none? Investigate the cause please.");
-						continue;
-					}
-
-					if (textureType == aiTextureType_UNKNOWN)
-					{
-						printf("\t\tTextureType is unknown. Should find ways to map it.");
-						continue;
-					}
-
-					printf("\t\tTextureType is %s, MaterialTexture path is %s\n", GetMaterialTextureTypeName(materialTextureType), ai_path.C_Str());
-					std::optional<TextureID> optTextureID = pSceneDatabase->TryGetTextureID(ai_path.C_Str());
-					if (!optTextureID.has_value())
-					{
-						Texture texture(TextureID(totalTextureCount), ai_path.C_Str());
-						optTextureID = texture.GetID();
-						pSceneDatabase->AddTexture(std::move(texture));
-						++totalTextureCount;
-					}
-					material.SetTextureID(materialTextureType, optTextureID.value());
-				}
-				else
-				{
-					printf("\t\tFailed to read material texture property, textureType is %u, texture index is %u", textureType, textureIndex);
-				}
-			}
-		}
-
-		pSceneDatabase->AddMaterial(std::move(material));
+		printf("\tMaterial name is %s\n", materialName.data);
+	}
+	else
+	{
+		// No name ? We should name it by ourselves to identify it.
+		materialName = "MaterialName_" + totalMaterialCount;
 	}
 
-	AABB sceneAABB;
-	pSceneDatabase->SetMeshCount(pScene->mNumMeshes);
-	printf("Scene mesh number : %d\n", pScene->mNumMeshes);
-	for (uint32_t meshIndex = 0; meshIndex < pScene->mNumMeshes; ++meshIndex)
+	Material material(MaterialID(totalMaterialCount++), materialName.C_Str());
+
+	// Parse material properties
+	int32_t blendFunction = 0;
+	aiGetMaterialIntegerArray(pSourceMaterial, AI_MATKEY_BLEND_FUNC, &blendFunction, 0);
+	if (aiBlendMode_Default == blendFunction)
 	{
-		// Check if mesh is valid.
-		// TODO : need to check degenerate triangles.
-		const aiMesh* pMesh = pScene->mMeshes[meshIndex];
-		assert(pMesh && "pMesh is invalid");
+		// SourceColor*SourceAlpha + DestColor*(1-SourceAlpha)
+	}
+	else if (aiBlendMode_Additive == blendFunction)
+	{
+		// SourceColor*1 + DestColor*1
+	}
 
-		printf("\tMesh face number : %d\n", pMesh->mNumFaces);
-		assert(pMesh->mFaces && pMesh->mNumFaces > 0 && "No polygon data.");
+	for (const auto& [textureType, materialTextureType] : materialTextureMapping)
+	{
+		// Multiple assimp texture types will map to the same texture to increase the successful rate.
+		// So we will skip remain texture types once one texture type already setup successfully.
+		if (material.IsTextureTypeSetup(materialTextureType))
+		{
+			continue;
+		}
 
-		uint32_t numVertices = pMesh->mNumVertices;
+		const uint32_t textureCount = aiGetMaterialTextureCount(pSourceMaterial, textureType);
+		if (0 == textureCount)
+		{
+			continue;
+		}
+
+		for (uint32_t textureIndex = 0; textureIndex < textureCount; ++textureIndex)
+		{
+			aiString ai_path;
+			const aiReturn result = aiGetMaterialTexture(pSourceMaterial, textureType, textureIndex, &ai_path);
+			if (aiReturn_SUCCESS != result)
+			{
+				printf("\t\tFailed to read material texture property, textureType is %u, texture index is %u", textureType, textureIndex);
+				continue;
+			}
+
+			if (textureType == aiTextureType_NONE)
+			{
+				printf("\t\tTextureType is none? Investigate the cause please.");
+				continue;
+			}
+
+			if (textureType == aiTextureType_UNKNOWN)
+			{
+				printf("\t\tTextureType is unknown. Should find ways to map it.");
+				continue;
+			}
+
+			printf("\t\tTextureType is %s, MaterialTexture path is %s\n", GetMaterialTextureTypeName(materialTextureType), ai_path.C_Str());
+			std::optional<TextureID> optTextureID = pSceneDatabase->TryGetTextureID(ai_path.C_Str());
+			if (!optTextureID.has_value())
+			{
+				Texture texture(TextureID(totalTextureCount), ai_path.C_Str());
+				optTextureID = texture.GetID();
+				pSceneDatabase->AddTexture(std::move(texture));
+				++totalTextureCount;
+			}
+			material.SetTextureID(materialTextureType, optTextureID.value());
+		}
+	}
+
+	pSceneDatabase->AddMaterial(std::move(material));
+}
+
+void GenericProducer::ParseMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh) const
+{
+	static uint32_t totalMeshCount = 0;
+
+	printf("\tMesh face number : %d\n", pSourceMesh->mNumFaces);
+	assert(pSourceMesh->mFaces && pSourceMesh->mNumFaces > 0 && "No polygon data.");
+
+	uint32_t numVertices = pSourceMesh->mNumVertices;
+	if (IsDuplicateVertexServiceActive())
+	{
+		numVertices = pSourceMesh->mNumFaces * 3;
+	}
+
+	printf("\tMesh vertex number : %d\n", numVertices);
+	assert(pSourceMesh->mVertices && numVertices > 0 && "No vertex data.");
+
+	Mesh mesh(MeshID(totalMeshCount++), pSourceMesh->mName.C_Str(), numVertices, pSourceMesh->mNumFaces);
+	mesh.SetMaterialID(pSourceMesh->mMaterialIndex);
+
+	// By default, aabb will be empty.
+	if (IsBoundingBoxServiceActive())
+	{
+		AABB meshAABB(Point(pSourceMesh->mAABB.mMin.x, pSourceMesh->mAABB.mMin.y, pSourceMesh->mAABB.mMin.z),
+			Point(pSourceMesh->mAABB.mMax.x, pSourceMesh->mAABB.mMax.y, pSourceMesh->mAABB.mMax.z));
+		mesh.SetAABB(std::move(meshAABB));
+	}
+
+	std::map<uint32_t, uint32_t> mapNewIndexToOriginIndex;
+	uint32_t currentVertexID = 0U;
+	for (uint32_t faceIndex = 0; faceIndex < pSourceMesh->mNumFaces; ++faceIndex)
+	{
+		const aiFace& face = pSourceMesh->mFaces[faceIndex];
+		assert(face.mNumIndices == 3 && "tjj : Do you forget to open importer's triangulate flag?");
+
+		uint32_t originIndex0 = face.mIndices[0];
+		uint32_t originIndex1 = face.mIndices[1];
+		uint32_t originIndex2 = face.mIndices[2];
+
+		uint32_t index0 = originIndex0;
+		uint32_t index1 = originIndex1;
+		uint32_t index2 = originIndex2;
 		if (IsDuplicateVertexServiceActive())
 		{
-			numVertices = pMesh->mNumFaces * 3;
+			index0 = currentVertexID;
+			index1 = currentVertexID + 1;
+			index2 = currentVertexID + 2;
+
+			mapNewIndexToOriginIndex[index0] = originIndex0;
+			mapNewIndexToOriginIndex[index1] = originIndex1;
+			mapNewIndexToOriginIndex[index2] = originIndex2;
+
+			currentVertexID += 3;
 		}
+		mesh.SetPolygon(faceIndex, VertexID(index0), VertexID(index1), VertexID(index2));
+	}
 
-		printf("\tMesh vertex number : %d\n", numVertices);
-		assert(pMesh->mVertices && numVertices > 0 && "No vertex data.");
-
-		Mesh mesh(MeshID(meshIndex), pMesh->mName.C_Str(), numVertices, pMesh->mNumFaces);
-		mesh.SetMaterialID(pMesh->mMaterialIndex);
-
-		// By default, aabb will be empty.
-		if(IsBoundingBoxServiceActive())
+	assert(pSourceMesh->HasPositions() && "Mesh doesn't have vertex positions.");
+	for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
+	{
+		uint32_t vertexDataIndex = vertexIndex;
+		if (IsDuplicateVertexServiceActive())
 		{
-			AABB meshAABB(Point(pMesh->mAABB.mMin.x, pMesh->mAABB.mMin.y, pMesh->mAABB.mMin.z),
-				Point(pMesh->mAABB.mMax.x, pMesh->mAABB.mMax.y, pMesh->mAABB.mMax.z));
-			sceneAABB.Expand(meshAABB);
-			mesh.SetAABB(std::move(meshAABB));
+			auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
+			assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
+			vertexDataIndex = itNewIndex->second;
 		}
 
-		std::map<uint32_t, uint32_t> mapNewIndexToOriginIndex;
-		uint32_t currentVertexID = 0U;
-		for (uint32_t faceIndex = 0; faceIndex < pMesh->mNumFaces; ++faceIndex)
-		{
-			const aiFace& face = pMesh->mFaces[faceIndex];
-			assert(face.mNumIndices == 3 && "tjj : Do you forget to open importer's triangulate flag?");
+		const aiVector3D& position = pSourceMesh->mVertices[vertexDataIndex];
+		mesh.SetVertexPosition(vertexIndex, Point(position.x, position.y, position.z));
+	}
 
-			uint32_t originIndex0 = face.mIndices[0];
-			uint32_t originIndex1 = face.mIndices[1];
-			uint32_t originIndex2 = face.mIndices[2];
-
-			uint32_t index0 = originIndex0;
-			uint32_t index1 = originIndex1;
-			uint32_t index2 = originIndex2;
-			if (IsDuplicateVertexServiceActive())
-			{
-				index0 = currentVertexID;
-				index1 = currentVertexID + 1;
-				index2 = currentVertexID + 2;
-
-				mapNewIndexToOriginIndex[index0] = originIndex0;
-				mapNewIndexToOriginIndex[index1] = originIndex1;
-				mapNewIndexToOriginIndex[index2] = originIndex2;
-
-				currentVertexID += 3;
-			}
-			mesh.SetPolygon(faceIndex, VertexID(index0), VertexID(index1), VertexID(index2));
-		}
-
-		assert(pMesh->HasPositions() && "Mesh doesn't have vertex positions.");
+	if (pSourceMesh->HasNormals())
+	{
 		for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 		{
 			uint32_t vertexDataIndex = vertexIndex;
@@ -255,111 +238,128 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 				vertexDataIndex = itNewIndex->second;
 			}
 
-			const aiVector3D& position = pMesh->mVertices[vertexDataIndex];
-			mesh.SetVertexPosition(vertexIndex, Point(position.x, position.y, position.z));
+			const aiVector3D& normal = pSourceMesh->mNormals[vertexDataIndex];
+			mesh.SetVertexNormal(vertexIndex, Direction(normal.x, normal.y, normal.z));
 		}
-
-		if (pMesh->HasNormals())
-		{
-			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
-			{
-				uint32_t vertexDataIndex = vertexIndex;
-				if (IsDuplicateVertexServiceActive())
-				{
-					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-					vertexDataIndex = itNewIndex->second;
-				}
-
-				const aiVector3D& normal = pMesh->mNormals[vertexDataIndex];
-				mesh.SetVertexNormal(vertexIndex, Direction(normal.x, normal.y, normal.z));
-			}
-		}
-
-		if (pMesh->HasTangentsAndBitangents())
-		{
-			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
-			{
-				uint32_t vertexDataIndex = vertexIndex;
-				if (IsDuplicateVertexServiceActive())
-				{
-					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-					vertexDataIndex = itNewIndex->second;
-				}
-
-				const aiVector3D& tangent = pMesh->mTangents[vertexDataIndex];
-				mesh.SetVertexTangent(vertexIndex, Direction(tangent.x, tangent.y, tangent.z));
-			}
-
-			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
-			{
-				uint32_t vertexDataIndex = vertexIndex;
-				if (IsDuplicateVertexServiceActive())
-				{
-					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-					vertexDataIndex = itNewIndex->second;
-				}
-
-				const aiVector3D& biTangent = pMesh->mBitangents[vertexDataIndex];
-				mesh.SetVertexBiTangent(vertexIndex, Direction(biTangent.x, biTangent.y, biTangent.z));
-			}
-		}
-
-		uint32_t uvSetCount = pMesh->GetNumUVChannels();
-		mesh.SetVertexUVSetCount(uvSetCount);
-
-		for (uint32_t uvSetIndex = 0; uvSetIndex < uvSetCount; ++uvSetIndex)
-		{
-			const aiVector3D* vertexUVArray = pMesh->mTextureCoords[uvSetIndex];
-			uint32_t numUVComponents = pMesh->mNumUVComponents[uvSetIndex];
-			if (0 == numUVComponents)
-			{
-				// 2 means normal 2D texture
-				// 3 means 3D texture such as cubemap
-				continue;
-			}
-
-			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
-			{
-				uint32_t vertexDataIndex = vertexIndex;
-				if (IsDuplicateVertexServiceActive())
-				{
-					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-					vertexDataIndex = itNewIndex->second;
-				}
-
-				const aiVector3D& uv = vertexUVArray[vertexDataIndex];
-				mesh.SetVertexUV(uvSetIndex, vertexIndex, UV(uv.x, uv.y));
-			}
-		}
-
-		uint32_t colorSetCount = pMesh->GetNumColorChannels();
-		mesh.SetVertexColorSetCount(colorSetCount);
-
-		for (uint32_t colorSetIndex = 0; colorSetIndex < colorSetCount; ++colorSetIndex)
-		{
-			const aiColor4D* vertexColorArray = pMesh->mColors[colorSetIndex];
-			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
-			{
-				uint32_t vertexDataIndex = vertexIndex;
-				if (IsDuplicateVertexServiceActive())
-				{
-					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-					vertexDataIndex = itNewIndex->second;
-				}
-
-				const aiColor4D& color = vertexColorArray[vertexDataIndex];
-				mesh.SetVertexColor(colorSetIndex, vertexIndex, Color(color.r, color.g, color.b, color.a));
-			}
-		}
-
-		pSceneDatabase->AddMesh(std::move(mesh));
 	}
 
+	if (pSourceMesh->HasTangentsAndBitangents())
+	{
+		for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
+		{
+			uint32_t vertexDataIndex = vertexIndex;
+			if (IsDuplicateVertexServiceActive())
+			{
+				auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
+				assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
+				vertexDataIndex = itNewIndex->second;
+			}
+
+			const aiVector3D& tangent = pSourceMesh->mTangents[vertexDataIndex];
+			mesh.SetVertexTangent(vertexIndex, Direction(tangent.x, tangent.y, tangent.z));
+		}
+
+		for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
+		{
+			uint32_t vertexDataIndex = vertexIndex;
+			if (IsDuplicateVertexServiceActive())
+			{
+				auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
+				assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
+				vertexDataIndex = itNewIndex->second;
+			}
+
+			const aiVector3D& biTangent = pSourceMesh->mBitangents[vertexDataIndex];
+			mesh.SetVertexBiTangent(vertexIndex, Direction(biTangent.x, biTangent.y, biTangent.z));
+		}
+	}
+
+	uint32_t uvSetCount = pSourceMesh->GetNumUVChannels();
+	mesh.SetVertexUVSetCount(uvSetCount);
+
+	for (uint32_t uvSetIndex = 0; uvSetIndex < uvSetCount; ++uvSetIndex)
+	{
+		const aiVector3D* vertexUVArray = pSourceMesh->mTextureCoords[uvSetIndex];
+		uint32_t numUVComponents = pSourceMesh->mNumUVComponents[uvSetIndex];
+		if (0 == numUVComponents)
+		{
+			// 2 means normal 2D texture
+			// 3 means 3D texture such as cubemap
+			continue;
+		}
+
+		for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
+		{
+			uint32_t vertexDataIndex = vertexIndex;
+			if (IsDuplicateVertexServiceActive())
+			{
+				auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
+				assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
+				vertexDataIndex = itNewIndex->second;
+			}
+
+			const aiVector3D& uv = vertexUVArray[vertexDataIndex];
+			mesh.SetVertexUV(uvSetIndex, vertexIndex, UV(uv.x, uv.y));
+		}
+	}
+
+	uint32_t colorSetCount = pSourceMesh->GetNumColorChannels();
+	mesh.SetVertexColorSetCount(colorSetCount);
+
+	for (uint32_t colorSetIndex = 0; colorSetIndex < colorSetCount; ++colorSetIndex)
+	{
+		const aiColor4D* vertexColorArray = pSourceMesh->mColors[colorSetIndex];
+		for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
+		{
+			uint32_t vertexDataIndex = vertexIndex;
+			if (IsDuplicateVertexServiceActive())
+			{
+				auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
+				assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
+				vertexDataIndex = itNewIndex->second;
+			}
+
+			const aiColor4D& color = vertexColorArray[vertexDataIndex];
+			mesh.SetVertexColor(colorSetIndex, vertexIndex, Color(color.r, color.g, color.b, color.a));
+		}
+	}
+
+	pSceneDatabase->AddMesh(std::move(mesh));
+}
+
+void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
+{
+	printf("ImportStaticMesh : %s\n", m_filePath.c_str());
+	const aiScene* pScene = aiImportFile(m_filePath.c_str(), GetImportFlags());
+	if (!pScene || !pScene->HasMeshes())
+	{
+		printf(aiGetErrorString());
+		return;
+	}
+	assert(pScene->mNumTextures == 0 && "[Unsupported] parse embedded textures.");
+
+	pSceneDatabase->SetName(m_filePath);
+
+	pSceneDatabase->SetMaterialCount(pScene->mNumMaterials);
+	printf("Scene material number : %d\n", pScene->mNumMaterials);
+	for (uint32_t materialIndex = 0; materialIndex < pScene->mNumMaterials; ++materialIndex)
+	{
+		ParseMaterial(pSceneDatabase, pScene->mMaterials[materialIndex]);
+	}
+
+	pSceneDatabase->SetMeshCount(pScene->mNumMeshes);
+	printf("Scene mesh number : %d\n", pScene->mNumMeshes);
+	for (uint32_t meshIndex = 0; meshIndex < pScene->mNumMeshes; ++meshIndex)
+	{
+		ParseMesh(pSceneDatabase, pScene->mMeshes[meshIndex]);
+	}
+
+	// Merge a total AABB for all meshes in the scene.
+	AABB sceneAABB;
+	for (uint32_t meshIndex = 0; meshIndex < pSceneDatabase->GetMeshCount(); ++meshIndex)
+	{
+		sceneAABB.Expand(pSceneDatabase->GetMesh(meshIndex).GetAABB());
+	}
 	pSceneDatabase->SetAABB(std::move(sceneAABB));
 
 	aiReleaseImport(pScene);
