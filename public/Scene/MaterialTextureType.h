@@ -2,6 +2,9 @@
 
 #include <inttypes.h>
 
+namespace cdtools
+{
+
 enum class MaterialTextureType : uint8_t
 {
 	BaseColor = 0,
@@ -30,4 +33,6 @@ static_assert(static_cast<int>(MaterialTextureType::Count) == sizeof(MaterialTex
 inline const char* GetMaterialTextureTypeName(MaterialTextureType textureType)
 {
 	return MaterialTextureTypeName[static_cast<int>(textureType)];
+}
+
 }
