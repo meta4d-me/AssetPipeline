@@ -128,9 +128,9 @@ public:
 		static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value, "Cross products only make sense for numeric types!");
 
 		T x_value = y() * rhs.z() - z() * rhs.y();
-		T y_value = -(x() * rhs.z() - z() * rhs.x());
+		T y_value = z() * rhs.x() - x() * rhs.z();
 		T z_value = x() * rhs.y() - y() * rhs.x();
-		return VectorDerived<T, 3, Vty>(static_cast<T>(x_value, y_value, z_value));
+		return VectorDerived<T, 3, Vty>(static_cast<T>(x_value), static_cast<T>(y_value), static_cast<T>(z_value));
 	}
 
 	// TODO : Different vector types should have different behaviors.

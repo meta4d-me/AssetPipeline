@@ -135,7 +135,8 @@ namespace cdtools {
         // Get points for A2* lattice
         double s = SKEW_2D * (x + y);
         double xs = x + s, ys = y + s;
-        return Noise2D_UnskewedBase(seed, xs, ys);
+        // Rescale to [0.0, 1.0]
+        return Noise2D_UnskewedBase(seed, xs, ys) / 2.0 + 0.5;
     }
 
 }	// namespace cdtools

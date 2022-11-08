@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 
 	const char* pInputFilePath = argv[1];
 	const char* pOutputFilePath = argv[2];
-	TerrainProducer producer(4, 4);
+	TerrainProducer producer(256, 256, 200, 200, 2000);
 	FbxConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);
 	processor.Run();
