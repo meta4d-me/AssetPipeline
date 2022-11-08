@@ -1,5 +1,4 @@
 #include "Consumer/CatDogConsumer.h"
-#include "Consumer/FbxConsumer.h"
 #include "Processor/Processor.h"
 #include "Producer/TerrainProducer.h"
 #include "Utilities/PerformanceProfiler.h"
@@ -20,8 +19,8 @@ int main(int argc, char** argv)
 
 	const char* pInputFilePath = argv[1];
 	const char* pOutputFilePath = argv[2];
-	TerrainProducer producer(4, 4);
-	FbxConsumer consumer(pOutputFilePath);
+	TerrainProducer producer(256, 256, 200, 200, 2000);
+	CatDogConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);
 	processor.Run();
 	return 0;
