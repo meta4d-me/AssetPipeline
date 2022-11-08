@@ -11,37 +11,7 @@
 
 #include <cassert>
 #include <optional>
-
-namespace
-{
-
-// Parameters
-// all textures for PBR Metalness-Roughness workflow purpose.
-constexpr aiTextureType ImportTextureTypes[] =
-{
-	 aiTextureType_NONE,
-	 aiTextureType_DIFFUSE,
-	 aiTextureType_SPECULAR,
-	 aiTextureType_AMBIENT,
-	 aiTextureType_EMISSIVE,
-	 aiTextureType_HEIGHT,
-	 aiTextureType_NORMALS,
-	 aiTextureType_SHININESS,
-	 aiTextureType_OPACITY,
-	 aiTextureType_DISPLACEMENT,
-	 aiTextureType_LIGHTMAP,
-	 aiTextureType_REFLECTION,
-	 aiTextureType_BASE_COLOR,
-	 aiTextureType_NORMAL_CAMERA,
-	 aiTextureType_EMISSION_COLOR,
-	 aiTextureType_METALNESS,
-	 aiTextureType_DIFFUSE_ROUGHNESS,
-	 aiTextureType_AMBIENT_OCCLUSION,
-	 aiTextureType_UNKNOWN,
-};
-constexpr uint32_t numImportTextureTypes = sizeof(ImportTextureTypes) / sizeof(aiTextureType);
-
-}
+#include <unordered_map>
 
 namespace cdtools
 {
@@ -94,13 +64,34 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 	pSceneDatabase->SetName(m_filePath);
 
 	printf("[Unsupported] Scene embedded texture number : %d\n", pScene->mNumTextures);
-	//assert(pScene->mNumTextures == 0 && "Don't support embedded texture now.");
+	assert(pScene->mNumTextures == 0 && "Don't support embedded texture now.");
 	//for (uint32_t embeddedTextureIndex = 0; embeddedTextureIndex < pScene->mNumTextures; ++embeddedTextureIndex)
 	//{
 	//	const aiTexture* pEmbeddedTexture = pScene->mTextures[embeddedTextureIndex];
 	//	assert(pEmbeddedTexture && "tjj : pTexture is invalid");
 	//	pEmbeddedTexture->mFilename.data;
 	//}
+
+	// TODO : What should them map to ?
+	// aiTextureType_SPECULAR,
+	// aiTextureType_AMBIENT,
+	// aiTextureType_HEIGHT,
+	// aiTextureType_NORMALS,
+	// aiTextureType_SHININESS,
+	// aiTextureType_OPACITY,
+	// aiTextureType_DISPLACEMENT,
+	// aiTextureType_REFLECTION,
+	std::unordered_map<aiTextureType, MaterialTextureType> materialTextureMapping;
+	materialTextureMapping[aiTextureType_DIFFUSE] = MaterialTextureType::BaseColor;
+	materialTextureMapping[aiTextureType_BASE_COLOR] = MaterialTextureType::BaseColor;
+	materialTextureMapping[aiTextureType_NORMALS] = MaterialTextureType::Normal;
+	materialTextureMapping[aiTextureType_NORMAL_CAMERA] = MaterialTextureType::Normal;
+	materialTextureMapping[aiTextureType_EMISSIVE] = MaterialTextureType::Emissive;
+	materialTextureMapping[aiTextureType_EMISSION_COLOR] = MaterialTextureType::Emissive;
+	materialTextureMapping[aiTextureType_METALNESS] = MaterialTextureType::Metalness;
+	materialTextureMapping[aiTextureType_DIFFUSE_ROUGHNESS] = MaterialTextureType::Roughness;
+	materialTextureMapping[aiTextureType_AMBIENT_OCCLUSION] = MaterialTextureType::AO;
+	materialTextureMapping[aiTextureType_LIGHTMAP] = MaterialTextureType::AO;
 
 	aiString ai_path;
 	uint32_t totalTextureCount = 0;
@@ -137,9 +128,15 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 			// SourceColor*1 + DestColor*1
 		}
 
-		for (uint32_t textureTypeIndex = 0; textureTypeIndex < numImportTextureTypes; ++textureTypeIndex)
+		for (const auto& [textureType, materialTextureType] : materialTextureMapping)
 		{
-			const aiTextureType textureType = ImportTextureTypes[textureTypeIndex];
+			// Multiple assimp texture types will map to the same texture to increase the successful rate.
+			// So we will skip remain texture types once one texture type already setup successfully.
+			if(material.IsTextureTypeSetup(materialTextureType))
+			{
+				continue;
+			}
+
 			const uint32_t textureCount = aiGetMaterialTextureCount(pMaterial, textureType);
 			if (0 == textureCount)
 			{
@@ -151,25 +148,19 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 				const aiReturn result = aiGetMaterialTexture(pMaterial, textureType, textureIndex, &ai_path);
 				if (aiReturn_SUCCESS == result)
 				{
-					printf("\t\tTextureType is %u, MaterialTexture path is %s\n", textureType, ai_path.C_Str());
-					MaterialTextureType materialTextureType;
-					if (aiTextureType_DIFFUSE == textureType)
+					if(textureType == aiTextureType_NONE)
 					{
-						materialTextureType = MaterialTextureType::BaseColor;
-					}
-					else if (aiTextureType_NORMALS == textureType)
-					{
-						materialTextureType = MaterialTextureType::Normal;
-					}
-					else if (aiTextureType_UNKNOWN == textureType)
-					{
-						materialTextureType = MaterialTextureType::Unknown;
-					}
-					else
-					{
-						materialTextureType = MaterialTextureType::Unknown;
+						printf("\t\tTextureType is none? Investigate the cause please.");
+						continue;
 					}
 
+					if (textureType == aiTextureType_UNKNOWN)
+					{
+						printf("\t\tTextureType is unknown. Should find ways to map it.");
+						continue;
+					}
+
+					printf("\t\tTextureType is %s, MaterialTexture path is %s\n", GetMaterialTextureTypeName(materialTextureType), ai_path.C_Str());
 					std::optional<TextureID> optTextureID = pSceneDatabase->TryGetTextureID(ai_path.C_Str());
 					if (!optTextureID.has_value())
 					{
