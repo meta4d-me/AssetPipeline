@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/ISerializable.hpp"
+#include "MaterialTextureType.h"
 #include "Math/VectorDerived.hpp"
 #include "ObjectIDTypes.h"
 
@@ -10,15 +11,6 @@
 
 namespace cdtools
 {
-
-enum class MaterialTextureType
-{
-	BaseColor = 0,
-	Normal,
-	Metalness,
-	Roughness,
-	Unknown,
-};
 
 class Material final : public ISerializable
 {
@@ -42,6 +34,7 @@ public:
 	void SetTextureID(MaterialTextureType textureType, TextureID textureID);
 	std::optional<TextureID> GetTextureID(MaterialTextureType textureType) const;
 	const TextureIDMap& GetTextureIDMap() const { return m_textureIDs; }
+	bool IsTextureTypeSetup(MaterialTextureType textureType) const { return m_textureIDs.find(textureType) != m_textureIDs.end(); }
 
 	// ISerializable
 	virtual void ImportBinary(std::ifstream& fin) override;
