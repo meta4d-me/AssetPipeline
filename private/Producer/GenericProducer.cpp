@@ -1,4 +1,5 @@
 #include "GenericProducer.h"
+#include "Hashers/StringHash.hpp"
 #include "Scene/SceneDatabase.h"
 #include "../Utilities/Utils.h"
 
@@ -10,6 +11,7 @@
 #include <assimp/version.h>
 
 #include <cassert>
+#include <format>
 #include <optional>
 #include <unordered_map>
 
@@ -51,11 +53,8 @@ uint32_t GenericProducer::GetImportFlags() const
 	return importFlags;
 }
 
-void GenericProducer::ParseMaterial(SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial) const
+void GenericProducer::ParseMaterial(SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial)
 {
-	static uint32_t totalTextureCount = 0;
-	static uint32_t totalMaterialCount = 0;
-
 	// TODO : What should them map to ?
 	// aiTextureType_SPECULAR,
 	// aiTextureType_AMBIENT,
@@ -78,17 +77,26 @@ void GenericProducer::ParseMaterial(SceneDatabase* pSceneDatabase, const aiMater
 	materialTextureMapping[aiTextureType_LIGHTMAP] = MaterialTextureType::AO;
 
 	aiString materialName;
-	if (aiReturn_SUCCESS == aiGetMaterialString(pSourceMaterial, AI_MATKEY_NAME, &materialName))
+	if(aiReturn_SUCCESS != aiGetMaterialString(pSourceMaterial, AI_MATKEY_NAME, &materialName))
 	{
-		printf("\tMaterial name is %s\n", materialName.data);
+		assert("\tMaterial name is not found.\n");
+	}
+
+	std::string finalMaterialName;
+	if(materialName.length > 0)
+	{
+		finalMaterialName = materialName.C_Str();
 	}
 	else
 	{
-		// No name ? We should name it by ourselves to identify it.
-		materialName = "MaterialName_" + totalMaterialCount;
+		static int unnamedMaterialCount = 0;
+		finalMaterialName = std::format("untitled_{}", unnamedMaterialCount++);
+		printf("\tWarning : current material doesn't have name?\n");
 	}
 
-	Material material(MaterialID(totalMaterialCount++), materialName.C_Str());
+	MaterialID materialID = m_materialIDGenerator.AllocateID(StringHash<MaterialID::ValueType>(finalMaterialName));
+	printf("\t[MaterialID %u] %s\n", materialID.Data(), finalMaterialName.c_str());
+	Material material(materialID, finalMaterialName.c_str());
 
 	// Parse material properties
 	int32_t blendFunction = 0;
@@ -139,27 +147,28 @@ void GenericProducer::ParseMaterial(SceneDatabase* pSceneDatabase, const aiMater
 				continue;
 			}
 
-			printf("\t\tTextureType is %s, MaterialTexture path is %s\n", GetMaterialTextureTypeName(materialTextureType), ai_path.C_Str());
-			std::optional<TextureID> optTextureID = pSceneDatabase->TryGetTextureID(ai_path.C_Str());
-			if (!optTextureID.has_value())
+			TextureID textureID = m_textureIDGenerator.AllocateID(StringHash<TextureID::ValueType>(ai_path.C_Str()));
+			printf("\t\t[TextureID %u] %s - %s\n",
+				textureID.Data(),
+				GetMaterialTextureTypeName(materialTextureType),
+				ai_path.C_Str());
+
+			if(textureID.Data() != pSceneDatabase->GetTextureCount() - 1)
 			{
-				Texture texture(TextureID(totalTextureCount), ai_path.C_Str());
-				optTextureID = texture.GetID();
-				pSceneDatabase->AddTexture(std::move(texture));
-				++totalTextureCount;
+				pSceneDatabase->AddTexture(Texture(textureID, ai_path.C_Str()));
 			}
-			material.SetTextureID(materialTextureType, optTextureID.value());
+			material.SetTextureID(materialTextureType, textureID);
 		}
 	}
 
-	pSceneDatabase->AddMaterial(std::move(material));
+	if (materialID.Data() != pSceneDatabase->GetMaterialCount() - 1)
+	{
+		pSceneDatabase->AddMaterial(std::move(material));
+	}
 }
 
-void GenericProducer::ParseMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh) const
+void GenericProducer::ParseMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh)
 {
-	static uint32_t totalMeshCount = 0;
-
-	printf("\tMesh face number : %d\n", pSourceMesh->mNumFaces);
 	assert(pSourceMesh->mFaces && pSourceMesh->mNumFaces > 0 && "No polygon data.");
 
 	uint32_t numVertices = pSourceMesh->mNumVertices;
@@ -168,10 +177,12 @@ void GenericProducer::ParseMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSo
 		numVertices = pSourceMesh->mNumFaces * 3;
 	}
 
-	printf("\tMesh vertex number : %d\n", numVertices);
 	assert(pSourceMesh->mVertices && numVertices > 0 && "No vertex data.");
 
-	Mesh mesh(MeshID(totalMeshCount++), pSourceMesh->mName.C_Str(), numVertices, pSourceMesh->mNumFaces);
+	MeshID meshID(pSceneDatabase->GetMeshCount());
+	printf("\t[MeshID %u] face number : %u, vertex number : %u\n", meshID.Data(), pSourceMesh->mNumFaces, numVertices);
+
+	Mesh mesh(meshID, pSourceMesh->mName.C_Str(), numVertices, pSourceMesh->mNumFaces);
 	mesh.SetMaterialID(pSourceMesh->mMaterialIndex);
 
 	// By default, aabb will be empty.
@@ -346,6 +357,8 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 	{
 		ParseMaterial(pSceneDatabase, pScene->mMaterials[materialIndex]);
 	}
+
+	printf("Scene texture number : %d\n", pSceneDatabase->GetTextureCount());
 
 	pSceneDatabase->SetMeshCount(pScene->mNumMeshes);
 	printf("Scene mesh number : %d\n", pScene->mNumMeshes);

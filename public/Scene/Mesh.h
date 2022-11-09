@@ -2,7 +2,7 @@
 
 #include "Core/ISerializable.hpp"
 #include "Math/AABB.hpp"
-#include "ObjectIDTypes.h"
+#include "ObjectID.h"
 
 #include <array>
 #include <string>

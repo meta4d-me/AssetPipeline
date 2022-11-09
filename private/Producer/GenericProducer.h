@@ -2,6 +2,8 @@
 
 #include "Producer/BaseProducer.h"
 
+#include "Scene/ObjectIDGenerator.h"
+
 struct aiMaterial;
 struct aiMesh;
 
@@ -47,8 +49,8 @@ public:
 
 private:
 	uint32_t GetImportFlags() const;
-	void ParseMaterial(SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial) const;
-	void ParseMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh) const;
+	void ParseMaterial(SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial);
+	void ParseMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh);
 
 private:
 	// Service flags
@@ -57,6 +59,9 @@ private:
 	bool m_bWantFlattenHierarchy = false;
 	bool m_bWantTriangulate = false;
 	bool m_bWantTangentsSpace = false;
+
+	ObjectIDGenerator<MaterialID> m_materialIDGenerator;
+	ObjectIDGenerator<TextureID> m_textureIDGenerator;
 };
 
 }

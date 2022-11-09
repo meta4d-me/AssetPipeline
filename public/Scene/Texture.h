@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core/ISerializable.hpp"
-#include "ObjectIDTypes.h"
+#include "ObjectID.h"
 
 #include <string>
 

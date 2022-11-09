@@ -45,13 +45,11 @@ public:
 	uint32_t GetMaterialCount() const { return static_cast<uint32_t>(m_materials.size()); }
 
 	// texture
+	void AddTexture(Texture texture);
 	const std::vector<Texture>& GetTextures() const { return m_textures; }
 	void SetTextureCount(uint32_t textureCount);
 	const Texture& GetTexture(uint32_t index) const { return m_textures[index]; }
 	uint32_t GetTextureCount() const { return static_cast<uint32_t>(m_textures.size()); }
-	std::optional<TextureID> TryGetTextureID(const char* pTexturePath) const;
-	void AddTexture(Texture texture);
-	const TextureMap& GetTextureMap() const { return m_mapPathToTextureIDs; }
 
 	// ISerializable
 	virtual void ImportBinary(std::ifstream& fin) override;
@@ -69,7 +67,6 @@ private:
 
 	// texture data
 	std::vector<Texture> m_textures;
-	TextureMap m_mapPathToTextureIDs;
 };
 
 }

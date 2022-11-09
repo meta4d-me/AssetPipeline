@@ -39,21 +39,8 @@ void SceneDatabase::SetTextureCount(uint32_t textureCount)
 	m_textures.reserve(textureCount);
 }
 
-std::optional<TextureID> SceneDatabase::TryGetTextureID(const char* pTexturePath) const
-{
-	TextureMap::const_iterator itTexture = m_mapPathToTextureIDs.find(pTexturePath);
-	if(itTexture != m_mapPathToTextureIDs.end())
-	{
-		return itTexture->second;
-	}
-
-	return std::nullopt;
-}
-
 void SceneDatabase::AddTexture(Texture texture)
 {
-	assert(m_mapPathToTextureIDs.find(texture.GetPath()) == m_mapPathToTextureIDs.end() && "Duplicated texture!");
-	m_mapPathToTextureIDs[texture.GetPath()] = texture.GetID();
 	m_textures.emplace_back(std::move(texture));
 }
 
