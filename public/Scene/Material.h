@@ -3,7 +3,7 @@
 #include "Core/ISerializable.hpp"
 #include "MaterialTextureType.h"
 #include "Math/VectorDerived.hpp"
-#include "ObjectIDTypes.h"
+#include "ObjectID.h"
 
 #include <map>
 #include <optional>

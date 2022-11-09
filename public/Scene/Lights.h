@@ -1,5 +1,5 @@
-#include "Scene/ObjectIDTypes.h"
-#include "Math/Vector4.h"
+#include "Math/VectorDerived.h"
+#include "ObjectID.h"
 
 namespace cdtools
 {
