@@ -112,6 +112,8 @@ void Mesh::ImportBinary(std::ifstream& fin)
 	SetVertexUVSetCount(vertexUVSetCount);
 	SetVertexColorSetCount(vertexColorSetCount);
 
+	GetAABB().ImportBinary(fin);
+	GetVertexFormat().ImportBinary(fin);
 	ImportDataBuffer(fin, GetVertexPositions().data());
 	ImportDataBuffer(fin, GetVertexNormals().data());
 	ImportDataBuffer(fin, GetVertexTangents().data());
@@ -133,6 +135,7 @@ void Mesh::ImportBinary(std::ifstream& fin)
 void Mesh::ExportBinary(std::ofstream& fout) const
 {
 	ExportData<std::string>(fout, GetName());
+
 	ExportData<uint32_t>(fout, GetID().Data());
 	ExportData<uint32_t>(fout, GetMaterialID().Data());
 	ExportData<uint32_t>(fout, GetVertexCount());
@@ -140,6 +143,8 @@ void Mesh::ExportBinary(std::ofstream& fout) const
 	ExportData<uint32_t>(fout, GetVertexColorSetCount());
 	ExportData<uint32_t>(fout, GetPolygonCount());
 
+	GetAABB().ExportBinary(fout);
+	GetVertexFormat().ExportBinary(fout);
 	ExportDataBuffer(fout, GetVertexPositions().data(), GetVertexPositions().size());
 	ExportDataBuffer(fout, GetVertexNormals().data(), GetVertexNormals().size());
 	ExportDataBuffer(fout, GetVertexTangents().data(), GetVertexTangents().size());

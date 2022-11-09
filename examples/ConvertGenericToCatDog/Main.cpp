@@ -21,6 +21,7 @@ int main(int argc, char** argv)
 	const char* pOutputFilePath = argv[2];
 	GenericProducer producer(pInputFilePath);
 	producer.ActivateFlattenHierarchyService();
+	producer.ActivateBoundingBoxService();
 	producer.ActivateTriangulateService();
 	producer.ActivateTangentsSpaceService();
 	CatDogConsumer consumer(pOutputFilePath);

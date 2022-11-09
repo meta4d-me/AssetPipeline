@@ -222,6 +222,7 @@ void GenericProducer::ParseMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSo
 		mesh.SetPolygon(faceIndex, VertexID(index0), VertexID(index1), VertexID(index2));
 	}
 
+	VertexFormat meshVertexFormat;
 	assert(pSourceMesh->HasPositions() && "Mesh doesn't have vertex positions.");
 	for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 	{
@@ -236,6 +237,7 @@ void GenericProducer::ParseMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSo
 		const aiVector3D& position = pSourceMesh->mVertices[vertexDataIndex];
 		mesh.SetVertexPosition(vertexIndex, Point(position.x, position.y, position.z));
 	}
+	meshVertexFormat.AddAttributeLayout(VertexAttributeType::Position, GetAttributeValueType<Point::ValueType>(), 3);
 
 	if (pSourceMesh->HasNormals())
 	{
@@ -252,36 +254,40 @@ void GenericProducer::ParseMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSo
 			const aiVector3D& normal = pSourceMesh->mNormals[vertexDataIndex];
 			mesh.SetVertexNormal(vertexIndex, Direction(normal.x, normal.y, normal.z));
 		}
-	}
+		meshVertexFormat.AddAttributeLayout(VertexAttributeType::Normal, GetAttributeValueType<Direction::ValueType>(), 3);
 
-	if (pSourceMesh->HasTangentsAndBitangents())
-	{
-		for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
+		if (pSourceMesh->HasTangentsAndBitangents())
 		{
-			uint32_t vertexDataIndex = vertexIndex;
-			if (IsDuplicateVertexServiceActive())
+			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
-				auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-				assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-				vertexDataIndex = itNewIndex->second;
+				uint32_t vertexDataIndex = vertexIndex;
+				if (IsDuplicateVertexServiceActive())
+				{
+					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
+					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
+					vertexDataIndex = itNewIndex->second;
+				}
+
+				const aiVector3D& tangent = pSourceMesh->mTangents[vertexDataIndex];
+				mesh.SetVertexTangent(vertexIndex, Direction(tangent.x, tangent.y, tangent.z));
 			}
+			meshVertexFormat.AddAttributeLayout(VertexAttributeType::Tangent, GetAttributeValueType<Direction::ValueType>(), 3);
 
-			const aiVector3D& tangent = pSourceMesh->mTangents[vertexDataIndex];
-			mesh.SetVertexTangent(vertexIndex, Direction(tangent.x, tangent.y, tangent.z));
-		}
 
-		for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
-		{
-			uint32_t vertexDataIndex = vertexIndex;
-			if (IsDuplicateVertexServiceActive())
+			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
-				auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-				assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-				vertexDataIndex = itNewIndex->second;
-			}
+				uint32_t vertexDataIndex = vertexIndex;
+				if (IsDuplicateVertexServiceActive())
+				{
+					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
+					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
+					vertexDataIndex = itNewIndex->second;
+				}
 
-			const aiVector3D& biTangent = pSourceMesh->mBitangents[vertexDataIndex];
-			mesh.SetVertexBiTangent(vertexIndex, Direction(biTangent.x, biTangent.y, biTangent.z));
+				const aiVector3D& biTangent = pSourceMesh->mBitangents[vertexDataIndex];
+				mesh.SetVertexBiTangent(vertexIndex, Direction(biTangent.x, biTangent.y, biTangent.z));
+			}
+			meshVertexFormat.AddAttributeLayout(VertexAttributeType::Bitangent, GetAttributeValueType<Direction::ValueType>(), 3);
 		}
 	}
 
@@ -312,6 +318,7 @@ void GenericProducer::ParseMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSo
 			const aiVector3D& uv = vertexUVArray[vertexDataIndex];
 			mesh.SetVertexUV(uvSetIndex, vertexIndex, UV(uv.x, uv.y));
 		}
+		meshVertexFormat.AddAttributeLayout(VertexAttributeType::UV, GetAttributeValueType<UV::ValueType>(), 2);
 	}
 
 	uint32_t colorSetCount = pSourceMesh->GetNumColorChannels();
@@ -333,6 +340,7 @@ void GenericProducer::ParseMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSo
 			const aiColor4D& color = vertexColorArray[vertexDataIndex];
 			mesh.SetVertexColor(colorSetIndex, vertexIndex, Color(color.r, color.g, color.b, color.a));
 		}
+		meshVertexFormat.AddAttributeLayout(VertexAttributeType::Color, GetAttributeValueType<Color::ValueType>(), 4);
 	}
 
 	pSceneDatabase->AddMesh(std::move(mesh));
