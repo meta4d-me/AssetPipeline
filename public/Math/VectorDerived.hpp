@@ -33,6 +33,7 @@ public:
 	using Base = VectorBase<T, Derived>;
 	using Base::Base;
 
+public:
 	// Default zero initialization constructor.
 	explicit constexpr VectorDerived() :
 		data {}

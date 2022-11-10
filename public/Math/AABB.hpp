@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/ISerializable.hpp"
 #include "VectorDerived.hpp"
 
 #include <assert.h>
@@ -13,7 +14,7 @@ namespace cdtools
 /// <typeparam name="T">Coordinate value type : float, double, ...</typeparam>
 /// <typeparam name="N">The number of dimensions.</typeparam>
 template<typename T, std::size_t N>
-class TAABB final
+class TAABB final : public ISerializable
 {
 private:
 	using PointType = VectorDerived<T, N, VectorType::Point>;
@@ -57,6 +58,19 @@ public:
 			m_max.y() = std::max(m_max.y(), other.Max().y());
 			m_max.z() = std::max(m_max.z(), other.Max().z());
 		}
+	}
+
+	// ISerializable
+	virtual void ImportBinary(std::ifstream& fin) override
+	{
+		ImportDataBuffer(fin, m_min.begin());
+		ImportDataBuffer(fin, m_max.begin());
+	}
+
+	virtual void ExportBinary(std::ofstream& fout) const override
+	{
+		ExportDataBuffer(fout, m_min.begin(), m_min.size());
+		ExportDataBuffer(fout, m_max.begin(), m_max.size());
 	}
 
 private:

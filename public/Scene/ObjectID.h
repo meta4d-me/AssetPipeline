@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ObjectIDTypes.h"
+#include "ObjectType.h"
 
 #include <limits>
 #include <inttypes.h>

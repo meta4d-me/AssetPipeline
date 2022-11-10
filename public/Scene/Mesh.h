@@ -3,6 +3,7 @@
 #include "Core/ISerializable.hpp"
 #include "Math/AABB.hpp"
 #include "ObjectID.h"
+#include "VertexFormat.h"
 
 #include <array>
 #include <string>
@@ -29,14 +30,19 @@ public:
 	~Mesh() = default;
 
 	void Init(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount);
-	void SetAABB(AABB aabb) { m_aabb = std::move(aabb); }
-
 	const MeshID& GetID() const { return m_id; }
 	const std::string& GetName() const { return m_name; }
-	const AABB& GetAABB() const { return m_aabb; }
 	uint32_t GetVertexCount() const { return m_vertexCount; }
 	uint32_t GetPolygonCount() const { return m_polygonCount; }
-	
+
+	void SetVertexFormat(VertexFormat vertexFormat) { m_vertexFormat = std::move(vertexFormat); }
+	VertexFormat& GetVertexFormat() { return m_vertexFormat; }
+	const VertexFormat& GetVertexFormat() const { return m_vertexFormat; }
+
+	void SetAABB(AABB aabb) { m_aabb = std::move(aabb); }
+	AABB& GetAABB() { return m_aabb; }
+	const AABB& GetAABB() const { return m_aabb; }
+
 	void SetMaterialID(uint32_t materialIndex) { m_materialID = materialIndex; }
 	const MaterialID& GetMaterialID() const { return m_materialID; }
 
@@ -97,6 +103,7 @@ private:
 	AABB					m_aabb;
 	
 	// vertex geometry data
+	VertexFormat			m_vertexFormat;
 	std::vector<Point>		m_vertexPositions;
 	std::vector<Direction>	m_vertexNormals;		// Maybe we wants to use face normals? Or we can help to calculate it.
 	std::vector<Direction>	m_vertexTangents;		// Ditto.
