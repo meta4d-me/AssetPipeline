@@ -343,6 +343,7 @@ void GenericProducer::ParseMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSo
 		meshVertexFormat.AddAttributeLayout(VertexAttributeType::Color, GetAttributeValueType<Color::ValueType>(), 4);
 	}
 
+	mesh.SetVertexFormat(std::move(meshVertexFormat));
 	pSceneDatabase->AddMesh(std::move(mesh));
 }
 
