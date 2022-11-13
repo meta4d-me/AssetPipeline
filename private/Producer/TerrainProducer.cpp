@@ -8,7 +8,6 @@
 #include "Math/VectorDerived.hpp"
 #include "Noise/Noise.h"
 #include "Scene/Mesh.h"
-#include "Scene/ObjectIDTypes.h"
 #include "Scene/SceneDatabase.h"
 #include "Utilities/Utils.h"
 
