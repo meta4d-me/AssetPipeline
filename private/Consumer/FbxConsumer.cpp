@@ -87,9 +87,9 @@ void FbxConsumer::Execute(const SceneDatabase* pSceneDatabase)
 		{
 			const Mesh::Polygon& polygon = mesh.GetPolygon(polygonIndex);
 			pFbxMesh->BeginPolygon(-1, -1, -1, false);
-			pFbxMesh->AddPolygon(polygon.v0.Data());
-			pFbxMesh->AddPolygon(polygon.v1.Data());
-			pFbxMesh->AddPolygon(polygon.v2.Data());
+			pFbxMesh->AddPolygon(polygon[0].Data());
+			pFbxMesh->AddPolygon(polygon[1].Data());
+			pFbxMesh->AddPolygon(polygon[2].Data());
 			pFbxMesh->EndPolygon();
 		}
 

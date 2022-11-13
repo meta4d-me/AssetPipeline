@@ -13,6 +13,13 @@ void SceneDatabase::SetMeshCount(uint32_t meshCount)
 	m_meshes.reserve(meshCount);
 }
 
+uint32_t SceneDatabase::GetNextMeshID() {
+	// TODO make this thread-safe
+	uint32_t next_id = m_next_mesh_id;
+	++m_next_mesh_id;
+	return next_id;
+}
+
 void SceneDatabase::AddMesh(Mesh mesh)
 {
 	m_meshes.emplace_back(std::move(mesh));
