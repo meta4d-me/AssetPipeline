@@ -4,8 +4,8 @@
 #include <climits>
 #include <cmath>
 #include <random>
+#include <utility>
 
-#include "Math/VectorDerived.hpp"
 #include "Noise/Noise.h"
 #include "Scene/Mesh.h"
 #include "Scene/SceneDatabase.h"
@@ -14,205 +14,252 @@
 namespace cdtools
 {
 
-TerrainProducer::TerrainProducer(uint32_t x_vertices, uint32_t z_vertices, uint32_t width, uint32_t height, uint32_t max_elevation)
-	: m_numVerticesInX(x_vertices)
-	, m_numVerticesInZ(z_vertices)
-	, m_width(width)
-	, m_height(height)
+TerrainProducer::TerrainProducer(uint32_t x_quads, uint32_t z_quads, uint32_t quad_width, uint32_t quad_height, uint32_t max_elevation)
+	: m_numQuadsInX(x_quads)
+	, m_numQuadsInZ(z_quads)
+	, m_quadWidth(quad_width)
+	, m_quadHeight(quad_height)
 	, m_maxElevation(max_elevation)
 {
-	// Must be at least 2 vertices for each dimension
-	assert(m_numVerticesInZ > 1);
-	assert(m_numVerticesInX > 1);
+	// Must be at least 1 quad
+	assert(x_quads >= 1);
+	assert(z_quads >= 1);
+	// Must be greater than zero for both width and height
+	assert(quad_width > 0);
+	assert(quad_height > 0);
 }
 
-void TerrainProducer::Execute(SceneDatabase* pSceneDatabase) 
+void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 {
-	uint32_t num_vertices = m_numVerticesInZ * m_numVerticesInX;
-	//2 vertices makes an edge and 2 triangles per square
-	uint32_t num_polygons = (m_numVerticesInZ - 1) * (m_numVerticesInX - 1) * 2;
+	const uint32_t num_quads = m_numQuadsInX * m_numQuadsInZ;
+	const uint32_t num_vertices = num_quads * 4;	// 4 vertices per quad
+	const uint32_t num_polygons = num_quads * 2;	// 2 triangles per quad
 	pSceneDatabase->SetMeshCount(1);
 	Mesh terrain(MeshID(pSceneDatabase->GetNextMeshID()), "GeneratedTerrain", num_vertices, num_polygons);
 
-	// Setup the random seeds for noise functions
+	terrain.SetVertexColorSetCount(0);	// No colors
+	terrain.SetVertexUVSetCount(1);		// Only 1 set of UV
+	std::vector<std::vector<TerrainQuad>> terrainQuads(m_numQuadsInZ, std::vector<TerrainQuad>(m_numQuadsInX));	// We need to store this for normal calculation later
+	uint32_t current_vertex_id = 0;
+	uint32_t current_polygon_id = 0;
+	// Setup the parameters - TODO get this from input or a file later
 	std::default_random_engine generator;
 	std::uniform_int_distribution<long> distribution(LONG_MIN, LONG_MAX);
-	
-	// First generate the set of vertices
-	// We will start at the bottom left corner from bottom to top, left to right
-	// ...
-	// 12 13 14 15
-	//  8  9 10 11
-	//  4  5  6  7 
-	//  0  1  2  3 
-	// Seeds
-	const int64_t s0 = distribution(generator);
-	const int64_t s1 = distribution(generator);
-	const int64_t s2 = distribution(generator);
-	const int64_t s3 = distribution(generator);
-	const int64_t s4 = distribution(generator);
-	const int64_t s5 = distribution(generator);
-	// Distributions between seeds
-	const float e0 = 0.0;
-	const float e1 = 0.8;
-	const float e2 = 0.8;
-	const float e3 = 0.5;
-	const float e4 = 0.4;
-	const float e5 = 0.6;
-	const float esum = e0 + e1 + e2 + e3 + e4 + e5;
-	int32_t current_vertex_id = 0;
-	for (uint32_t z = 0; z < m_numVerticesInZ; ++z)
+	const std::vector<std::pair<float, int64_t>> freq_params = 
 	{
-		for (uint32_t x = 0; x < m_numVerticesInX; ++x)
-		{
-			const double nx = static_cast<float>(x) / m_numVerticesInX - 0.5;
-			const double nz = static_cast<float>(z) / m_numVerticesInZ - 0.5;
-			float elevation = e0 * Noise::SimplexNoise2D(s0, 1.0 * nx, 1.0 * nz)
-							+ e1 * Noise::SimplexNoise2D(s1, 2.0 * nx, 2.0 * nz)
-							+ e2 * Noise::SimplexNoise2D(s2, 4.0 * nx, 4.0 * nz)
-							+ e3 * Noise::SimplexNoise2D(s3, 8.0 * nx, 8.0 * nz)
-							+ e4 * Noise::SimplexNoise2D(s4, 16.0 * nx, 16.0 * nz)
-							+ e5 * Noise::SimplexNoise2D(s5, 32.0 * nx, 32.0 * nz);
-			elevation /= esum;	//normalize
-			elevation = pow(elevation, 6.5);
-			elevation *= m_maxElevation;
-			terrain.SetVertexPosition(static_cast<uint32_t>(current_vertex_id), Point(static_cast<float>(x) * m_width, elevation, static_cast<float>(z) * m_height));
-			// Increment ID
-			++current_vertex_id;
-		}
-	}
-
-	/*				\|   \|   \|   \|              z
-	 *			...--+----UL---U----+---+...       ^
-	 *               |\   |\   |\   |\  |          |
-	 *               | \  | \  | \  | \ |          |
-	 *               |  \ |  \ |  \ |  \|          |
-	 *          ...--+----L----P----R---+...       +------> x
-	 *               |\   |\   |\   |\  |
-	 *               | \  | \  | \  | \ |
-	 *               |  \ |  \ |  \ |  \|
-	 *			...--+----+----B----BR--+...
-	 */
-	// For each vertices, calculate the normal. Here we will use the 6 neighboring vertices
-	// We have the following pairs
-	// P-UL X P-L; P-L X P-B; P-B X P-BR; P-BR X PR; P-R X P-U; P-U X P-UL
-	for (uint32_t z = 0; z < m_numVerticesInZ; ++z)
+		std::make_pair(0.0f, distribution(generator)),	// 1
+		std::make_pair(0.8f, distribution(generator)),	// 2
+		std::make_pair(0.8f, distribution(generator)),	// 4
+		std::make_pair(0.5f, distribution(generator)),	// 8
+		std::make_pair(0.4f, distribution(generator)),	// 16
+		std::make_pair(0.6f, distribution(generator))	// 32
+	};
+	// Generate all the quads
+	for (uint32_t z = 0; z < m_numQuadsInZ - 1; ++z)
 	{
-		for (uint32_t x = 0; x < m_numVerticesInX; ++x)
+		std::vector<TerrainQuad>& currentRow = terrainQuads[z];
+		for (uint32_t x = 0; x < m_numQuadsInX - 1; ++x)
 		{
-			// Calculate all the 6 vertices IDs
-			current_vertex_id = z * m_numVerticesInX + x;
-			int32_t leftVertex = current_vertex_id - 1;
-			int32_t rightVertex = current_vertex_id + 1;
-			int32_t topVertex = current_vertex_id + m_numVerticesInX;
-			int32_t bottomVertex = current_vertex_id - m_numVerticesInX;
-			int32_t topLeftVertex = topVertex - 1;
-			int32_t bottomRightVertex = bottomVertex + 1;
-			// Calculate all the 6 directions from current vertex
-			Direction currentToLeftDir;
-			Direction currentToRightDir;
-			Direction currentToTopDir;
-			Direction currentToBottomDir;
-			Direction currentToTopLeftDir;
-			Direction currentToBottomRightDir;
-			// Check the boundaries
-			const bool hasLeft = x > 0;
-			const bool hasRight = x < static_cast<int32_t>(m_numVerticesInX - 1);
-			const bool hasTop = z < static_cast<int32_t>(m_numVerticesInZ - 1);
-			const bool hasBottom = z > 0;
-			// Calculate the directions
-			if (hasLeft) {
-				currentToLeftDir = terrain.GetVertexPosition(static_cast<uint32_t>(leftVertex)) - terrain.GetVertexPosition(static_cast<uint32_t>(current_vertex_id));
-			}
-			if (hasRight) {
-				currentToRightDir = terrain.GetVertexPosition(static_cast<uint32_t>(rightVertex)) - terrain.GetVertexPosition(static_cast<uint32_t>(current_vertex_id));
-			}
-			if (hasTop) {
-				currentToTopDir = terrain.GetVertexPosition(static_cast<uint32_t>(topVertex)) - terrain.GetVertexPosition(static_cast<uint32_t>(current_vertex_id));
-			}
-			if (hasBottom) {
-				currentToBottomDir = terrain.GetVertexPosition(static_cast<uint32_t>(bottomVertex)) - terrain.GetVertexPosition(static_cast<uint32_t>(current_vertex_id));
-			}
-			if (hasTop && hasLeft) {
-				currentToTopLeftDir = terrain.GetVertexPosition(static_cast<uint32_t>(topLeftVertex)) - terrain.GetVertexPosition(static_cast<uint32_t>(current_vertex_id));
-			}
-			if (hasBottom && hasRight) {
-				currentToBottomRightDir = terrain.GetVertexPosition(static_cast<uint32_t>(bottomRightVertex)) - terrain.GetVertexPosition(static_cast<uint32_t>(current_vertex_id));
-			}
-			// Calculate the normal based on all these
+			currentRow[x] = CreateQuadAt(current_vertex_id, current_polygon_id);
+			Point bottomLeftPoint(static_cast<float>(x) * m_quadWidth, GetHeightAt(x, z, freq_params, 5.0f), static_cast<float>(z) * m_quadHeight);
+			Point topLeftPoint(static_cast<float>(x) * m_quadWidth, GetHeightAt(x, z + 1, freq_params, 5.0f), static_cast<float>(z + 1) * m_quadHeight);
+			Point topRightPoint(static_cast<float>(x + 1) * m_quadWidth, GetHeightAt(x + 1, z + 1, freq_params, 5.0f), static_cast<float>(z + 1) * m_quadHeight);
+			Point bottomRightPoint(static_cast<float>(x + 1) * m_quadWidth, GetHeightAt(x + 1, z, freq_params, 5.0f), static_cast<float>(z) * m_quadHeight);
+			// Sets the attribute in the terrain
+			// Position
+			terrain.SetVertexPosition(currentRow[x].bottomLeftVertexId, bottomLeftPoint);
+			terrain.SetVertexPosition(currentRow[x].topLeftVertexId, topLeftPoint);
+			terrain.SetVertexPosition(currentRow[x].topRightVertexId, topRightPoint);
+			terrain.SetVertexPosition(currentRow[x].bottomRightVertexId, bottomRightPoint);
+			// UV
+			terrain.SetVertexUV(0, currentRow[x].bottomLeftVertexId, UV(0.0f, 0.0f));
+			terrain.SetVertexUV(0, currentRow[x].topLeftVertexId, UV(0.0f, 1.0f));
+			terrain.SetVertexUV(0, currentRow[x].topRightVertexId, UV(1.0f, 1.0f));
+			terrain.SetVertexUV(0, currentRow[x].bottomRightVertexId, UV(1.0f, 0.0f));
+			// The two triangle indices
+			terrain.SetPolygon(currentRow[x].leftTriPolygonId, VertexID(currentRow[x].bottomLeftVertexId), VertexID(currentRow[x].topLeftVertexId), VertexID(currentRow[x].bottomRightVertexId));
+			terrain.SetPolygon(currentRow[x].rightTriPolygonId, VertexID(currentRow[x].bottomRightVertexId), VertexID(currentRow[x].topLeftVertexId), VertexID(currentRow[x].topRightVertexId));
+			// Normals
 			Direction normal;
-			float topToTopLeftArea = 0;
-			float topLeftToLeftArea = 0;
-			float leftToBottomArea = 0;
-			float bottomToBottomRightArea = 0;
-			float bottomRightToRightArea = 0;
-			float rightToTopArea = 0;
-			Direction topToTopLeftNormal;
-			Direction topLeftToLeftNormal;
-			Direction leftToBottomNormal;
-			Direction bottomToBottomRightNormal;
-			Direction bottomRightToRightNormal;
-			Direction rightToTopNormal;
-			if (hasTop && hasLeft) {
-				topToTopLeftNormal = currentToTopDir.Cross(currentToTopLeftDir);
-				topToTopLeftArea = topToTopLeftNormal.LengthSquare();
-				topLeftToLeftNormal = currentToTopLeftDir.Cross(currentToLeftDir);
-				topLeftToLeftArea = topLeftToLeftNormal.LengthSquare();
-			}
-			if (hasLeft && hasBottom) {
-				leftToBottomNormal = currentToBottomDir.Cross(currentToLeftDir);
-				leftToBottomArea = leftToBottomNormal.LengthSquare();
-			}
-			if (hasBottom && hasRight) {
-				bottomToBottomRightNormal = currentToBottomDir.Cross(currentToBottomRightDir);
-				bottomToBottomRightArea = bottomToBottomRightNormal.LengthSquare();
-				bottomRightToRightNormal = currentToBottomRightDir.Cross(currentToRightDir);
-				bottomRightToRightArea = bottomRightToRightNormal.LengthSquare();
-			}
-			if (hasRight && hasTop) {
-				rightToTopNormal = currentToTopDir.Cross(currentToRightDir);
-				rightToTopArea = rightToTopNormal.LengthSquare();
-			}
-			float total_area = topToTopLeftArea + topLeftToLeftArea + leftToBottomArea + bottomToBottomRightArea + bottomRightToRightArea + rightToTopArea;
-			if (total_area <= 0) {
-				assert(false);
-			}
-			// Calculate the normal
-			normal.Add(topToTopLeftNormal.Multiply(topLeftToLeftArea / total_area));
-			normal.Add(topLeftToLeftNormal.Multiply(topLeftToLeftArea / total_area));
-			normal.Add(leftToBottomNormal.Multiply(leftToBottomArea / total_area));
-			normal.Add(bottomToBottomRightNormal.Multiply(bottomToBottomRightArea / total_area));
-			normal.Add(bottomRightToRightNormal.Multiply(bottomRightToRightArea / total_area));
-			normal.Add(rightToTopNormal.Multiply(rightToTopArea / total_area));
+			// bottom-left
+			const Direction bottomLeftToBottomRight = bottomRightPoint - bottomLeftPoint;
+			const Direction bottomLeftToTopLeft = topLeftPoint - bottomLeftPoint;
+			normal = bottomLeftToBottomRight.Cross(bottomLeftToTopLeft);
 			normal.Normalize();
-			terrain.SetVertexNormal(static_cast<uint32_t>(current_vertex_id), normal);
+			terrain.SetVertexNormal(currentRow[x].bottomLeftVertexId, normal);
+			// top-left
+			const Direction topLeftToBottomLeft = bottomLeftPoint - topLeftPoint;
+			const Direction topLeftToBottomRight = bottomRightPoint - topLeftPoint;
+			const Direction topLeftToTopRight = topRightPoint - topLeftPoint;
+			normal = topLeftToBottomLeft.Cross(topLeftToBottomRight);
+			normal.Add(topLeftToBottomRight.Cross(topLeftToTopRight));
+			normal.Normalize();
+			terrain.SetVertexNormal(currentRow[x].topLeftVertexId, normal);
+			// top-right
+			const Direction topRightToTopLeft = topLeftPoint - topRightPoint;
+			const Direction topRightToBottomRight = bottomRightPoint - topRightPoint;
+			normal = topRightToTopLeft.Cross(topRightToBottomRight);
+			normal.Normalize();
+			terrain.SetVertexNormal(currentRow[x].topRightVertexId, normal);
+			// bottom-right
+			const Direction bottomRightToTopRight = topRightPoint - bottomRightPoint;
+			const Direction bottomRightToTopLeft = topLeftPoint - bottomRightPoint;
+			const Direction bottomRightToBottomLeft = bottomLeftPoint - bottomRightPoint;
+			normal = bottomRightToTopRight.Cross(bottomRightToTopLeft);
+			normal.Add(bottomRightToTopLeft.Cross(bottomRightToBottomLeft));
+			normal.Normalize();
+			terrain.SetVertexNormal(currentRow[x].bottomRightVertexId, normal);
 		}
 	}
-
-	// Sets the indices
-	uint32_t polygonIndex = 0;
-	uint32_t currentVertexIndex = m_numVerticesInZ;
-	for (uint32_t z = 1; z < m_numVerticesInX; ++z) {
-		for (uint32_t x = 0; x < (m_numVerticesInZ - 1); ++x)
+	// Smooth out all the normals by suming all the near-by quads' normals
+	for (int32_t z = 0; z < terrainQuads.size(); ++z)
+	{
+		for (int32_t x = 0; x < terrainQuads[z].size(); ++x)
 		{
-			VertexID topLeftVertex(currentVertexIndex);
-			VertexID topRigthVertex(currentVertexIndex + 1);
-			VertexID bottomLeftVertex(currentVertexIndex - m_numVerticesInZ);
-			VertexID bottomRightVertex(currentVertexIndex - m_numVerticesInZ + 1);
-			terrain.SetPolygon(polygonIndex, topLeftVertex, bottomRightVertex, bottomLeftVertex);
-			++polygonIndex;
-			terrain.SetPolygon(polygonIndex, topLeftVertex, topRigthVertex, bottomRightVertex);
-			++polygonIndex;
-			++currentVertexIndex;
+			const bool hasTop = z + 1 < terrainQuads.size();
+			const bool hasRight = x + 1 < terrainQuads[z].size();
+			const bool hasLeft = x - 1 >= 0;
+			const bool hasBottom = z - 1 >= 0;
+			TerrainQuad currentQuad = terrainQuads[z][x];
+			Direction normal;
+			// bottom-left
+			normal = terrain.GetVertexNormal(currentQuad.bottomLeftVertexId);
+			if (hasLeft) 
+			{
+				const TerrainQuad leftQuad = terrainQuads[z][x - 1];
+				normal.Add(terrain.GetVertexNormal(leftQuad.bottomRightVertexId));
+			}
+			if (hasLeft && hasBottom)
+			{
+				const TerrainQuad bottomLeftQuad = terrainQuads[z - 1][x - 1];
+				normal.Add(terrain.GetVertexNormal(bottomLeftQuad.topRightVertexId));
+			}
+			if (hasBottom)
+			{
+				const TerrainQuad bottomQuad = terrainQuads[z - 1][x];
+				normal.Add(terrain.GetVertexNormal(bottomQuad.topLeftVertexId));
+			}
+			normal.Normalize();
+			currentQuad.bottomLeftNormal = normal;
+			
+			// top-left
+			normal = terrain.GetVertexNormal(currentQuad.topLeftVertexId);
+			if (hasLeft)
+			{
+				const TerrainQuad leftQuad = terrainQuads[z][x - 1];
+				normal.Add(terrain.GetVertexNormal(leftQuad.topRightVertexId));
+			}
+			if (hasLeft && hasTop)
+			{
+				const TerrainQuad topLeftQuad = terrainQuads[z + 1][x - 1];
+				normal.Add(terrain.GetVertexNormal(topLeftQuad.bottomRightVertexId));
+			}
+			if (hasTop)
+			{
+				const TerrainQuad topQuad = terrainQuads[z + 1][x];
+				normal.Add(terrain.GetVertexNormal(topQuad.bottomLeftVertexId));
+			}
+			normal.Normalize();
+			currentQuad.topRightNormal = normal;
+
+			// top-right
+			normal = terrain.GetVertexNormal(currentQuad.topRightVertexId);
+			if (hasTop)
+			{
+				const TerrainQuad topQuad = terrainQuads[z + 1][x];
+				normal.Add(terrain.GetVertexNormal(topQuad.bottomRightVertexId));
+			}
+			if (hasTop && hasRight)
+			{
+				const TerrainQuad topRightQuad = terrainQuads[z + 1][x + 1];
+				normal.Add(terrain.GetVertexNormal(topRightQuad.bottomLeftVertexId));
+			}
+			if (hasRight)
+			{
+				const TerrainQuad rightQuad = terrainQuads[z][x + 1];
+				normal.Add(terrain.GetVertexNormal(rightQuad.topLeftVertexId));
+			}
+			normal.Normalize();
+			currentQuad.topRightNormal = normal;
+
+			// bottom-right
+			normal = terrain.GetVertexNormal(currentQuad.bottomRightVertexId);
+			if (hasRight)
+			{
+				const TerrainQuad rightQuad = terrainQuads[z][x + 1];
+				normal.Add(terrain.GetVertexNormal(rightQuad.bottomLeftVertexId));
+			}
+			if (hasRight && hasBottom)
+			{
+				const TerrainQuad bottomRightQuad = terrainQuads[z - 1][x + 1];
+				normal.Add(terrain.GetVertexNormal(bottomRightQuad.topLeftVertexId));
+			}
+			if (hasBottom)
+			{
+				const TerrainQuad bottomQuad = terrainQuads[z - 1][x];
+				normal.Add(terrain.GetVertexNormal(bottomQuad.topRightVertexId));
+			}
+			normal.Normalize();
+			currentQuad.bottomRightNormal = normal;
 		}
-		++currentVertexIndex;	// Skip last vertex
 	}
-	assert(polygonIndex == num_polygons);
+	// Set the normal
+	for (int32_t z = 0; z < terrainQuads.size(); ++z)
+	{
+		for (int32_t x = 0; x < terrainQuads[z].size(); ++x)
+		{
+			const TerrainQuad currentQuad = terrainQuads[z][x];
+			terrain.SetVertexNormal(currentQuad.bottomLeftVertexId, currentQuad.bottomLeftNormal);
+			terrain.SetVertexNormal(currentQuad.topLeftVertexId, currentQuad.topLeftNormal);
+			terrain.SetVertexNormal(currentQuad.topRightVertexId, currentQuad.topRightNormal);
+			terrain.SetVertexNormal(currentQuad.bottomRightVertexId, currentQuad.bottomRightNormal);
+		}
+	}
 
-	terrain.SetVertexColorSetCount(0);
-	terrain.SetVertexUVSetCount(0);
-
+	// Add it to the scene
 	pSceneDatabase->AddMesh(std::move(terrain));
+}
+
+TerrainQuad TerrainProducer::CreateQuadAt(uint32_t& currentVertexId, uint32_t& currentPolygonId) const
+{
+	TerrainQuad quad;
+
+	// Sets the vertex IDs in CW manner
+	quad.bottomLeftVertexId = currentVertexId;
+	++currentVertexId;
+	quad.topLeftVertexId = currentVertexId;
+	++currentVertexId;
+	quad.topRightVertexId = currentVertexId;
+	++currentVertexId;
+	quad.bottomRightVertexId = currentVertexId;
+	++currentVertexId;
+
+	// Sets the polygon IDs
+	quad.leftTriPolygonId = currentPolygonId;
+	++currentPolygonId;
+	quad.rightTriPolygonId = currentPolygonId;
+	++currentPolygonId;
+
+	return quad;
+}
+
+float TerrainProducer::GetHeightAt(uint32_t x, uint32_t z, const std::vector<std::pair<float, int64_t>>& freq_params, float power_exp) const
+{
+	const double nx = (static_cast<double>(x) / m_numQuadsInX);
+	const double nz = (static_cast<double>(z) / m_numQuadsInZ);
+	float result = 0.0f;
+	float scale_sum = 0.0f;
+	for (uint32_t i = 0; i < freq_params.size(); ++i)
+	{
+		std::pair<float, int64_t> param = freq_params[i];
+		const uint32_t freq  = 0x1 << i;
+		result += param.first * Noise::SimplexNoise2D(param.second, freq * nx, freq * nz);
+		scale_sum += param.first;
+	}
+	result /= scale_sum;
+	result = pow(result, power_exp);
+	result *= m_maxElevation;
+	return result;
 }
 
 }	// namespace cdtools
