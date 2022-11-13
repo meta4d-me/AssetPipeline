@@ -10,7 +10,7 @@ cd build
 echo [ ASSIMP ] Start making project...
 if not exist assimp\. mkdir assimp
 cd assimp
-%CMAKE_EXE% ../../assimp -G "Visual Studio 16 2019" -A x64
+%CMAKE_EXE% ../../external/assimp -G "Visual Studio 16 2019" -A x64
 cd ..
 echo\
 
@@ -22,7 +22,6 @@ if exist "./auto/commercial_sdk_locations.bat" (
     echo commercial_sdk_locations does not exist, skipped
 )
 @echo on
-
 call "./auto/premake5" "vs2019"
 
 pause

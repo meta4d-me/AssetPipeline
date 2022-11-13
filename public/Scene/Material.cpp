@@ -79,11 +79,10 @@ void Material::ExportBinary(std::ofstream& fout) const
 	const Material::TextureIDMap& textureIDMap = GetTextureIDMap();
 	ExportData<size_t>(fout, textureIDMap.size());
 
-	for (Material::TextureIDMap::const_iterator it = textureIDMap.begin(), itEnd = textureIDMap.end();
-		it != itEnd; ++it)
+	for (const auto& [materialTextureType, textureID] : textureIDMap)
 	{
-		ExportData<size_t>(fout, static_cast<size_t>(it->first));
-		ExportData<uint32_t>(fout, it->second.Data());
+		ExportData<size_t>(fout, static_cast<size_t>(materialTextureType));
+		ExportData<uint32_t>(fout, textureID.Data());
 	}
 }
 

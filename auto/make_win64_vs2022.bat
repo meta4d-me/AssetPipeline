@@ -10,7 +10,7 @@ cd build
 echo [ ASSIMP ] Start making project...
 if not exist assimp\. mkdir assimp
 cd assimp
-%CMAKE_EXE% ../../assimp -G "Visual Studio 17 2022" -A x64
+%CMAKE_EXE% ../../external/assimp -G "Visual Studio 17 2022" -A x64
 cd ..
 echo\
 

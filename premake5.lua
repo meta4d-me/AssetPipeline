@@ -174,6 +174,7 @@ project("AssetPipeline")
 	includedirs {
 		"public",
 		"private",
+		"external",
 		table.unpack(commercialSDKIncludeDirs)
 	}
 
@@ -188,8 +189,10 @@ project("AssetPipeline")
 	-- assimp
 	includedirs {
 		-- assimp lib will build a config.h file for the call side to include
-		"assimp/include",
+		"external/assimp/include",
 		"build/assimp/include",
+		-- rapidxml
+		"external/rapidxml",
 	}
 
 	filter { "system:Windows", "configurations:Debug", "action:vs2022" }

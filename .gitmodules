@@ -1,3 +1,6 @@
 [submodule "assimp"]
-	path = assimp
+	path = external/assimp
 	url = https://github.com/CatDogEngine/assimp
+[submodule "external/rapidxml"]
+	path = external/rapidxml
+	url = https://github.com/CatDogEngine/rapidxml
