@@ -3,6 +3,7 @@
 #include "ObjectID.h"
 
 #include <assert.h>
+#include <optional>
 #include <unordered_map>
 
 namespace cdtools
@@ -27,17 +28,22 @@ public:
 	ObjectIDGenerator& operator=(ObjectIDGenerator&&) = delete;
 	~ObjectIDGenerator() = default;
 
+	// Set generated id range in [min, max]
+	void SetRange(Vty min, Vty max) { m_minID = min; m_maxID = max; }
+
 	// Pass hash value is used to keep allocating unique ObjectID.
-	Oty AllocateID(Vty hashValue)
+	Oty AllocateID(Vty hashValue, bool& isReused)
 	{
-		auto itID = m_objectIDLUT.find(hashValue);
+		const auto itID = m_objectIDLUT.find(hashValue);
 		if(itID != m_objectIDLUT.end())
 		{
+			isReused = true;
 			return itID->second;
 		}
 
+		isReused = false;
 		Vty newID = m_currentID++;
-		assert(newID >= m_minID && newID < m_maxID && "The allocated id is out of range.");
+		assert(newID >= m_minID && newID <= m_maxID && "The allocated id is out of range.");
 		m_objectIDLUT[hashValue] = Oty(newID);
 		return m_objectIDLUT[hashValue];
 	}
