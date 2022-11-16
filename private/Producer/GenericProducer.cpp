@@ -13,6 +13,7 @@
 #include <cassert>
 #include <format>
 #include <optional>
+#include <set>
 #include <unordered_map>
 
 namespace cdtools
@@ -53,37 +54,31 @@ uint32_t GenericProducer::GetImportFlags() const
 	return importFlags;
 }
 
-void GenericProducer::ParseMaterial(SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial)
+void GenericProducer::AddMaterial(SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial)
 {
-	// TODO : What should them map to ?
-	// aiTextureType_SPECULAR,
-	// aiTextureType_AMBIENT,
-	// aiTextureType_HEIGHT,
-	// aiTextureType_NORMALS,
-	// aiTextureType_SHININESS,
-	// aiTextureType_OPACITY,
-	// aiTextureType_DISPLACEMENT,
-	// aiTextureType_REFLECTION,
-	std::unordered_map<aiTextureType, MaterialTextureType> materialTextureMapping;
-	materialTextureMapping[aiTextureType_DIFFUSE] = MaterialTextureType::BaseColor;
-	materialTextureMapping[aiTextureType_BASE_COLOR] = MaterialTextureType::BaseColor;
-	materialTextureMapping[aiTextureType_NORMALS] = MaterialTextureType::Normal;
-	materialTextureMapping[aiTextureType_NORMAL_CAMERA] = MaterialTextureType::Normal;
-	materialTextureMapping[aiTextureType_EMISSIVE] = MaterialTextureType::Emissive;
-	materialTextureMapping[aiTextureType_EMISSION_COLOR] = MaterialTextureType::Emissive;
-	materialTextureMapping[aiTextureType_METALNESS] = MaterialTextureType::Metalness;
-	materialTextureMapping[aiTextureType_DIFFUSE_ROUGHNESS] = MaterialTextureType::Roughness;
-	materialTextureMapping[aiTextureType_AMBIENT_OCCLUSION] = MaterialTextureType::AO;
-	materialTextureMapping[aiTextureType_LIGHTMAP] = MaterialTextureType::AO;
+	static std::unordered_map<aiTextureType, MaterialTextureType> materialTextureMapping;
+	{
+		// Mapping assimp material key to pbr based material key.
+		materialTextureMapping[aiTextureType_DIFFUSE] = MaterialTextureType::BaseColor;
+		materialTextureMapping[aiTextureType_BASE_COLOR] = MaterialTextureType::BaseColor;
+		materialTextureMapping[aiTextureType_NORMALS] = MaterialTextureType::Normal;
+		materialTextureMapping[aiTextureType_NORMAL_CAMERA] = MaterialTextureType::Normal;
+		materialTextureMapping[aiTextureType_EMISSIVE] = MaterialTextureType::Emissive;
+		materialTextureMapping[aiTextureType_EMISSION_COLOR] = MaterialTextureType::Emissive;
+		materialTextureMapping[aiTextureType_METALNESS] = MaterialTextureType::Metalness;
+		materialTextureMapping[aiTextureType_DIFFUSE_ROUGHNESS] = MaterialTextureType::Roughness;
+		materialTextureMapping[aiTextureType_AMBIENT_OCCLUSION] = MaterialTextureType::AO;
+		materialTextureMapping[aiTextureType_LIGHTMAP] = MaterialTextureType::AO;
+	}
 
 	aiString materialName;
-	if(aiReturn_SUCCESS != aiGetMaterialString(pSourceMaterial, AI_MATKEY_NAME, &materialName))
+	if (aiReturn_SUCCESS != aiGetMaterialString(pSourceMaterial, AI_MATKEY_NAME, &materialName))
 	{
 		assert("\tMaterial name is not found.\n");
 	}
 
 	std::string finalMaterialName;
-	if(materialName.length > 0)
+	if (materialName.length > 0)
 	{
 		finalMaterialName = materialName.C_Str();
 	}
@@ -94,32 +89,31 @@ void GenericProducer::ParseMaterial(SceneDatabase* pSceneDatabase, const aiMater
 		printf("\tWarning : current material doesn't have name?\n");
 	}
 
-	MaterialID materialID = m_materialIDGenerator.AllocateID(StringHash<MaterialID::ValueType>(finalMaterialName));
+	bool isMaterialReused;
+	MaterialID::ValueType materialHash = StringHash<MaterialID::ValueType>(finalMaterialName);
+	MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, isMaterialReused);
+	if (isMaterialReused)
+	{
+		// Skip to parse material which should already exist in SceneDatabase.
+		// Note that two materials with same configs but have different names will be considered as different materia.
+		// Because we only use material name as hash value. Don't want to compare all parameters.
+		return;
+	}
+
 	printf("\t[MaterialID %u] %s\n", materialID.Data(), finalMaterialName.c_str());
 	Material material(materialID, finalMaterialName.c_str());
 
-	// Parse material properties
-	int32_t blendFunction = 0;
-	aiGetMaterialIntegerArray(pSourceMaterial, AI_MATKEY_BLEND_FUNC, &blendFunction, 0);
-	if (aiBlendMode_Default == blendFunction)
-	{
-		// SourceColor*SourceAlpha + DestColor*(1-SourceAlpha)
-	}
-	else if (aiBlendMode_Additive == blendFunction)
-	{
-		// SourceColor*1 + DestColor*1
-	}
-
+	// Process all textures
 	for (const auto& [textureType, materialTextureType] : materialTextureMapping)
 	{
 		// Multiple assimp texture types will map to the same texture to increase the successful rate.
-		// So we will skip remain texture types once one texture type already setup successfully.
+		// Setup means one assimp texture type already added. Just skip remain assimp texture types.
 		if (material.IsTextureTypeSetup(materialTextureType))
 		{
 			continue;
 		}
 
-		const uint32_t textureCount = aiGetMaterialTextureCount(pSourceMaterial, textureType);
+		uint32_t textureCount = aiGetMaterialTextureCount(pSourceMaterial, textureType);
 		if (0 == textureCount)
 		{
 			continue;
@@ -128,7 +122,7 @@ void GenericProducer::ParseMaterial(SceneDatabase* pSceneDatabase, const aiMater
 		for (uint32_t textureIndex = 0; textureIndex < textureCount; ++textureIndex)
 		{
 			aiString ai_path;
-			const aiReturn result = aiGetMaterialTexture(pSourceMaterial, textureType, textureIndex, &ai_path);
+			aiReturn result = aiGetMaterialTexture(pSourceMaterial, textureType, textureIndex, &ai_path);
 			if (aiReturn_SUCCESS != result)
 			{
 				printf("\t\tFailed to read material texture property, textureType is %u, texture index is %u", textureType, textureIndex);
@@ -147,27 +141,28 @@ void GenericProducer::ParseMaterial(SceneDatabase* pSceneDatabase, const aiMater
 				continue;
 			}
 
-			TextureID textureID = m_textureIDGenerator.AllocateID(StringHash<TextureID::ValueType>(ai_path.C_Str()));
+			bool isTextureReused;
+			uint32_t textureHash = StringHash<TextureID::ValueType>(ai_path.C_Str());
+			TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, isTextureReused);
 			printf("\t\t[TextureID %u] %s - %s\n",
 				textureID.Data(),
 				GetMaterialTextureTypeName(materialTextureType),
 				ai_path.C_Str());
 
-			if(textureID.Data() != pSceneDatabase->GetTextureCount() - 1)
+			material.SetTextureID(materialTextureType, textureID);
+
+			// Reused textures don't need to add to SceneDatabase again.
+			if (!isTextureReused)
 			{
 				pSceneDatabase->AddTexture(Texture(textureID, ai_path.C_Str()));
 			}
-			material.SetTextureID(materialTextureType, textureID);
 		}
 	}
 
-	if (materialID.Data() != pSceneDatabase->GetMaterialCount() - 1)
-	{
-		pSceneDatabase->AddMaterial(std::move(material));
-	}
+	pSceneDatabase->AddMaterial(std::move(material));
 }
 
-void GenericProducer::ParseMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh)
+void GenericProducer::AddMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh)
 {
 	assert(pSourceMesh->mFaces && pSourceMesh->mNumFaces > 0 && "No polygon data.");
 
@@ -360,29 +355,52 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 
 	pSceneDatabase->SetName(m_filePath);
 
-	pSceneDatabase->SetMaterialCount(pScene->mNumMaterials);
-	printf("Scene material number : %d\n", pScene->mNumMaterials);
-	for (uint32_t materialIndex = 0; materialIndex < pScene->mNumMaterials; ++materialIndex)
-	{
-		ParseMaterial(pSceneDatabase, pScene->mMaterials[materialIndex]);
-	}
-
-	printf("Scene texture number : %d\n", pSceneDatabase->GetTextureCount());
-
+	// Process all meshes.
 	pSceneDatabase->SetMeshCount(pScene->mNumMeshes);
-	printf("Scene mesh number : %d\n", pScene->mNumMeshes);
 	for (uint32_t meshIndex = 0; meshIndex < pScene->mNumMeshes; ++meshIndex)
 	{
-		ParseMesh(pSceneDatabase, pScene->mMeshes[meshIndex]);
+		AddMesh(pSceneDatabase, pScene->mMeshes[meshIndex]);
 	}
 
-	// Merge a total AABB for all meshes in the scene.
+	// Post-process meshes.
 	AABB sceneAABB;
-	for (uint32_t meshIndex = 0; meshIndex < pSceneDatabase->GetMeshCount(); ++meshIndex)
+	std::optional<std::set<uint32_t>> optUsedMaterialIndexes = std::nullopt;
+	if (IsCleanUnusedServiceActive())
 	{
-		sceneAABB.Expand(pSceneDatabase->GetMesh(meshIndex).GetAABB());
+		optUsedMaterialIndexes = std::set<uint32_t>();
+	}
+	
+	for (const Mesh& mesh : pSceneDatabase->GetMeshes())
+	{
+		// Merge a total AABB for all meshes in the scene.
+		sceneAABB.Expand(mesh.GetAABB());
+
+		// Query mesh used material indexes.
+		if (optUsedMaterialIndexes.has_value())
+		{
+			optUsedMaterialIndexes.value().insert(mesh.GetMaterialID().Data());
+		}
 	}
 	pSceneDatabase->SetAABB(std::move(sceneAABB));
+
+	// Process all materials and used textures.
+	uint32_t actualMaterialCount = optUsedMaterialIndexes.has_value() ? static_cast<uint32_t>(optUsedMaterialIndexes.value().size()) : pScene->mNumMaterials;
+	pSceneDatabase->SetMaterialCount(actualMaterialCount);
+	
+	for (uint32_t materialIndex = 0; materialIndex < pScene->mNumMaterials; ++materialIndex)
+	{
+		// Skip parsing unused materials.
+		if (optUsedMaterialIndexes.has_value() && !optUsedMaterialIndexes.value().contains(materialIndex))
+		{
+			continue;
+		}
+
+		AddMaterial(pSceneDatabase, pScene->mMaterials[materialIndex]);
+	}
+
+	printf("Scene mesh number : %d\n", pSceneDatabase->GetMeshCount());
+	printf("Scene material number : %d\n", pSceneDatabase->GetMaterialCount());
+	printf("Scene texture number : %d\n", pSceneDatabase->GetTextureCount());
 
 	aiReleaseImport(pScene);
 	pScene = nullptr;

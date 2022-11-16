@@ -47,10 +47,16 @@ public:
 	void ActivateTangentsSpaceService() { m_bWantTangentsSpace = true; }
 	bool IsTangentsSpaceServiceActive() const { return m_bWantTangentsSpace; }
 
+	/// <summary>
+	/// Clean unused data.
+	/// </summary>
+	void ActivateCleanUnusedService() { m_bWantCleanUnused = true; }
+	bool IsCleanUnusedServiceActive() const { return m_bWantCleanUnused; }
+
 private:
 	uint32_t GetImportFlags() const;
-	void ParseMaterial(SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial);
-	void ParseMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh);
+	void AddMaterial(SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial);
+	void AddMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh);
 
 private:
 	// Service flags
@@ -59,6 +65,7 @@ private:
 	bool m_bWantFlattenHierarchy = false;
 	bool m_bWantTriangulate = false;
 	bool m_bWantTangentsSpace = false;
+	bool m_bWantCleanUnused = false;
 
 	ObjectIDGenerator<MaterialID> m_materialIDGenerator;
 	ObjectIDGenerator<TextureID> m_textureIDGenerator;

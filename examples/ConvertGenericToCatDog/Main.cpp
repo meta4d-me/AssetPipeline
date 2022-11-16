@@ -24,8 +24,13 @@ int main(int argc, char** argv)
 	producer.ActivateBoundingBoxService();
 	producer.ActivateTriangulateService();
 	producer.ActivateTangentsSpaceService();
+	producer.ActivateCleanUnusedService();
+
 	CatDogConsumer consumer(pOutputFilePath);
+	consumer.SetExportMode(ExportMode::XmlBinary);
+
 	Processor processor(&producer, &consumer);
 	processor.Run();
+
 	return 0;
 }
