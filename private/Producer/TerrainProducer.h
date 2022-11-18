@@ -1,11 +1,26 @@
 #pragma once
 
 #include <stdint.h>
+#include <vector>
 
+#include "Math/VectorDerived.hpp"
 #include "Producer/IProducer.h"
 
 namespace cdtools
 {
+
+struct TerrainQuad {
+	uint32_t leftTriPolygonId;
+	uint32_t rightTriPolygonId;
+	uint32_t bottomLeftVertexId;
+	uint32_t topLeftVertexId;
+	uint32_t topRightVertexId;
+	uint32_t bottomRightVertexId;
+	Direction bottomLeftNormal;
+	Direction topLeftNormal;
+	Direction topRightNormal;
+	Direction bottomRightNormal;
+};
 
 class TerrainProducer : public IProducer
 {
@@ -21,10 +36,14 @@ public:
 	virtual void Execute(SceneDatabase* pSceneDatabase) override;
 
 private:
-	uint32_t m_numVerticesInX;	// vertices in x-axis
-	uint32_t m_numVerticesInZ;	// vertices in z-axis
-	uint32_t m_width;			// dist between x-axis vertices
-	uint32_t m_height;			// dist between z-axis vertices
+
+	TerrainQuad CreateQuadAt(uint32_t& currentVertexId, uint32_t& currentPolygonId) const;
+	float GetHeightAt(uint32_t x, uint32_t z, const std::vector<std::pair<float, int64_t>>& freq_params, float power_exp) const;
+
+	uint32_t m_numQuadsInX;		// quads in x-axis
+	uint32_t m_numQuadsInZ;		// quads in z-axis
+	uint32_t m_quadWidth;		// width of a quad
+	uint32_t m_quadHeight;		// height of a quad
 	uint32_t m_maxElevation;	// highest possible elevation; we start at 0.
 
 };
