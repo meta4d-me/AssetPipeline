@@ -111,7 +111,7 @@ void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 			terrain.SetVertexNormal(currentRow[x].bottomRightVertexId, normal);
 		}
 	}
-	// Smooth out all the normals by suming all the near-by quads' normals
+	// Smooth out all the normals by summing all the near-by quads' normals
 	for (int32_t z = 0; z < terrainQuads.size(); ++z)
 	{
 		for (int32_t x = 0; x < terrainQuads[z].size(); ++x)
@@ -216,6 +216,10 @@ void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 		}
 	}
 
+	// AABB
+	const AABB aabb = CalculateAABB(terrain);
+	terrain.SetAABB(aabb);
+
 	// Add it to the scene
 	pSceneDatabase->AddMesh(std::move(terrain));
 }
@@ -260,6 +264,24 @@ float TerrainProducer::GetHeightAt(uint32_t x, uint32_t z, const std::vector<std
 	result = pow(result, power_exp);
 	result *= m_maxElevation;
 	return result;
+}
+
+AABB TerrainProducer::CalculateAABB(const Mesh& mesh)
+{
+	Point minPoint;
+	Point maxPoint;
+	const std::vector<Point>& meshPoints = mesh.GetVertexPositions();
+	for (uint32_t i = 0; i < meshPoints.size(); ++i)
+	{
+		const Point& current = meshPoints[i];
+		minPoint[0] = std::min(current[0], minPoint[0]);
+		minPoint[1] = std::min(current[1], minPoint[1]);
+		minPoint[2] = std::min(current[2], minPoint[2]);
+		maxPoint[0] = std::max(current[0], maxPoint[0]);
+		maxPoint[1] = std::max(current[1], maxPoint[1]);
+		maxPoint[2] = std::max(current[2], maxPoint[2]);
+	}
+	return AABB(minPoint, maxPoint);
 }
 
 }	// namespace cdtools
