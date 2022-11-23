@@ -38,7 +38,6 @@ public:
 	virtual void Execute(SceneDatabase* pSceneDatabase) override;
 
 private:
-
 	TerrainQuad CreateQuadAt(uint32_t& currentVertexId, uint32_t& currentPolygonId) const;
 	float GetHeightAt(uint32_t x, uint32_t z, const std::vector<std::pair<float, int64_t>>& freq_params, float power_exp) const;
 	AABB CalculateAABB(const Mesh& mesh);
