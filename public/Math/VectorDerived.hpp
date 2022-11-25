@@ -56,6 +56,34 @@ public:
 		static_assert(sizeof...(Args) == N);
 	}
 
+	VectorDerived(const VectorDerived& rhs)
+	{
+		std::copy(rhs.begin(), rhs.end(), this->begin());
+	}
+
+	VectorDerived(VectorDerived&& rhs)
+	{
+		// Nothing to move since it's primitive array
+		std::copy(rhs.begin(), rhs.end(), this->begin());
+		// Still reset the other array to mimic a "move"
+		std::fill(rhs.begin(), rhs.end(), static_cast<ValueType>(0));
+	}
+
+	VectorDerived& operator=(const VectorDerived& rhs)
+	{
+		std::copy(rhs.begin(), rhs.end(), this->begin());
+		return *this;
+	}
+
+	VectorDerived& operator=(VectorDerived&& rhs) 
+	{
+		// Nothing to move since it's primitive array
+		std::copy(rhs.begin(), rhs.end(), this->begin());
+		// Still reset the other array to mimic a "move"
+		std::fill(rhs.begin(), rhs.end(), static_cast<ValueType>(0));
+		return *this;
+	}
+
 	// N parameters setter.
 	template <typename... Args>
 	void Set(Args... args)
