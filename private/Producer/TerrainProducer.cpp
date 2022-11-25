@@ -31,10 +31,16 @@ TerrainProducer::TerrainProducer(uint32_t x_quads, uint32_t z_quads, uint32_t qu
 
 void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 {
+	pSceneDatabase->SetName("Generated Terrain");
+	pSceneDatabase->SetMeshCount(1);
+
+	// Set texture and material
+	pSceneDatabase->SetTextureCount(1);
+	pSceneDatabase->SetMaterialCount(1);
+
 	const uint32_t num_quads = m_numQuadsInX * m_numQuadsInZ;
 	const uint32_t num_vertices = num_quads * 4;	// 4 vertices per quad
 	const uint32_t num_polygons = num_quads * 2;	// 2 triangles per quad
-	pSceneDatabase->SetMeshCount(1);
 	Mesh terrain(MeshID(pSceneDatabase->GetNextMeshID()), "GeneratedTerrain", num_vertices, num_polygons);
 
 	terrain.SetVertexColorSetCount(0);	// No colors
@@ -216,11 +222,19 @@ void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 		}
 	}
 
+	// Set vertex attribute
+	VertexFormat meshVertexFormat;
+	meshVertexFormat.AddAttributeLayout(VertexAttributeType::Position, GetAttributeValueType<Point::ValueType>(), 3);
+	meshVertexFormat.AddAttributeLayout(VertexAttributeType::Normal, GetAttributeValueType<Direction::ValueType>(), 3);
+	meshVertexFormat.AddAttributeLayout(VertexAttributeType::UV, GetAttributeValueType<UV::ValueType>(), 2);
+
 	// AABB
 	const AABB aabb = CalculateAABB(terrain);
 	terrain.SetAABB(aabb);
+	pSceneDatabase->SetAABB(aabb);
 
 	// Add it to the scene
+	terrain.SetVertexFormat(std::move(meshVertexFormat));
 	pSceneDatabase->AddMesh(std::move(terrain));
 }
 
