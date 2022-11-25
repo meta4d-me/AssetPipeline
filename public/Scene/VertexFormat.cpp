@@ -14,7 +14,7 @@ void VertexFormat::ImportBinary(std::ifstream& fin)
 {
 	std::uint8_t vertexLayoutCount = static_cast<std::uint8_t>(m_vertexLayout.size());
 	ImportData<>(fin, vertexLayoutCount);
-	m_vertexLayout.reserve(vertexLayoutCount);
+	m_vertexLayout.resize(vertexLayoutCount);
 	ImportDataBuffer(fin, m_vertexLayout.data());
 }
 
