@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Base/Template.h"
+
 #include <fstream>
 #include <string>
 #include <vector>

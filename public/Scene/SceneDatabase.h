@@ -24,10 +24,10 @@ public:
 	SceneDatabase& operator=(SceneDatabase&&) = default;
 	~SceneDatabase() = default;
 
-	void SetName(std::string sceneName) { m_name = std::move(sceneName); }
+	void SetName(std::string sceneName) { m_name = cd::MoveTemp(sceneName); }
 	const std::string& GetName() const { return m_name; }
 	
-	void SetAABB(AABB aabb) { m_aabb = std::move(aabb); }
+	void SetAABB(AABB aabb) { m_aabb = cd::MoveTemp(aabb); }
 	const AABB& GetAABB() const { return m_aabb; }
 
 	// mesh

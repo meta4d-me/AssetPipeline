@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IConsumer.h"
+#include "Base/Template.h"
 
 #include <string>
 
@@ -13,7 +14,7 @@ class BaseConsumer : public IConsumer
 {
 public:
 	BaseConsumer() = delete;
-	explicit BaseConsumer(std::string filePath) : m_filePath(std::move(filePath)) {}
+	explicit BaseConsumer(std::string filePath) : m_filePath(cd::MoveTemp(filePath)) {}
 	BaseConsumer(const BaseConsumer&) = delete;
 	BaseConsumer& operator=(const BaseConsumer&) = delete;
 	BaseConsumer(BaseConsumer&&) = delete;

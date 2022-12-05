@@ -159,7 +159,7 @@ void GenericProducer::AddMaterial(SceneDatabase* pSceneDatabase, const aiMateria
 		}
 	}
 
-	pSceneDatabase->AddMaterial(std::move(material));
+	pSceneDatabase->AddMaterial(cd::MoveTemp(material));
 }
 
 void GenericProducer::AddMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh)
@@ -185,7 +185,7 @@ void GenericProducer::AddMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSour
 	{
 		AABB meshAABB(Point(pSourceMesh->mAABB.mMin.x, pSourceMesh->mAABB.mMin.y, pSourceMesh->mAABB.mMin.z),
 			Point(pSourceMesh->mAABB.mMax.x, pSourceMesh->mAABB.mMax.y, pSourceMesh->mAABB.mMax.z));
-		mesh.SetAABB(std::move(meshAABB));
+		mesh.SetAABB(cd::MoveTemp(meshAABB));
 	}
 
 	std::map<uint32_t, uint32_t> mapNewIndexToOriginIndex;
@@ -338,8 +338,8 @@ void GenericProducer::AddMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSour
 		meshVertexFormat.AddAttributeLayout(VertexAttributeType::Color, GetAttributeValueType<Color::ValueType>(), 4);
 	}
 
-	mesh.SetVertexFormat(std::move(meshVertexFormat));
-	pSceneDatabase->AddMesh(std::move(mesh));
+	mesh.SetVertexFormat(cd::MoveTemp(meshVertexFormat));
+	pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
 }
 
 void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
@@ -381,7 +381,7 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 			optUsedMaterialIndexes.value().insert(mesh.GetMaterialID().Data());
 		}
 	}
-	pSceneDatabase->SetAABB(std::move(sceneAABB));
+	pSceneDatabase->SetAABB(cd::MoveTemp(sceneAABB));
 
 	// Process all materials and used textures.
 	uint32_t actualMaterialCount = optUsedMaterialIndexes.has_value() ? static_cast<uint32_t>(optUsedMaterialIndexes.value().size()) : pScene->mNumMaterials;

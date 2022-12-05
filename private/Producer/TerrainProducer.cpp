@@ -234,8 +234,8 @@ void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 	pSceneDatabase->SetAABB(aabb);
 
 	// Add it to the scene
-	terrain.SetVertexFormat(std::move(meshVertexFormat));
-	pSceneDatabase->AddMesh(std::move(terrain));
+	terrain.SetVertexFormat(cd::MoveTemp(meshVertexFormat));
+	pSceneDatabase->AddMesh(cd::MoveTemp(terrain));
 }
 
 TerrainQuad TerrainProducer::CreateQuadAt(uint32_t& currentVertexId, uint32_t& currentPolygonId) const

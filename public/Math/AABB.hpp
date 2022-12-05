@@ -26,8 +26,8 @@ public:
 	explicit constexpr TAABB(T min, T max) : TAABB(PointType(min), PointType(max)) {}
 
 	explicit constexpr TAABB(PointType min, PointType max)
-		: m_min(std::move(min))
-		, m_max(std::move(max))
+		: m_min(cd::MoveTemp(min))
+		, m_max(cd::MoveTemp(max))
 	{
 		assert(!Empty() && "Init an empty AABB.");
 	}
