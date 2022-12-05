@@ -10,13 +10,13 @@ Texture::Texture(std::ifstream& fin)
 
 Texture::Texture(TextureID textureID, std::string texturePath)
 {
-	Init(textureID, cd::MoveTemp(texturePath));
+	Init(textureID, MoveTemp(texturePath));
 }
 
 void Texture::Init(TextureID textureID, std::string texturePath)
 {
 	m_id = textureID;
-	m_path = cd::MoveTemp(texturePath);
+	m_path = MoveTemp(texturePath);
 }
 
 void Texture::ImportBinary(std::ifstream& fin)
@@ -27,7 +27,7 @@ void Texture::ImportBinary(std::ifstream& fin)
 	uint32_t textureID;
 	ImportData(fin, textureID);
 
-	Init(TextureID(textureID), cd::MoveTemp(texturePath));
+	Init(TextureID(textureID), MoveTemp(texturePath));
 }
 
 void Texture::ExportBinary(std::ofstream& fout) const

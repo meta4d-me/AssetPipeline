@@ -12,13 +12,13 @@ Material::Material(std::ifstream& fin)
 
 Material::Material(MaterialID materialID, std::string materialName)
 {
-	Init(materialID, cd::MoveTemp(materialName));
+	Init(materialID, MoveTemp(materialName));
 }
 
 void Material::Init(MaterialID materialID, std::string materialName)
 {
 	m_id = materialID;
-	m_name = cd::MoveTemp(materialName);
+	m_name = MoveTemp(materialName);
 }
 
 void Material::SetTextureID(MaterialTextureType textureType, TextureID textureID)
@@ -56,7 +56,7 @@ void Material::ImportBinary(std::ifstream& fin)
 	uint32_t materialID;
 	ImportData(fin, materialID);
 
-	Init(MaterialID(materialID), cd::MoveTemp(materialName));
+	Init(MaterialID(materialID), MoveTemp(materialName));
 
 	size_t materialTextureCount;
 	ImportData(fin, materialTextureCount);

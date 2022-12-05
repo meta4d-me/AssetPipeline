@@ -1,15 +1,11 @@
 #include "TerrainProducer.h"
 
-#include <cassert>
-#include <climits>
-#include <cmath>
-#include <random>
-#include <utility>
-
 #include "Noise/Noise.h"
 #include "Scene/Mesh.h"
 #include "Scene/SceneDatabase.h"
 #include "Utilities/Utils.h"
+
+#include <random>
 
 namespace cdtools
 {
