@@ -8,7 +8,7 @@
 #include <optional>
 #include <unordered_map>
 
-namespace cdtools
+namespace cd
 {
 
 class SceneDatabase : public ISerializable

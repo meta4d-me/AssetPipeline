@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-namespace cdtools
+namespace cd
 {
 
 class Mesh final : public ISerializable

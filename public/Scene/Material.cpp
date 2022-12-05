@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-namespace cdtools
+namespace cd
 {
 
 Material::Material(std::ifstream& fin)

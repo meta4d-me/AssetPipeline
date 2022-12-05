@@ -5,7 +5,7 @@
 
 #include <string>
 
-namespace cdtools
+namespace cd
 {
 
 class Texture final : public ISerializable

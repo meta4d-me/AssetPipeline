@@ -5,7 +5,7 @@
 #include <limits>
 #include <inttypes.h>
 
-namespace cdtools
+namespace cd
 {
 
 template<typename T, ObjectType>

@@ -29,7 +29,7 @@ TerrainProducer::TerrainProducer(uint32_t x_quads, uint32_t z_quads, uint32_t qu
 	assert(quad_height > 0);
 }
 
-void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
+void TerrainProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 {
 	pSceneDatabase->SetName("Generated Terrain");
 	pSceneDatabase->SetMeshCount(1);
@@ -41,7 +41,7 @@ void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 	const uint32_t num_quads = m_numQuadsInX * m_numQuadsInZ;
 	const uint32_t num_vertices = num_quads * 4;	// 4 vertices per quad
 	const uint32_t num_polygons = num_quads * 2;	// 2 triangles per quad
-	Mesh terrain(MeshID(pSceneDatabase->GetNextMeshID()), "GeneratedTerrain", num_vertices, num_polygons);
+	cd::Mesh terrain(cd::MeshID(pSceneDatabase->GetNextMeshID()), "GeneratedTerrain", num_vertices, num_polygons);
 
 	terrain.SetVertexColorSetCount(0);	// No colors
 	terrain.SetVertexUVSetCount(1);		// Only 1 set of UV
@@ -67,10 +67,10 @@ void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 		for (uint32_t x = 0; x < m_numQuadsInX - 1; ++x)
 		{
 			currentRow[x] = CreateQuadAt(current_vertex_id, current_polygon_id);
-			Point bottomLeftPoint(static_cast<float>(x) * m_quadWidth, GetHeightAt(x, z, freq_params, 5.0f), static_cast<float>(z) * m_quadHeight);
-			Point topLeftPoint(static_cast<float>(x) * m_quadWidth, GetHeightAt(x, z + 1, freq_params, 5.0f), static_cast<float>(z + 1) * m_quadHeight);
-			Point topRightPoint(static_cast<float>(x + 1) * m_quadWidth, GetHeightAt(x + 1, z + 1, freq_params, 5.0f), static_cast<float>(z + 1) * m_quadHeight);
-			Point bottomRightPoint(static_cast<float>(x + 1) * m_quadWidth, GetHeightAt(x + 1, z, freq_params, 5.0f), static_cast<float>(z) * m_quadHeight);
+			cd::Point bottomLeftPoint(static_cast<float>(x) * m_quadWidth, GetHeightAt(x, z, freq_params, 5.0f), static_cast<float>(z) * m_quadHeight);
+			cd::Point topLeftPoint(static_cast<float>(x) * m_quadWidth, GetHeightAt(x, z + 1, freq_params, 5.0f), static_cast<float>(z + 1) * m_quadHeight);
+			cd::Point topRightPoint(static_cast<float>(x + 1) * m_quadWidth, GetHeightAt(x + 1, z + 1, freq_params, 5.0f), static_cast<float>(z + 1) * m_quadHeight);
+			cd::Point bottomRightPoint(static_cast<float>(x + 1) * m_quadWidth, GetHeightAt(x + 1, z, freq_params, 5.0f), static_cast<float>(z) * m_quadHeight);
 			// Sets the attribute in the terrain
 			// Position
 			terrain.SetVertexPosition(currentRow[x].bottomLeftVertexId, bottomLeftPoint);
@@ -78,39 +78,39 @@ void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 			terrain.SetVertexPosition(currentRow[x].topRightVertexId, topRightPoint);
 			terrain.SetVertexPosition(currentRow[x].bottomRightVertexId, bottomRightPoint);
 			// UV
-			terrain.SetVertexUV(0, currentRow[x].bottomLeftVertexId, UV(0.0f, 0.0f));
-			terrain.SetVertexUV(0, currentRow[x].topLeftVertexId, UV(0.0f, 1.0f));
-			terrain.SetVertexUV(0, currentRow[x].topRightVertexId, UV(1.0f, 1.0f));
-			terrain.SetVertexUV(0, currentRow[x].bottomRightVertexId, UV(1.0f, 0.0f));
+			terrain.SetVertexUV(0, currentRow[x].bottomLeftVertexId, cd::UV(0.0f, 0.0f));
+			terrain.SetVertexUV(0, currentRow[x].topLeftVertexId, cd::UV(0.0f, 1.0f));
+			terrain.SetVertexUV(0, currentRow[x].topRightVertexId, cd::UV(1.0f, 1.0f));
+			terrain.SetVertexUV(0, currentRow[x].bottomRightVertexId, cd::UV(1.0f, 0.0f));
 			// The two triangle indices
-			terrain.SetPolygon(currentRow[x].leftTriPolygonId, VertexID(currentRow[x].bottomLeftVertexId), VertexID(currentRow[x].topLeftVertexId), VertexID(currentRow[x].bottomRightVertexId));
-			terrain.SetPolygon(currentRow[x].rightTriPolygonId, VertexID(currentRow[x].bottomRightVertexId), VertexID(currentRow[x].topLeftVertexId), VertexID(currentRow[x].topRightVertexId));
+			terrain.SetPolygon(currentRow[x].leftTriPolygonId, cd::VertexID(currentRow[x].bottomLeftVertexId), cd::VertexID(currentRow[x].topLeftVertexId), cd::VertexID(currentRow[x].bottomRightVertexId));
+			terrain.SetPolygon(currentRow[x].rightTriPolygonId, cd::VertexID(currentRow[x].bottomRightVertexId), cd::VertexID(currentRow[x].topLeftVertexId), cd::VertexID(currentRow[x].topRightVertexId));
 			// Normals
-			Direction normal;
+			cd::Direction normal;
 			// bottom-left
-			const Direction bottomLeftToBottomRight = bottomRightPoint - bottomLeftPoint;
-			const Direction bottomLeftToTopLeft = topLeftPoint - bottomLeftPoint;
+			const cd::Direction bottomLeftToBottomRight = bottomRightPoint - bottomLeftPoint;
+			const cd::Direction bottomLeftToTopLeft = topLeftPoint - bottomLeftPoint;
 			normal = bottomLeftToBottomRight.Cross(bottomLeftToTopLeft);
 			normal.Normalize();
 			terrain.SetVertexNormal(currentRow[x].bottomLeftVertexId, normal);
 			// top-left
-			const Direction topLeftToBottomLeft = bottomLeftPoint - topLeftPoint;
-			const Direction topLeftToBottomRight = bottomRightPoint - topLeftPoint;
-			const Direction topLeftToTopRight = topRightPoint - topLeftPoint;
+			const cd::Direction topLeftToBottomLeft = bottomLeftPoint - topLeftPoint;
+			const cd::Direction topLeftToBottomRight = bottomRightPoint - topLeftPoint;
+			const cd::Direction topLeftToTopRight = topRightPoint - topLeftPoint;
 			normal = topLeftToBottomLeft.Cross(topLeftToBottomRight);
 			normal.Add(topLeftToBottomRight.Cross(topLeftToTopRight));
 			normal.Normalize();
 			terrain.SetVertexNormal(currentRow[x].topLeftVertexId, normal);
 			// top-right
-			const Direction topRightToTopLeft = topLeftPoint - topRightPoint;
-			const Direction topRightToBottomRight = bottomRightPoint - topRightPoint;
+			const cd::Direction topRightToTopLeft = topLeftPoint - topRightPoint;
+			const cd::Direction topRightToBottomRight = bottomRightPoint - topRightPoint;
 			normal = topRightToTopLeft.Cross(topRightToBottomRight);
 			normal.Normalize();
 			terrain.SetVertexNormal(currentRow[x].topRightVertexId, normal);
 			// bottom-right
-			const Direction bottomRightToTopRight = topRightPoint - bottomRightPoint;
-			const Direction bottomRightToTopLeft = topLeftPoint - bottomRightPoint;
-			const Direction bottomRightToBottomLeft = bottomLeftPoint - bottomRightPoint;
+			const cd::Direction bottomRightToTopRight = topRightPoint - bottomRightPoint;
+			const cd::Direction bottomRightToTopLeft = topLeftPoint - bottomRightPoint;
+			const cd::Direction bottomRightToBottomLeft = bottomLeftPoint - bottomRightPoint;
 			normal = bottomRightToTopRight.Cross(bottomRightToTopLeft);
 			normal.Add(bottomRightToTopLeft.Cross(bottomRightToBottomLeft));
 			normal.Normalize();
@@ -127,7 +127,7 @@ void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 			const bool hasLeft = x - 1 >= 0;
 			const bool hasBottom = z - 1 >= 0;
 			TerrainQuad currentQuad = terrainQuads[z][x];
-			Direction normal;
+			cd::Direction normal;
 			// bottom-left
 			normal = terrain.GetVertexNormal(currentQuad.bottomLeftVertexId);
 			if (hasLeft) 
@@ -223,13 +223,13 @@ void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 	}
 
 	// Set vertex attribute
-	VertexFormat meshVertexFormat;
-	meshVertexFormat.AddAttributeLayout(VertexAttributeType::Position, GetAttributeValueType<Point::ValueType>(), 3);
-	meshVertexFormat.AddAttributeLayout(VertexAttributeType::Normal, GetAttributeValueType<Direction::ValueType>(), 3);
-	meshVertexFormat.AddAttributeLayout(VertexAttributeType::UV, GetAttributeValueType<UV::ValueType>(), 2);
+	cd::VertexFormat meshVertexFormat;
+	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), 3);
+	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), 3);
+	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), 2);
 
 	// AABB
-	const AABB aabb = CalculateAABB(terrain);
+	const cd::AABB aabb = CalculateAABB(terrain);
 	terrain.SetAABB(aabb);
 	pSceneDatabase->SetAABB(aabb);
 
@@ -280,14 +280,14 @@ float TerrainProducer::GetHeightAt(uint32_t x, uint32_t z, const std::vector<std
 	return result;
 }
 
-AABB TerrainProducer::CalculateAABB(const Mesh& mesh)
+cd::AABB TerrainProducer::CalculateAABB(const cd::Mesh& mesh)
 {
-	Point minPoint;
-	Point maxPoint;
-	const std::vector<Point>& meshPoints = mesh.GetVertexPositions();
+	cd::Point minPoint;
+	cd::Point maxPoint;
+	const std::vector<cd::Point>& meshPoints = mesh.GetVertexPositions();
 	for (uint32_t i = 0; i < meshPoints.size(); ++i)
 	{
-		const Point& current = meshPoints[i];
+		const cd::Point& current = meshPoints[i];
 		minPoint[0] = std::min(current[0], minPoint[0]);
 		minPoint[1] = std::min(current[1], minPoint[1]);
 		minPoint[2] = std::min(current[2], minPoint[2]);
@@ -295,7 +295,7 @@ AABB TerrainProducer::CalculateAABB(const Mesh& mesh)
 		maxPoint[1] = std::max(current[1], maxPoint[1]);
 		maxPoint[2] = std::max(current[2], maxPoint[2]);
 	}
-	return AABB(minPoint, maxPoint);
+	return cd::AABB(minPoint, maxPoint);
 }
 
 }	// namespace cdtools

@@ -7,7 +7,7 @@
 namespace cdtools
 {
 
-void CatDogProducer::Execute(SceneDatabase* pSceneDatabase)
+void CatDogProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 {
 	std::ifstream fin(m_filePath, std::ios::in | std::ios::binary);
 	pSceneDatabase->ImportBinary(fin);

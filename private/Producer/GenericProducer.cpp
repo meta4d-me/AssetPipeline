@@ -54,21 +54,21 @@ uint32_t GenericProducer::GetImportFlags() const
 	return importFlags;
 }
 
-void GenericProducer::AddMaterial(SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial)
+void GenericProducer::AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial)
 {
-	static std::unordered_map<aiTextureType, MaterialTextureType> materialTextureMapping;
+	static std::unordered_map<aiTextureType, cd::MaterialTextureType> materialTextureMapping;
 	{
 		// Mapping assimp material key to pbr based material key.
-		materialTextureMapping[aiTextureType_DIFFUSE] = MaterialTextureType::BaseColor;
-		materialTextureMapping[aiTextureType_BASE_COLOR] = MaterialTextureType::BaseColor;
-		materialTextureMapping[aiTextureType_NORMALS] = MaterialTextureType::Normal;
-		materialTextureMapping[aiTextureType_NORMAL_CAMERA] = MaterialTextureType::Normal;
-		materialTextureMapping[aiTextureType_EMISSIVE] = MaterialTextureType::Emissive;
-		materialTextureMapping[aiTextureType_EMISSION_COLOR] = MaterialTextureType::Emissive;
-		materialTextureMapping[aiTextureType_METALNESS] = MaterialTextureType::Metalness;
-		materialTextureMapping[aiTextureType_DIFFUSE_ROUGHNESS] = MaterialTextureType::Roughness;
-		materialTextureMapping[aiTextureType_AMBIENT_OCCLUSION] = MaterialTextureType::AO;
-		materialTextureMapping[aiTextureType_LIGHTMAP] = MaterialTextureType::AO;
+		materialTextureMapping[aiTextureType_DIFFUSE] = cd::MaterialTextureType::BaseColor;
+		materialTextureMapping[aiTextureType_BASE_COLOR] = cd::MaterialTextureType::BaseColor;
+		materialTextureMapping[aiTextureType_NORMALS] = cd::MaterialTextureType::Normal;
+		materialTextureMapping[aiTextureType_NORMAL_CAMERA] = cd::MaterialTextureType::Normal;
+		materialTextureMapping[aiTextureType_EMISSIVE] = cd::MaterialTextureType::Emissive;
+		materialTextureMapping[aiTextureType_EMISSION_COLOR] = cd::MaterialTextureType::Emissive;
+		materialTextureMapping[aiTextureType_METALNESS] = cd::MaterialTextureType::Metalness;
+		materialTextureMapping[aiTextureType_DIFFUSE_ROUGHNESS] = cd::MaterialTextureType::Roughness;
+		materialTextureMapping[aiTextureType_AMBIENT_OCCLUSION] = cd::MaterialTextureType::AO;
+		materialTextureMapping[aiTextureType_LIGHTMAP] = cd::MaterialTextureType::AO;
 	}
 
 	aiString materialName;
@@ -90,8 +90,8 @@ void GenericProducer::AddMaterial(SceneDatabase* pSceneDatabase, const aiMateria
 	}
 
 	bool isMaterialReused;
-	MaterialID::ValueType materialHash = StringHash<MaterialID::ValueType>(finalMaterialName);
-	MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, isMaterialReused);
+	cd::MaterialID::ValueType materialHash = cd::StringHash<cd::MaterialID::ValueType>(finalMaterialName);
+	cd::MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, isMaterialReused);
 	if (isMaterialReused)
 	{
 		// Skip to parse material which should already exist in SceneDatabase.
@@ -101,7 +101,7 @@ void GenericProducer::AddMaterial(SceneDatabase* pSceneDatabase, const aiMateria
 	}
 
 	printf("\t[MaterialID %u] %s\n", materialID.Data(), finalMaterialName.c_str());
-	Material material(materialID, finalMaterialName.c_str());
+	cd::Material material(materialID, finalMaterialName.c_str());
 
 	// Process all textures
 	for (const auto& [textureType, materialTextureType] : materialTextureMapping)
@@ -142,8 +142,8 @@ void GenericProducer::AddMaterial(SceneDatabase* pSceneDatabase, const aiMateria
 			}
 
 			bool isTextureReused;
-			uint32_t textureHash = StringHash<TextureID::ValueType>(ai_path.C_Str());
-			TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, isTextureReused);
+			uint32_t textureHash = cd::StringHash<cd::TextureID::ValueType>(ai_path.C_Str());
+			cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, isTextureReused);
 			printf("\t\t[TextureID %u] %s - %s\n",
 				textureID.Data(),
 				GetMaterialTextureTypeName(materialTextureType),
@@ -154,7 +154,7 @@ void GenericProducer::AddMaterial(SceneDatabase* pSceneDatabase, const aiMateria
 			// Reused textures don't need to add to SceneDatabase again.
 			if (!isTextureReused)
 			{
-				pSceneDatabase->AddTexture(Texture(textureID, ai_path.C_Str()));
+				pSceneDatabase->AddTexture(cd::Texture(textureID, ai_path.C_Str()));
 			}
 		}
 	}
@@ -162,7 +162,7 @@ void GenericProducer::AddMaterial(SceneDatabase* pSceneDatabase, const aiMateria
 	pSceneDatabase->AddMaterial(cd::MoveTemp(material));
 }
 
-void GenericProducer::AddMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh)
+void GenericProducer::AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh)
 {
 	assert(pSourceMesh->mFaces && pSourceMesh->mNumFaces > 0 && "No polygon data.");
 
@@ -174,17 +174,17 @@ void GenericProducer::AddMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSour
 
 	assert(pSourceMesh->mVertices && numVertices > 0 && "No vertex data.");
 
-	MeshID meshID(pSceneDatabase->GetMeshCount());
+	cd::MeshID meshID(pSceneDatabase->GetMeshCount());
 	printf("\t[MeshID %u] face number : %u, vertex number : %u\n", meshID.Data(), pSourceMesh->mNumFaces, numVertices);
 
-	Mesh mesh(meshID, pSourceMesh->mName.C_Str(), numVertices, pSourceMesh->mNumFaces);
+	cd::Mesh mesh(meshID, pSourceMesh->mName.C_Str(), numVertices, pSourceMesh->mNumFaces);
 	mesh.SetMaterialID(pSourceMesh->mMaterialIndex);
 
 	// By default, aabb will be empty.
 	if (IsBoundingBoxServiceActive())
 	{
-		AABB meshAABB(Point(pSourceMesh->mAABB.mMin.x, pSourceMesh->mAABB.mMin.y, pSourceMesh->mAABB.mMin.z),
-			Point(pSourceMesh->mAABB.mMax.x, pSourceMesh->mAABB.mMax.y, pSourceMesh->mAABB.mMax.z));
+		cd::AABB meshAABB(cd::Point(pSourceMesh->mAABB.mMin.x, pSourceMesh->mAABB.mMin.y, pSourceMesh->mAABB.mMin.z),
+			cd::Point(pSourceMesh->mAABB.mMax.x, pSourceMesh->mAABB.mMax.y, pSourceMesh->mAABB.mMax.z));
 		mesh.SetAABB(cd::MoveTemp(meshAABB));
 	}
 
@@ -214,10 +214,10 @@ void GenericProducer::AddMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSour
 
 			currentVertexID += 3;
 		}
-		mesh.SetPolygon(faceIndex, VertexID(index0), VertexID(index1), VertexID(index2));
+		mesh.SetPolygon(faceIndex, cd::VertexID(index0), cd::VertexID(index1), cd::VertexID(index2));
 	}
 
-	VertexFormat meshVertexFormat;
+	cd::VertexFormat meshVertexFormat;
 	assert(pSourceMesh->HasPositions() && "Mesh doesn't have vertex positions.");
 	for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 	{
@@ -230,9 +230,9 @@ void GenericProducer::AddMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSour
 		}
 
 		const aiVector3D& position = pSourceMesh->mVertices[vertexDataIndex];
-		mesh.SetVertexPosition(vertexIndex, Point(position.x, position.y, position.z));
+		mesh.SetVertexPosition(vertexIndex, cd::Point(position.x, position.y, position.z));
 	}
-	meshVertexFormat.AddAttributeLayout(VertexAttributeType::Position, GetAttributeValueType<Point::ValueType>(), 3);
+	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), 3);
 
 	if (pSourceMesh->HasNormals())
 	{
@@ -247,9 +247,9 @@ void GenericProducer::AddMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSour
 			}
 
 			const aiVector3D& normal = pSourceMesh->mNormals[vertexDataIndex];
-			mesh.SetVertexNormal(vertexIndex, Direction(normal.x, normal.y, normal.z));
+			mesh.SetVertexNormal(vertexIndex, cd::Direction(normal.x, normal.y, normal.z));
 		}
-		meshVertexFormat.AddAttributeLayout(VertexAttributeType::Normal, GetAttributeValueType<Direction::ValueType>(), 3);
+		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), 3);
 
 		if (pSourceMesh->HasTangentsAndBitangents())
 		{
@@ -264,9 +264,9 @@ void GenericProducer::AddMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSour
 				}
 
 				const aiVector3D& tangent = pSourceMesh->mTangents[vertexDataIndex];
-				mesh.SetVertexTangent(vertexIndex, Direction(tangent.x, tangent.y, tangent.z));
+				mesh.SetVertexTangent(vertexIndex, cd::Direction(tangent.x, tangent.y, tangent.z));
 			}
-			meshVertexFormat.AddAttributeLayout(VertexAttributeType::Tangent, GetAttributeValueType<Direction::ValueType>(), 3);
+			meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), 3);
 
 
 			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
@@ -280,9 +280,9 @@ void GenericProducer::AddMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSour
 				}
 
 				const aiVector3D& biTangent = pSourceMesh->mBitangents[vertexDataIndex];
-				mesh.SetVertexBiTangent(vertexIndex, Direction(biTangent.x, biTangent.y, biTangent.z));
+				mesh.SetVertexBiTangent(vertexIndex, cd::Direction(biTangent.x, biTangent.y, biTangent.z));
 			}
-			meshVertexFormat.AddAttributeLayout(VertexAttributeType::Bitangent, GetAttributeValueType<Direction::ValueType>(), 3);
+			meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Bitangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), 3);
 		}
 	}
 
@@ -311,9 +311,9 @@ void GenericProducer::AddMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSour
 			}
 
 			const aiVector3D& uv = vertexUVArray[vertexDataIndex];
-			mesh.SetVertexUV(uvSetIndex, vertexIndex, UV(uv.x, uv.y));
+			mesh.SetVertexUV(uvSetIndex, vertexIndex, cd::UV(uv.x, uv.y));
 		}
-		meshVertexFormat.AddAttributeLayout(VertexAttributeType::UV, GetAttributeValueType<UV::ValueType>(), 2);
+		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), 2);
 	}
 
 	uint32_t colorSetCount = pSourceMesh->GetNumColorChannels();
@@ -333,16 +333,16 @@ void GenericProducer::AddMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSour
 			}
 
 			const aiColor4D& color = vertexColorArray[vertexDataIndex];
-			mesh.SetVertexColor(colorSetIndex, vertexIndex, Color(color.r, color.g, color.b, color.a));
+			mesh.SetVertexColor(colorSetIndex, vertexIndex, cd::Color(color.r, color.g, color.b, color.a));
 		}
-		meshVertexFormat.AddAttributeLayout(VertexAttributeType::Color, GetAttributeValueType<Color::ValueType>(), 4);
+		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Color::ValueType>(), 4);
 	}
 
 	mesh.SetVertexFormat(cd::MoveTemp(meshVertexFormat));
 	pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
 }
 
-void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
+void GenericProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 {
 	printf("ImportStaticMesh : %s\n", m_filePath.c_str());
 	const aiScene* pScene = aiImportFile(m_filePath.c_str(), GetImportFlags());
@@ -363,14 +363,14 @@ void GenericProducer::Execute(SceneDatabase* pSceneDatabase)
 	}
 
 	// Post-process meshes.
-	AABB sceneAABB;
+	cd::AABB sceneAABB;
 	std::optional<std::set<uint32_t>> optUsedMaterialIndexes = std::nullopt;
 	if (IsCleanUnusedServiceActive())
 	{
 		optUsedMaterialIndexes = std::set<uint32_t>();
 	}
 	
-	for (const Mesh& mesh : pSceneDatabase->GetMeshes())
+	for (const auto& mesh : pSceneDatabase->GetMeshes())
 	{
 		// Merge a total AABB for all meshes in the scene.
 		sceneAABB.Expand(mesh.GetAABB());

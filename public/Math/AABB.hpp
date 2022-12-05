@@ -5,7 +5,7 @@
 
 #include <assert.h>
 
-namespace cdtools
+namespace cd
 {
 
 /// <summary>

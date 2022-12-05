@@ -12,7 +12,7 @@ namespace cdtools
 Processor::Processor(IProducer* pProducer, IConsumer* pConsumer) :
 	m_pProducer(pProducer),
 	m_pConsumer(pConsumer),
-	m_pSceneDatabase(std::make_unique<SceneDatabase>())
+	m_pSceneDatabase(std::make_unique<cd::SceneDatabase>())
 {
 	assert(pProducer && "pProducer is invalid.");
 	assert(pConsumer && "pConsumer is invalid.");

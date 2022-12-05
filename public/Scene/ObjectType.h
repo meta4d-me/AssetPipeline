@@ -1,6 +1,6 @@
 #pragma once
 
-namespace cdtools
+namespace cd
 {
 
 enum class ObjectType

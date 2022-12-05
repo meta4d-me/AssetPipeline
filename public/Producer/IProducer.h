@@ -1,14 +1,19 @@
 #pragma once
 
-namespace cdtools
+namespace cd
 {
 
 class SceneDatabase;
 
+}
+
+namespace cdtools
+{
+
 class IProducer
 {
 public:
-	virtual void Execute(SceneDatabase* pSceneDatabase) = 0;
+	virtual void Execute(cd::SceneDatabase* pSceneDatabase) = 0;
 };
 
 }

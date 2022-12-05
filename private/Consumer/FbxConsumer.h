@@ -18,7 +18,7 @@ class FbxConsumer final : public BaseConsumer
 {
 public:
 	using BaseConsumer::BaseConsumer;
-	virtual void Execute(const SceneDatabase* pSceneDatabase) override;
+	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) override;
 	virtual ~FbxConsumer();
 
 private:

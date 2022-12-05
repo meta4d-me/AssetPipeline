@@ -21,13 +21,13 @@ public:
 	using BaseProducer::BaseProducer;
 	virtual ~FbxProducer();
 
-	virtual void Execute(SceneDatabase* pSceneDatabase) override;
+	virtual void Execute(cd::SceneDatabase* pSceneDatabase) override;
 
 private:
 	void Init();
-	void TraverseNode(fbxsdk::FbxNode* pSDKNode, SceneDatabase* pSceneDatabase);
-	bool TraverseMeshNode(fbxsdk::FbxNode* pMeshNode, SceneDatabase* pSceneDatabase);
-	bool TraverseTransformNode(fbxsdk::FbxNode* pTransformNode, SceneDatabase* pSceneDatabase);
+	void TraverseNode(fbxsdk::FbxNode* pSDKNode, cd::SceneDatabase* pSceneDatabase);
+	bool TraverseMeshNode(fbxsdk::FbxNode* pMeshNode, cd::SceneDatabase* pSceneDatabase);
+	bool TraverseTransformNode(fbxsdk::FbxNode* pTransformNode, cd::SceneDatabase* pSceneDatabase);
 
 private:
 	uint32_t m_nodeIDCounter = 0U;

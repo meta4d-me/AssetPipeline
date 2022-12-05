@@ -6,7 +6,7 @@
 #include <optional>
 #include <unordered_map>
 
-namespace cdtools
+namespace cd
 {
 
 // Different objects have different id generate rules to be unique and quick to search in the scene database.

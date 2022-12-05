@@ -1,6 +1,6 @@
 #include "Texture.h"
 
-namespace cdtools
+namespace cd
 {
 
 Texture::Texture(std::ifstream& fin)

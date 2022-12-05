@@ -2,12 +2,18 @@
 
 #include <memory>
 
+namespace cd
+{
+
+class SceneDatabase;
+
+}
+
 namespace cdtools
 {
 
 class IConsumer;
 class IProducer;
-class SceneDatabase;
 
 class Processor final
 {
@@ -26,7 +32,7 @@ private:
 	IProducer* m_pProducer = nullptr;
 	IConsumer* m_pConsumer = nullptr;
 
-	std::unique_ptr<SceneDatabase> m_pSceneDatabase;
+	std::unique_ptr<cd::SceneDatabase> m_pSceneDatabase;
 };
 
 }

@@ -1,6 +1,6 @@
 #include "VertexFormat.h"
 
-namespace cdtools
+namespace cd
 {
 
 void VertexFormat::AddAttributeLayout(VertexAttributeType attributeType, AttributeValueType valueType, uint8_t count)

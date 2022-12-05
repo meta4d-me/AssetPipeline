@@ -17,7 +17,7 @@ using XmlAttribute = rapidxml::xml_attribute<char>;
 namespace cdtools
 {
 
-void CatDogConsumer::Execute(const SceneDatabase* pSceneDatabase)
+void CatDogConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 {
 	switch (GetExportMode())
 	{
@@ -28,14 +28,14 @@ void CatDogConsumer::Execute(const SceneDatabase* pSceneDatabase)
 	}
 }
 
-void CatDogConsumer::ExportPureBinary(const SceneDatabase* pSceneDatabase)
+void CatDogConsumer::ExportPureBinary(const cd::SceneDatabase* pSceneDatabase)
 {
 	std::ofstream foutBin(m_filePath, std::ios::out | std::ios::binary);
 	pSceneDatabase->ExportBinary(foutBin);
 	foutBin.close();
 }
 
-void CatDogConsumer::ExportXmlBinary(const SceneDatabase* pSceneDatabase)
+void CatDogConsumer::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase)
 {
 	std::filesystem::path xmlFilePath = m_filePath;
 	xmlFilePath.replace_extension(".cdxml");
@@ -75,7 +75,7 @@ void CatDogConsumer::ExportXmlBinary(const SceneDatabase* pSceneDatabase)
 	pSceneNode->append_node(pSceneDataNode);
 	pDocument->append_node(pSceneNode);
 
-	for (const Mesh& mesh : pSceneDatabase->GetMeshes())
+	for (const auto& mesh : pSceneDatabase->GetMeshes())
 	{
 		std::string meshFileName = mesh.GetName();
 		// replace "." in filename with "_" so that extension can be parsed easily.
@@ -112,7 +112,7 @@ void CatDogConsumer::ExportXmlBinary(const SceneDatabase* pSceneDatabase)
 	// TODO : we should add texture compiling process to AssetPipeline.
 	std::ofstream foutBin(m_filePath, std::ios::out | std::ios::binary);
 
-	for (const Material& material : pSceneDatabase->GetMaterials())
+	for (const auto& material : pSceneDatabase->GetMaterials())
 	{
 		XmlNode* pMaterialNode = WriteNode("Material");
 		WriteNodeU32Attribute(pMaterialNode, "ID", material.GetID().Data());
@@ -135,7 +135,7 @@ void CatDogConsumer::ExportXmlBinary(const SceneDatabase* pSceneDatabase)
 		material.ExportBinary(foutBin);
 	}
 
-	for (const Texture& texture : pSceneDatabase->GetTextures())
+	for (const auto& texture : pSceneDatabase->GetTextures())
 	{
 		XmlNode* pTextureNode = WriteNode("Texture");
 		WriteNodeU32Attribute(pTextureNode, "ID", texture.GetID().Data());

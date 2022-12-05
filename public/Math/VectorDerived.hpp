@@ -4,7 +4,7 @@
 
 #include <type_traits>
 
-namespace cdtools
+namespace cd
 {
 
 // Define explicit vector types to create vector instances.

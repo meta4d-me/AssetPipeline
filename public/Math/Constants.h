@@ -1,6 +1,6 @@
 #pragma once
 
-namespace cdtools
+namespace cd
 {
 
 constexpr double SmallNumberTolerance = 1.e-8f;

@@ -5,10 +5,15 @@
 
 #include <string>
 
-namespace cdtools
+namespace cd
 {
 
 class SceneDatabase;
+
+}
+
+namespace cdtools
+{
 
 class BaseProducer : public IProducer
 {
@@ -21,7 +26,7 @@ public:
 	BaseProducer& operator=(BaseProducer&&) = delete;
 	virtual ~BaseProducer() = default;
 
-	virtual void Execute(const SceneDatabase* pSceneDatabase) {}
+	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) {}
 
 protected:
 	std::string m_filePath;
