@@ -29,7 +29,7 @@ FbxConsumer::~FbxConsumer()
 	}
 }
 
-void FbxConsumer::Execute(const SceneDatabase* pSceneDatabase)
+void FbxConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 {
 	// Init settings
 	m_pSDKManager = fbxsdk::FbxManager::Create();
@@ -44,10 +44,8 @@ void FbxConsumer::Execute(const SceneDatabase* pSceneDatabase)
 	m_pSDKScene = fbxsdk::FbxScene::Create(m_pSDKManager, pSceneDatabase->GetName().c_str());
 
 	// Build fbx scene by converting SceneDatabase
-	for (uint32_t meshIndex = 0; meshIndex < pSceneDatabase->GetMeshCount(); ++meshIndex)
+	for (const auto& mesh : pSceneDatabase->GetMeshes())
 	{
-		const Mesh& mesh = pSceneDatabase->GetMesh(meshIndex);
-		
 		fbxsdk::FbxMesh* pFbxMesh = fbxsdk::FbxMesh::Create(m_pSDKScene, mesh.GetName().c_str());
 		pFbxMesh->InitControlPoints(mesh.GetVertexCount());
 
@@ -68,24 +66,23 @@ void FbxConsumer::Execute(const SceneDatabase* pSceneDatabase)
 		fbxsdk::FbxVector4* pFbxVertices = pFbxMesh->GetControlPoints();
 		for(uint32_t vertexIndex = 0; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
 		{
-			const Point& position = mesh.GetVertexPosition(vertexIndex);
+			const cd::Point& position = mesh.GetVertexPosition(vertexIndex);
 			pFbxVertices[vertexIndex].Set(position.x(), position.y(), position.z(), 1.0);
 
-			const Direction& normal = mesh.GetVertexNormal(vertexIndex);
+			const cd::Direction& normal = mesh.GetVertexNormal(vertexIndex);
 			pNormalElement->GetDirectArray().Add(fbxsdk::FbxVector4(normal.x(), normal.y(), normal.z(), 0.0));
 
 			// Only the first channel now
 			if(pUVElement)
 			{
-				const UV& uv = mesh.GetVertexUV(0)[vertexIndex];
+				const cd::UV& uv = mesh.GetVertexUV(0)[vertexIndex];
 				pUVElement->GetDirectArray().Add(fbxsdk::FbxVector2(uv.x(), uv.y()));
 			}
 		}
 
 		pFbxMesh->ReservePolygonCount(mesh.GetPolygonCount());
-		for (uint32_t polygonIndex = 0; polygonIndex < mesh.GetPolygonCount(); ++polygonIndex)
+		for (const auto& polygon : mesh.GetPolygons())
 		{
-			const Mesh::Polygon& polygon = mesh.GetPolygon(polygonIndex);
 			pFbxMesh->BeginPolygon(-1, -1, -1, false);
 			pFbxMesh->AddPolygon(polygon[0].Data());
 			pFbxMesh->AddPolygon(polygon[1].Data());

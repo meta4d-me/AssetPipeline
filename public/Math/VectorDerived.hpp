@@ -4,41 +4,32 @@
 
 #include <type_traits>
 
-namespace cdtools
+namespace cd
 {
-
-// Define explicit vector types to create vector instances.
-// So that we can specialize behaviors for different vector types.
-// For example, Point is (0, 0, 0, 1) and Direction is (0, 0, 0, 0) by default.
-enum class VectorType : uint8_t
-{
-	Generic = 0,
-	Point,
-	Direction,
-	Color,
-	U8Color,
-	UV,
-};
 
 /// <summary>
-/// CRTP derived class to write common methods about VectorType.
+/// CRTP derived class to write common methods.
 /// </summary>
 /// <typeparam name="T"> The numeric type : bool, int, float, double, ... </typeparam>
 /// <typeparam name="N"> The length of vector : 1, 2, 3, 4, ... </typeparam>
-/// <typeparam name="Vty"> The type of vector usage : Point, Direction, Color, ... </typeparam>
-template<typename T, std::size_t N, VectorType Vty>
-class VectorDerived final : public VectorBase<T, VectorDerived<T, N, Vty>>
+template<typename T, std::size_t N>
+class VectorDerived final : public VectorBase<T, VectorDerived<T, N>>
 {
 public:
 	using ValueType = T;
-	using Derived = VectorDerived<T, N, Vty>;
+	using Derived = VectorDerived<T, N>;
+	using Vec3Derived = VectorDerived<T, 3>;
 	using Base = VectorBase<T, Derived>;
 	using Base::Base;
 
 public:
+	static Derived Zero() { return Derived(static_cast<T>(0)); }
+	static Derived One() { return Derived(static_cast<T>(1)); }
+
+public:
 	// Default zero initialization constructor.
 	explicit constexpr VectorDerived() :
-		data {}
+		data{}
 	{
 	}
 
@@ -75,7 +66,7 @@ public:
 		return *this;
 	}
 
-	VectorDerived& operator=(VectorDerived&& rhs) 
+	VectorDerived& operator=(VectorDerived&& rhs)
 	{
 		// Nothing to move since it's primitive array
 		std::copy(rhs.begin(), rhs.end(), this->begin());
@@ -84,6 +75,8 @@ public:
 		return *this;
 	}
 
+	~VectorDerived() = default;
+
 	// N parameters setter.
 	template <typename... Args>
 	void Set(Args... args)
@@ -91,6 +84,10 @@ public:
 		static_assert(sizeof...(Args) == N);
 		data = { static_cast<T>(args)... };
 	}
+
+	// Validation.
+	bool IsZero() const { return static_cast<T>(0) == x() && static_cast<T>(0) == y() && static_cast<T>(0) == z(); }
+	bool IsNearlyZero(float eps = SmallNumberTolerance) const { return std::abs(x()) <= eps && std::abs(y()) <= eps && std::abs(z()) <= eps; }
 
 	// Named getters for convenience.
 	// You can follow this pattern to write more.
@@ -143,43 +140,69 @@ public:
 		return data[3];
 	}
 
-	constexpr VectorDerived<T, 3, Vty> xyz() const
+	// 3D Vector Math
+	constexpr Vec3Derived xxx() const
 	{
 		static_assert(3 <= N);
-		return VectorDerived<T, 3, Vty>(x(), y(), z());
+		return Vec3Derived(x());
 	}
 
-	VectorDerived<T, 3, Vty> Cross(const VectorDerived<T, 3, Vty> rhs) const
+	constexpr Vec3Derived yyy() const
 	{
-		// Cross products only make sense for 3D vectors
-		static_assert(3 == N, "Cross products only make sense for 3D vectors!");
-		// Can only do cross products for numeric type vectors
-		static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value, "Cross products only make sense for numeric types!");
-
-		T x_value = y() * rhs.z() - z() * rhs.y();
-		T y_value = z() * rhs.x() - x() * rhs.z();
-		T z_value = x() * rhs.y() - y() * rhs.x();
-		return VectorDerived<T, 3, Vty>(static_cast<T>(x_value), static_cast<T>(y_value), static_cast<T>(z_value));
+		static_assert(3 <= N);
+		return Vec3Derived(y());
 	}
 
-	// TODO : Different vector types should have different behaviors.
-	// For example, Direction * Direction = CrossDot
-	//Derived operator+(const Derived& other) const { return Derived(*this).Add(other); }
-	//Derived& operator+=(const Derived& other) { return Add(other); }
-	//
-	//Derived operator-() const { return Derived(*this).Multiply(-1); }
-	//Derived operator-(const Derived& other) const { return Derived(*this).Minus(other); }
-	//Derived& operator-=(const Derived& other) { return Minus(other); }
-	//
+	constexpr Vec3Derived zzz() const
+	{
+		static_assert(3 <= N);
+		return Vec3Derived(z());
+	}
+
+	constexpr Vec3Derived xyz() const
+	{
+		static_assert(3 <= N);
+		return Vec3Derived(x(), y(), z());
+	}
+
+	// Math operations
+	Vec3Derived Dot(const Vec3Derived& rhs) const
+	{
+		static_assert(3 == N, "Cross products only make sense for 3D vectors!");
+		static_assert(std::is_arithmetic_v<T>, "Cross products only make sense for numeric types!");
+		return Vec3Derived(x() * rhs.x(), y() * rhs.y(), z() * rhs.z());
+	}
+
+	Vec3Derived Cross(const Vec3Derived& rhs) const
+	{
+		static_assert(3 == N, "Cross products only make sense for 3D vectors!");
+		static_assert(std::is_arithmetic_v<T>, "Cross products only make sense for numeric types!");
+		return Vec3Derived(
+			y() * rhs.z() - z() * rhs.y(),
+			z() * rhs.x() - x() * rhs.z(),
+			x() * rhs.y() - y() * rhs.x());
+	}
+
+	// Add
+	Derived operator+(const Derived& other) const { return Derived(*this).Add(other); }
+	Derived& operator+=(const Derived& other) { return Add(other); }
+
+	// Minus
+	Derived operator-() const { return Derived(*this).Multiply(-1); }
+	Derived operator-(const Derived& other) const { return Derived(*this).Minus(other); }
+	Derived& operator-=(const Derived& other) { return Minus(other); }
+
+	// Multiply
 	Derived operator*(T value) const { return Derived(*this).Multiply(value); }
-	//Derived operator*(const Derived& other) const { return Derived(*this).Multiply(other); }
+	Derived operator*(const Derived& other) const { return Derived(*this).Multiply(other); }
 	Derived& operator*=(T value) const { return Derived(*this).Multiply(value); }
-	//Derived& operator*=(const Derived& other) { return Multiply(other); }
-	//
+	Derived& operator*=(const Derived& other) { return Multiply(other); }
+
+	// Divide
 	Derived operator/(T value) const { return Derived(*this).Divide(value); }
-	//Derived operator/(const Derived& other) const { return Derived(*this).Divide(other); }
+	Derived operator/(const Derived& other) const { return Derived(*this).Divide(other); }
 	Derived& operator/=(T value) const{ return Derived(*this).Divide(value); }
-	//Derived& operator/=(const Derived& other) { return Divide(other); }
+	Derived& operator/=(const Derived& other) { return Divide(other); }
 
 private:
 	// By default, base class can't access private or protected members.
@@ -193,51 +216,20 @@ private:
 };
 
 // Generic vector types.
-using Vec2f = VectorDerived<float, 2, VectorType::Generic>;
-using Vec3f = VectorDerived<float, 3, VectorType::Generic>;
-using Vec4f = VectorDerived<float, 4, VectorType::Generic>;
-using Vec2 = VectorDerived<double, 2, VectorType::Generic>;
-using Vec3 = VectorDerived<double, 3, VectorType::Generic>;
-using Vec4 = VectorDerived<double, 4, VectorType::Generic>;
+using Vec2f = VectorDerived<float, 2>;
+using Vec3f = VectorDerived<float, 3>;
+using Vec4f = VectorDerived<float, 4>;
+//using Vec2 = VectorDerived<double, 2>;
+//using Vec3 = VectorDerived<double, 3>;
+//using Vec4 = VectorDerived<double, 4>;
 
-// More safe specific vector types than using generic types.
-using Point = VectorDerived<float, 3, VectorType::Point>;
-using Direction = VectorDerived<float, 3, VectorType::Direction>;
-using Color = VectorDerived<float, 4, VectorType::Color>;
-using U8Color = VectorDerived<uint8_t, 4, VectorType::U8Color>;
-using UV = VectorDerived<float, 2, VectorType::UV>;
+// Removed vector type enum as it is too complex to write relationships between different usages.
+// It will be a graph to describe rules about Additivity, Interchangeability, Multipliability, ...
+using Point = Vec3f;
+using Direction = Vec3f;
+using Color = Vec4f;
+using UV = Vec2f;
 
-/////////////////////////////////////////////////////////////////////////////////////
-// Global inline cross type operators
-/////////////////////////////////////////////////////////////////////////////////////
-// Point - Point = Direction
-inline Direction operator-(const Point& lhs, const Point& rhs)
-{
-	return Direction(lhs.x() - rhs.x(), lhs.y() - rhs.y(), lhs.z() - rhs.z());
-}
-
-// Point - Direction = Point
-// Direction - Point = Point
-inline Point operator-(const Point& lhs, const Direction& rhs)
-{
-	return Point(lhs.x() - rhs.x(), lhs.y() - rhs.y(), lhs.z() - rhs.z());
-}
-
-inline Point operator-(const Direction& lhs, const Point& rhs)
-{
-	return rhs - lhs;
-}
-
-// Point + Direction = Point
-// Direction + Point = Point
-inline Point operator+(const Point& lhs, const Direction& rhs)
-{
-	return Point(lhs.x() + rhs.x(), lhs.y() + rhs.y(), lhs.z() + rhs.z());
-}
-
-inline Point operator+(const Direction& lhs, const Point& rhs)
-{
-	return rhs - lhs;
-}
+//static_cast(std::is_standard_layout_v<Vec3f> && std::is_trivial_v<Vec3f>, "VectorDerived needs to implement copy/move constructors.");
 
 }

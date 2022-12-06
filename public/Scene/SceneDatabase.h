@@ -8,7 +8,7 @@
 #include <optional>
 #include <unordered_map>
 
-namespace cdtools
+namespace cd
 {
 
 class SceneDatabase : public ISerializable
@@ -24,10 +24,10 @@ public:
 	SceneDatabase& operator=(SceneDatabase&&) = default;
 	~SceneDatabase() = default;
 
-	void SetName(std::string sceneName) { m_name = std::move(sceneName); }
+	void SetName(std::string sceneName) { m_name = MoveTemp(sceneName); }
 	const std::string& GetName() const { return m_name; }
 	
-	void SetAABB(AABB aabb) { m_aabb = std::move(aabb); }
+	void SetAABB(AABB aabb) { m_aabb = MoveTemp(aabb); }
 	AABB& GetAABB() { return m_aabb; }
 	const AABB& GetAABB() const { return m_aabb; }
 

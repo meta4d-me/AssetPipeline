@@ -8,7 +8,7 @@
 namespace cdtools
 {
 
-void GenericConsumer::Execute(const SceneDatabase* pSceneDatabase)
+void GenericConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 {
 
 }

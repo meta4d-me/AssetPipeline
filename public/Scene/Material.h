@@ -9,7 +9,7 @@
 #include <optional>
 #include <string>
 
-namespace cdtools
+namespace cd
 {
 
 class Material final : public ISerializable

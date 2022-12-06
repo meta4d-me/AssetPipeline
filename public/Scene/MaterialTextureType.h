@@ -2,7 +2,7 @@
 
 #include <inttypes.h>
 
-namespace cdtools
+namespace cd
 {
 
 enum class MaterialTextureType : uint8_t

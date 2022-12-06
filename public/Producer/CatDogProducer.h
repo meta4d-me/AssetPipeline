@@ -9,7 +9,7 @@ class CatDogProducer final : public BaseProducer
 {
 public:
 	using BaseProducer::BaseProducer;
-	virtual void Execute(SceneDatabase* pSceneDatabase) override;
+	virtual void Execute(cd::SceneDatabase* pSceneDatabase) override;
 };
 
 }

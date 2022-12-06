@@ -8,10 +8,15 @@
 #include "Producer/IProducer.h"
 #include "Scene/ObjectIDGenerator.h"
 
-namespace cdtools
+namespace cd
 {
 
 class Mesh;
+
+}
+
+namespace cdtools
+{
 
 struct TerrainQuad {
 	uint32_t leftTriPolygonId;
@@ -20,15 +25,14 @@ struct TerrainQuad {
 	uint32_t topLeftVertexId;
 	uint32_t topRightVertexId;
 	uint32_t bottomRightVertexId;
-	Direction bottomLeftNormal;
-	Direction topLeftNormal;
-	Direction topRightNormal;
-	Direction bottomRightNormal;
+	cd::Direction bottomLeftNormal;
+	cd::Direction topLeftNormal;
+	cd::Direction topRightNormal;
+	cd::Direction bottomRightNormal;
 };
 
 class TerrainProducer : public IProducer
 {
-
 public:
 	explicit TerrainProducer(uint32_t x_vertices, uint32_t z_vertices, uint32_t width, uint32_t height, uint32_t max_elevation);
 	TerrainProducer(const TerrainProducer& rhs) = default;
@@ -37,10 +41,10 @@ public:
 	TerrainProducer& operator=(TerrainProducer&& rhs) = default;
 	virtual ~TerrainProducer() = default;
 
-	virtual void Execute(SceneDatabase* pSceneDatabase) override;
+	virtual void Execute(cd::SceneDatabase* pSceneDatabase) override;
 
 private:
-	Mesh CreateTerrainMesh();
+	cd::Mesh CreateTerrainMesh();
 	TerrainQuad CreateQuadAt(uint32_t& currentVertexId, uint32_t& currentPolygonId) const;
 	float GetHeightAt(uint32_t x, uint32_t z, const std::vector<std::pair<float, int64_t>>& freq_params, float power_exp) const;
 
@@ -50,9 +54,9 @@ private:
 	uint32_t m_quadHeight;		// height of a quad
 	uint32_t m_maxElevation;	// highest possible elevation; we start at 0.
 
-	ObjectIDGenerator<MeshID> m_meshIDGenerator;
-	ObjectIDGenerator<MaterialID> m_materialIDGenerator;
-	ObjectIDGenerator<TextureID> m_textureIDGenerator;
+	cd::ObjectIDGenerator<cd::MeshID> m_meshIDGenerator;
+	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
+	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
 };
 
 }	// namespace cdtools

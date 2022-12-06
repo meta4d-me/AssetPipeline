@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-namespace cdtools
+namespace cd
 {
 
 class Mesh final : public ISerializable
@@ -35,11 +35,11 @@ public:
 	uint32_t GetVertexCount() const { return m_vertexCount; }
 	uint32_t GetPolygonCount() const { return m_polygonCount; }
 
-	void SetVertexFormat(VertexFormat vertexFormat) { m_vertexFormat = std::move(vertexFormat); }
+	void SetVertexFormat(VertexFormat vertexFormat) { m_vertexFormat = MoveTemp(vertexFormat); }
 	VertexFormat& GetVertexFormat() { return m_vertexFormat; }
 	const VertexFormat& GetVertexFormat() const { return m_vertexFormat; }
 
-	void SetAABB(AABB aabb) { m_aabb = std::move(aabb); }
+	void SetAABB(AABB aabb) { m_aabb = MoveTemp(aabb); }
 	AABB& GetAABB() { return m_aabb; }
 	const AABB& GetAABB() const { return m_aabb; }
 

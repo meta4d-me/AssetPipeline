@@ -15,7 +15,7 @@ class GenericProducer final : public BaseProducer
 {
 public:
 	using BaseProducer::BaseProducer;
-	virtual void Execute(SceneDatabase* pSceneDatabase) override;
+	virtual void Execute(cd::SceneDatabase* pSceneDatabase) override;
 
 	/// <summary>
 	/// Duplicate vertices from the unique vertex in the same positions.
@@ -55,8 +55,8 @@ public:
 
 private:
 	uint32_t GetImportFlags() const;
-	void AddMaterial(SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial);
-	void AddMesh(SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh);
+	void AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial);
+	void AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh);
 
 private:
 	// Service flags
@@ -67,8 +67,8 @@ private:
 	bool m_bWantTangentsSpace = false;
 	bool m_bWantCleanUnused = false;
 
-	ObjectIDGenerator<MaterialID> m_materialIDGenerator;
-	ObjectIDGenerator<TextureID> m_textureIDGenerator;
+	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
+	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
 };
 
 }

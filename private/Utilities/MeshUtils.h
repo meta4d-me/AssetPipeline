@@ -6,14 +6,14 @@
 
 namespace cdtools
 {
-	AABB CalculateAABB(const Mesh& mesh)
+	cd::AABB CalculateAABB(const cd::Mesh& mesh)
 	{
-		Point minPoint;
-		Point maxPoint;
-		const std::vector<Point>& meshPoints = mesh.GetVertexPositions();
+		cd::Point minPoint;
+		cd::Point maxPoint;
+		const std::vector<cd::Point>& meshPoints = mesh.GetVertexPositions();
 		for (uint32_t i = 0; i < meshPoints.size(); ++i)
 		{
-			const Point& current = meshPoints[i];
+			const cd::Point& current = meshPoints[i];
 			minPoint[0] = std::min(current[0], minPoint[0]);
 			minPoint[1] = std::min(current[1], minPoint[1]);
 			minPoint[2] = std::min(current[2], minPoint[2]);
@@ -21,6 +21,6 @@ namespace cdtools
 			maxPoint[1] = std::max(current[1], maxPoint[1]);
 			maxPoint[2] = std::max(current[2], maxPoint[2]);
 		}
-		return AABB(minPoint, maxPoint);
+		return cd::AABB(minPoint, maxPoint);
 	}
 }

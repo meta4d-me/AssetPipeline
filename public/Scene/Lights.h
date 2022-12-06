@@ -1,7 +1,7 @@
 #include "Math/VectorDerived.h"
 #include "ObjectID.h"
 
-namespace cdtools
+namespace cd
 {
 	static constexpr float angle2radian(float angle) {
 		return angle * bx::kPi / 180.0f;

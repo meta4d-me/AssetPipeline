@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-namespace cdtools
+namespace cd
 {
 
 Mesh::Mesh(std::ifstream& fin)
@@ -12,13 +12,13 @@ Mesh::Mesh(std::ifstream& fin)
 
 Mesh::Mesh(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount)
 {
-	Init(MeshID(meshID), std::move(meshName), vertexCount, polygonCount);
+	Init(MeshID(meshID), MoveTemp(meshName), vertexCount, polygonCount);
 }
 
 void Mesh::Init(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount)
 {
 	m_id = meshID;
-	m_name = std::move(meshName);
+	m_name = MoveTemp(meshName);
 	m_vertexCount = vertexCount;
 	m_polygonCount = polygonCount;
 
@@ -107,7 +107,7 @@ void Mesh::ImportBinary(std::ifstream& fin)
 	ImportData(fin, vertexColorSetCount);
 	ImportData(fin, polygonCount);
 
-	Init(MeshID(meshID), std::move(meshName), vertexCount, polygonCount);
+	Init(MeshID(meshID), MoveTemp(meshName), vertexCount, polygonCount);
 	SetMaterialID(meshMaterialID);
 	SetVertexUVSetCount(vertexUVSetCount);
 	SetVertexColorSetCount(vertexColorSetCount);

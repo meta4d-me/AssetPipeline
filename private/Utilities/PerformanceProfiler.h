@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Base/Template.h"
+
 #include <chrono>
 
 namespace cdtools
@@ -9,7 +11,7 @@ class PerformanceProfiler
 {
 public:
 	PerformanceProfiler(std::string tag) :
-		m_tag(std::move(tag))
+		m_tag(cd::MoveTemp(tag))
 	{
 		m_startTimePoint = std::chrono::steady_clock::now();
 	}

@@ -1,8 +1,13 @@
 #pragma once
 
+#include "Base/Template.h"
+
 #include <fstream>
 #include <string>
 #include <vector>
+
+namespace cd
+{
 
 class ISerializable
 {
@@ -35,7 +40,7 @@ protected:
 	template<typename T>
 	void ExportData(std::ofstream& fout, const T& data) const
 	{
-		if constexpr(std::is_arithmetic<T>())
+		if constexpr (std::is_arithmetic<T>())
 		{
 			fout.write(reinterpret_cast<const char*>(&data), sizeof(data));
 		}
@@ -69,3 +74,5 @@ protected:
 		fout.write(reinterpret_cast<const char*>(data), bufferBytes);
 	}
 };
+
+}

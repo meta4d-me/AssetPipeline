@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-namespace cdtools
+namespace cd
 {
 
 ///////////////////////////////////////////////////////////////////
@@ -22,7 +22,7 @@ uint32_t SceneDatabase::GetNextMeshID() {
 
 void SceneDatabase::AddMesh(Mesh mesh)
 {
-	m_meshes.emplace_back(std::move(mesh));
+	m_meshes.emplace_back(MoveTemp(mesh));
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ void SceneDatabase::SetMaterialCount(uint32_t materialCount)
 
 void SceneDatabase::AddMaterial(Material material)
 {
-	m_materials.emplace_back(std::move(material));
+	m_materials.emplace_back(MoveTemp(material));
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -48,7 +48,7 @@ void SceneDatabase::SetTextureCount(uint32_t textureCount)
 
 void SceneDatabase::AddTexture(Texture texture)
 {
-	m_textures.emplace_back(std::move(texture));
+	m_textures.emplace_back(MoveTemp(texture));
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -58,12 +58,12 @@ void SceneDatabase::ImportBinary(std::ifstream& fin)
 {
 	std::string sceneName;
 	ImportData(fin, sceneName);
-	SetName(std::move(sceneName));
+	SetName(MoveTemp(sceneName));
 
 	AABB sceneAABB;
 	ImportDataBuffer(fin, sceneAABB.Min().begin());
 	ImportDataBuffer(fin, sceneAABB.Max().begin());
-	SetAABB(std::move(sceneAABB));
+	SetAABB(MoveTemp(sceneAABB));
 
 	uint32_t meshCount = 0;
 	uint32_t materialCount = 0;
@@ -78,19 +78,19 @@ void SceneDatabase::ImportBinary(std::ifstream& fin)
 	for (uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex)
 	{
 		Mesh mesh(fin);
-		AddMesh(std::move(mesh));
+		AddMesh(MoveTemp(mesh));
 	}
 
 	for (uint32_t textureIndex = 0; textureIndex < textureCount; ++textureIndex)
 	{
 		Texture texture(fin);
-		AddTexture(std::move(texture));
+		AddTexture(MoveTemp(texture));
 	}
 
 	for (uint32_t materialIndex = 0; materialIndex < materialCount; ++materialIndex)
 	{
 		Material material(fin);
-		AddMaterial(std::move(material));
+		AddMaterial(MoveTemp(material));
 	}
 }
 

@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace cdtools
+namespace cd
 {
 
 /// <summary>
@@ -27,6 +27,7 @@ public:
 	VectorBase& operator=(const VectorBase&) = default;
 	VectorBase(VectorBase&&) = default;
 	VectorBase& operator=(VectorBase&&) = default;
+	~VectorBase() = default;
 
 	// STL style's iterators.
 	using iterator = T*;
@@ -97,10 +98,11 @@ public:
 		return result;
 	}
 	
-	void Normalize()
+	Derived& Normalize()
 	{
 		T length = Length();
 		std::for_each(this->begin(), this->end(), [&length](T& component) { component /= length; });
+		return CRTP();
 	}
 
 	T Dot(const Derived& other) 
@@ -140,8 +142,6 @@ public:
 
 		return true;
 	}
-
-	// TODO : Support casting Derived<T, N-1> -> Derived<T, N>, Derived<T, N> -> Derived<T, N - 1> ?
 };
 
 }

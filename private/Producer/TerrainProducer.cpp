@@ -1,17 +1,13 @@
 #include "TerrainProducer.h"
 
-#include <cassert>
-#include <climits>
-#include <cmath>
-#include <random>
-#include <utility>
-
 #include "Hashers/StringHash.hpp"
 #include "Noise/Noise.h"
 #include "Scene/Mesh.h"
 #include "Scene/SceneDatabase.h"
 #include "Utilities/MeshUtils.h"
 #include "Utilities/Utils.h"
+
+#include <random>
 
 namespace cdtools
 {
@@ -31,7 +27,7 @@ TerrainProducer::TerrainProducer(uint32_t x_quads, uint32_t z_quads, uint32_t qu
 	assert(quad_height > 0);
 }
 
-void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
+void TerrainProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 {
 	pSceneDatabase->SetName("Generated Terrain");
 	pSceneDatabase->SetMeshCount(1);
@@ -42,35 +38,35 @@ void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 	pSceneDatabase->SetTextureCount(2);
 
 	std::string materialName = "baseColor";
-	MaterialID::ValueType materialHash = StringHash<MaterialID::ValueType>(materialName);
-	MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, isUsed);
-	Material baseColorMaterial(materialID, materialName.c_str());
+	cd::MaterialID::ValueType materialHash = cd::StringHash<cd::MaterialID::ValueType>(materialName);
+	cd::MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, isUsed);
+	cd::Material baseColorMaterial(materialID, materialName.c_str());
 
 	// TODO get this from file later
 	isUsed = false;
 	std::string textureName = "TerrainDirtTexture";
-	TextureID::ValueType textureHash = StringHash<TextureID::ValueType>(textureName);
-	TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
-	baseColorMaterial.SetTextureID(MaterialTextureType::BaseColor, textureID);
+	cd::TextureID::ValueType textureHash = cd::StringHash<cd::TextureID::ValueType>(textureName);
+	cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
+	baseColorMaterial.SetTextureID(cd::MaterialTextureType::BaseColor, textureID);
 	pSceneDatabase->AddMaterial(baseColorMaterial);
-	pSceneDatabase->AddTexture(Texture(textureID, textureName.c_str()));
+	pSceneDatabase->AddTexture(cd::Texture(textureID, textureName.c_str()));
 
 	isUsed = false;
 	materialName = "testColor";
-	materialHash = StringHash<MaterialID::ValueType>(materialName);
-	MaterialID testMaterialID = m_materialIDGenerator.AllocateID(materialHash, isUsed);
-	Material testColorMaterial(testMaterialID, materialName.c_str());
+	materialHash = cd::StringHash<cd::MaterialID::ValueType>(materialName);
+	cd::MaterialID testMaterialID = m_materialIDGenerator.AllocateID(materialHash, isUsed);
+	cd::Material testColorMaterial(testMaterialID, materialName.c_str());
 
 	// TODO get this from file later
 	isUsed = false;
 	textureName = "TestColorTexture";
-	textureHash = StringHash<TextureID::ValueType>(textureName);
+	textureHash = cd::StringHash<cd::TextureID::ValueType>(textureName);
 	textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
-	testColorMaterial.SetTextureID(MaterialTextureType::BaseColor, textureID);
+	testColorMaterial.SetTextureID(cd::MaterialTextureType::BaseColor, textureID);
 	pSceneDatabase->AddMaterial(testColorMaterial);
-	pSceneDatabase->AddTexture(Texture(textureID, textureName.c_str()));
+	pSceneDatabase->AddTexture(cd::Texture(textureID, textureName.c_str()));
 
-	Mesh terrain = CreateTerrainMesh();
+	cd::Mesh terrain = CreateTerrainMesh();
 	terrain.SetMaterialID(materialID.Data());
 	pSceneDatabase->GetAABB().Expand(terrain.GetAABB());
 
@@ -78,16 +74,17 @@ void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 	pSceneDatabase->AddMesh(std::move(terrain));
 }
 
-Mesh TerrainProducer::CreateTerrainMesh()
+cd::Mesh TerrainProducer::CreateTerrainMesh()
 {
 	const uint32_t num_quads = m_numQuadsInX * m_numQuadsInZ;
 	const uint32_t num_vertices = num_quads * 4;	// 4 vertices per quad
 	const uint32_t num_polygons = num_quads * 2;	// 2 triangles per quad
+
 	const std::string terrainMeshName = "generated_terrain";
 	bool isUsed = false;
-	MeshID::ValueType meshHash = StringHash<TextureID::ValueType>(terrainMeshName);
-	MeshID terrainMeshID = m_meshIDGenerator.AllocateID(meshHash, isUsed);
-	Mesh terrain(terrainMeshID, "GeneratedTerrain", num_vertices, num_polygons);
+	cd::MeshID::ValueType meshHash = cd::StringHash<cd::TextureID::ValueType>(terrainMeshName);
+	cd::MeshID terrainMeshID = m_meshIDGenerator.AllocateID(meshHash, isUsed);
+	cd::Mesh terrain(terrainMeshID, "GeneratedTerrain", num_vertices, num_polygons);
 
 	terrain.SetVertexColorSetCount(0);	// No colors
 	terrain.SetVertexUVSetCount(1);		// Only 1 set of UV
@@ -113,10 +110,10 @@ Mesh TerrainProducer::CreateTerrainMesh()
 		for (uint32_t x = 0; x < m_numQuadsInX - 1; ++x)
 		{
 			currentRow[x] = CreateQuadAt(current_vertex_id, current_polygon_id);
-			Point bottomLeftPoint(static_cast<float>(x) * m_quadWidth, GetHeightAt(x, z, freq_params, 5.0f), static_cast<float>(z) * m_quadHeight);
-			Point topLeftPoint(static_cast<float>(x) * m_quadWidth, GetHeightAt(x, z + 1, freq_params, 5.0f), static_cast<float>(z + 1) * m_quadHeight);
-			Point topRightPoint(static_cast<float>(x + 1) * m_quadWidth, GetHeightAt(x + 1, z + 1, freq_params, 5.0f), static_cast<float>(z + 1) * m_quadHeight);
-			Point bottomRightPoint(static_cast<float>(x + 1) * m_quadWidth, GetHeightAt(x + 1, z, freq_params, 5.0f), static_cast<float>(z) * m_quadHeight);
+			cd::Point bottomLeftPoint(static_cast<float>(x) * m_quadWidth, GetHeightAt(x, z, freq_params, 5.0f), static_cast<float>(z) * m_quadHeight);
+			cd::Point topLeftPoint(static_cast<float>(x) * m_quadWidth, GetHeightAt(x, z + 1, freq_params, 5.0f), static_cast<float>(z + 1) * m_quadHeight);
+			cd::Point topRightPoint(static_cast<float>(x + 1) * m_quadWidth, GetHeightAt(x + 1, z + 1, freq_params, 5.0f), static_cast<float>(z + 1) * m_quadHeight);
+			cd::Point bottomRightPoint(static_cast<float>(x + 1) * m_quadWidth, GetHeightAt(x + 1, z, freq_params, 5.0f), static_cast<float>(z) * m_quadHeight);
 			// Sets the attribute in the terrain
 			// Position
 			terrain.SetVertexPosition(currentRow[x].bottomLeftVertexId, bottomLeftPoint);
@@ -124,39 +121,39 @@ Mesh TerrainProducer::CreateTerrainMesh()
 			terrain.SetVertexPosition(currentRow[x].topRightVertexId, topRightPoint);
 			terrain.SetVertexPosition(currentRow[x].bottomRightVertexId, bottomRightPoint);
 			// UV
-			terrain.SetVertexUV(0, currentRow[x].bottomLeftVertexId, UV(0.0f, 0.0f));
-			terrain.SetVertexUV(0, currentRow[x].topLeftVertexId, UV(0.0f, 1.0f));
-			terrain.SetVertexUV(0, currentRow[x].topRightVertexId, UV(1.0f, 1.0f));
-			terrain.SetVertexUV(0, currentRow[x].bottomRightVertexId, UV(1.0f, 0.0f));
+			terrain.SetVertexUV(0, currentRow[x].bottomLeftVertexId, cd::UV(0.0f, 0.0f));
+			terrain.SetVertexUV(0, currentRow[x].topLeftVertexId, cd::UV(0.0f, 1.0f));
+			terrain.SetVertexUV(0, currentRow[x].topRightVertexId, cd::UV(1.0f, 1.0f));
+			terrain.SetVertexUV(0, currentRow[x].bottomRightVertexId, cd::UV(1.0f, 0.0f));
 			// The two triangle indices
-			terrain.SetPolygon(currentRow[x].leftTriPolygonId, VertexID(currentRow[x].bottomLeftVertexId), VertexID(currentRow[x].topLeftVertexId), VertexID(currentRow[x].bottomRightVertexId));
-			terrain.SetPolygon(currentRow[x].rightTriPolygonId, VertexID(currentRow[x].bottomRightVertexId), VertexID(currentRow[x].topLeftVertexId), VertexID(currentRow[x].topRightVertexId));
+			terrain.SetPolygon(currentRow[x].leftTriPolygonId, cd::VertexID(currentRow[x].bottomLeftVertexId), cd::VertexID(currentRow[x].topLeftVertexId), cd::VertexID(currentRow[x].bottomRightVertexId));
+			terrain.SetPolygon(currentRow[x].rightTriPolygonId, cd::VertexID(currentRow[x].bottomRightVertexId), cd::VertexID(currentRow[x].topLeftVertexId), cd::VertexID(currentRow[x].topRightVertexId));
 			// Normals
-			Direction normal;
+			cd::Direction normal;
 			// bottom-left
-			const Direction bottomLeftToBottomRight = bottomRightPoint - bottomLeftPoint;
-			const Direction bottomLeftToTopLeft = topLeftPoint - bottomLeftPoint;
+			const cd::Direction bottomLeftToBottomRight = bottomRightPoint - bottomLeftPoint;
+			const cd::Direction bottomLeftToTopLeft = topLeftPoint - bottomLeftPoint;
 			normal = bottomLeftToBottomRight.Cross(bottomLeftToTopLeft);
 			normal.Normalize();
 			terrain.SetVertexNormal(currentRow[x].bottomLeftVertexId, normal);
 			// top-left
-			const Direction topLeftToBottomLeft = bottomLeftPoint - topLeftPoint;
-			const Direction topLeftToBottomRight = bottomRightPoint - topLeftPoint;
-			const Direction topLeftToTopRight = topRightPoint - topLeftPoint;
+			const cd::Direction topLeftToBottomLeft = bottomLeftPoint - topLeftPoint;
+			const cd::Direction topLeftToBottomRight = bottomRightPoint - topLeftPoint;
+			const cd::Direction topLeftToTopRight = topRightPoint - topLeftPoint;
 			normal = topLeftToBottomLeft.Cross(topLeftToBottomRight);
 			normal.Add(topLeftToBottomRight.Cross(topLeftToTopRight));
 			normal.Normalize();
 			terrain.SetVertexNormal(currentRow[x].topLeftVertexId, normal);
 			// top-right
-			const Direction topRightToTopLeft = topLeftPoint - topRightPoint;
-			const Direction topRightToBottomRight = bottomRightPoint - topRightPoint;
+			const cd::Direction topRightToTopLeft = topLeftPoint - topRightPoint;
+			const cd::Direction topRightToBottomRight = bottomRightPoint - topRightPoint;
 			normal = topRightToTopLeft.Cross(topRightToBottomRight);
 			normal.Normalize();
 			terrain.SetVertexNormal(currentRow[x].topRightVertexId, normal);
 			// bottom-right
-			const Direction bottomRightToTopRight = topRightPoint - bottomRightPoint;
-			const Direction bottomRightToTopLeft = topLeftPoint - bottomRightPoint;
-			const Direction bottomRightToBottomLeft = bottomLeftPoint - bottomRightPoint;
+			const cd::Direction bottomRightToTopRight = topRightPoint - bottomRightPoint;
+			const cd::Direction bottomRightToTopLeft = topLeftPoint - bottomRightPoint;
+			const cd::Direction bottomRightToBottomLeft = bottomLeftPoint - bottomRightPoint;
 			normal = bottomRightToTopRight.Cross(bottomRightToTopLeft);
 			normal.Add(bottomRightToTopLeft.Cross(bottomRightToBottomLeft));
 			normal.Normalize();
@@ -173,7 +170,7 @@ Mesh TerrainProducer::CreateTerrainMesh()
 			const bool hasLeft = x - 1 >= 0;
 			const bool hasBottom = z - 1 >= 0;
 			TerrainQuad currentQuad = terrainQuads[z][x];
-			Direction normal;
+			cd::Direction normal;
 			// bottom-left
 			normal = terrain.GetVertexNormal(currentQuad.bottomLeftVertexId);
 			if (hasLeft)
@@ -269,10 +266,10 @@ Mesh TerrainProducer::CreateTerrainMesh()
 	}
 
 	// Set vertex attribute
-	VertexFormat meshVertexFormat;
-	meshVertexFormat.AddAttributeLayout(VertexAttributeType::Position, GetAttributeValueType<Point::ValueType>(), 3);
-	meshVertexFormat.AddAttributeLayout(VertexAttributeType::Normal, GetAttributeValueType<Direction::ValueType>(), 3);
-	meshVertexFormat.AddAttributeLayout(VertexAttributeType::UV, GetAttributeValueType<UV::ValueType>(), 2);
+	cd::VertexFormat meshVertexFormat;
+	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), 3);
+	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), 3);
+	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), 2);
 	terrain.SetVertexFormat(std::move(meshVertexFormat));
 
 	// Set aabb

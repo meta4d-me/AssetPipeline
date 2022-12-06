@@ -2,7 +2,7 @@
 
 #include <string_view>
 
-namespace cdtools
+namespace cd
 {
 
 namespace details

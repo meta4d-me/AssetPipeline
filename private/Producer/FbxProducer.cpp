@@ -42,7 +42,7 @@ FbxProducer::~FbxProducer()
 	}
 }
 
-void FbxProducer::Execute(SceneDatabase* pSceneDatabase)
+void FbxProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 {
 	Init();
 
@@ -69,7 +69,7 @@ void FbxProducer::Execute(SceneDatabase* pSceneDatabase)
 	TraverseNode(pSDKScene->GetRootNode(), pSceneDatabase);
 }
 
-void FbxProducer::TraverseNode(fbxsdk::FbxNode* pSDKNode, SceneDatabase* pSceneDatabase)
+void FbxProducer::TraverseNode(fbxsdk::FbxNode* pSDKNode, cd::SceneDatabase* pSceneDatabase)
 {
 	if (fbxsdk::FbxNodeAttribute* pNodeAttribute = pSDKNode->GetNodeAttribute())
 	{
@@ -105,12 +105,12 @@ void FbxProducer::TraverseNode(fbxsdk::FbxNode* pSDKNode, SceneDatabase* pSceneD
 	}
 }
 
-bool FbxProducer::TraverseMeshNode(fbxsdk::FbxNode* pMeshNode, SceneDatabase* pSceneDatabase)
+bool FbxProducer::TraverseMeshNode(fbxsdk::FbxNode* pMeshNode, cd::SceneDatabase* pSceneDatabase)
 {
 	fbxsdk::FbxMesh* pFbxMesh = reinterpret_cast<fbxsdk::FbxMesh*>(pMeshNode->GetNodeAttribute());
 	assert(pFbxMesh && "Invalid node attribute for mesh node");
 
-	cdtools::Mesh mesh(MeshID(m_nodeIDCounter++), pMeshNode->GetName(), pFbxMesh->GetPolygonVertexCount(), pFbxMesh->GetPolygonCount());
+	cd::Mesh mesh(cd::MeshID(m_nodeIDCounter++), pMeshNode->GetName(), pFbxMesh->GetPolygonVertexCount(), pFbxMesh->GetPolygonCount());
 	mesh.SetVertexColorSetCount(pFbxMesh->GetElementVertexColorCount());
 	mesh.SetVertexUVSetCount(pFbxMesh->GetElementUVCount());
 
@@ -128,7 +128,7 @@ bool FbxProducer::TraverseMeshNode(fbxsdk::FbxNode* pMeshNode, SceneDatabase* pS
 			continue;
 		}
 
-		mesh.SetPolygon(polygonIndex, VertexID(vertexID), VertexID(vertexID + 1), VertexID(vertexID + 2));
+		mesh.SetPolygon(polygonIndex, cd::VertexID(vertexID), cd::VertexID(vertexID + 1), cd::VertexID(vertexID + 2));
 		
 		for(uint32_t vertexIndex = 0; vertexIndex < 3; ++vertexIndex)
 		{
@@ -136,7 +136,7 @@ bool FbxProducer::TraverseMeshNode(fbxsdk::FbxNode* pMeshNode, SceneDatabase* pS
 
 			// position
 			const fbxsdk::FbxVector4& vertexPosition = pVertexPositions[controlPointIndex];
-			mesh.SetVertexPosition(vertexID, Point(vertexPosition[0], vertexPosition[1], vertexPosition[2]));
+			mesh.SetVertexPosition(vertexID, cd::Point(vertexPosition[0], vertexPosition[1], vertexPosition[2]));
 
 			// normal
 			if(fbxsdk::FbxGeometryElementNormal* pVertexNormalSet = pFbxMesh->GetElementNormal(0))
@@ -180,7 +180,7 @@ bool FbxProducer::TraverseMeshNode(fbxsdk::FbxNode* pMeshNode, SceneDatabase* pS
 					normal = pVertexNormalSet->GetDirectArray().GetAt(normalIndex);
 				}
 
-				mesh.SetVertexNormal(vertexID, Direction(normal[0], normal[1], normal[2]));
+				mesh.SetVertexNormal(vertexID, cd::Direction(normal[0], normal[1], normal[2]));
 			}
 
 			// uv
@@ -193,7 +193,7 @@ bool FbxProducer::TraverseMeshNode(fbxsdk::FbxNode* pMeshNode, SceneDatabase* pS
 					pFbxMesh->GetPolygonVertexUV(polygonIndex, vertexIndex, pUVSet->GetName(), uv, unmappedUV);
 					uv[1] = 1.0f - uv[1];
 
-					mesh.SetVertexUV(uvSetIndex, vertexIndex, UV(uv[0], uv[1]));
+					mesh.SetVertexUV(uvSetIndex, vertexIndex, cd::UV(uv[0], uv[1]));
 				}
 			}
 
@@ -243,7 +243,7 @@ bool FbxProducer::TraverseMeshNode(fbxsdk::FbxNode* pMeshNode, SceneDatabase* pS
 					color = pVertexColorSet->GetDirectArray().GetAt(colorIndex);
 				}
 
-				mesh.SetVertexColor(colorSetIndex, vertexIndex, Color(color.mRed, color.mGreen, color.mBlue, color.mAlpha));
+				mesh.SetVertexColor(colorSetIndex, vertexIndex, cd::Color(color.mRed, color.mGreen, color.mBlue, color.mAlpha));
 			}
 
 			++vertexID;
@@ -255,7 +255,7 @@ bool FbxProducer::TraverseMeshNode(fbxsdk::FbxNode* pMeshNode, SceneDatabase* pS
 	return true;
 }
 
-bool FbxProducer::TraverseTransformNode(fbxsdk::FbxNode* pTransformNode, SceneDatabase* pSceneDatabase)
+bool FbxProducer::TraverseTransformNode(fbxsdk::FbxNode* pTransformNode, cd::SceneDatabase* pSceneDatabase)
 {
 	fbxsdk::FbxAMatrix localTransform = pTransformNode->EvaluateLocalTransform();
 	localTransform.GetT();

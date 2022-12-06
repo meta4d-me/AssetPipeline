@@ -6,7 +6,7 @@
 #include <inttypes.h>
 #include <vector>
 
-namespace cdtools
+namespace cd
 {
 
 enum class VertexAttributeType : uint8_t

@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-namespace cdtools
+namespace cd
 {
 
 Material::Material(std::ifstream& fin)
@@ -12,13 +12,13 @@ Material::Material(std::ifstream& fin)
 
 Material::Material(MaterialID materialID, std::string materialName)
 {
-	Init(materialID, std::move(materialName));
+	Init(materialID, MoveTemp(materialName));
 }
 
 void Material::Init(MaterialID materialID, std::string materialName)
 {
 	m_id = materialID;
-	m_name = std::move(materialName);
+	m_name = MoveTemp(materialName);
 }
 
 void Material::SetTextureID(MaterialTextureType textureType, TextureID textureID)
@@ -56,7 +56,7 @@ void Material::ImportBinary(std::ifstream& fin)
 	uint32_t materialID;
 	ImportData(fin, materialID);
 
-	Init(MaterialID(materialID), std::move(materialName));
+	Init(MaterialID(materialID), MoveTemp(materialName));
 
 	size_t materialTextureCount;
 	ImportData(fin, materialTextureCount);

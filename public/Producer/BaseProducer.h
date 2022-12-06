@@ -1,26 +1,32 @@
 #pragma once
 
 #include "IProducer.h"
+#include "Base/Template.h"
 
 #include <string>
 
-namespace cdtools
+namespace cd
 {
 
 class SceneDatabase;
+
+}
+
+namespace cdtools
+{
 
 class BaseProducer : public IProducer
 {
 public:
 	BaseProducer() = delete;
-	explicit BaseProducer(std::string filePath) : m_filePath(std::move(filePath)) {}
+	explicit BaseProducer(std::string filePath) : m_filePath(cd::MoveTemp(filePath)) {}
 	BaseProducer(const BaseProducer&) = delete;
 	BaseProducer& operator=(const BaseProducer&) = delete;
 	BaseProducer(BaseProducer&&) = delete;
 	BaseProducer& operator=(BaseProducer&&) = delete;
 	virtual ~BaseProducer() = default;
 
-	virtual void Execute(const SceneDatabase* pSceneDatabase) {}
+	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) {}
 
 protected:
 	std::string m_filePath;
