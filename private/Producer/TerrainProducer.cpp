@@ -6,9 +6,11 @@
 #include <random>
 #include <utility>
 
+#include "Hashers/StringHash.hpp"
 #include "Noise/Noise.h"
 #include "Scene/Mesh.h"
 #include "Scene/SceneDatabase.h"
+#include "Utilities/MeshUtils.h"
 #include "Utilities/Utils.h"
 
 namespace cdtools
@@ -34,14 +36,58 @@ void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 	pSceneDatabase->SetName("Generated Terrain");
 	pSceneDatabase->SetMeshCount(1);
 
-	// Set texture and material
-	pSceneDatabase->SetTextureCount(1);
-	pSceneDatabase->SetMaterialCount(1);
+	// TODO get this from file later
+	bool isUsed = false;
+	pSceneDatabase->SetMaterialCount(2);
+	pSceneDatabase->SetTextureCount(2);
 
+	std::string materialName = "baseColor";
+	MaterialID::ValueType materialHash = StringHash<MaterialID::ValueType>(materialName);
+	MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, isUsed);
+	Material baseColorMaterial(materialID, materialName.c_str());
+
+	// TODO get this from file later
+	isUsed = false;
+	std::string textureName = "TerrainDirtTexture";
+	TextureID::ValueType textureHash = StringHash<TextureID::ValueType>(textureName);
+	TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
+	baseColorMaterial.SetTextureID(MaterialTextureType::BaseColor, textureID);
+	pSceneDatabase->AddMaterial(baseColorMaterial);
+	pSceneDatabase->AddTexture(Texture(textureID, textureName.c_str()));
+
+	isUsed = false;
+	materialName = "testColor";
+	materialHash = StringHash<MaterialID::ValueType>(materialName);
+	MaterialID testMaterialID = m_materialIDGenerator.AllocateID(materialHash, isUsed);
+	Material testColorMaterial(testMaterialID, materialName.c_str());
+
+	// TODO get this from file later
+	isUsed = false;
+	textureName = "TestColorTexture";
+	textureHash = StringHash<TextureID::ValueType>(textureName);
+	textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
+	testColorMaterial.SetTextureID(MaterialTextureType::BaseColor, textureID);
+	pSceneDatabase->AddMaterial(testColorMaterial);
+	pSceneDatabase->AddTexture(Texture(textureID, textureName.c_str()));
+
+	Mesh terrain = CreateTerrainMesh();
+	terrain.SetMaterialID(materialID.Data());
+	pSceneDatabase->GetAABB().Expand(terrain.GetAABB());
+
+	// Add it to the scene
+	pSceneDatabase->AddMesh(std::move(terrain));
+}
+
+Mesh TerrainProducer::CreateTerrainMesh()
+{
 	const uint32_t num_quads = m_numQuadsInX * m_numQuadsInZ;
 	const uint32_t num_vertices = num_quads * 4;	// 4 vertices per quad
 	const uint32_t num_polygons = num_quads * 2;	// 2 triangles per quad
-	Mesh terrain(MeshID(pSceneDatabase->GetNextMeshID()), "GeneratedTerrain", num_vertices, num_polygons);
+	const std::string terrainMeshName = "generated_terrain";
+	bool isUsed = false;
+	MeshID::ValueType meshHash = StringHash<TextureID::ValueType>(terrainMeshName);
+	MeshID terrainMeshID = m_meshIDGenerator.AllocateID(meshHash, isUsed);
+	Mesh terrain(terrainMeshID, "GeneratedTerrain", num_vertices, num_polygons);
 
 	terrain.SetVertexColorSetCount(0);	// No colors
 	terrain.SetVertexUVSetCount(1);		// Only 1 set of UV
@@ -51,7 +97,7 @@ void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 	// Setup the parameters - TODO get this from input or a file later
 	std::default_random_engine generator;
 	std::uniform_int_distribution<long> distribution(LONG_MIN, LONG_MAX);
-	const std::vector<std::pair<float, int64_t>> freq_params = 
+	const std::vector<std::pair<float, int64_t>> freq_params =
 	{
 		std::make_pair(0.0f, distribution(generator)),	// 1
 		std::make_pair(0.8f, distribution(generator)),	// 2
@@ -130,7 +176,7 @@ void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 			Direction normal;
 			// bottom-left
 			normal = terrain.GetVertexNormal(currentQuad.bottomLeftVertexId);
-			if (hasLeft) 
+			if (hasLeft)
 			{
 				const TerrainQuad leftQuad = terrainQuads[z][x - 1];
 				normal.Add(terrain.GetVertexNormal(leftQuad.bottomRightVertexId));
@@ -147,7 +193,7 @@ void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 			}
 			normal.Normalize();
 			currentQuad.bottomLeftNormal = normal;
-			
+
 			// top-left
 			normal = terrain.GetVertexNormal(currentQuad.topLeftVertexId);
 			if (hasLeft)
@@ -227,15 +273,12 @@ void TerrainProducer::Execute(SceneDatabase* pSceneDatabase)
 	meshVertexFormat.AddAttributeLayout(VertexAttributeType::Position, GetAttributeValueType<Point::ValueType>(), 3);
 	meshVertexFormat.AddAttributeLayout(VertexAttributeType::Normal, GetAttributeValueType<Direction::ValueType>(), 3);
 	meshVertexFormat.AddAttributeLayout(VertexAttributeType::UV, GetAttributeValueType<UV::ValueType>(), 2);
-
-	// AABB
-	const AABB aabb = CalculateAABB(terrain);
-	terrain.SetAABB(aabb);
-	pSceneDatabase->SetAABB(aabb);
-
-	// Add it to the scene
 	terrain.SetVertexFormat(std::move(meshVertexFormat));
-	pSceneDatabase->AddMesh(std::move(terrain));
+
+	// Set aabb
+	terrain.SetAABB(CalculateAABB(terrain));
+
+	return terrain;
 }
 
 TerrainQuad TerrainProducer::CreateQuadAt(uint32_t& currentVertexId, uint32_t& currentPolygonId) const
@@ -278,24 +321,6 @@ float TerrainProducer::GetHeightAt(uint32_t x, uint32_t z, const std::vector<std
 	result = pow(result, power_exp);
 	result *= m_maxElevation;
 	return result;
-}
-
-AABB TerrainProducer::CalculateAABB(const Mesh& mesh)
-{
-	Point minPoint;
-	Point maxPoint;
-	const std::vector<Point>& meshPoints = mesh.GetVertexPositions();
-	for (uint32_t i = 0; i < meshPoints.size(); ++i)
-	{
-		const Point& current = meshPoints[i];
-		minPoint[0] = std::min(current[0], minPoint[0]);
-		minPoint[1] = std::min(current[1], minPoint[1]);
-		minPoint[2] = std::min(current[2], minPoint[2]);
-		maxPoint[0] = std::max(current[0], maxPoint[0]);
-		maxPoint[1] = std::max(current[1], maxPoint[1]);
-		maxPoint[2] = std::max(current[2], maxPoint[2]);
-	}
-	return AABB(minPoint, maxPoint);
 }
 
 }	// namespace cdtools
