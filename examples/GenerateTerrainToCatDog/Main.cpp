@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 
 	const char* pInputFilePath = argv[1];
 	const char* pOutputFilePath = argv[2];
-	TerrainProducer producer(256, 256, 500, 500, 6000);
+	TerrainProducer producer(256, 256, 50, 50, 2000);
 	CatDogConsumer consumer(pOutputFilePath);
 	consumer.SetExportMode(cdtools::ExportMode::PureBinary);
 	// FbxConsumer consumer(pOutputFilePath);

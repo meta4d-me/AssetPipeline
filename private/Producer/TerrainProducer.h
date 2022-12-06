@@ -6,6 +6,7 @@
 #include "Math/AABB.hpp"
 #include "Math/VectorDerived.hpp"
 #include "Producer/IProducer.h"
+#include "Scene/ObjectIDGenerator.h"
 
 namespace cd
 {
@@ -43,9 +44,9 @@ public:
 	virtual void Execute(cd::SceneDatabase* pSceneDatabase) override;
 
 private:
+	cd::Mesh CreateTerrainMesh();
 	TerrainQuad CreateQuadAt(uint32_t& currentVertexId, uint32_t& currentPolygonId) const;
 	float GetHeightAt(uint32_t x, uint32_t z, const std::vector<std::pair<float, int64_t>>& freq_params, float power_exp) const;
-	cd::AABB CalculateAABB(const cd::Mesh& mesh);
 
 	uint32_t m_numQuadsInX;		// quads in x-axis
 	uint32_t m_numQuadsInZ;		// quads in z-axis
@@ -53,6 +54,9 @@ private:
 	uint32_t m_quadHeight;		// height of a quad
 	uint32_t m_maxElevation;	// highest possible elevation; we start at 0.
 
+	cd::ObjectIDGenerator<cd::MeshID> m_meshIDGenerator;
+	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
+	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
 };
 
 }	// namespace cdtools

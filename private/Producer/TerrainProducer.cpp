@@ -1,8 +1,10 @@
 #include "TerrainProducer.h"
 
+#include "Hashers/StringHash.hpp"
 #include "Noise/Noise.h"
 #include "Scene/Mesh.h"
 #include "Scene/SceneDatabase.h"
+#include "Utilities/MeshUtils.h"
 #include "Utilities/Utils.h"
 
 #include <random>
@@ -30,14 +32,59 @@ void TerrainProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 	pSceneDatabase->SetName("Generated Terrain");
 	pSceneDatabase->SetMeshCount(1);
 
-	// Set texture and material
-	pSceneDatabase->SetTextureCount(1);
-	pSceneDatabase->SetMaterialCount(1);
+	// TODO get this from file later
+	bool isUsed = false;
+	pSceneDatabase->SetMaterialCount(2);
+	pSceneDatabase->SetTextureCount(2);
 
+	std::string materialName = "baseColor";
+	cd::MaterialID::ValueType materialHash = cd::StringHash<cd::MaterialID::ValueType>(materialName);
+	cd::MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, isUsed);
+	cd::Material baseColorMaterial(materialID, materialName.c_str());
+
+	// TODO get this from file later
+	isUsed = false;
+	std::string textureName = "TerrainDirtTexture";
+	cd::TextureID::ValueType textureHash = cd::StringHash<cd::TextureID::ValueType>(textureName);
+	cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
+	baseColorMaterial.SetTextureID(cd::MaterialTextureType::BaseColor, textureID);
+	pSceneDatabase->AddMaterial(baseColorMaterial);
+	pSceneDatabase->AddTexture(cd::Texture(textureID, textureName.c_str()));
+
+	isUsed = false;
+	materialName = "testColor";
+	materialHash = cd::StringHash<cd::MaterialID::ValueType>(materialName);
+	cd::MaterialID testMaterialID = m_materialIDGenerator.AllocateID(materialHash, isUsed);
+	cd::Material testColorMaterial(testMaterialID, materialName.c_str());
+
+	// TODO get this from file later
+	isUsed = false;
+	textureName = "TestColorTexture";
+	textureHash = cd::StringHash<cd::TextureID::ValueType>(textureName);
+	textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
+	testColorMaterial.SetTextureID(cd::MaterialTextureType::BaseColor, textureID);
+	pSceneDatabase->AddMaterial(testColorMaterial);
+	pSceneDatabase->AddTexture(cd::Texture(textureID, textureName.c_str()));
+
+	cd::Mesh terrain = CreateTerrainMesh();
+	terrain.SetMaterialID(materialID.Data());
+	pSceneDatabase->GetAABB().Expand(terrain.GetAABB());
+
+	// Add it to the scene
+	pSceneDatabase->AddMesh(std::move(terrain));
+}
+
+cd::Mesh TerrainProducer::CreateTerrainMesh()
+{
 	const uint32_t num_quads = m_numQuadsInX * m_numQuadsInZ;
 	const uint32_t num_vertices = num_quads * 4;	// 4 vertices per quad
 	const uint32_t num_polygons = num_quads * 2;	// 2 triangles per quad
-	cd::Mesh terrain(cd::MeshID(pSceneDatabase->GetNextMeshID()), "GeneratedTerrain", num_vertices, num_polygons);
+
+	const std::string terrainMeshName = "generated_terrain";
+	bool isUsed = false;
+	cd::MeshID::ValueType meshHash = cd::StringHash<cd::TextureID::ValueType>(terrainMeshName);
+	cd::MeshID terrainMeshID = m_meshIDGenerator.AllocateID(meshHash, isUsed);
+	cd::Mesh terrain(terrainMeshID, "GeneratedTerrain", num_vertices, num_polygons);
 
 	terrain.SetVertexColorSetCount(0);	// No colors
 	terrain.SetVertexUVSetCount(1);		// Only 1 set of UV
@@ -47,7 +94,7 @@ void TerrainProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 	// Setup the parameters - TODO get this from input or a file later
 	std::default_random_engine generator;
 	std::uniform_int_distribution<long> distribution(LONG_MIN, LONG_MAX);
-	const std::vector<std::pair<float, int64_t>> freq_params = 
+	const std::vector<std::pair<float, int64_t>> freq_params =
 	{
 		std::make_pair(0.0f, distribution(generator)),	// 1
 		std::make_pair(0.8f, distribution(generator)),	// 2
@@ -126,7 +173,7 @@ void TerrainProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 			cd::Direction normal;
 			// bottom-left
 			normal = terrain.GetVertexNormal(currentQuad.bottomLeftVertexId);
-			if (hasLeft) 
+			if (hasLeft)
 			{
 				const TerrainQuad leftQuad = terrainQuads[z][x - 1];
 				normal.Add(terrain.GetVertexNormal(leftQuad.bottomRightVertexId));
@@ -143,7 +190,7 @@ void TerrainProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 			}
 			normal.Normalize();
 			currentQuad.bottomLeftNormal = normal;
-			
+
 			// top-left
 			normal = terrain.GetVertexNormal(currentQuad.topLeftVertexId);
 			if (hasLeft)
@@ -223,15 +270,12 @@ void TerrainProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), 3);
 	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), 3);
 	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), 2);
+	terrain.SetVertexFormat(std::move(meshVertexFormat));
 
-	// AABB
-	const cd::AABB aabb = CalculateAABB(terrain);
-	terrain.SetAABB(aabb);
-	pSceneDatabase->SetAABB(aabb);
+	// Set aabb
+	terrain.SetAABB(CalculateAABB(terrain));
 
-	// Add it to the scene
-	terrain.SetVertexFormat(cd::MoveTemp(meshVertexFormat));
-	pSceneDatabase->AddMesh(cd::MoveTemp(terrain));
+	return terrain;
 }
 
 TerrainQuad TerrainProducer::CreateQuadAt(uint32_t& currentVertexId, uint32_t& currentPolygonId) const
@@ -274,24 +318,6 @@ float TerrainProducer::GetHeightAt(uint32_t x, uint32_t z, const std::vector<std
 	result = pow(result, power_exp);
 	result *= m_maxElevation;
 	return result;
-}
-
-cd::AABB TerrainProducer::CalculateAABB(const cd::Mesh& mesh)
-{
-	cd::Point minPoint;
-	cd::Point maxPoint;
-	const std::vector<cd::Point>& meshPoints = mesh.GetVertexPositions();
-	for (uint32_t i = 0; i < meshPoints.size(); ++i)
-	{
-		const cd::Point& current = meshPoints[i];
-		minPoint[0] = std::min(current[0], minPoint[0]);
-		minPoint[1] = std::min(current[1], minPoint[1]);
-		minPoint[2] = std::min(current[2], minPoint[2]);
-		maxPoint[0] = std::max(current[0], maxPoint[0]);
-		maxPoint[1] = std::max(current[1], maxPoint[1]);
-		maxPoint[2] = std::max(current[2], maxPoint[2]);
-	}
-	return cd::AABB(minPoint, maxPoint);
 }
 
 }	// namespace cdtools

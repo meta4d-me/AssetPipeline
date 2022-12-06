@@ -3,6 +3,7 @@
 #include "Constants.h"
 
 #include <algorithm>
+#include <cmath>
 
 namespace cd
 {

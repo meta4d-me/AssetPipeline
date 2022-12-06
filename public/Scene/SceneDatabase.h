@@ -28,6 +28,7 @@ public:
 	const std::string& GetName() const { return m_name; }
 	
 	void SetAABB(AABB aabb) { m_aabb = MoveTemp(aabb); }
+	AABB& GetAABB() { return m_aabb; }
 	const AABB& GetAABB() const { return m_aabb; }
 
 	// mesh
