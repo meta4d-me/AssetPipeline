@@ -1,5 +1,6 @@
 #include "CatDogConsumer.h"
 
+#include "IO/OutputArchive.hpp"
 #include "Scene/SceneDatabase.h"
 
 #include <rapidxml/rapidxml.hpp>
@@ -28,10 +29,23 @@ void CatDogConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 	}
 }
 
-void CatDogConsumer::ExportPureBinary(const cd::SceneDatabase* pSceneDatabase)
+void CatDogConsumer::ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, std::endian targetEndian)
 {
 	std::ofstream foutBin(m_filePath, std::ios::out | std::ios::binary);
-	pSceneDatabase->ExportBinary(foutBin);
+	uint8_t platformEndian = static_cast<uint8_t>(std::endian::native);
+	foutBin.write(reinterpret_cast<const char*>(&platformEndian), sizeof(uint8_t));
+
+	if (std::endian::native == targetEndian)
+	{
+		cd::OutputArchive outputArchive(&foutBin);
+		*pSceneDatabase >> outputArchive;
+	}
+	else
+	{
+		cd::OutputArchiveSwapBytes outputArchive(&foutBin);
+		*pSceneDatabase >> outputArchive;
+	}
+
 	foutBin.close();
 }
 
@@ -82,7 +96,8 @@ void CatDogConsumer::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase)
 		std::replace(meshFileName.begin(), meshFileName.end(), '.', '_');
 		std::filesystem::path meshBinaryDataPath = std::format("{}/{}", xmlFilePath.parent_path().generic_string(), meshFileName + ".cdgeom");
 		std::ofstream foutBin(meshBinaryDataPath, std::ios::out | std::ios::binary);
-		mesh.ExportBinary(foutBin);
+		cd::OutputArchive outputArchive(&foutBin);
+		mesh >> outputArchive;
 		foutBin.close();
 
 		XmlNode* pMeshNode = WriteNode("Mesh");
@@ -111,6 +126,7 @@ void CatDogConsumer::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase)
 	// Write remain materials + textures to binary file.
 	// TODO : we should add texture compiling process to AssetPipeline.
 	std::ofstream foutBin(m_filePath, std::ios::out | std::ios::binary);
+	cd::OutputArchive outputArchive(&foutBin);
 
 	for (const auto& material : pSceneDatabase->GetMaterials())
 	{
@@ -132,7 +148,7 @@ void CatDogConsumer::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase)
 		pMaterialNode->append_node(pTextureListNode);
 		pDocument->append_node(pMaterialNode);
 
-		material.ExportBinary(foutBin);
+		material >> outputArchive;
 	}
 
 	for (const auto& texture : pSceneDatabase->GetTextures())
@@ -142,7 +158,7 @@ void CatDogConsumer::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase)
 		WriteNodeStringAttribute(pTextureNode, "FilePath", texture.GetPath());
 		pDocument->append_node(pTextureNode);
 
-		texture.ExportBinary(foutBin);
+		texture >> outputArchive;
 	}
 
 	foutBin.close();

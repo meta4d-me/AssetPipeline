@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Core/ISerializable.hpp"
+#include "Base/Template.h"
+#include "IO/InputArchive.hpp"
+#include "IO/OutputArchive.hpp"
 #include "Math/AABB.hpp"
 #include "ObjectID.h"
 #include "VertexFormat.h"
@@ -12,7 +14,7 @@
 namespace cd
 {
 
-class Mesh final : public ISerializable
+class Mesh final
 {
 public:
 	// We expect to use triangulated mesh data in game engine.
@@ -21,8 +23,15 @@ public:
 
 public:
 	Mesh() = delete;
-	explicit Mesh(std::ifstream& fin);
+
+	template<bool SwapBytesOrder>
+	explicit Mesh(TInputArchive<SwapBytesOrder>& inputArchive)
+	{
+		*this << inputArchive;
+	}
+
 	explicit Mesh(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount);
+
 	Mesh(const Mesh&) = default;
 	Mesh& operator=(const Mesh&) = default;
 	Mesh(Mesh&&) = default;
@@ -83,9 +92,76 @@ public:
 	const std::vector<Polygon>& GetPolygons() const { return m_polygons; }
 	const Polygon& GetPolygon(uint32_t polygonIndex) const { return m_polygons[polygonIndex]; }
 
-	// ISerializable
-	virtual void ImportBinary(std::ifstream& fin) override;
-	virtual void ExportBinary(std::ofstream& fout) const override;
+	template<bool SwapBytesOrder>
+	Mesh& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
+	{
+		std::string meshName;
+		uint32_t meshID;
+		uint32_t meshMaterialID;
+		uint32_t vertexCount;
+		uint32_t vertexUVSetCount;
+		uint32_t vertexColorSetCount;
+		uint32_t polygonCount;
+
+		inputArchive >> meshName >> meshID >> meshMaterialID
+			>> vertexCount >> vertexUVSetCount >> vertexColorSetCount
+			>> polygonCount;
+
+		Init(MeshID(meshID), MoveTemp(meshName), vertexCount, polygonCount);
+		SetMaterialID(meshMaterialID);
+		SetVertexUVSetCount(vertexUVSetCount);
+		SetVertexColorSetCount(vertexColorSetCount);
+
+		GetAABB() << inputArchive;
+		GetVertexFormat() << inputArchive;
+		inputArchive.ImportBuffer(GetVertexPositions().data());
+		inputArchive.ImportBuffer(GetVertexNormals().data());
+		inputArchive.ImportBuffer(GetVertexTangents().data());
+		inputArchive.ImportBuffer(GetVertexBiTangents().data());
+
+		for (uint32_t uvSetIndex = 0; uvSetIndex < GetVertexUVSetCount(); ++uvSetIndex)
+		{
+			inputArchive.ImportBuffer(GetVertexUV(uvSetIndex).data());
+		}
+
+		for (uint32_t colorSetIndex = 0; colorSetIndex < GetVertexColorSetCount(); ++colorSetIndex)
+		{
+			inputArchive.ImportBuffer(GetVertexColor(colorSetIndex).data());
+		}
+
+		inputArchive.ImportBuffer(GetPolygons().data());
+
+		return *this;
+	}
+
+	template<bool SwapBytesOrder>
+	const Mesh& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
+	{
+		outputArchive << GetName() << GetID().Data() << GetMaterialID().Data()
+			<< GetVertexCount() << GetVertexUVSetCount() << GetVertexColorSetCount()
+			<< GetPolygonCount();
+
+		GetAABB() >> outputArchive;
+		GetVertexFormat() >> outputArchive;
+		outputArchive.ExportBuffer(GetVertexPositions().data(), GetVertexPositions().size());
+		outputArchive.ExportBuffer(GetVertexNormals().data(), GetVertexNormals().size());
+		outputArchive.ExportBuffer(GetVertexTangents().data(), GetVertexTangents().size());
+		outputArchive.ExportBuffer(GetVertexBiTangents().data(), GetVertexBiTangents().size());
+
+		for (uint32_t uvSetIndex = 0; uvSetIndex < GetVertexUVSetCount(); ++uvSetIndex)
+		{
+			outputArchive.ExportBuffer(GetVertexUV(uvSetIndex).data(), GetVertexUV(uvSetIndex).size());
+		}
+
+		for (uint32_t colorSetIndex = 0; colorSetIndex < GetVertexColorSetCount(); ++colorSetIndex)
+		{
+			outputArchive.ExportBuffer(GetVertexColor(colorSetIndex).data(), GetVertexColor(colorSetIndex).size());
+		}
+
+		outputArchive.ExportBuffer(GetPolygons().data(), GetPolygons().size());
+
+		return *this;
+	}
 
 public:
 	static constexpr uint32_t MaxUVSetNumber = 4U;

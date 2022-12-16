@@ -1,5 +1,7 @@
 #include "SceneDatabase.h"
 
+#include "Base/Template.h"
+
 #include <cassert>
 
 namespace cd
@@ -54,74 +56,41 @@ void SceneDatabase::AddTexture(Texture texture)
 ///////////////////////////////////////////////////////////////////
 // Import/Export
 ///////////////////////////////////////////////////////////////////
-void SceneDatabase::ImportBinary(std::ifstream& fin)
+SceneDatabase& SceneDatabase::operator<<(InputArchive& inputArchive)
 {
 	std::string sceneName;
-	ImportData(fin, sceneName);
+	inputArchive >> sceneName;
 	SetName(MoveTemp(sceneName));
 
 	AABB sceneAABB;
-	ImportDataBuffer(fin, sceneAABB.Min().begin());
-	ImportDataBuffer(fin, sceneAABB.Max().begin());
+	inputArchive.ImportBuffer(sceneAABB.Min().begin());
+	inputArchive.ImportBuffer(sceneAABB.Max().begin());
 	SetAABB(MoveTemp(sceneAABB));
 
 	uint32_t meshCount = 0;
 	uint32_t materialCount = 0;
 	uint32_t textureCount = 0;
-	ImportData(fin, meshCount);
-	ImportData(fin, materialCount);
-	ImportData(fin, textureCount);
+	inputArchive >> meshCount >> materialCount >> textureCount;
 	SetMeshCount(meshCount);
 	SetMaterialCount(materialCount);
 	SetTextureCount(textureCount);
 
 	for (uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex)
 	{
-		Mesh mesh(fin);
-		AddMesh(MoveTemp(mesh));
+		AddMesh(Mesh(inputArchive));
 	}
 
 	for (uint32_t textureIndex = 0; textureIndex < textureCount; ++textureIndex)
 	{
-		Texture texture(fin);
-		AddTexture(MoveTemp(texture));
+		AddTexture(Texture(inputArchive));
 	}
 
 	for (uint32_t materialIndex = 0; materialIndex < materialCount; ++materialIndex)
 	{
-		Material material(fin);
-		AddMaterial(MoveTemp(material));
-	}
-}
-
-void SceneDatabase::ExportBinary(std::ofstream& fout) const
-{
-	ExportData<std::string>(fout, GetName());
-
-	ExportDataBuffer(fout, GetAABB().Min().begin(), GetAABB().Min().size());
-	ExportDataBuffer(fout, GetAABB().Max().begin(), GetAABB().Max().size());
-
-	ExportData<uint32_t>(fout, GetMeshCount());
-	ExportData<uint32_t>(fout, GetMaterialCount());
-	ExportData<uint32_t>(fout, GetTextureCount());
-
-	for (uint32_t meshIndex = 0; meshIndex < GetMeshCount(); ++meshIndex)
-	{
-		const Mesh& mesh = GetMesh(meshIndex);
-		mesh.ExportBinary(fout);
+		AddMaterial(Material(inputArchive));
 	}
 
-	for (uint32_t textureIndex = 0; textureIndex < GetTextureCount(); ++textureIndex)
-	{
-		const Texture& texture = GetTexture(textureIndex);
-		texture.ExportBinary(fout);
-	}
-
-	for (uint32_t materialIndex = 0; materialIndex < GetMaterialCount(); ++materialIndex)
-	{
-		const Material& material = GetMaterial(materialIndex);
-		material.ExportBinary(fout);
-	}
+	return *this;
 }
 
 }

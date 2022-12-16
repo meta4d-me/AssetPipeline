@@ -11,7 +11,7 @@
 namespace cd
 {
 
-class SceneDatabase : public ISerializable
+class SceneDatabase
 {
 public:
 	using TextureMap = std::unordered_map<std::string, TextureID>;
@@ -53,9 +53,37 @@ public:
 	const Texture& GetTexture(uint32_t index) const { return m_textures[index]; }
 	uint32_t GetTextureCount() const { return static_cast<uint32_t>(m_textures.size()); }
 
-	// ISerializable
-	virtual void ImportBinary(std::ifstream& fin) override;
-	virtual void ExportBinary(std::ofstream& fout) const override;
+	SceneDatabase& operator<<(InputArchive& inputArchive);
+	template<bool SwapBytesOrder>
+	const SceneDatabase& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
+	{
+		outputArchive << GetName();
+
+		outputArchive.ExportBuffer(GetAABB().Min().begin(), GetAABB().Min().size());
+		outputArchive.ExportBuffer(GetAABB().Max().begin(), GetAABB().Max().size());
+
+		outputArchive << GetMeshCount() << GetMaterialCount() << GetTextureCount();
+
+		for (uint32_t meshIndex = 0; meshIndex < GetMeshCount(); ++meshIndex)
+		{
+			const Mesh& mesh = GetMesh(meshIndex);
+			mesh >> outputArchive;
+		}
+
+		for (uint32_t textureIndex = 0; textureIndex < GetTextureCount(); ++textureIndex)
+		{
+			const Texture& texture = GetTexture(textureIndex);
+			texture >> outputArchive;
+		}
+
+		for (uint32_t materialIndex = 0; materialIndex < GetMaterialCount(); ++materialIndex)
+		{
+			const Material& material = GetMaterial(materialIndex);
+			material >> outputArchive;
+		}
+
+		return *this;
+	}
 
 private:
 	std::string m_name;

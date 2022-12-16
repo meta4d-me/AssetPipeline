@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 	producer.ActivateCleanUnusedService();
 
 	CatDogConsumer consumer(pOutputFilePath);
-	consumer.SetExportMode(ExportMode::XmlBinary);
+	consumer.SetExportMode(ExportMode::PureBinary);
 
 	Processor processor(&producer, &consumer);
 	processor.Run();

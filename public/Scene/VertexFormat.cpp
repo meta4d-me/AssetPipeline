@@ -10,18 +10,4 @@ void VertexFormat::AddAttributeLayout(VertexAttributeType attributeType, Attribu
 		.attributeCount = count });
 }
 
-void VertexFormat::ImportBinary(std::ifstream& fin)
-{
-	std::uint8_t vertexLayoutCount = static_cast<std::uint8_t>(m_vertexLayout.size());
-	ImportData<>(fin, vertexLayoutCount);
-	m_vertexLayout.resize(vertexLayoutCount);
-	ImportDataBuffer(fin, m_vertexLayout.data());
-}
-
-void VertexFormat::ExportBinary(std::ofstream& fout) const
-{
-	ExportData<std::uint8_t>(fout, static_cast<std::uint8_t>(m_vertexLayout.size()));
-	ExportDataBuffer(fout, m_vertexLayout.data(), m_vertexLayout.size());
-}
-
 }
