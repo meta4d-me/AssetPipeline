@@ -21,7 +21,9 @@ public:
 	void SetExportMode(ExportMode mode) { m_exportMode = mode; }
 
 private:
-	void ExportPureBinary(const cd::SceneDatabase* pSceneDatabase);
+	void ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, std::endian targetEndian = std::endian::native);
+
+	// WIP : 1.Xml/Json in a same way to export. 2.endianess
 	void ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase);
 
 private:

@@ -127,9 +127,9 @@ project("AssetPipeline")
 		targetdir("build/bin/Release")
 	filter {}
 
-	--ignoredefaultlibraries {
-	--	"LIBCMT"
-	--}
+	defines {
+		"TOOL_BUILD_SHARED"
+	}
 
 	files {
 		path.join("public/**.*"),

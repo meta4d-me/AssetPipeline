@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Core/ISerializable.hpp"
+#include "IO/InputArchive.hpp"
+#include "IO/OutputArchive.hpp"
 #include "VectorDerived.hpp"
 
 #include <assert.h>
@@ -14,7 +15,7 @@ namespace cd
 /// <typeparam name="T">Coordinate value type : float, double, ...</typeparam>
 /// <typeparam name="N">The number of dimensions.</typeparam>
 template<typename T, std::size_t N>
-class TBox final : public ISerializable
+class TBox final
 {
 private:
 	using PointType = VectorDerived<T, N>;
@@ -60,17 +61,22 @@ public:
 		}
 	}
 
-	// ISerializable
-	virtual void ImportBinary(std::ifstream& fin) override
+	template<bool SwapBytesOrder>
+	TBox& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
-		ImportDataBuffer(fin, m_min.begin());
-		ImportDataBuffer(fin, m_max.begin());
+		inputArchive.ImportBuffer(m_min.begin());
+		inputArchive.ImportBuffer(m_max.begin());
+
+		return *this;
 	}
 
-	virtual void ExportBinary(std::ofstream& fout) const override
+	template<bool SwapBytesOrder>
+	const TBox& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		ExportDataBuffer(fout, m_min.begin(), m_min.size());
-		ExportDataBuffer(fout, m_max.begin(), m_max.size());
+		outputArchive.ExportBuffer(m_min.begin(), m_min.size());
+		outputArchive.ExportBuffer(m_max.begin(), m_max.size());
+
+		return *this;
 	}
 
 private:
@@ -80,6 +86,6 @@ private:
 
 using Box = TBox<float, 3>;
 
-constexpr int size = sizeof(Box);
+//static_assert(std::is_standard_layout_v<Box> && std::is_trivial_v<Box>);
 
 }
