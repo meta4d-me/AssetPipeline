@@ -2,6 +2,8 @@
 
 #include <ostream>
 
+#include "Utilities/ByteSwap.h"
+
 namespace cd
 {
 
@@ -39,7 +41,8 @@ public:
 		size_t bufferBytes = size * sizeof(std::remove_pointer_t<T>);
 		if constexpr (SwapBytesOrder)
 		{
-			bufferBytes = std::byteswap(bufferBytes);
+			// bufferBytes = std::byteswap(bufferBytes);
+			bufferBytes = byte_swap<size_t>(bufferBytes);
 		}
 
 		m_pOStream->write(reinterpret_cast<const char*>(&bufferBytes), sizeof(size_t));
@@ -56,7 +59,8 @@ private:
 		{
 			if constexpr (SwapBytesOrder)
 			{
-				T checkedData = std::byteswap(data);
+				// T checkedData = std::byteswap(data);
+				T checkedData = byte_swap<T>(data);
 				m_pOStream->write(reinterpret_cast<const char*>(&checkedData), sizeof(T));
 			}
 			else
@@ -70,12 +74,14 @@ private:
 			{
 				if constexpr (4 == sizeof(T))
 				{
-					uint32_t checkedData = std::byteswap(static_cast<uint32_t>(data));
+					// uint32_t checkedData = std::byteswap(static_cast<uint32_t>(data));
+					float checkedData = byte_swap<float>(data);
 					m_pOStream->write(reinterpret_cast<const char*>(&checkedData), sizeof(T));
 				}
 				else if constexpr (8 == sizeof(T))
 				{
-					uint64_t checkedData = std::byteswap(static_cast<uint64_t>(data));
+					// uint64_t checkedData = std::byteswap(static_cast<uint64_t>(data));
+					double checkedData = byte_swap<double>(data);
 					m_pOStream->write(reinterpret_cast<const char*>(&checkedData), sizeof(T));
 				}
 				else
@@ -94,7 +100,8 @@ private:
 			if constexpr (SwapBytesOrder)
 			{
 				// std::string is just array of 1 byte char so don't need to swap bytes.
-				dataLength = std::byteswap(dataLength);
+				// dataLength = std::byteswap(dataLength);
+				dataLength = byte_swap<size_t>(dataLength);
 			}
 
 			m_pOStream->write(reinterpret_cast<const char*>(&dataLength), sizeof(size_t));
