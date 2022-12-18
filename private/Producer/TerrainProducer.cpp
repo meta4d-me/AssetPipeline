@@ -51,20 +51,20 @@ void TerrainProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 	pSceneDatabase->AddMaterial(baseColorMaterial);
 	pSceneDatabase->AddTexture(cd::Texture(textureID, textureName.c_str()));
 
-	isUsed = false;
-	materialName = "testColor";
-	materialHash = cd::StringHash<cd::MaterialID::ValueType>(materialName);
-	cd::MaterialID testMaterialID = m_materialIDGenerator.AllocateID(materialHash, isUsed);
-	cd::Material testColorMaterial(testMaterialID, materialName.c_str());
-
-	// TODO get this from file later
-	isUsed = false;
-	textureName = "TestColorTexture";
-	textureHash = cd::StringHash<cd::TextureID::ValueType>(textureName);
-	textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
-	testColorMaterial.SetTextureID(cd::MaterialTextureType::BaseColor, textureID);
-	pSceneDatabase->AddMaterial(testColorMaterial);
-	pSceneDatabase->AddTexture(cd::Texture(textureID, textureName.c_str()));
+// 	isUsed = false;
+// 	materialName = "testColor";
+// 	materialHash = cd::StringHash<cd::MaterialID::ValueType>(materialName);
+// 	cd::MaterialID testMaterialID = m_materialIDGenerator.AllocateID(materialHash, isUsed);
+// 	cd::Material testColorMaterial(testMaterialID, materialName.c_str());
+// 
+// 	// TODO get this from file later
+// 	isUsed = false;
+// 	textureName = "TestColorTexture";
+// 	textureHash = cd::StringHash<cd::TextureID::ValueType>(textureName);
+// 	textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
+// 	testColorMaterial.SetTextureID(cd::MaterialTextureType::BaseColor, textureID);
+// 	pSceneDatabase->AddMaterial(testColorMaterial);
+// 	pSceneDatabase->AddTexture(cd::Texture(textureID, textureName.c_str()));
 
 	cd::Mesh terrain = CreateTerrainMesh();
 	terrain.SetMaterialID(materialID.Data());

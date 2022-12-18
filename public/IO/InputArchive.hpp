@@ -2,6 +2,8 @@
 
 #include <istream>
 
+#include "Utilities/ByteSwap.h"
+
 namespace cd
 {
 
@@ -41,7 +43,8 @@ public:
 		m_pIStream->read(reinterpret_cast<char*>(&bufferBytes), sizeof(size_t));
 		if constexpr (SwapBytesOrder)
 		{
-			bufferBytes = std::byteswap(bufferBytes);
+			// bufferBytes = std::byteswap(bufferBytes);
+			bufferBytes = byte_swap<size_t>(bufferBytes);
 		}
 		m_pIStream->read(reinterpret_cast<char*>(data), bufferBytes);
 	}
@@ -55,7 +58,8 @@ public:
 			m_pIStream->read(reinterpret_cast<char*>(&data), sizeof(data));
 			if constexpr (SwapBytesOrder)
 			{
-				data = std::byteswap(data);
+				// data = std::byteswap(data);
+				data = byte_swap<T>(data);
 			}
 		}
 		else if constexpr (std::is_floating_point_v<T>)
@@ -63,11 +67,13 @@ public:
 			m_pIStream->read(reinterpret_cast<char*>(&data), sizeof(data));
 			if constexpr (4 == sizeof(T))
 			{
-				data = std::byteswap(static_cast<uint32_t>(data));
+				// data = std::byteswap(static_cast<uint32_t>(data));
+				data = byte_swap<float>(data);
 			}
 			else if constexpr (8 == sizeof(T))
 			{
-				data = std::byteswap(static_cast<uint64_t>(data));
+				// data = std::byteswap(static_cast<uint64_t>(data));
+				data = byte_swap<double>(data);
 			}
 			else
 			{
@@ -80,7 +86,8 @@ public:
 			m_pIStream->read(reinterpret_cast<char*>(&dataLength), sizeof(size_t));
 			if constexpr (SwapBytesOrder)
 			{
-				dataLength = std::byteswap(dataLength);
+				// dataLength = std::byteswap(dataLength);
+				dataLength = byte_swap<size_t>(dataLength);
 			}
 			data.resize(dataLength);
 			m_pIStream->read(reinterpret_cast<char*>(data.data()), dataLength);
