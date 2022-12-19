@@ -7,24 +7,45 @@
 #include "Utilities/MeshUtils.h"
 #include "Utilities/Utils.h"
 
-#include <random>
+#include <format>
 
 namespace cdtools
 {
 
-TerrainProducer::TerrainProducer(uint32_t x_quads, uint32_t z_quads, uint32_t quad_width, uint32_t quad_height, uint32_t max_elevation)
-	: m_numQuadsInX(x_quads)
-	, m_numQuadsInZ(z_quads)
-	, m_quadWidth(quad_width)
-	, m_quadHeight(quad_height)
-	, m_maxElevation(max_elevation)
+TerrainProducer::TerrainProducer(const TerrainGenParams& genParams)
+	: m_numSectorsInX(genParams.numSectorsInX)
+	, m_numSectorsInZ(genParams.numSectorsInZ)
+	, m_numQuadsInSectorInX(genParams.numQuadsInSectorInX)
+	, m_numQuadsInSectorInZ(genParams.numQuadsInSectorInZ)
+	, m_quadLengthInX(genParams.quadLengthInX)
+	, m_quadLengthInZ(genParams.quadLengthInZ)
+	, m_minElevation(genParams.minElevation)
+	, m_maxElevation(genParams.maxElevation)
+	, m_octaves(std::move(genParams.octaves))
 {
-	// Must be at least 1 quad
-	assert(x_quads >= 1);
-	assert(z_quads >= 1);
-	// Must be greater than zero for both width and height
-	assert(quad_width > 0);
-	assert(quad_height > 0);
+	// sanity checks
+	assert(m_numSectorsInX >= 1);
+	assert(m_numSectorsInZ >= 1);
+	assert(m_numQuadsInSectorInX >= 1);
+	assert(m_numQuadsInSectorInZ >= 1);
+	assert(m_quadLengthInX >= 1);
+	assert(m_quadLengthInZ >= 1);
+	assert(m_minElevation <= m_maxElevation);
+
+	// Calculate terrain dimensions
+	m_sectorLengthInX = m_numQuadsInSectorInX * m_quadLengthInX;
+	m_sectorLengthInZ = m_numQuadsInSectorInZ * m_quadLengthInZ;
+	m_terrainLengthInX = m_numSectorsInX * m_sectorLengthInX;
+	m_terrainLengthInZ = m_numSectorsInZ * m_sectorLengthInZ;
+
+	// Print logs on what's being generated
+	printf("Generating terrain with %d sectors (%d, %d). Min elevation: %d, max elevation: %d.\n", m_numSectorsInX * m_numSectorsInZ, m_numSectorsInX, m_numSectorsInZ, m_minElevation, m_maxElevation);
+	printf("\tEach Sectors has %d quads (%d, %d)\n", m_numQuadsInSectorInX * m_numQuadsInSectorInZ, m_numQuadsInSectorInX, m_numQuadsInSectorInZ);
+	printf("\t\tEach Quad has dimension(%d, %d)\n", m_quadLengthInX, m_quadLengthInZ);
+	for (const HeightFunctions::Octave& octave : m_octaves)
+	{
+		printf("\tOctave: seed: %I64d, freq: %f, weight: %f\n", octave.seed, octave.frequency, octave.weight);
+	}
 }
 
 void TerrainProducer::Execute(cd::SceneDatabase* pSceneDatabase)
@@ -42,7 +63,6 @@ void TerrainProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 	cd::MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, isUsed);
 	cd::Material baseColorMaterial(materialID, materialName.c_str());
 
-	// TODO get this from file later
 	isUsed = false;
 	std::string textureName = "TerrainDirtTexture";
 	cd::TextureID::ValueType textureHash = cd::StringHash<cd::TextureID::ValueType>(textureName);
@@ -50,70 +70,66 @@ void TerrainProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 	baseColorMaterial.SetTextureID(cd::MaterialTextureType::BaseColor, textureID);
 	pSceneDatabase->AddMaterial(baseColorMaterial);
 	pSceneDatabase->AddTexture(cd::Texture(textureID, textureName.c_str()));
+	
+	for (uint32_t z = 0; z < m_numSectorsInZ; ++z)
+	{
+		for (uint32_t x = 0; x < m_numSectorsInX; ++x)
+		{
+			cd::Mesh terrain = CreateTerrainMesh(x, z);
+			terrain.SetMaterialID(materialID.Data());
+			pSceneDatabase->GetAABB().Expand(terrain.GetAABB());
 
-// 	isUsed = false;
-// 	materialName = "testColor";
-// 	materialHash = cd::StringHash<cd::MaterialID::ValueType>(materialName);
-// 	cd::MaterialID testMaterialID = m_materialIDGenerator.AllocateID(materialHash, isUsed);
-// 	cd::Material testColorMaterial(testMaterialID, materialName.c_str());
-// 
-// 	// TODO get this from file later
-// 	isUsed = false;
-// 	textureName = "TestColorTexture";
-// 	textureHash = cd::StringHash<cd::TextureID::ValueType>(textureName);
-// 	textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
-// 	testColorMaterial.SetTextureID(cd::MaterialTextureType::BaseColor, textureID);
-// 	pSceneDatabase->AddMaterial(testColorMaterial);
-// 	pSceneDatabase->AddTexture(cd::Texture(textureID, textureName.c_str()));
-
-	cd::Mesh terrain = CreateTerrainMesh();
-	terrain.SetMaterialID(materialID.Data());
-	pSceneDatabase->GetAABB().Expand(terrain.GetAABB());
-
-	// Add it to the scene
-	pSceneDatabase->AddMesh(std::move(terrain));
+			// Add it to the scene
+			pSceneDatabase->AddMesh(std::move(terrain));
+		}
+	}
 }
 
-cd::Mesh TerrainProducer::CreateTerrainMesh()
+cd::Mesh TerrainProducer::CreateTerrainMesh(uint32_t sector_x, uint32_t sector_z)
 {
-	const uint32_t num_quads = m_numQuadsInX * m_numQuadsInZ;
+	const uint32_t num_quads = m_numQuadsInSectorInX * m_numQuadsInSectorInZ;
 	const uint32_t num_vertices = num_quads * 4;	// 4 vertices per quad
 	const uint32_t num_polygons = num_quads * 2;	// 2 triangles per quad
 
-	const std::string terrainMeshName = "generated_terrain";
+	const std::string terrainMeshName = std::format("TerrainSector({},{})", sector_x, sector_z);
 	bool isUsed = false;
 	cd::MeshID::ValueType meshHash = cd::StringHash<cd::TextureID::ValueType>(terrainMeshName);
 	cd::MeshID terrainMeshID = m_meshIDGenerator.AllocateID(meshHash, isUsed);
-	cd::Mesh terrain(terrainMeshID, "GeneratedTerrain", num_vertices, num_polygons);
+	cd::Mesh terrain(terrainMeshID, terrainMeshName, num_vertices, num_polygons);
 
 	terrain.SetVertexColorSetCount(0);	// No colors
 	terrain.SetVertexUVSetCount(1);		// Only 1 set of UV
-	std::vector<std::vector<TerrainQuad>> terrainQuads(m_numQuadsInZ, std::vector<TerrainQuad>(m_numQuadsInX));	// We need to store this for normal calculation later
+	std::vector<std::vector<TerrainQuad>> terrainQuads(m_numQuadsInSectorInZ, std::vector<TerrainQuad>(m_numQuadsInSectorInX));	// We need to store this for normal calculation later
 	uint32_t current_vertex_id = 0;
 	uint32_t current_polygon_id = 0;
-	// Setup the parameters - TODO get this from input or a file later
-	std::default_random_engine generator;
-	std::uniform_int_distribution<long> distribution(LONG_MIN, LONG_MAX);
-	const std::vector<std::pair<float, int64_t>> freq_params =
-	{
-		std::make_pair(0.0f, distribution(generator)),	// 1
-		std::make_pair(0.8f, distribution(generator)),	// 2
-		std::make_pair(0.8f, distribution(generator)),	// 4
-		std::make_pair(0.5f, distribution(generator)),	// 8
-		std::make_pair(0.4f, distribution(generator)),	// 16
-		std::make_pair(0.6f, distribution(generator))	// 32
-	};
 	// Generate all the quads
-	for (uint32_t z = 0; z < m_numQuadsInZ - 1; ++z)
+	for (uint32_t z = 0; z < static_cast<uint32_t>(m_numQuadsInSectorInZ) - 1; ++z)
 	{
 		std::vector<TerrainQuad>& currentRow = terrainQuads[z];
-		for (uint32_t x = 0; x < m_numQuadsInX - 1; ++x)
+		for (uint32_t x = 0; x < static_cast<uint32_t>(m_numQuadsInSectorInX) - 1; ++x)
 		{
 			currentRow[x] = CreateQuadAt(current_vertex_id, current_polygon_id);
-			cd::Point bottomLeftPoint(static_cast<float>(x) * m_quadWidth, GetHeightAt(x, z, freq_params, 5.0f), static_cast<float>(z) * m_quadHeight);
-			cd::Point topLeftPoint(static_cast<float>(x) * m_quadWidth, GetHeightAt(x, z + 1, freq_params, 5.0f), static_cast<float>(z + 1) * m_quadHeight);
-			cd::Point topRightPoint(static_cast<float>(x + 1) * m_quadWidth, GetHeightAt(x + 1, z + 1, freq_params, 5.0f), static_cast<float>(z + 1) * m_quadHeight);
-			cd::Point bottomRightPoint(static_cast<float>(x + 1) * m_quadWidth, GetHeightAt(x + 1, z, freq_params, 5.0f), static_cast<float>(z) * m_quadHeight);
+			const uint32_t leftX = (sector_x * m_sectorLengthInX) + x * m_quadLengthInX;
+			const uint32_t rightX = (sector_x * m_sectorLengthInX) + (x + 1) * m_quadLengthInX;
+			const uint32_t bottomZ = (sector_z * m_sectorLengthInZ) + z * m_quadLengthInZ;
+			const uint32_t topZ = (sector_z * m_sectorLengthInZ) + (z + 1) * m_quadLengthInZ;
+			cd::Point bottomLeftPoint(
+				static_cast<float>(leftX), 
+				HeightFunctions::GetDefaultHeight(leftX, bottomZ, m_terrainLengthInX, m_terrainLengthInZ, m_maxElevation * 1.0f, 5.0f, m_octaves),
+				static_cast<float>(bottomZ));
+			cd::Point topLeftPoint(
+				static_cast<float>(leftX),
+				HeightFunctions::GetDefaultHeight(leftX, topZ, m_terrainLengthInX, m_terrainLengthInZ, m_maxElevation * 1.0f, 5.0f, m_octaves),
+				static_cast<float>(topZ));
+			cd::Point topRightPoint(
+				static_cast<float>(rightX),
+				HeightFunctions::GetDefaultHeight(rightX, topZ, m_terrainLengthInX, m_terrainLengthInZ, m_maxElevation * 1.0f, 5.0f, m_octaves),
+				static_cast<float>(topZ));
+			cd::Point bottomRightPoint(
+				static_cast<float>(rightX),
+				HeightFunctions::GetDefaultHeight(rightX, bottomZ, m_terrainLengthInX, m_terrainLengthInZ, m_maxElevation * 1.0f, 5.0f, m_octaves),
+				static_cast<float>(bottomZ));
+
 			// Sets the attribute in the terrain
 			// Position
 			terrain.SetVertexPosition(currentRow[x].bottomLeftVertexId, bottomLeftPoint);
@@ -299,25 +315,6 @@ TerrainQuad TerrainProducer::CreateQuadAt(uint32_t& currentVertexId, uint32_t& c
 	++currentPolygonId;
 
 	return quad;
-}
-
-float TerrainProducer::GetHeightAt(uint32_t x, uint32_t z, const std::vector<std::pair<float, int64_t>>& freq_params, float power_exp) const
-{
-	const double nx = (static_cast<double>(x) / m_numQuadsInX);
-	const double nz = (static_cast<double>(z) / m_numQuadsInZ);
-	float result = 0.0f;
-	float scale_sum = 0.0f;
-	for (uint32_t i = 0; i < freq_params.size(); ++i)
-	{
-		std::pair<float, int64_t> param = freq_params[i];
-		const uint32_t freq  = 0x1 << i;
-		result += param.first * Noise::SimplexNoise2D(param.second, freq * nx, freq * nz);
-		scale_sum += param.first;
-	}
-	result /= scale_sum;
-	result = pow(result, power_exp);
-	result *= m_maxElevation;
-	return result;
 }
 
 }	// namespace cdtools
