@@ -25,6 +25,13 @@ static bool IsEqual(float a, float b)
 }
 
 template<typename T>
+constexpr T lerp(const T& a, const T& b, const float t)
+{
+	static_assert(std::is_arithmetic<T>::value, "Input must be a number!");
+	return (a * (1 - t) + b * t);
+}
+
+template<typename T>
 constexpr T clamp(const T& x, const T& a, const T& b)
 {
 	static_assert(std::is_arithmetic<T>::value, "Input must be a number!");
