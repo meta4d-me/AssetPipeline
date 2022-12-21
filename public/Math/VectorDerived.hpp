@@ -183,6 +183,58 @@ public:
 			x() * rhs.y() - y() * rhs.x());
 	}
 
+	// Mathematics
+	// Single value method is used to operate all components with the same value.
+	// TODO : check bad cases, such as infinity(or think it as a good usage), nan(absolutely bad)...
+	// TODO : Avoid duplicated codes in a good way?
+	Derived& Add(T value)
+	{
+		std::for_each(this->begin(), this->end(), [&value](T& component) { component += value; });
+		return *this;
+	}
+	Derived& Add(const Derived& other)
+	{
+		int count = 0;
+		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component += other[count++]; });
+		return *this;
+	}
+
+	Derived& Minus(T value)
+	{
+		std::for_each(this->begin(), this->end(), [&value](T& component) { component -= value; });
+		return *this;
+	}
+	Derived& Minus(const Derived& other)
+	{
+		int count = 0;
+		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component -= other[count++]; });
+		return *this;
+	}
+
+	Derived& Multiply(T value)
+	{
+		std::for_each(this->begin(), this->end(), [&value](T& component) { component *= value; });
+		return *this;
+	}
+	Derived& Multiply(const Derived& other)
+	{
+		int count = 0;
+		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component *= other[count++]; });
+		return *this;
+	}
+
+	Derived& Divide(T value)
+	{
+		std::for_each(this->begin(), this->end(), [&value](T& component) { component /= value; });
+		return *this;
+	}
+	Derived& Divide(const Derived& other)
+	{
+		int count = 0;
+		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component /= other[count++]; });
+		return *this;
+	}
+
 	// Add
 	Derived operator+(const Derived& other) const { return Derived(*this).Add(other); }
 	Derived& operator+=(const Derived& other) { return Add(other); }
@@ -195,13 +247,13 @@ public:
 	// Multiply
 	Derived operator*(T value) const { return Derived(*this).Multiply(value); }
 	Derived operator*(const Derived& other) const { return Derived(*this).Multiply(other); }
-	Derived& operator*=(T value) const { return Derived(*this).Multiply(value); }
+	Derived& operator*=(T value) const { return Multiply(value); }
 	Derived& operator*=(const Derived& other) { return Multiply(other); }
 
 	// Divide
 	Derived operator/(T value) const { return Derived(*this).Divide(value); }
 	Derived operator/(const Derived& other) const { return Derived(*this).Divide(other); }
-	Derived& operator/=(T value) const{ return Derived(*this).Divide(value); }
+	Derived& operator/=(T value) const{ return Divide(value); }
 	Derived& operator/=(const Derived& other) { return Divide(other); }
 
 private:

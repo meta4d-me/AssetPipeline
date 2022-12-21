@@ -38,58 +38,6 @@ public:
 	const_iterator end() const { return &CRTP().data[0] + size(); }
 	constexpr std::size_t size() const { return std::extent<decltype(Derived::data)>::value; }
 
-	// Mathematics
-	// Single value method is used to operate all components with the same value.
-	// TODO : check bad cases, such as infinity(or think it as a good usage), nan(absolutely bad)...
-	// TODO : Avoid duplicated codes in a good way?
-	Derived& Add(T value)
-	{
-		std::for_each(this->begin(), this->end(), [&value](T& component) { component += value; });
-		return CRTP();
-	}
-	Derived& Add(const Derived& other)
-	{
-		int count = 0;
-		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component += other[count++]; });
-		return CRTP();
-	}
-
-	Derived& Minus(T value)
-	{
-		std::for_each(this->begin(), this->end(), [&value](T& component) { component -= value; });
-		return CRTP();
-	}
-	Derived& Minus(const Derived& other)
-	{
-		int count = 0;
-		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component -= other[count++]; });
-		return CRTP();
-	}
-
-	Derived& Multiply(T value)
-	{
-		std::for_each(this->begin(), this->end(), [&value](T& component) { component *= value; });
-		return CRTP();
-	}
-	Derived& Multiply(const Derived& other)
-	{
-		int count = 0;
-		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component *= other[count++]; });
-		return CRTP();
-	}
-
-	Derived& Divide(T value)
-	{
-		std::for_each(this->begin(), this->end(), [&value](T& component) { component /= value; });
-		return CRTP();
-	}
-	Derived& Divide(const Derived& other)
-	{
-		int count = 0;
-		std::for_each(this->begin(), this->end(), [&other, &count](T& component) { component /= other[count++]; });
-		return CRTP();
-	}
-
 	T Length() const { return std::sqrt(LengthSquare()); }
 	T LengthSquare() const
 	{

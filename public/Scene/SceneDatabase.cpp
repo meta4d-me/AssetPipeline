@@ -53,44 +53,4 @@ void SceneDatabase::AddTexture(Texture texture)
 	m_textures.emplace_back(MoveTemp(texture));
 }
 
-///////////////////////////////////////////////////////////////////
-// Import/Export
-///////////////////////////////////////////////////////////////////
-SceneDatabase& SceneDatabase::operator<<(InputArchive& inputArchive)
-{
-	std::string sceneName;
-	inputArchive >> sceneName;
-	SetName(MoveTemp(sceneName));
-
-	AABB sceneAABB;
-	inputArchive.ImportBuffer(sceneAABB.Min().begin());
-	inputArchive.ImportBuffer(sceneAABB.Max().begin());
-	SetAABB(MoveTemp(sceneAABB));
-
-	uint32_t meshCount = 0;
-	uint32_t materialCount = 0;
-	uint32_t textureCount = 0;
-	inputArchive >> meshCount >> materialCount >> textureCount;
-	SetMeshCount(meshCount);
-	SetMaterialCount(materialCount);
-	SetTextureCount(textureCount);
-
-	for (uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex)
-	{
-		AddMesh(Mesh(inputArchive));
-	}
-
-	for (uint32_t textureIndex = 0; textureIndex < textureCount; ++textureIndex)
-	{
-		AddTexture(Texture(inputArchive));
-	}
-
-	for (uint32_t materialIndex = 0; materialIndex < materialCount; ++materialIndex)
-	{
-		AddMaterial(Material(inputArchive));
-	}
-
-	return *this;
-}
-
 }

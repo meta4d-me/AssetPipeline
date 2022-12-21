@@ -53,7 +53,44 @@ public:
 	const Texture& GetTexture(uint32_t index) const { return m_textures[index]; }
 	uint32_t GetTextureCount() const { return static_cast<uint32_t>(m_textures.size()); }
 
-	SceneDatabase& operator<<(InputArchive& inputArchive);
+	template<bool SwapBytesOrder>
+	SceneDatabase& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
+	{
+		std::string sceneName;
+		inputArchive >> sceneName;
+		SetName(MoveTemp(sceneName));
+
+		AABB sceneAABB;
+		inputArchive.ImportBuffer(sceneAABB.Min().begin());
+		inputArchive.ImportBuffer(sceneAABB.Max().begin());
+		SetAABB(MoveTemp(sceneAABB));
+
+		uint32_t meshCount = 0;
+		uint32_t materialCount = 0;
+		uint32_t textureCount = 0;
+		inputArchive >> meshCount >> materialCount >> textureCount;
+		SetMeshCount(meshCount);
+		SetMaterialCount(materialCount);
+		SetTextureCount(textureCount);
+
+		for (uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex)
+		{
+			AddMesh(Mesh(inputArchive));
+		}
+
+		for (uint32_t textureIndex = 0; textureIndex < textureCount; ++textureIndex)
+		{
+			AddTexture(Texture(inputArchive));
+		}
+
+		for (uint32_t materialIndex = 0; materialIndex < materialCount; ++materialIndex)
+		{
+			AddMaterial(Material(inputArchive));
+		}
+
+		return *this;
+	}
+
 	template<bool SwapBytesOrder>
 	const SceneDatabase& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{

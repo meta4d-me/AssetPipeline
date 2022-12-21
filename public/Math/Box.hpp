@@ -14,19 +14,18 @@ namespace cd
 /// </summary>
 /// <typeparam name="T">Coordinate value type : float, double, ...</typeparam>
 /// <typeparam name="N">The number of dimensions.</typeparam>
-template<typename T, std::size_t N>
+template<typename T>
 class TBox final
 {
 private:
-	using PointType = VectorDerived<T, N>;
-	using DirectionType = VectorDerived<T, N>;
+	using Vec = VectorDerived<T, 3>;
 
 public:
 	explicit constexpr TBox() = default;
 
-	explicit constexpr TBox(T min, T max) : TBox(PointType(min), PointType(max)) {}
+	explicit constexpr TBox(T min, T max) : TBox(Vec(min), Vec(max)) {}
 
-	explicit constexpr TBox(PointType min, PointType max)
+	explicit constexpr TBox(Vec min, Vec max)
 		: m_min(MoveTemp(min))
 		, m_max(MoveTemp(max))
 	{
@@ -39,13 +38,13 @@ public:
 	TBox& operator=(TBox&&) = default;
 	~TBox() = default;
 
-	PointType& Min() { return m_min; }
-	PointType& Max() { return m_max; }
-	const PointType& Min() const { return m_min; }
-	const PointType& Max() const { return m_max; }
+	Vec& Min() { return m_min; }
+	Vec& Max() { return m_max; }
+	const Vec& Min() const { return m_min; }
+	const Vec& Max() const { return m_max; }
 	bool Empty() const { return m_min == m_max; }
-	PointType GetCenter() const { return m_min + (m_max - m_min) * static_cast<T>(0.5); }
-	DirectionType GetExtents() const { return m_max - m_min; }
+	Vec GetCenter() const { return m_min + (m_max - m_min) * static_cast<T>(0.5); }
+	Vec GetExtent() const { return m_max - m_min; }
 
 	void Expand(const TBox& other)
 	{
@@ -80,11 +79,11 @@ public:
 	}
 
 private:
-	PointType m_min;
-	PointType m_max;
+	Vec m_min;
+	Vec m_max;
 };
 
-using Box = TBox<float, 3>;
+using Box = TBox<float>;
 
 //static_assert(std::is_standard_layout_v<Box> && std::is_trivial_v<Box>);
 

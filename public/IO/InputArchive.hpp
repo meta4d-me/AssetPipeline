@@ -105,6 +105,6 @@ private:
 };
 
 using InputArchive = TInputArchive<false>;
-using InputArchiveSwapBytes = TInputArchive<false>;
+using InputArchiveSwapBytes = TInputArchive<true>;
 
 }

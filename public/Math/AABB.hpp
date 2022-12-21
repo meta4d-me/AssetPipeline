@@ -5,6 +5,6 @@
 namespace cd
 {
 
-using AABB = TBox<float, 3>;
+using AABB = TBox<float>;
 
 }

@@ -5,15 +5,20 @@
 namespace cd
 {
 
-Mesh::Mesh(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount)
+Mesh::Mesh(uint32_t vertexCount, uint32_t polygonCount)
 {
-	Init(MeshID(meshID), MoveTemp(meshName), vertexCount, polygonCount);
+	Init(vertexCount, polygonCount);
 }
 
-void Mesh::Init(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount)
+Mesh::Mesh(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount) :
+	m_id(meshID),
+	m_name(MoveTemp(meshName))
 {
-	m_id = meshID;
-	m_name = MoveTemp(meshName);
+	Init(vertexCount, polygonCount);
+}
+
+void Mesh::Init(uint32_t vertexCount, uint32_t polygonCount)
+{
 	m_vertexCount = vertexCount;
 	m_polygonCount = polygonCount;
 
@@ -27,6 +32,13 @@ void Mesh::Init(MeshID meshID, std::string meshName, uint32_t vertexCount, uint3
 	m_vertexBiTangents.resize(vertexCount);
 
 	m_polygons.resize(polygonCount);
+}
+
+void Mesh::Init(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount)
+{
+	m_id = meshID;
+	m_name = MoveTemp(meshName);
+	Init(vertexCount, polygonCount);
 }
 
 void Mesh::SetVertexPosition(uint32_t vertexIndex, const Point& position)
