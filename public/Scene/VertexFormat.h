@@ -63,15 +63,18 @@ public:
 	~VertexFormat() = default;
 
 	void AddAttributeLayout(VertexAttributeType attributeType, AttributeValueType valueType, uint8_t count);
-	const std::vector<VertexAttributeLayout>& GetVertexLayout() const { return m_vertexLayout; }
+	const std::vector<VertexAttributeLayout>& GetVertexLayout() const { return m_vertexLayouts; }
+
+	// Returns if vertex format contains vertex attribute type.
+	bool Contains(VertexAttributeType attributeType) const;
 
 	template<bool SwapBytesOrder>
 	VertexFormat& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
 		std::uint8_t vertexLayoutCount;
 		inputArchive >> vertexLayoutCount;
-		m_vertexLayout.resize(static_cast<size_t>(vertexLayoutCount));
-		inputArchive.ImportBuffer(m_vertexLayout.data());
+		m_vertexLayouts.resize(static_cast<size_t>(vertexLayoutCount));
+		inputArchive.ImportBuffer(m_vertexLayouts.data());
 
 		return *this;
 	}
@@ -79,14 +82,14 @@ public:
 	template<bool SwapBytesOrder>
 	const VertexFormat& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << static_cast<std::uint8_t>(m_vertexLayout.size());
-		outputArchive.ExportBuffer(m_vertexLayout.data(), m_vertexLayout.size());
+		outputArchive << static_cast<std::uint8_t>(m_vertexLayouts.size());
+		outputArchive.ExportBuffer(m_vertexLayouts.data(), m_vertexLayouts.size());
 
 		return *this;
 	}
 
 private:
-	std::vector<VertexAttributeLayout> m_vertexLayout;
+	std::vector<VertexAttributeLayout> m_vertexLayouts;
 };
 
 }

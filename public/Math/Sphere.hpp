@@ -25,7 +25,7 @@ public:
 	~TSphere() = default;
 
 	bool IsValid() const { return m_radius > SmallNumberTolerance; }
-	bool IsPointInside(const TPoint& point) { return (point - m_center).LengthSquare() <= std::square(m_radius + SmallNumberTolerance); }
+	bool IsPointInside(const TPoint& point) { return (point - m_center).LengthSquare() <= (m_radius + SmallNumberTolerance) * (m_radius + SmallNumberTolerance); }
 	TPoint GetCenter() const { return m_center; }
 	T GetRadius() const { return m_radius; }
 	T GetVolume() const { return static_cast<T>(4) / static_cast<T>(3) * PI * m_radius * m_radius * m_radius; }
@@ -37,6 +37,6 @@ private:
 
 using Sphere = TSphere<float>;
 
-static_cast(std::is_standard_layout_v<Sphere>&& std::is_trivial_v<Sphere>, "Sphere needs to implement copy/move constructors in hand.");
+//static_cast(std::is_standard_layout_v<Sphere>&& std::is_trivial_v<Sphere>, "Sphere needs to implement copy/move constructors in hand.");
 
 }

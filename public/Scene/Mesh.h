@@ -30,6 +30,7 @@ public:
 		*this << inputArchive;
 	}
 
+	explicit Mesh(uint32_t vertexCount, uint32_t polygonCount);
 	explicit Mesh(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount);
 
 	Mesh(const Mesh&) = default;
@@ -38,6 +39,7 @@ public:
 	Mesh& operator=(Mesh&&) = default;
 	~Mesh() = default;
 
+	void Init(uint32_t vertexCount, uint32_t polygonCount);
 	void Init(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount);
 	const MeshID& GetID() const { return m_id; }
 	const std::string& GetName() const { return m_name; }
@@ -57,21 +59,25 @@ public:
 
 	void SetVertexPosition(uint32_t vertexIndex, const Point& position);
 	std::vector<Point>& GetVertexPositions() { return m_vertexPositions; }
+	Point& GetVertexPosition(uint32_t vertexIndex) { return m_vertexPositions[vertexIndex]; }
 	const Point& GetVertexPosition(uint32_t vertexIndex) const { return m_vertexPositions[vertexIndex]; }
 	const std::vector<Point>& GetVertexPositions() const { return m_vertexPositions; }
 
 	void SetVertexNormal(uint32_t vertexIndex, const Direction& normal);
 	std::vector<Direction>& GetVertexNormals() { return m_vertexNormals; }
+	Direction& GetVertexNormal(uint32_t vertexIndex) { return m_vertexNormals[vertexIndex]; }
 	const Direction& GetVertexNormal(uint32_t vertexIndex) const { return m_vertexNormals[vertexIndex]; }
 	const std::vector<Direction>& GetVertexNormals() const { return m_vertexNormals; }
 
 	void SetVertexTangent(uint32_t vertexIndex, const Direction& tangent);
 	std::vector<Direction>& GetVertexTangents() { return m_vertexTangents; }
+	Direction& GetVertexTangent(uint32_t vertexIndex) { return m_vertexTangents[vertexIndex]; }
 	const Direction& GetVertexTangent(uint32_t vertexIndex) const { return m_vertexTangents[vertexIndex]; }
 	const std::vector<Direction>& GetVertexTangents() const { return m_vertexTangents; }
 
 	void SetVertexBiTangent(uint32_t vertexIndex, const Direction& biTangent);
 	std::vector<Direction>& GetVertexBiTangents() { return m_vertexBiTangents; }
+	Direction& GetVertexBiTangent(uint32_t vertexIndex) { return m_vertexBiTangents[vertexIndex]; }
 	const Direction& GetVertexBiTangent(uint32_t vertexIndex) const { return m_vertexBiTangents[vertexIndex]; }
 	const std::vector<Direction>& GetVertexBiTangents() const { return m_vertexBiTangents; }
 
