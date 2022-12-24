@@ -161,6 +161,16 @@ void CatDogConsumer::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase)
 		texture >> outputArchive;
 	}
 
+	for (const auto& light : pSceneDatabase->GetLights())
+	{
+		XmlNode* pLightNode = WriteNode("Light");
+		WriteNodeU32Attribute(pLightNode, "ID", light.GetID().Data());
+		WriteNodeU32Attribute(pLightNode, "LightType", static_cast<uint32_t>(light.GetType()));
+		pDocument->append_node(pLightNode);
+
+		light >> outputArchive;
+	}
+
 	foutBin.close();
 
 	std::ofstream foutXml(xmlFilePath, std::ios::out);

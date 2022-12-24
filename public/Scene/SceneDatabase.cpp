@@ -53,4 +53,17 @@ void SceneDatabase::AddTexture(Texture texture)
 	m_textures.emplace_back(MoveTemp(texture));
 }
 
+///////////////////////////////////////////////////////////////////
+// Light
+///////////////////////////////////////////////////////////////////
+void SceneDatabase::SetLightCount(uint32_t lightCount)
+{
+	m_lights.reserve(lightCount);
+}
+
+void SceneDatabase::AddLight(Light light)
+{
+	m_lights.emplace_back(MoveTemp(light));
+}
+
 }

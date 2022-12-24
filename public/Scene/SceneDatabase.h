@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Light.h"
 #include "Math/AABB.hpp"
 #include "Material.h"
 #include "Mesh.h"
@@ -53,6 +54,13 @@ public:
 	const Texture& GetTexture(uint32_t index) const { return m_textures[index]; }
 	uint32_t GetTextureCount() const { return static_cast<uint32_t>(m_textures.size()); }
 
+	// light
+	void AddLight(Light light);
+	const std::vector<Light>& GetLights() const { return m_lights; }
+	void SetLightCount(uint32_t lightCount);
+	const Light& GetLight(uint32_t index) const { return m_lights[index]; }
+	uint32_t GetLightCount() const { return static_cast<uint32_t>(m_lights.size()); }
+
 	template<bool SwapBytesOrder>
 	SceneDatabase& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
@@ -68,10 +76,12 @@ public:
 		uint32_t meshCount = 0;
 		uint32_t materialCount = 0;
 		uint32_t textureCount = 0;
-		inputArchive >> meshCount >> materialCount >> textureCount;
+		uint32_t lightCount = 0;
+		inputArchive >> meshCount >> materialCount >> textureCount >> lightCount;
 		SetMeshCount(meshCount);
 		SetMaterialCount(materialCount);
 		SetTextureCount(textureCount);
+		SetLightCount(lightCount);
 
 		for (uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex)
 		{
@@ -88,6 +98,11 @@ public:
 			AddMaterial(Material(inputArchive));
 		}
 
+		for (uint32_t lightIndex = 0; lightIndex < lightCount; ++lightIndex)
+		{
+			AddLight(Light(inputArchive));
+		}
+
 		return *this;
 	}
 
@@ -99,7 +114,7 @@ public:
 		outputArchive.ExportBuffer(GetAABB().Min().begin(), GetAABB().Min().size());
 		outputArchive.ExportBuffer(GetAABB().Max().begin(), GetAABB().Max().size());
 
-		outputArchive << GetMeshCount() << GetMaterialCount() << GetTextureCount();
+		outputArchive << GetMeshCount() << GetMaterialCount() << GetTextureCount() << GetLightCount();
 
 		for (uint32_t meshIndex = 0; meshIndex < GetMeshCount(); ++meshIndex)
 		{
@@ -119,6 +134,12 @@ public:
 			material >> outputArchive;
 		}
 
+		for (uint32_t ligthIndex = 0; ligthIndex < GetLightCount(); ++ligthIndex)
+		{
+			const Light& light = GetLight(ligthIndex);
+			light >> outputArchive;
+		}
+
 		return *this;
 	}
 
@@ -135,6 +156,9 @@ private:
 
 	// texture data
 	std::vector<Texture> m_textures;
+
+	// Liight data
+	std::vector<Light> m_lights;
 };
 
 }
