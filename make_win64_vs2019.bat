@@ -1,9 +1,8 @@
 @echo on
 
 cd /d %~dp0
-Set CMAKE_EXE=%~dp0CMake\bin\cmake.exe
+Set CMAKE_EXE=%~dp0auto\CMake\bin\cmake.exe
 
-cd ..
 if not exist build\. mkdir build
 cd build
 
@@ -22,6 +21,7 @@ if exist "./auto/commercial_sdk_locations.bat" (
     echo commercial_sdk_locations does not exist, skipped
 )
 @echo on
-call "./auto/premake5" "vs2019"
+cd auto
+call "./premake5" "vs2019"
 
 pause
