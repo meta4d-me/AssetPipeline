@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Framework/IProducer.h"
 #include "Math/Box.hpp"
 #include "Math/Plane.hpp"
 #include "Math/Sphere.hpp"
@@ -7,13 +8,20 @@
 #include "Scene/SceneDatabase.h"
 #include "Scene/VertexFormat.h"
 
+#include <string>
+
 namespace cdtools
 {
 
-class MeshGenerteProducer final : public cdtools::BaseProducer
+class MeshGenerteProducer final : public IProducer
 {
 public:
-	using BaseProducer::BaseProducer;
+	MeshGenerteProducer() = delete;
+	explicit MeshGenerteProducer(const char* pFilePath) : m_filePath(pFilePath) {}
+	MeshGenerteProducer(const MeshGenerteProducer&) = delete;
+	MeshGenerteProducer& operator=(const MeshGenerteProducer&) = delete;
+	MeshGenerteProducer(MeshGenerteProducer&&) = delete;
+	MeshGenerteProducer& operator=(MeshGenerteProducer&&) = delete;
 	virtual ~MeshGenerteProducer() {}
 
 	virtual void Execute(cd::SceneDatabase* pSceneDatabase) override
@@ -33,6 +41,9 @@ public:
 		pSceneDatabase->SetMeshCount(1);
 		pSceneDatabase->AddMesh(MoveTemp(optMesh.value()));
 	}
+
+private:
+	std::string m_filePath;
 };
 
 }

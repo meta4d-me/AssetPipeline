@@ -1,62 +1,40 @@
 #pragma once
 
-#include "Base/Template.h"
+#include "Base/Export.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
-#include "ObjectID.h"
-
-#include <string>
+#include "Scene/ObjectID.h"
 
 namespace cd
 {
 
-class Texture final
+class TextureImpl;
+
+class TOOL_API Texture final
 {
 public:
 	Texture() = delete;
+	explicit Texture(InputArchive& inputArchive);
+	explicit Texture(InputArchiveSwapBytes& inputArchive);
+	explicit Texture(TextureID textureID, const char* pTexturePath);
+	Texture(const Texture&) = delete;
+	Texture& operator=(const Texture&) = delete;
+	Texture(Texture&&);
+	Texture& operator=(Texture&&);
+	~Texture();
 
-	template<bool SwapBytesOrder>
-	explicit Texture(TInputArchive<SwapBytesOrder>& inputArchive)
-	{
-		*this << inputArchive;
-	}
+	void Init(TextureID textureID, const char* pTexturePath);
 
-	explicit Texture(TextureID textureID, std::string texturePath);
+	const TextureID& GetID() const;
+	const char* GetPath() const;
 
-	Texture(const Texture&) = default;
-	Texture& operator=(const Texture&) = default;
-	Texture(Texture&&) = default;
-	Texture& operator=(Texture&&) = default;
-	~Texture() = default;
-
-	void Init(TextureID textureID, std::string texturePath);
-
-	const TextureID& GetID() const { return m_id; }
-	const std::string& GetPath() const { return m_path; }
-
-	template<bool SwapBytesOrder>
-	Texture& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
-	{
-		std::string texturePath;
-		uint32_t textureID;
-		inputArchive >> texturePath >> textureID;
-
-		Init(TextureID(textureID), MoveTemp(texturePath));
-
-		return *this;
-	}
-
-	template<bool SwapBytesOrder>
-	const Texture& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
-	{
-		outputArchive << GetPath() << GetID().Data();
-
-		return *this;
-	}
+	Texture& operator<<(InputArchive& inputArchive);
+	Texture& operator<<(InputArchiveSwapBytes& inputArchive);
+	const Texture& operator>>(OutputArchive& outputArchive) const;
+	const Texture& operator>>(OutputArchiveSwapBytes& outputArchive) const;
 
 private:
-	TextureID m_id;
-	std::string m_path;
+	TextureImpl* m_pTextureImpl = nullptr;
 };
 
 }

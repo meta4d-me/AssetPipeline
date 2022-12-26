@@ -1,0 +1,37 @@
+#include "CatDogProducerImpl.h"
+
+#include "IO/InputArchive.hpp"
+#include "Scene/SceneDatabase.h"
+
+#include <fstream>
+
+namespace cdtools
+{
+
+void CatDogProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
+{
+	std::ifstream fin(m_filePath, std::ios::in | std::ios::binary);
+	
+	uint8_t fileEndian;
+	fin.read(reinterpret_cast<char*>(&fileEndian), sizeof(fileEndian));
+	uint8_t platformEndian = static_cast<uint8_t>(std::endian::native);
+
+	if (fileEndian != platformEndian)
+	{
+		cd::InputArchiveSwapBytes inputArchive(&fin);
+		*pSceneDatabase << inputArchive;
+
+		// Warnings!! You can get better performance by using correct endian instead.
+		// If you don't care about performance in your case, it is OK to swap bytes.
+		// assert(fileEndian == platformEndian && "Please input asset file with same endian.");
+	}
+	else
+	{
+		cd::InputArchive inputArchive(&fin);
+		*pSceneDatabase << inputArchive;
+	}
+	
+	fin.close();
+}
+
+}

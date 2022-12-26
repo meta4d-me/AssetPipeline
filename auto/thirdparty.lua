@@ -3,8 +3,13 @@
 CommercialSDKConfigs = {}
 function DefineSDKConfig(sdkDirectoryMacro)
 	local sdkDirectory = os.getenv(sdkDirectoryMacro)
-	if sdkDirectory and not os.isdir(sdkDirectory) then
-		sdkDirectory = nil
+	if sdkDirectory then
+		if not os.isdir(sdkDirectory) then
+			sdkDirectory = nil
+			print(sdkDirectoryMacro.." defined but not found in disk, skip related features...")
+		end
+	else
+		print(sdkDirectoryMacro.." not defined, skip related features...")
 	end
 
 	if sdkDirectory then
@@ -16,8 +21,6 @@ function DefineSDKConfig(sdkDirectoryMacro)
 		sdkConfig.lib_names = { table.unpack(allLinkLibs) }
 		sdkConfig.dll_paths = { path.join(sdkDirectory, "runtime") }
 		CommercialSDKConfigs[sdkDirectoryMacro] = sdkConfig
-	else
-		print(sdkDirectoryMacro.." not found, skip related features...")
 	end
 end
 

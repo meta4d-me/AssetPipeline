@@ -34,7 +34,7 @@ project("AutoMake")
 	kind("Utility")
 	location(path.join(RootPath, "build"))
 	files {
-		"premake5.lua"
+		path.join(RootPath, "auto/*.lua"),
 	}
 
 	filter { "system:windows", "action:vs2022" }
@@ -53,4 +53,6 @@ group("")
 
 dofile("thirdparty.lua")
 dofile("core.lua")
+dofile("producers.lua")
+dofile("consumers.lua")
 dofile("examples.lua")
