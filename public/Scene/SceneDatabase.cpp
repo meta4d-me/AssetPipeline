@@ -143,6 +143,34 @@ uint32_t SceneDatabase::GetTextureCount() const
 }
 
 ///////////////////////////////////////////////////////////////////
+// Light
+///////////////////////////////////////////////////////////////////
+void SceneDatabase::AddLight(Light light)
+{
+	return m_pSceneDatabaseImpl->AddLight(cd::MoveTemp(light));
+}
+
+const std::vector<Light>& SceneDatabase::GetLights() const
+{
+	return m_pSceneDatabaseImpl->GetLights();
+}
+
+void SceneDatabase::SetLightCount(uint32_t lightCount)
+{
+	return m_pSceneDatabaseImpl->SetLightCount(lightCount);
+}
+
+const Light& SceneDatabase::GetLight(uint32_t index) const
+{
+	return m_pSceneDatabaseImpl->GetLight(index);
+}
+
+uint32_t SceneDatabase::GetLightCount() const
+{
+	return m_pSceneDatabaseImpl->GetLightCount();
+}
+
+///////////////////////////////////////////////////////////////////
 // Operators
 ///////////////////////////////////////////////////////////////////
 SceneDatabase& SceneDatabase::operator<<(InputArchive& inputArchive)

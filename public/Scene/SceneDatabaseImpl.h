@@ -2,9 +2,10 @@
 
 #include "Base/Template.h"
 #include "Math/AABB.hpp"
-#include "Material.h"
-#include "Mesh.h"
-#include "Texture.h"
+#include "Scene/Material.h"
+#include "Scene/Mesh.h"
+#include "Scene/Texture.h"
+#include "Scene/Light.h"
 
 #include <optional>
 #include <unordered_map>
@@ -32,26 +33,33 @@ public:
 	AABB& GetAABB() { return m_aabb; }
 	const AABB& GetAABB() const { return m_aabb; }
 
-	// mesh
+	// Mesh
 	void AddMesh(Mesh mesh);
 	const std::vector<Mesh>& GetMeshes() const { return m_meshes; }
 	void SetMeshCount(uint32_t meshCount);
 	const Mesh& GetMesh(uint32_t index) const { return m_meshes[index];  }
 	uint32_t GetMeshCount() const { return static_cast<uint32_t>(m_meshes.size()); }
 
-	// material
+	// Material
 	void AddMaterial(Material material);
 	const std::vector<Material>& GetMaterials() const { return m_materials; }
 	void SetMaterialCount(uint32_t materialCount);
 	const Material& GetMaterial(uint32_t index) const { return m_materials[index]; }
 	uint32_t GetMaterialCount() const { return static_cast<uint32_t>(m_materials.size()); }
 
-	// texture
+	// Texture
 	void AddTexture(Texture texture);
 	const std::vector<Texture>& GetTextures() const { return m_textures; }
 	void SetTextureCount(uint32_t textureCount);
 	const Texture& GetTexture(uint32_t index) const { return m_textures[index]; }
 	uint32_t GetTextureCount() const { return static_cast<uint32_t>(m_textures.size()); }
+
+	// Light
+	void AddLight(Light light);
+	const std::vector<Light>& GetLights() const { return m_lights; }
+	void SetLightCount(uint32_t lightCount);
+	const Light& GetLight(uint32_t index) const { return m_lights[index]; }
+	uint32_t GetLightCount() const { return static_cast<uint32_t>(m_lights.size()); }
 
 	template<bool SwapBytesOrder>
 	SceneDatabaseImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
@@ -61,17 +69,18 @@ public:
 		SetName(MoveTemp(sceneName));
 
 		AABB sceneAABB;
-		inputArchive.ImportBuffer(sceneAABB.Min().begin());
-		inputArchive.ImportBuffer(sceneAABB.Max().begin());
+		sceneAABB << inputArchive;
 		SetAABB(MoveTemp(sceneAABB));
 
 		uint32_t meshCount = 0;
 		uint32_t materialCount = 0;
 		uint32_t textureCount = 0;
-		inputArchive >> meshCount >> materialCount >> textureCount;
+		uint32_t lightCount = 0;
+		inputArchive >> meshCount >> materialCount >> textureCount >> lightCount;
 		SetMeshCount(meshCount);
 		SetMaterialCount(materialCount);
 		SetTextureCount(textureCount);
+		SetLightCount(lightCount);
 
 		for (uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex)
 		{
@@ -88,6 +97,11 @@ public:
 			AddMaterial(Material(inputArchive));
 		}
 
+		for (uint32_t lightIndex = 0; lightIndex < lightCount; ++lightIndex)
+		{
+			AddLight(Light(inputArchive));
+		}
+
 		return *this;
 	}
 
@@ -95,11 +109,9 @@ public:
 	const SceneDatabaseImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
 		outputArchive << GetName();
+		GetAABB() >> outputArchive;
 
-		outputArchive.ExportBuffer(GetAABB().Min().begin(), GetAABB().Min().size());
-		outputArchive.ExportBuffer(GetAABB().Max().begin(), GetAABB().Max().size());
-
-		outputArchive << GetMeshCount() << GetMaterialCount() << GetTextureCount();
+		outputArchive << GetMeshCount() << GetMaterialCount() << GetTextureCount() << GetLightCount();
 
 		for (uint32_t meshIndex = 0; meshIndex < GetMeshCount(); ++meshIndex)
 		{
@@ -119,6 +131,12 @@ public:
 			material >> outputArchive;
 		}
 
+		for (uint32_t ligthIndex = 0; ligthIndex < GetLightCount(); ++ligthIndex)
+		{
+			const Light& light = GetLight(ligthIndex);
+			light >> outputArchive;
+		}
+
 		return *this;
 	}
 
@@ -126,14 +144,10 @@ private:
 	std::string m_name;
 	AABB m_aabb;
 
-	// mesh data
 	std::vector<Mesh> m_meshes;
-
-	// material data
 	std::vector<Material> m_materials;
-
-	// texture data
 	std::vector<Texture> m_textures;
+	std::vector<Light> m_lights;
 };
 
 }

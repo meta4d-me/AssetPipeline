@@ -1,5 +1,6 @@
 #include "FbxConsumerImpl.h"
 
+#include "Scene/Mesh.h"
 #include "Scene/SceneDatabase.h"
 
 #include <fbxsdk.h>

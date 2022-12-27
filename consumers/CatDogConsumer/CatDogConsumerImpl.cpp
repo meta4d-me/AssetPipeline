@@ -1,7 +1,11 @@
 #include "CatDogConsumerImpl.h"
 
 #include "IO/OutputArchive.hpp"
+#include "Scene/Material.h"
+#include "Scene/Mesh.h"
+#include "Scene/ObjectID.h"
 #include "Scene/SceneDatabase.h"
+#include "Scene/Texture.h"
 
 #include <rapidxml/rapidxml.hpp>
 #include <rapidxml/rapidxml_print.hpp>
@@ -159,6 +163,16 @@ void CatDogConsumerImpl::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase
 		pDocument->append_node(pTextureNode);
 
 		texture >> outputArchive;
+	}
+
+	for (const auto& light : pSceneDatabase->GetLights())
+	{
+		XmlNode* pLightNode = WriteNode("Light");
+		WriteNodeU32Attribute(pLightNode, "ID", light.GetID().Data());
+		WriteNodeU32Attribute(pLightNode, "LightType", static_cast<uint32_t>(light.GetType()));
+		pDocument->append_node(pLightNode);
+
+		light >> outputArchive;
 	}
 
 	foutBin.close();

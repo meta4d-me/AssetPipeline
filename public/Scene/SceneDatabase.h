@@ -5,6 +5,9 @@
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
 #include "Scene/Texture.h"
+#include "Scene/Light.h"
+
+#include <vector>
 
 namespace cd
 {
@@ -28,31 +31,39 @@ public:
 	AABB& GetAABB();
 	const AABB& GetAABB() const;
 
-	// mesh
+	// Mesh
 	void AddMesh(Mesh mesh);
 	const std::vector<Mesh>& GetMeshes() const;
 	void SetMeshCount(uint32_t meshCount);
 	const Mesh& GetMesh(uint32_t index) const;
 	uint32_t GetMeshCount() const;
 
-	// material
+	// Material
 	void AddMaterial(Material material);
 	const std::vector<Material>& GetMaterials() const;
 	void SetMaterialCount(uint32_t materialCount);
 	const Material& GetMaterial(uint32_t index) const;
 	uint32_t GetMaterialCount() const;
 
-	// texture
+	// Texture
 	void AddTexture(Texture texture);
 	const std::vector<Texture>& GetTextures() const;
 	void SetTextureCount(uint32_t textureCount);
 	const Texture& GetTexture(uint32_t index) const;
 	uint32_t GetTextureCount() const;
 
+	// Light
+	void AddLight(Light light);
+	const std::vector<Light>& GetLights() const;
+	void SetLightCount(uint32_t lightCount);
+	const Light& GetLight(uint32_t index) const;
+	uint32_t GetLightCount() const;
+
+	// Serialization
 	SceneDatabase& operator<<(InputArchive& inputArchive);
 	SceneDatabase& operator<<(InputArchiveSwapBytes& inputArchive);
 	const SceneDatabase& operator>>(OutputArchive& outputArchive) const;
-	const SceneDatabase& operator>>(OutputArchiveSwapBytes & outputArchive) const;
+	const SceneDatabase& operator>>(OutputArchiveSwapBytes& outputArchive) const;
 
 private:
 	SceneDatabaseImpl* m_pSceneDatabaseImpl = nullptr;
