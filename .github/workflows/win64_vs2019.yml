@@ -18,7 +18,7 @@ jobs:
       run: git submodule update --init --recursive
 
     - name: Make 3rdParty and project
-      run: ${{github.workspace}}/auto/make_win64_vs2019.bat
+      run: ${{github.workspace}}/make_win64_vs2019.bat
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2

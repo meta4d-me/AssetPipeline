@@ -1,205 +1,101 @@
 #pragma once
 
-#include "Base/Template.h"
-#include "IO/InputArchive.hpp"
-#include "IO/OutputArchive.hpp"
+#include "Base/Export.h"
 #include "Math/AABB.hpp"
-#include "ObjectID.h"
-#include "VertexFormat.h"
+#include "Scene/ObjectID.h"
 
-#include <array>
-#include <string>
 #include <vector>
 
 namespace cd
 {
 
-class Mesh final
+class VertexFormat;
+class MeshImpl;
+
+class TOOL_API Mesh final
 {
 public:
 	// We expect to use triangulated mesh data in game engine.
-	using Triangle = std::array<VertexID, 3>;
-	using Polygon = Triangle;
+	using Polygon = VectorDerived<VertexID, 3>;
 
 public:
 	Mesh() = delete;
-
-	template<bool SwapBytesOrder>
-	explicit Mesh(TInputArchive<SwapBytesOrder>& inputArchive)
-	{
-		*this << inputArchive;
-	}
-
+	explicit Mesh(InputArchive& inputArchive);
+	explicit Mesh(InputArchiveSwapBytes & inputArchive);
 	explicit Mesh(uint32_t vertexCount, uint32_t polygonCount);
-	explicit Mesh(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount);
-
-	Mesh(const Mesh&) = default;
-	Mesh& operator=(const Mesh&) = default;
-	Mesh(Mesh&&) = default;
-	Mesh& operator=(Mesh&&) = default;
-	~Mesh() = default;
+	explicit Mesh(MeshID meshID, const char* pMeshName, uint32_t vertexCount, uint32_t polygonCount);
+	Mesh(const Mesh&) = delete;
+	Mesh& operator=(const Mesh&) = delete;
+	Mesh(Mesh&&);
+	Mesh& operator=(Mesh&&);
+	~Mesh();
 
 	void Init(uint32_t vertexCount, uint32_t polygonCount);
-	void Init(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount);
-	const MeshID& GetID() const { return m_id; }
-	const std::string& GetName() const { return m_name; }
-	uint32_t GetVertexCount() const { return m_vertexCount; }
-	uint32_t GetPolygonCount() const { return m_polygonCount; }
+	void Init(MeshID meshID, const char* pMeshName, uint32_t vertexCount, uint32_t polygonCount);
+	const MeshID& GetID() const;
+	const char* GetName() const;
+	uint32_t GetVertexCount() const;
+	uint32_t GetPolygonCount() const;
 
-	void SetVertexFormat(VertexFormat vertexFormat) { m_vertexFormat = MoveTemp(vertexFormat); }
-	VertexFormat& GetVertexFormat() { return m_vertexFormat; }
-	const VertexFormat& GetVertexFormat() const { return m_vertexFormat; }
+	void SetVertexFormat(VertexFormat vertexFormat);
+	VertexFormat& GetVertexFormat();
+	const VertexFormat& GetVertexFormat() const;
 
-	void SetAABB(AABB aabb) { m_aabb = MoveTemp(aabb); }
-	AABB& GetAABB() { return m_aabb; }
-	const AABB& GetAABB() const { return m_aabb; }
+	void SetAABB(AABB aabb);
+	AABB& GetAABB();
+	const AABB& GetAABB() const;
 
-	void SetMaterialID(uint32_t materialIndex) { m_materialID = materialIndex; }
-	const MaterialID& GetMaterialID() const { return m_materialID; }
+	void SetMaterialID(uint32_t materialIndex);
+	const MaterialID& GetMaterialID() const;
 
 	void SetVertexPosition(uint32_t vertexIndex, const Point& position);
-	std::vector<Point>& GetVertexPositions() { return m_vertexPositions; }
-	Point& GetVertexPosition(uint32_t vertexIndex) { return m_vertexPositions[vertexIndex]; }
-	const Point& GetVertexPosition(uint32_t vertexIndex) const { return m_vertexPositions[vertexIndex]; }
-	const std::vector<Point>& GetVertexPositions() const { return m_vertexPositions; }
+	std::vector<Point>& GetVertexPositions();
+	Point& GetVertexPosition(uint32_t vertexIndex);
+	const Point& GetVertexPosition(uint32_t vertexIndex) const;
+	const std::vector<Point>& GetVertexPositions() const;
 
 	void SetVertexNormal(uint32_t vertexIndex, const Direction& normal);
-	std::vector<Direction>& GetVertexNormals() { return m_vertexNormals; }
-	Direction& GetVertexNormal(uint32_t vertexIndex) { return m_vertexNormals[vertexIndex]; }
-	const Direction& GetVertexNormal(uint32_t vertexIndex) const { return m_vertexNormals[vertexIndex]; }
-	const std::vector<Direction>& GetVertexNormals() const { return m_vertexNormals; }
+	std::vector<Direction>& GetVertexNormals();
+	Direction& GetVertexNormal(uint32_t vertexIndex);
+	const Direction& GetVertexNormal(uint32_t vertexIndex) const;
+	const std::vector<Direction>& GetVertexNormals() const;
 
 	void SetVertexTangent(uint32_t vertexIndex, const Direction& tangent);
-	std::vector<Direction>& GetVertexTangents() { return m_vertexTangents; }
-	Direction& GetVertexTangent(uint32_t vertexIndex) { return m_vertexTangents[vertexIndex]; }
-	const Direction& GetVertexTangent(uint32_t vertexIndex) const { return m_vertexTangents[vertexIndex]; }
-	const std::vector<Direction>& GetVertexTangents() const { return m_vertexTangents; }
+	std::vector<Direction>& GetVertexTangents();
+	Direction& GetVertexTangent(uint32_t vertexIndex);
+	const Direction& GetVertexTangent(uint32_t vertexIndex) const;
+	const std::vector<Direction>& GetVertexTangents() const;
 
 	void SetVertexBiTangent(uint32_t vertexIndex, const Direction& biTangent);
-	std::vector<Direction>& GetVertexBiTangents() { return m_vertexBiTangents; }
-	Direction& GetVertexBiTangent(uint32_t vertexIndex) { return m_vertexBiTangents[vertexIndex]; }
-	const Direction& GetVertexBiTangent(uint32_t vertexIndex) const { return m_vertexBiTangents[vertexIndex]; }
-	const std::vector<Direction>& GetVertexBiTangents() const { return m_vertexBiTangents; }
+	std::vector<Direction>& GetVertexBiTangents();
+	Direction& GetVertexBiTangent(uint32_t vertexIndex);
+	const Direction& GetVertexBiTangent(uint32_t vertexIndex) const;
+	const std::vector<Direction>& GetVertexBiTangents() const;
 
 	void SetVertexUVSetCount(uint32_t setCount);
-	uint32_t GetVertexUVSetCount() const { return m_vertexUVSetCount; }
+	uint32_t GetVertexUVSetCount() const;
 	void SetVertexUV(uint32_t setIndex, uint32_t vertexIndex, const UV& uv);
-	std::vector<UV>& GetVertexUV(uint32_t uvSetIndex) { return m_vertexUVSets[uvSetIndex]; }
-	const std::vector<UV>& GetVertexUV(uint32_t uvSetIndex) const { return m_vertexUVSets[uvSetIndex]; }
+	std::vector<UV>& GetVertexUV(uint32_t uvSetIndex);
+	const std::vector<UV>& GetVertexUV(uint32_t uvSetIndex) const;
 
 	void SetVertexColorSetCount(uint32_t setCount);
-	uint32_t GetVertexColorSetCount() const { return m_vertexColorSetCount; }
+	uint32_t GetVertexColorSetCount() const;
 	void SetVertexColor(uint32_t setIndex, uint32_t vertexIndex, const Color& color);
-	std::vector<Color>& GetVertexColor(uint32_t colorSetIndex) { return m_vertexColorSets[colorSetIndex]; }
-	const std::vector<Color>& GetVertexColor(uint32_t colorSetIndex) const { return m_vertexColorSets[colorSetIndex]; }
+	std::vector<Color>& GetVertexColor(uint32_t colorSetIndex);
+	const std::vector<Color>& GetVertexColor(uint32_t colorSetIndex) const;
 
 	void SetPolygon(uint32_t polygonIndex, const VertexID& v0, const VertexID& v1, const VertexID& v2);
-	std::vector<Polygon>& GetPolygons() { return m_polygons; }
-	const std::vector<Polygon>& GetPolygons() const { return m_polygons; }
-	const Polygon& GetPolygon(uint32_t polygonIndex) const { return m_polygons[polygonIndex]; }
+	std::vector<Polygon>& GetPolygons();
+	const std::vector<Polygon>& GetPolygons() const;
+	const Polygon& GetPolygon(uint32_t polygonIndex) const;
 
-	template<bool SwapBytesOrder>
-	Mesh& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
-	{
-		std::string meshName;
-		uint32_t meshID;
-		uint32_t meshMaterialID;
-		uint32_t vertexCount;
-		uint32_t vertexUVSetCount;
-		uint32_t vertexColorSetCount;
-		uint32_t polygonCount;
-
-		inputArchive >> meshName >> meshID >> meshMaterialID
-			>> vertexCount >> vertexUVSetCount >> vertexColorSetCount
-			>> polygonCount;
-
-		Init(MeshID(meshID), MoveTemp(meshName), vertexCount, polygonCount);
-		SetMaterialID(meshMaterialID);
-		SetVertexUVSetCount(vertexUVSetCount);
-		SetVertexColorSetCount(vertexColorSetCount);
-
-		GetAABB() << inputArchive;
-		GetVertexFormat() << inputArchive;
-		inputArchive.ImportBuffer(GetVertexPositions().data());
-		inputArchive.ImportBuffer(GetVertexNormals().data());
-		inputArchive.ImportBuffer(GetVertexTangents().data());
-		inputArchive.ImportBuffer(GetVertexBiTangents().data());
-
-		for (uint32_t uvSetIndex = 0; uvSetIndex < GetVertexUVSetCount(); ++uvSetIndex)
-		{
-			inputArchive.ImportBuffer(GetVertexUV(uvSetIndex).data());
-		}
-
-		for (uint32_t colorSetIndex = 0; colorSetIndex < GetVertexColorSetCount(); ++colorSetIndex)
-		{
-			inputArchive.ImportBuffer(GetVertexColor(colorSetIndex).data());
-		}
-
-		inputArchive.ImportBuffer(GetPolygons().data());
-
-		return *this;
-	}
-
-	template<bool SwapBytesOrder>
-	const Mesh& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
-	{
-		outputArchive << GetName() << GetID().Data() << GetMaterialID().Data()
-			<< GetVertexCount() << GetVertexUVSetCount() << GetVertexColorSetCount()
-			<< GetPolygonCount();
-
-		GetAABB() >> outputArchive;
-		GetVertexFormat() >> outputArchive;
-		outputArchive.ExportBuffer(GetVertexPositions().data(), GetVertexPositions().size());
-		outputArchive.ExportBuffer(GetVertexNormals().data(), GetVertexNormals().size());
-		outputArchive.ExportBuffer(GetVertexTangents().data(), GetVertexTangents().size());
-		outputArchive.ExportBuffer(GetVertexBiTangents().data(), GetVertexBiTangents().size());
-
-		for (uint32_t uvSetIndex = 0; uvSetIndex < GetVertexUVSetCount(); ++uvSetIndex)
-		{
-			outputArchive.ExportBuffer(GetVertexUV(uvSetIndex).data(), GetVertexUV(uvSetIndex).size());
-		}
-
-		for (uint32_t colorSetIndex = 0; colorSetIndex < GetVertexColorSetCount(); ++colorSetIndex)
-		{
-			outputArchive.ExportBuffer(GetVertexColor(colorSetIndex).data(), GetVertexColor(colorSetIndex).size());
-		}
-
-		outputArchive.ExportBuffer(GetPolygons().data(), GetPolygons().size());
-
-		return *this;
-	}
-
-public:
-	static constexpr uint32_t MaxUVSetNumber = 4U;
-	static constexpr uint32_t MaxColorSetNumber = 4U;
+	Mesh& operator<<(InputArchive& inputArchive);
+	Mesh& operator<<(InputArchiveSwapBytes& inputArchive);
+	const Mesh& operator>>(OutputArchive& outputArchive) const;
+	const Mesh& operator>>(OutputArchiveSwapBytes& outputArchive) const;
 
 private:
-	uint32_t				m_vertexCount = 0;
-	uint32_t				m_vertexUVSetCount = 0;
-	uint32_t				m_vertexColorSetCount = 0;
-	uint32_t				m_polygonCount = 0;
-
-	MeshID					m_id;
-	MaterialID				m_materialID;
-	std::string				m_name;
-	AABB					m_aabb;
-	
-	// vertex geometry data
-	VertexFormat			m_vertexFormat;
-	std::vector<Point>		m_vertexPositions;
-	std::vector<Direction>	m_vertexNormals;		// Maybe we wants to use face normals? Or we can help to calculate it.
-	std::vector<Direction>	m_vertexTangents;		// Ditto.
-	std::vector<Direction>	m_vertexBiTangents;		// If not stored in model file, we can help to calculate it.
-
-	// vertex texture data
-	std::vector<UV>			m_vertexUVSets[MaxUVSetNumber];
-	std::vector<Color>		m_vertexColorSets[MaxColorSetNumber];
-
-	// vertex animation data
-	// vertex joint weights...
-
-	// polygon data
-	std::vector<Polygon>	m_polygons;
+	MeshImpl* m_pMeshImpl = nullptr;
 };
 
 }

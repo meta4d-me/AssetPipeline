@@ -1,6 +1,6 @@
-#include "Consumer/CatDogConsumer.h"
-#include "Processor/Processor.h"
-#include "Producer/FbxProducer.h"
+#include "CatDogConsumer.h"
+#include "FbxProducer.h"
+#include "Framework/Processor.h"
 #include "Utilities/PerformanceProfiler.h"
 
 int main(int argc, char** argv)

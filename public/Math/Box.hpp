@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Base/Template.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
 #include "VectorDerived.hpp"
