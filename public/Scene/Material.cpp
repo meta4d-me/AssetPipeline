@@ -1,46 +1,101 @@
 #include "Material.h"
-
-#include <cassert>
+#include "MaterialImpl.h"
 
 namespace cd
 {
 
-Material::Material(MaterialID materialID, std::string materialName)
+Material::Material(InputArchive& inputArchive)
 {
-	Init(materialID, MoveTemp(materialName));
+	m_pMaterialImpl = new MaterialImpl(inputArchive);
 }
 
-void Material::Init(MaterialID materialID, std::string materialName)
+Material::Material(InputArchiveSwapBytes& inputArchive)
 {
-	m_id = materialID;
-	m_name = MoveTemp(materialName);
+	m_pMaterialImpl = new MaterialImpl(inputArchive);
+}
+
+Material::Material(MaterialID materialID, const char* pMaterialName)
+{
+	m_pMaterialImpl = new MaterialImpl(materialID, pMaterialName);
+}
+
+Material::Material(Material&& rhs)
+{
+	*this = cd::MoveTemp(rhs);
+}
+
+Material& Material::operator=(Material&& rhs)
+{
+	std::swap(m_pMaterialImpl, rhs.m_pMaterialImpl);
+	return *this;
+}
+
+Material::~Material()
+{
+	if (m_pMaterialImpl)
+	{
+		delete m_pMaterialImpl;
+		m_pMaterialImpl = nullptr;
+	}
+}
+
+void Material::Init(MaterialID materialID, const char* pMaterialName)
+{
+	m_pMaterialImpl->Init(materialID, pMaterialName);
+}
+
+const MaterialID& Material::GetID() const
+{
+	return m_pMaterialImpl->GetID();
+}
+
+const char* Material::GetName() const
+{
+	return m_pMaterialImpl->GetName().c_str();
 }
 
 void Material::SetTextureID(MaterialTextureType textureType, TextureID textureID)
 {
-	TextureIDMap::iterator itTexture = m_textureIDs.find(textureType);
-	if(itTexture != m_textureIDs.end())
-	{
-		// Existed!
-		if(textureID == itTexture->second)
-		{
-			// Same
-			return;
-		}
-	}
-
-	m_textureIDs[textureType] = textureID;
+	m_pMaterialImpl->SetTextureID(textureType, textureID);
 }
 
 std::optional<TextureID> Material::GetTextureID(MaterialTextureType textureType) const
 {
-	TextureIDMap::const_iterator itTexture = m_textureIDs.find(textureType);
-	if(itTexture != m_textureIDs.end())
-	{
-		return itTexture->second;
-	}
+	return m_pMaterialImpl->GetTextureID(textureType);
+}
 
-	return std::nullopt;
+const Material::TextureIDMap& Material::GetTextureIDMap() const
+{
+	return m_pMaterialImpl->GetTextureIDMap();
+}
+
+bool Material::IsTextureTypeSetup(MaterialTextureType textureType) const
+{
+	return m_pMaterialImpl->IsTextureTypeSetup(textureType);
+}
+
+Material& Material::operator<<(InputArchive& inputArchive)
+{
+	*m_pMaterialImpl << inputArchive;
+	return *this;
+}
+
+Material& Material::operator<<(InputArchiveSwapBytes& inputArchive)
+{
+	*m_pMaterialImpl << inputArchive;
+	return *this;
+}
+
+const Material& Material::operator>>(OutputArchive& outputArchive) const
+{
+	*m_pMaterialImpl >> outputArchive;
+	return *this;
+}
+
+const Material& Material::operator>>(OutputArchiveSwapBytes& outputArchive) const
+{
+	*m_pMaterialImpl >> outputArchive;
+	return *this;
 }
 
 }

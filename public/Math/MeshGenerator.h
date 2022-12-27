@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Base/Export.h"
+
 #include <optional>
 #include <vector>
 
@@ -21,7 +23,7 @@ class VertexFormat;
 
 // MeshGenerator helps to generate vertex buffer and index buffer from an implicit math class.
 // Default : Left hand axis and counter clock wise
-class MeshGenerator
+class TOOL_API MeshGenerator
 {
 public:
 	// Utility class doesn't allow to construct.

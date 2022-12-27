@@ -1,7 +1,7 @@
-#include "Consumer/CatDogConsumer.h"
-#include "Processor/Processor.h"
-#include "Producer/Terrain/HeightFunctions.h"
-#include "Producer/Terrain/TerrainProducer.h"
+#include "CatDogConsumer.h"
+#include "Framework/Processor.h"
+#include "HeightFunctions.h"
+#include "TerrainProducer.h"
 #include "Utilities/PerformanceProfiler.h"
 
 #include <random>
@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 	generationParams.quadLengthInZ = 100;
 	generationParams.minElevation = 0;
 	generationParams.maxElevation = 2000;
-	generationParams.octaves = std::vector<HeightFunctions::Octave>();
+	generationParams.octaves = std::vector<HeightOctave>();
 	generationParams.octaves.emplace_back(uniform_long(generator), 1.0f, 0.0f);
 	generationParams.octaves.emplace_back(uniform_long(generator), 2.0f, 0.8f);
 	generationParams.octaves.emplace_back(uniform_long(generator), 4.0f, 0.8f);

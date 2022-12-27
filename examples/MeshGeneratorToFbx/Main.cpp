@@ -1,6 +1,5 @@
-#include "Consumer/FbxConsumer.h"
-#include "Processor/Processor.h"
-#include "Producer/BaseProducer.h"
+#include "FbxConsumer.h"
+#include "Framework/Processor.h"
 #include "Utilities/PerformanceProfiler.h"
 
 #include "MeshGenerteProducer.hpp"

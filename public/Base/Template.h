@@ -10,7 +10,7 @@ namespace cd
 template<typename T>
 [[nodiscard]] constexpr std::remove_reference_t<T>&& MoveTemp(T&& value) noexcept
 {
-	static_assert(std::is_lvalue_reference_v<T>, "For an rvalue object, don't need to call MoveTemp.");
+	static_assert(std::is_lvalue_reference_v<T>, "T is lvalue reference object.");
 	static_assert(!std::is_const_v<T>, "For a const object, MoveTemp doesn't take effect.");
 	return static_cast<std::remove_reference_t<T>&&>(value);
 }
