@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Base/Template.h"
 #include "VectorBase.hpp"
 
 #include <type_traits>
@@ -49,15 +50,7 @@ public:
 
 	VectorDerived(const VectorDerived& rhs)
 	{
-		std::copy(rhs.begin(), rhs.end(), this->begin());
-	}
-
-	VectorDerived(VectorDerived&& rhs)
-	{
-		// Nothing to move since it's primitive array
-		std::copy(rhs.begin(), rhs.end(), this->begin());
-		// Still reset the other array to mimic a "move"
-		std::fill(rhs.begin(), rhs.end(), static_cast<ValueType>(0));
+		*this = rhs;
 	}
 
 	VectorDerived& operator=(const VectorDerived& rhs)
@@ -66,12 +59,14 @@ public:
 		return *this;
 	}
 
+	VectorDerived(VectorDerived&& rhs)
+	{
+		*this = cd::MoveTemp(rhs);
+	}
+
 	VectorDerived& operator=(VectorDerived&& rhs)
 	{
-		// Nothing to move since it's primitive array
-		std::copy(rhs.begin(), rhs.end(), this->begin());
-		// Still reset the other array to mimic a "move"
-		std::fill(rhs.begin(), rhs.end(), static_cast<ValueType>(0));
+		std::swap(this->data, rhs.data);
 		return *this;
 	}
 

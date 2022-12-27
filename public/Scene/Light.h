@@ -76,46 +76,10 @@ public:
 
 	const std::pair<float, float> CalculateScaleAndOffeset(const float innerAngle, const float outerAngle) const;
 
-	template<bool SwapBytesOrder>
-	Light& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
-	{
-		uint32_t lightID;
-		float lightType, lightIntensity, lightRange, lightRadius,
-			lightWidth, lightHeight, lightAngleScale, lightAngleOffeset;
-
-		inputArchive >> lightID >> lightType >> lightIntensity >> lightRange >>
-			lightRadius >> lightWidth >> lightHeight >> lightAngleScale >> lightAngleOffeset;
-
-		Init(LightID(lightID), lightType);
-		SetIntensity(lightIntensity);
-		SetRange(lightRange);
-		SetRadius(lightRadius);
-		SetWidth(lightWidth);
-		SetHeight(lightHeight);
-		SetAngleScale(lightAngleScale);
-		SetAngleOffeset(lightAngleOffeset);
-
-		inputArchive.ImportBuffer(&GetPosition());
-		inputArchive.ImportBuffer(&GetColor());
-		inputArchive.ImportBuffer(&GetDirection());
-		inputArchive.ImportBuffer(&GetUp());
-
-		return *this;
-	}
-
-	template<bool SwapBytesOrder>
-	const Light& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
-	{
-		outputArchive << GetID().Data() << GetType() << GetIntensity() << GetRange() <<
-			GetRadius() << GetWidth() << GetHeight() << GetAngleScale() << GetAngleOffeset();
-
-		outputArchive.ExportBuffer(&GetPosition(), 1);
-		outputArchive.ExportBuffer(&GetColor(), 1);
-		outputArchive.ExportBuffer(&GetDirection(), 1);
-		outputArchive.ExportBuffer(&GetUp(), 1);
-
-		return *this;
-	}
+	Light& operator<<(InputArchive& inputArchive);
+	Light& operator<<(InputArchiveSwapBytes& inputArchive);
+	const Light& operator>>(OutputArchive& outputArchive) const;
+	const Light& operator>>(OutputArchiveSwapBytes& outputArchive) const;
 
 private:
 	LightImpl* m_pLightImpl = nullptr;
