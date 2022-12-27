@@ -2,10 +2,12 @@
 
 #include "Base/Export.h"
 #include "Math/AABB.hpp"
-#include "Scene/Light.h"
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
 #include "Scene/Texture.h"
+#include "Scene/Light.h"
+
+#include <vector>
 
 namespace cd
 {
@@ -62,22 +64,6 @@ public:
 	SceneDatabase& operator<<(InputArchiveSwapBytes& inputArchive);
 	const SceneDatabase& operator>>(OutputArchive& outputArchive) const;
 	const SceneDatabase& operator>>(OutputArchiveSwapBytes& outputArchive) const;
-
-private:
-	std::string m_name;
-	AABB m_aabb;
-
-	// Mesh data
-	std::vector<Mesh> m_meshes;
-
-	// Material data
-	std::vector<Material> m_materials;
-
-	// Texture data
-	std::vector<Texture> m_textures;
-
-	// Light data
-	std::vector<Light> m_lights;
 
 private:
 	SceneDatabaseImpl* m_pSceneDatabaseImpl = nullptr;

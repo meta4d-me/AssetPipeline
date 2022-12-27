@@ -1,7 +1,11 @@
 #include "CatDogConsumerImpl.h"
 
 #include "IO/OutputArchive.hpp"
+#include "Scene/Material.h"
+#include "Scene/Mesh.h"
+#include "Scene/ObjectID.h"
 #include "Scene/SceneDatabase.h"
+#include "Scene/Texture.h"
 
 #include <rapidxml/rapidxml.hpp>
 #include <rapidxml/rapidxml_print.hpp>

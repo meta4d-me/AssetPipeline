@@ -1,4 +1,6 @@
 #include "FbxProducerImpl.h"
+#include "Scene/Mesh.h"
+#include "Scene/ObjectID.h"
 #include "Scene/SceneDatabase.h"
 
 #include <fbxsdk.h>

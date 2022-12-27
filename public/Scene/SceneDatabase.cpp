@@ -143,6 +143,34 @@ uint32_t SceneDatabase::GetTextureCount() const
 }
 
 ///////////////////////////////////////////////////////////////////
+// Light
+///////////////////////////////////////////////////////////////////
+void SceneDatabase::AddLight(Light light)
+{
+	return m_pSceneDatabaseImpl->AddLight(cd::MoveTemp(light));
+}
+
+const std::vector<Light>& SceneDatabase::GetLights() const
+{
+	return m_pSceneDatabaseImpl->GetLights();
+}
+
+void SceneDatabase::SetLightCount(uint32_t lightCount)
+{
+	return m_pSceneDatabaseImpl->SetLightCount(lightCount);
+}
+
+const Light& SceneDatabase::GetLight(uint32_t index) const
+{
+	return m_pSceneDatabaseImpl->GetLight(index);
+}
+
+uint32_t SceneDatabase::GetLightCount() const
+{
+	return m_pSceneDatabaseImpl->GetLightCount();
+}
+
+///////////////////////////////////////////////////////////////////
 // Operators
 ///////////////////////////////////////////////////////////////////
 SceneDatabase& SceneDatabase::operator<<(InputArchive& inputArchive)
@@ -167,19 +195,6 @@ const SceneDatabase& SceneDatabase::operator>>(OutputArchiveSwapBytes& outputArc
 {
 	*m_pSceneDatabaseImpl >> outputArchive;
 	return *this;
-}
-
-///////////////////////////////////////////////////////////////////
-// Light
-///////////////////////////////////////////////////////////////////
-void SceneDatabase::SetLightCount(uint32_t lightCount)
-{
-	m_lights.reserve(lightCount);
-}
-
-void SceneDatabase::AddLight(Light light)
-{
-	m_lights.emplace_back(MoveTemp(light));
 }
 
 }
