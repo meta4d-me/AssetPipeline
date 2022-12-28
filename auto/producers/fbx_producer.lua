@@ -29,12 +29,14 @@ project("FbxProducer")
 	}
 
 	files {
-		path.join(RootPath, "producers/FbxProducer/**.*"),
+		path.join(RootPath, "public/Producers/FbxProducer/**.*"),
+		path.join(RootPath, "private/Producers/FbxProducer/**.*"),
 	}
 	
 	vpaths {
 		["Source/*"] = { 
-			path.join(RootPath, "producers/FbxProducer/**.*"),
+			path.join(RootPath, "public/Producers/FbxProducer/**.*"),
+			path.join(RootPath, "private/Producers/FbxProducer/**.*"),
 		},
 	}
 	

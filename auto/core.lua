@@ -24,6 +24,13 @@ project("AssetPipelineCore")
 		path.join(RootPath, "private/**.*"),
 	}
 	
+	removefiles {
+		path.join(RootPath, "public/Producers/*/**.*"),
+		path.join(RootPath, "public/Consumers/*/**.*"),
+		path.join(RootPath, "private/Producers/*/**.*"),
+		path.join(RootPath, "private/Consumers/*/**.*"),
+	}
+
 	vpaths {
 		["Public/*"] = { 
 			path.join(RootPath, "public/**.*"),

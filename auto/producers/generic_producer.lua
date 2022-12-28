@@ -29,12 +29,14 @@ project("GenericProducer")
 	}
 
 	files {
-		path.join(RootPath, "producers/GenericProducer/**.*"),
+		path.join(RootPath, "public/Producers/GenericProducer/**.*"),
+		path.join(RootPath, "private/Producers/GenericProducer/**.*"),
 	}
 	
 	vpaths {
 		["Source/*"] = { 
-			path.join(RootPath, "producers/GenericProducer/**.*"),
+			path.join(RootPath, "public/Producers/GenericProducer/**.*"),
+			path.join(RootPath, "private/Producers/GenericProducer/**.*"),
 		},
 	}
 
