@@ -1,4 +1,4 @@
-#include "Light.h"
+#include "Scene/Light.h"
 #include "LightImpl.h"
 
 namespace cd

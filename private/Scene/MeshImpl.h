@@ -4,8 +4,8 @@
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
 #include "Math/AABB.hpp"
-#include "ObjectID.h"
-#include "VertexFormat.h"
+#include "Scene/ObjectID.h"
+#include "Scene/VertexFormat.h"
 
 #include <array>
 #include <string>

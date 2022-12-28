@@ -21,12 +21,16 @@ project("AssetPipelineCore")
 
 	files {
 		path.join(RootPath, "public/**.*"),
+		path.join(RootPath, "private/**.*"),
 	}
 	
 	vpaths {
 		["Public/*"] = { 
 			path.join(RootPath, "public/**.*"),
 		},
+		["Private/*"] = {
+			path.join(RootPath, "private/**.*"),
+		}
 	}
 	
 	includedirs {

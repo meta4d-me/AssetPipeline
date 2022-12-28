@@ -3,9 +3,9 @@
 #include "Base/Template.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
-#include "MaterialTextureType.h"
+#include "Scene/MaterialTextureType.h"
+#include "Scene/ObjectID.h"
 #include "Math/VectorDerived.hpp"
-#include "ObjectID.h"
 
 #include <map>
 #include <optional>

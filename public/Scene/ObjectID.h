@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Base/Export.h"
-#include "ObjectType.h"
+#include "Scene/ObjectType.h"
 
 #include <cstdint>
 #include <limits>
