@@ -1,4 +1,4 @@
-#include "MeshGenerator.h"
+#include "Math/MeshGenerator.h"
 
 #include "Math/Box.hpp"
 #include "Math/Plane.hpp"

@@ -1,4 +1,4 @@
-#include "Material.h"
+#include "Scene/Material.h"
 #include "MaterialImpl.h"
 
 namespace cd

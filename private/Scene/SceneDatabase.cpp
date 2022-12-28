@@ -1,4 +1,4 @@
-#include "SceneDatabase.h"
+#include "Scene/SceneDatabase.h"
 #include "SceneDatabaseImpl.h"
 
 #include "Base/Template.h"

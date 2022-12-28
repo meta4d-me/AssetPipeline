@@ -3,7 +3,7 @@
 #include "Base/Template.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
-#include "ObjectID.h"
+#include "Scene/ObjectID.h"
 
 #include <string>
 

@@ -1,4 +1,4 @@
-#include "VertexFormat.h"
+#include "Scene/VertexFormat.h"
 #include "VertexFormatImpl.h"
 
 namespace cd
