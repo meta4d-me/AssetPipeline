@@ -12,7 +12,7 @@ namespace cd
 class VertexFormat;
 class MeshImpl;
 
-class TOOL_API Mesh final
+class CORE_API Mesh final
 {
 public:
 	// We expect to use triangulated mesh data in game engine.
@@ -93,10 +93,6 @@ public:
 	Mesh& operator<<(InputArchiveSwapBytes& inputArchive);
 	const Mesh& operator>>(OutputArchive& outputArchive) const;
 	const Mesh& operator>>(OutputArchiveSwapBytes& outputArchive) const;
-
-public:
-	static constexpr uint32_t MaxUVSetNumber = 4U;
-	static constexpr uint32_t MaxColorSetNumber = 4U;
 
 private:
 	MeshImpl* m_pMeshImpl = nullptr;

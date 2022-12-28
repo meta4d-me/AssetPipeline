@@ -6,6 +6,9 @@
 namespace cd
 {
 
+static constexpr uint32_t MaxUVSetNumber = 4U;
+static constexpr uint32_t MaxColorSetNumber = 4U;
+
 enum class VertexAttributeType : uint8_t
 {
 	Position,

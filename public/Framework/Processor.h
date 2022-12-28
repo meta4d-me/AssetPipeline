@@ -18,7 +18,7 @@ class IConsumer;
 class IProducer;
 class ProcessorImpl;
 
-class TOOL_API Processor final
+class CORE_API Processor final
 {
 public:
 	Processor() = delete;

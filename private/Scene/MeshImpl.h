@@ -168,15 +168,11 @@ public:
 		return *this;
 	}
 
-public:
-	static constexpr uint32_t MaxUVSetNumber = 4U;
-	static constexpr uint32_t MaxColorSetNumber = 4U;
-
 private:
-	uint32_t				m_vertexCount = 0;
-	uint32_t				m_vertexUVSetCount = 0;
-	uint32_t				m_vertexColorSetCount = 0;
-	uint32_t				m_polygonCount = 0;
+	uint32_t				m_vertexCount = 0U;
+	uint32_t				m_vertexUVSetCount = 0U;
+	uint32_t				m_vertexColorSetCount = 0U;
+	uint32_t				m_polygonCount = 0U;
 
 	MeshID					m_id;
 	MaterialID				m_materialID;

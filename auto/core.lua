@@ -16,7 +16,7 @@ project("AssetPipelineCore")
 	filter {}
 
 	defines {
-		"TOOL_BUILD_SHARED"
+		"CORE_BUILD_SHARED"
 	}
 
 	files {

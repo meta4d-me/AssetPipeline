@@ -13,7 +13,7 @@ namespace cd
 
 class LightImpl;
 
-class TOOL_API Light final
+class CORE_API Light final
 {
 public:
 	Light() = delete;
