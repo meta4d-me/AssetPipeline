@@ -13,7 +13,7 @@ namespace cd
 
 class VertexFormatImpl;
 
-class TOOL_API VertexFormat
+class CORE_API VertexFormat final
 {
 public:
 	explicit VertexFormat();

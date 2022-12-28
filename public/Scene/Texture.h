@@ -10,7 +10,7 @@ namespace cd
 
 class TextureImpl;
 
-class TOOL_API Texture final
+class CORE_API Texture final
 {
 public:
 	Texture() = delete;

@@ -8,12 +8,12 @@ namespace cd
 
 Mesh::Mesh(InputArchive& inputArchive)
 {
-	*m_pMeshImpl << inputArchive;
+	m_pMeshImpl = new MeshImpl(inputArchive);
 }
 
 Mesh::Mesh(InputArchiveSwapBytes& inputArchive)
 {
-	*m_pMeshImpl << inputArchive;
+	m_pMeshImpl = new MeshImpl(inputArchive);
 }
 
 Mesh::Mesh(uint32_t vertexCount, uint32_t polygonCount)

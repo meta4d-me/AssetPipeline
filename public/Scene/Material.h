@@ -15,7 +15,7 @@ namespace cd
 
 class MaterialImpl;
 
-class TOOL_API Material final
+class CORE_API Material final
 {
 public:
 	using TextureIDMap = std::map<MaterialTextureType, TextureID>;

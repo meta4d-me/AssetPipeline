@@ -14,7 +14,7 @@ namespace cd
 
 class SceneDatabaseImpl;
 
-class TOOL_API SceneDatabase
+class CORE_API SceneDatabase final
 {
 public:
 	explicit SceneDatabase();

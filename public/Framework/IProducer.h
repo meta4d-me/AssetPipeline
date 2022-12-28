@@ -12,7 +12,7 @@ class SceneDatabase;
 namespace cdtools
 {
 
-class TOOL_API IProducer
+class CORE_API IProducer
 {
 public:
 	virtual void Execute(cd::SceneDatabase* pSceneDatabase) = 0;
