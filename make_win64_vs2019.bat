@@ -23,5 +23,3 @@ if exist "./auto/commercial_sdk_locations.bat" (
 @echo on
 cd auto
 call "./premake5" "vs2019"
-
-pause
