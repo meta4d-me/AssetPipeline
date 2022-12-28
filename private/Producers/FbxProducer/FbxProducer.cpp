@@ -1,4 +1,4 @@
-#include "FbxProducer.h"
+#include "Producers/FbxProducer/FbxProducer.h"
 #include "FbxProducerImpl.h"
 
 namespace cdtools

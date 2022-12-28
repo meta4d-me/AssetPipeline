@@ -1,4 +1,4 @@
-#include "GenericProducer.h"
+#include "Producers/GenericProducer/GenericProducer.h"
 #include "GenericProducerImpl.h"
 
 namespace cdtools

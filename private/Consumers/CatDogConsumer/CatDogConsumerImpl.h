@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Base/Template.h"
-#include "ExportMode.h"
+#include "Consumers/CatDogConsumer/ExportMode.h"
 
 #include <string>
 

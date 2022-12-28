@@ -1,4 +1,4 @@
-#include "FbxConsumer.h"
+#include "Consumers/FbxConsumer/FbxConsumer.h"
 #include "FbxConsumerImpl.h"
 
 namespace cdtools

@@ -1,4 +1,4 @@
-#include "CatDogProducer.h"
+#include "Producers/CatDogProducer/CatDogProducer.h"
 #include "CatDogProducerImpl.h"
 
 namespace cdtools

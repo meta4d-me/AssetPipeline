@@ -1,4 +1,4 @@
-#include "HeightFunctions.h"
+#include "Producers/TerrainProducer/HeightFunctions.h"
 
 #include "Noise/Noise.h"
 

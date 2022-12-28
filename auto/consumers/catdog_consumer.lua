@@ -28,12 +28,14 @@ project("CatDogConsumer")
 	}
 
 	files {
-		path.join(RootPath, "consumers/CatDogConsumer/**.*"),
+		path.join(RootPath, "public/Consumers/CatDogConsumer/**.*"),
+		path.join(RootPath, "private/Consumers/CatDogConsumer/**.*"),
 	}
 	
 	vpaths {
 		["Source/*"] = { 
-			path.join(RootPath, "consumers/CatDogConsumer/**.*"),
+			path.join(RootPath, "public/Consumers/CatDogConsumer/**.*"),
+			path.join(RootPath, "private/Consumers/CatDogConsumer/**.*"),
 		},
 	}
 

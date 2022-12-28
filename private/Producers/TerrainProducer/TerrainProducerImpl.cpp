@@ -1,8 +1,8 @@
 #include "TerrainProducerImpl.h"
 
 #include "Hashers/StringHash.hpp"
-#include "HeightFunctions.h"
 #include "Noise/Noise.h"
+#include "Producers/TerrainProducer/HeightFunctions.h"
 #include "Scene/Material.h"
 #include "Scene/SceneDatabase.h"
 #include "Scene/Texture.h"

@@ -1,4 +1,4 @@
-#include "TerrainProducer.h"
+#include "Producers/TerrainProducer/TerrainProducer.h"
 #include "TerrainProducerImpl.h"
 
 #include "Scene/Mesh.h"

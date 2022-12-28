@@ -94,6 +94,10 @@ public:
 	const Mesh& operator>>(OutputArchive& outputArchive) const;
 	const Mesh& operator>>(OutputArchiveSwapBytes& outputArchive) const;
 
+public:
+	static constexpr uint32_t MaxUVSetNumber = 4U;
+	static constexpr uint32_t MaxColorSetNumber = 4U;
+
 private:
 	MeshImpl* m_pMeshImpl = nullptr;
 };

@@ -226,25 +226,25 @@ const cd::Direction& Light::GetUp() const
 
 Light& Light::operator<<(InputArchive& inputArchive)
 {
-	*this << inputArchive;
+	*m_pLightImpl << inputArchive;
 	return *this;
 }
 
 Light& Light::operator<<(InputArchiveSwapBytes& inputArchive)
 {
-	*this << inputArchive;
+	*m_pLightImpl << inputArchive;
 	return *this;
 }
 
 const Light& Light::operator>>(OutputArchive& outputArchive) const
 {
-	*this >> outputArchive;
+	*m_pLightImpl >> outputArchive;
 	return *this;
 }
 
 const Light& Light::operator>>(OutputArchiveSwapBytes& outputArchive) const
 {
-	*this >> outputArchive;
+	*m_pLightImpl >> outputArchive;
 	return *this;
 }
 

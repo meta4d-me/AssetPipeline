@@ -53,7 +53,7 @@ function MakeExample(exampleProject)
 		local extraLinkDebugLibs = {}
 		local extraLinkReleaseLibs = {}
 		if doUseFbxProducer then
-			table.insert(extraIncludeDirs, path.join(RootPath, "producers/FbxProducer"))
+			table.insert(extraIncludeDirs, path.join(RootPath, "public/Producers/FbxProducer"))
 			table.insert(extraLinkDebugLibs, path.join(RootPath, "build/bin/Debug/FbxProducer"))
 			table.insert(extraLinkReleaseLibs, path.join(RootPath, "build/bin/Release/FbxProducer"))
 			dependson { "FbxProducer" }
@@ -61,7 +61,7 @@ function MakeExample(exampleProject)
 		end
 
 		if doUseFbxConsumer then
-			table.insert(extraIncludeDirs, path.join(RootPath, "consumers/FbxConsumer"))
+			table.insert(extraIncludeDirs, path.join(RootPath, "public/Consumers/FbxConsumer"))
 			table.insert(extraLinkDebugLibs, path.join(RootPath, "build/bin/Debug/FbxConsumer"))
 			table.insert(extraLinkReleaseLibs, path.join(RootPath, "build/bin/Release/FbxConsumer"))
 			dependson { "FbxConsumer" }
@@ -69,7 +69,7 @@ function MakeExample(exampleProject)
 		end
 
 		if doUseCatDogProducer then
-			table.insert(extraIncludeDirs, path.join(RootPath, "producers/CatDogProducer"))
+			table.insert(extraIncludeDirs, path.join(RootPath, "public/Producers/CatDogProducer"))
 			table.insert(extraLinkDebugLibs, path.join(RootPath, "build/bin/Debug/CatDogProducer"))
 			table.insert(extraLinkReleaseLibs, path.join(RootPath, "build/bin/Release/CatDogProducer"))
 			dependson { "CatDogProducer" }
@@ -77,7 +77,7 @@ function MakeExample(exampleProject)
 		end
 
 		if doUseCatDogConsumer then
-			table.insert(extraIncludeDirs, path.join(RootPath, "consumers/CatDogConsumer"))
+			table.insert(extraIncludeDirs, path.join(RootPath, "public/Consumers/CatDogConsumer"))
 			table.insert(extraLinkDebugLibs, path.join(RootPath, "build/bin/Debug/CatDogConsumer"))
 			table.insert(extraLinkReleaseLibs, path.join(RootPath, "build/bin/Release/CatDogConsumer"))
 			dependson { "CatDogConsumer" }
@@ -85,7 +85,7 @@ function MakeExample(exampleProject)
 		end
 
 		if doUseGenericProducer then
-			table.insert(extraIncludeDirs, path.join(RootPath, "producers/GenericProducer"))
+			table.insert(extraIncludeDirs, path.join(RootPath, "public/Producers/GenericProducer"))
 			table.insert(extraLinkDebugLibs, path.join(RootPath, "build/bin/Debug/GenericProducer"))
 			table.insert(extraLinkReleaseLibs, path.join(RootPath, "build/bin/Release/GenericProducer"))
 			dependson { "GenericProducer" }
@@ -97,7 +97,7 @@ function MakeExample(exampleProject)
 		end	
 		
 		if doUseTerrainProducer then
-			table.insert(extraIncludeDirs, path.join(RootPath, "producers/TerrainProducer"))
+			table.insert(extraIncludeDirs, path.join(RootPath, "public/Producers/TerrainProducer"))
 			table.insert(extraLinkDebugLibs, path.join(RootPath, "build/bin/Debug/TerrainProducer"))
 			table.insert(extraLinkReleaseLibs, path.join(RootPath, "build/bin/Release/TerrainProducer"))
 			dependson { "TerrainProducer" }
