@@ -3,7 +3,7 @@
 project("AssetPipelineCore")
 	kind("SharedLib")
 	language("C++")
-	cppdialect("C++latest")
+	Platform_SetCppDialect()
 
 	location(path.join(RootPath, "build"))
 

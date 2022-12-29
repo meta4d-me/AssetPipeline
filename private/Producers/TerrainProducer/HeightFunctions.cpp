@@ -2,7 +2,8 @@
 
 #include "Noise/Noise.h"
 
-#include <math.h>
+#include <climits>
+#include <cmath>
 #include <random>
 
 namespace

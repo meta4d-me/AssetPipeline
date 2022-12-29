@@ -1,8 +1,10 @@
 --------------------------------------------------------------
+print("Building terrain_producer")
+
 project("TerrainProducer")
 	kind("SharedLib")
 	language("C++")
-	cppdialect("C++latest")
+	Platform_SetCppDialect()
 	dependson { "AssetPipelineCore" }
 
 	location(path.join(RootPath, "build"))

@@ -10,8 +10,6 @@
 #include "Utilities/MeshUtils.h"
 #include "Utilities/Utils.h"
 
-#include <format>
-
 namespace cdtools
 {
 
@@ -94,7 +92,10 @@ cd::Mesh TerrainProducerImpl::CreateTerrainMesh(uint32_t sector_x, uint32_t sect
 	const uint32_t num_vertices = num_quads * 4;	// 4 vertices per quad
 	const uint32_t num_polygons = num_quads * 2;	// 2 triangles per quad
 
-	const std::string terrainMeshName = std::format("TerrainSector({},{})", sector_x, sector_z);
+	std::string terrainMeshName = "TerrainSector(";
+	terrainMeshName += sector_x + ",";
+	terrainMeshName += sector_z + ")";
+
 	bool isUsed = false;
 	cd::MeshID::ValueType meshHash = cd::StringHash<cd::TextureID::ValueType>(terrainMeshName);
 	cd::MeshID terrainMeshID = m_meshIDGenerator.AllocateID(meshHash, isUsed);

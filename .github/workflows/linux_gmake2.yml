@@ -1,0 +1,25 @@
+name: linux_gmake2
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-ubuntn:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Checkout submodules
+      run: git submodule update --init --recursive
+
+    - name: Generate makefile
+      run: |
+        chmod +x ${{github.workspace}}/make_linux_gmake2.sh
+        bash ${{github.workspace}}/make_linux_gmake2.sh
+    - name: Use makefile to compile
+      run: make

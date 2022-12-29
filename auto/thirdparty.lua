@@ -1,7 +1,7 @@
 --------------------------------------------------------------
 -- All SDK configs
 CommercialSDKConfigs = {}
-function DefineSDKConfig(sdkDirectoryMacro)
+local function DefineSDKConfig(sdkDirectoryMacro)
 	local sdkDirectory = os.getenv(sdkDirectoryMacro)
 	if sdkDirectory then
 		if not os.isdir(sdkDirectory) then
@@ -34,7 +34,7 @@ DefineSDKConfig("SPEEDTREE_SDK_DIR")
 --------------------------------------------------------------
 
 -- Define ThirdParty projects
-function DeclareExternalProject(projectName, projectKind, projectPath)
+local function DeclareExternalProject(projectName, projectKind, projectPath)
 	-- Same with projectName by default
 	projectPath = projectPath or projectName
 
@@ -43,18 +43,10 @@ function DeclareExternalProject(projectName, projectKind, projectPath)
 		location(projectPath)
 end
 
-group "ThirdParty/assimp"
-	DeclareExternalProject("assimp", "StaticLib", path.join(RootPath, "build/assimp/code"))
-		dependson { "zlibstatic" }
-	DeclareExternalProject("zlibstatic", "StaticLib", path.join(RootPath, "build/assimp/contrib/zlib"))
-group ""
-
-function SetupAssimpLib(assimpLibName, configName)
-	libdirs {
-		path.join(RootPath, "build/assimp/lib", configName),
-	}
-
-	links {
-		assimpLibName,
-	}
+if not os.istarget("linux") then
+	group "ThirdParty/assimp"
+		DeclareExternalProject("assimp", "StaticLib", path.join(RootPath, "build/assimp/code"))
+			dependson { "zlibstatic" }
+		DeclareExternalProject("zlibstatic", "StaticLib", path.join(RootPath, "build/assimp/contrib/zlib"))
+	group ""
 end

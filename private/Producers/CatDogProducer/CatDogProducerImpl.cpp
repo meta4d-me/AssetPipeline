@@ -14,7 +14,7 @@ void CatDogProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	
 	uint8_t fileEndian;
 	fin.read(reinterpret_cast<char*>(&fileEndian), sizeof(fileEndian));
-	uint8_t platformEndian = static_cast<uint8_t>(std::endian::native);
+	uint8_t platformEndian = static_cast<uint8_t>(cd::endian::native);
 
 	if (fileEndian != platformEndian)
 	{

@@ -46,13 +46,31 @@ project("AutoMake")
 		prebuildcommands {
 			"cd "..RootPath,
 			"make_win64_vs2019.bat",
-		}	
+		}
+	filter { "system:linux", "action:gmake2" }
+		prebuildcommands {
+			"cd "..RootPath,
+			"make_linux_gmake2.sh",
+		}
 	filter {}
 group("")
 --------------------------------------------------------------
+
+function Platform_SetCppDialect()
+	if os.istarget("linux") then
+		cppdialect("c++2a")
+	elseif os.istarget("windows") then
+		cppdialect("c++latest")
+	else
+		cppdialect("c++2a")
+	end
+end
 
 dofile("thirdparty.lua")
 dofile("core.lua")
 dofile("producers.lua")
 dofile("consumers.lua")
-dofile("examples.lua")
+
+if not os.istarget("linux") then
+	dofile("examples.lua")
+end

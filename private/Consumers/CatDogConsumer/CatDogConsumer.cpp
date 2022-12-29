@@ -33,7 +33,7 @@ void CatDogConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 	m_pCatDogConsumerImpl->Execute(pSceneDatabase);
 }
 
-void CatDogConsumer::ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, std::endian targetEndian)
+void CatDogConsumer::ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, cd::endian targetEndian)
 {
 	m_pCatDogConsumerImpl->ExportPureBinary(pSceneDatabase, targetEndian);
 }

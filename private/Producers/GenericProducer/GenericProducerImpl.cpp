@@ -12,7 +12,6 @@
 #include <assimp/version.h>
 
 #include <cassert>
-#include <format>
 #include <optional>
 #include <set>
 #include <unordered_map>
@@ -86,7 +85,8 @@ void GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabase, const a
 	else
 	{
 		static int unnamedMaterialCount = 0;
-		finalMaterialName = std::format("untitled_{}", unnamedMaterialCount++);
+		finalMaterialName = "untitled_";
+		finalMaterialName += unnamedMaterialCount++;
 		printf("\tWarning : current material doesn't have name?\n");
 	}
 

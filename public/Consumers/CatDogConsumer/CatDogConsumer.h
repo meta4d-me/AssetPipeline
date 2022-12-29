@@ -3,8 +3,6 @@
 #include "ExportMode.h"
 #include "Framework/IConsumer.h"
 
-#include <bit>
-
 namespace cdtools
 {
 
@@ -26,7 +24,7 @@ public:
 	void SetExportMode(ExportMode mode);
 
 private:
-	void ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, std::endian targetEndian = std::endian::native);
+	void ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, cd::endian targetEndian = cd::endian::native);
 	void ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase);
 
 private:

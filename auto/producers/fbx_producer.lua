@@ -1,9 +1,11 @@
 --------------------------------------------------------------
+print("Building fbx_producer")
+
 -- Define producer dll
 project("FbxProducer")
 	kind("SharedLib")
 	language("C++")
-	cppdialect("C++latest")
+	Platform_SetCppDialect()
 	dependson { "AssetPipelineCore" }
 
 	location(path.join(RootPath, "build"))
