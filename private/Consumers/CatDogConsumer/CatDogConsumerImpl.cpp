@@ -98,7 +98,9 @@ void CatDogConsumerImpl::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase
 		std::string meshFileName = mesh.GetName();
 		// replace "." in filename with "_" so that extension can be parsed easily.
 		std::replace(meshFileName.begin(), meshFileName.end(), '.', '_');
-		std::filesystem::path meshBinaryDataPath = std::format("{}/{}", xmlFilePath.parent_path().generic_string(), meshFileName + ".cdgeom");
+		std::filesystem::path meshBinaryDataPath = xmlFilePath.parent_path().generic_string();
+		meshBinaryDataPath += "/" + meshFileName + ".cdgeom";
+
 		std::ofstream foutBin(meshBinaryDataPath, std::ios::out | std::ios::binary);
 		cd::OutputArchive outputArchive(&foutBin);
 		mesh >> outputArchive;
