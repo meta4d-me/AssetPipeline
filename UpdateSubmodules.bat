@@ -1,3 +1,5 @@
+git submodule init
+
 REM grab latest commits from server
 git submodule update --recursive --remote
 
@@ -6,3 +8,5 @@ git submodule foreach "git checkout master || git checkout main"
 
 REM now do pull to fast-forward to latest commit
 git submodule foreach "git pull origin master || git pull origin main"
+
+pause

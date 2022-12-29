@@ -36,7 +36,6 @@ int main(int argc, char** argv)
 	generationParams.quadLengthInZ = 100;
 	generationParams.minElevation = 0;
 	generationParams.maxElevation = 2000;
-	generationParams.octaves = std::vector<HeightOctave>();
 	generationParams.octaves.emplace_back(uniform_long(generator), 1.0f, 0.0f);
 	generationParams.octaves.emplace_back(uniform_long(generator), 2.0f, 0.8f);
 	generationParams.octaves.emplace_back(uniform_long(generator), 4.0f, 0.8f);

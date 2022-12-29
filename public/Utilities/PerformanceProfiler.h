@@ -3,6 +3,7 @@
 #include "Base/Template.h"
 
 #include <chrono>
+#include <string>
 
 namespace cdtools
 {
