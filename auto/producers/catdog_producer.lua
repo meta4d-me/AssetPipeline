@@ -1,8 +1,10 @@
 --------------------------------------------------------------
+print("Building catdog_producer")
+
 project("CatDogProducer")
 	kind("SharedLib")
 	language("C++")
-	cppdialect("C++latest")
+	Platform_SetCppDialect()
 	dependson { "AssetPipelineCore" }
 
 	location(path.join(RootPath, "build"))

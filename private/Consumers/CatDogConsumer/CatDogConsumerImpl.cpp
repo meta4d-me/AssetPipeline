@@ -33,13 +33,13 @@ void CatDogConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
 	}
 }
 
-void CatDogConsumerImpl::ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, std::endian targetEndian)
+void CatDogConsumerImpl::ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, cd::endian targetEndian)
 {
 	std::ofstream foutBin(m_filePath, std::ios::out | std::ios::binary);
-	uint8_t platformEndian = static_cast<uint8_t>(std::endian::native);
+	uint8_t platformEndian = static_cast<uint8_t>(cd::endian::native);
 	foutBin.write(reinterpret_cast<const char*>(&platformEndian), sizeof(uint8_t));
 
-	if (std::endian::native == targetEndian)
+	if (cd::endian::native == targetEndian)
 	{
 		cd::OutputArchive outputArchive(&foutBin);
 		*pSceneDatabase >> outputArchive;

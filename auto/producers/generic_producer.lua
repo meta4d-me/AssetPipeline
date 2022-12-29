@@ -1,9 +1,21 @@
 --------------------------------------------------------------
+print("Building generic_producer")
+
+function SetupAssimpLib(assimpLibName, configName)
+	libdirs {
+		path.join(RootPath, "build/assimp/lib", configName),
+	}
+
+	links {
+		assimpLibName,
+	}
+end
+
 -- Assimp producer which used to parse as many kinds of file formats as possible.
 project("GenericProducer")
 	kind("SharedLib")
 	language("C++")
-	cppdialect("C++latest")
+	Platform_SetCppDialect()
 	dependson { "AssetPipelineCore", "assimp" }
 
 	location(path.join(RootPath, "build"))

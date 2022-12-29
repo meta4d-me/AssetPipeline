@@ -6,8 +6,6 @@
 #include "Math/VectorDerived.hpp"
 #include "Scene/ObjectID.h"
 
-#include <string>
-
 namespace cd
 {
 
