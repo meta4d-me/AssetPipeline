@@ -10,6 +10,12 @@ namespace cdtools
 
 struct HeightOctave
 {
+	HeightOctave(int64_t _seed, float _frequency, float _weight) :
+		seed(_seed),
+		frequency(_frequency),
+		weight(_weight)
+	{}
+
 	int64_t seed;
 	float frequency;
 	float weight;
