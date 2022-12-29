@@ -2,7 +2,7 @@
 
 #include "Base/Platform.h"
 #include "Base/Template.h"
-#include "Consumers/CatDogConsumer/ExportMode.h"
+#include "Consumers/CDConsumer/ExportMode.h"
 
 #include <string>
 
@@ -16,16 +16,16 @@ class SceneDatabase;
 namespace cdtools
 {
 
-class CatDogConsumerImpl final
+class CDConsumerImpl final
 {
 public:
-	CatDogConsumerImpl() = delete;
-	explicit CatDogConsumerImpl(std::string filePath) : m_filePath(cd::MoveTemp(filePath)) {}
-	CatDogConsumerImpl(const CatDogConsumerImpl&) = delete;
-	CatDogConsumerImpl& operator=(const CatDogConsumerImpl&) = delete;
-	CatDogConsumerImpl(CatDogConsumerImpl&&) = delete;
-	CatDogConsumerImpl& operator=(CatDogConsumerImpl&&) = delete;
-	~CatDogConsumerImpl() = default;
+	CDConsumerImpl() = delete;
+	explicit CDConsumerImpl(std::string filePath) : m_filePath(cd::MoveTemp(filePath)) {}
+	CDConsumerImpl(const CDConsumerImpl&) = delete;
+	CDConsumerImpl& operator=(const CDConsumerImpl&) = delete;
+	CDConsumerImpl(CDConsumerImpl&&) = delete;
+	CDConsumerImpl& operator=(CDConsumerImpl&&) = delete;
+	~CDConsumerImpl() = default;
 	void Execute(const cd::SceneDatabase* pSceneDatabase);
 
 	ExportMode GetExportMode() const { return m_exportMode; }

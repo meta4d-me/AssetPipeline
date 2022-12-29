@@ -1,4 +1,4 @@
-#include "CatDogConsumer.h"
+#include "CDConsumer.h"
 #include "Framework/Processor.h"
 #include "HeightFunctions.h"
 #include "TerrainProducer.h"
@@ -44,7 +44,7 @@ int main(int argc, char** argv)
 	generationParams.octaves.emplace_back(uniform_long(generator), 32.0f, 0.6f);
 
 	TerrainProducer producer(generationParams);
-	CatDogConsumer consumer(pOutputFilePath);
+	CDConsumer consumer(pOutputFilePath);
 	consumer.SetExportMode(cdtools::ExportMode::PureBinary);
 	// FbxConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);

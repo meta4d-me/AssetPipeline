@@ -1,4 +1,4 @@
-#include "CatDogProducerImpl.h"
+#include "CDProducerImpl.h"
 
 #include "IO/InputArchive.hpp"
 #include "Scene/SceneDatabase.h"
@@ -8,7 +8,7 @@
 namespace cdtools
 {
 
-void CatDogProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
+void CDProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 {
 	std::ifstream fin(m_filePath, std::ios::in | std::ios::binary);
 	

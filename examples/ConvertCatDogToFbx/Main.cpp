@@ -1,4 +1,4 @@
-#include "CatDogProducer.h"
+#include "CDProducer.h"
 #include "FbxConsumer.h"
 #include "Framework/Processor.h"
 #include "Utilities/PerformanceProfiler.h"
@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 
 	const char* pInputFilePath = argv[1];
 	const char* pOutputFilePath = argv[2];
-	CatDogProducer producer(pInputFilePath);
+	CDProducer producer(pInputFilePath);
 	FbxConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);
 	processor.Run();
