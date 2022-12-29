@@ -28,3 +28,11 @@ jobs:
       
     - name: Build Releasex64
       run: msbuild ${{github.workspace}}/AssetPipeline.sln /p:Configuration=Release /p:Platform=x64
+
+    - name: Upload built results to Artifact
+      uses: actions/upload-artifact@v3.1.1
+      with:
+        name: cdscene_sdk_win64_vs2019
+        path: |
+          ${{github.workspace}}/public/**/*.*
+          ${{github.workspace}}/build/bin/**/*.*
