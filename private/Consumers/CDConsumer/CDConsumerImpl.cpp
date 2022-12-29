@@ -1,4 +1,4 @@
-#include "CatDogConsumerImpl.h"
+#include "CDConsumerImpl.h"
 
 #include "IO/OutputArchive.hpp"
 #include "Scene/Material.h"
@@ -22,7 +22,7 @@ using XmlAttribute = rapidxml::xml_attribute<char>;
 namespace cdtools
 {
 
-void CatDogConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
+void CDConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
 {
 	switch (GetExportMode())
 	{
@@ -33,7 +33,7 @@ void CatDogConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
 	}
 }
 
-void CatDogConsumerImpl::ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, cd::endian targetEndian)
+void CDConsumerImpl::ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, cd::endian targetEndian)
 {
 	std::ofstream foutBin(m_filePath, std::ios::out | std::ios::binary);
 	uint8_t platformEndian = static_cast<uint8_t>(cd::endian::native);
@@ -53,7 +53,7 @@ void CatDogConsumerImpl::ExportPureBinary(const cd::SceneDatabase* pSceneDatabas
 	foutBin.close();
 }
 
-void CatDogConsumerImpl::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase)
+void CDConsumerImpl::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase)
 {
 	std::filesystem::path xmlFilePath = m_filePath;
 	xmlFilePath.replace_extension(".cdxml");

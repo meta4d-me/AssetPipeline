@@ -1,4 +1,4 @@
-#include "CatDogConsumer.h"
+#include "CDConsumer.h"
 #include "Framework/Processor.h"
 #include "GenericProducer.h"
 #include "Utilities/PerformanceProfiler.h"
@@ -26,7 +26,7 @@ int main(int argc, char** argv)
 	producer.ActivateTangentsSpaceService();
 	producer.ActivateCleanUnusedService();
 
-	CatDogConsumer consumer(pOutputFilePath);
+	CDConsumer consumer(pOutputFilePath);
 	consumer.SetExportMode(ExportMode::PureBinary);
 
 	Processor processor(&producer, &consumer);

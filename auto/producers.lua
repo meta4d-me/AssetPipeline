@@ -1,5 +1,5 @@
 group("Producers")
-dofile("producers/catdog_producer.lua")
+dofile("producers/cd_producer.lua")
 
 if not os.istarget("linux") then
 	dofile("producers/generic_producer.lua")

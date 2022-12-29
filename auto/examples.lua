@@ -13,8 +13,8 @@ function MakeExample(exampleProject)
 
 	local doUseFbxProducer = string.contains(exampleProject, "FbxTo")
 	local doUseFbxConsumer = string.contains(exampleProject, "ToFbx")
-	local doUseCatDogProducer = string.contains(exampleProject, "CatDogTo")
-	local doUseCatDogConsumer = string.contains(exampleProject, "ToCatDog")
+	local doUseCDProducer = string.contains(exampleProject, "CatDogTo")
+	local doUseCDConsumer = string.contains(exampleProject, "ToCatDog")
 	local doUseGenericProducer = string.contains(exampleProject, "GenericTo")
 	local doUseGenericConsumer = string.contains(exampleProject, "ToGeneric")
 	
@@ -68,20 +68,20 @@ function MakeExample(exampleProject)
 			print("Using FbxConsumer")
 		end
 
-		if doUseCatDogProducer then
-			table.insert(extraIncludeDirs, path.join(RootPath, "public/Producers/CatDogProducer"))
-			table.insert(extraLinkDebugLibs, path.join(RootPath, "build/bin/Debug/CatDogProducer"))
-			table.insert(extraLinkReleaseLibs, path.join(RootPath, "build/bin/Release/CatDogProducer"))
-			dependson { "CatDogProducer" }
-			print("Using CatDogProducer")
+		if doUseCDProducer then
+			table.insert(extraIncludeDirs, path.join(RootPath, "public/Producers/CDProducer"))
+			table.insert(extraLinkDebugLibs, path.join(RootPath, "build/bin/Debug/CDProducer"))
+			table.insert(extraLinkReleaseLibs, path.join(RootPath, "build/bin/Release/CDProducer"))
+			dependson { "CDProducer" }
+			print("Using CDProducer")
 		end
 
-		if doUseCatDogConsumer then
-			table.insert(extraIncludeDirs, path.join(RootPath, "public/Consumers/CatDogConsumer"))
-			table.insert(extraLinkDebugLibs, path.join(RootPath, "build/bin/Debug/CatDogConsumer"))
-			table.insert(extraLinkReleaseLibs, path.join(RootPath, "build/bin/Release/CatDogConsumer"))
-			dependson { "CatDogConsumer" }
-			print("Using CatDogConsumer")
+		if doUseCDConsumer then
+			table.insert(extraIncludeDirs, path.join(RootPath, "public/Consumers/CDConsumer"))
+			table.insert(extraLinkDebugLibs, path.join(RootPath, "build/bin/Debug/CDConsumer"))
+			table.insert(extraLinkReleaseLibs, path.join(RootPath, "build/bin/Release/CDConsumer"))
+			dependson { "CDConsumer" }
+			print("Using CDConsumer")
 		end
 
 		if doUseGenericProducer then

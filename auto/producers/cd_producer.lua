@@ -1,7 +1,7 @@
 --------------------------------------------------------------
-print("Building catdog_consumer")
+print("Building catdog_producer")
 
-project("CatDogConsumer")
+project("CDProducer")
 	kind("SharedLib")
 	language("C++")
 	Platform_SetCppDialect()
@@ -15,14 +15,14 @@ project("CatDogConsumer")
 		libdirs(path.join(RootPath, "build/bin/Debug"))
 		links {
 			path.join(RootPath, "build/bin/Debug/AssetPipelineCore")
-		}
+		}		
 	filter { "configurations:Release" }
 		objdir(path.join(RootPath, "build/obj/Release"))
 		targetdir(path.join(RootPath, "build/bin/Release"))
 		libdirs(path.join(RootPath, "build/bin/Release"))
 		links {
 			path.join(RootPath, "build/bin/Release/AssetPipelineCore")
-		}
+		}		
 	filter {}
 
 	defines {
@@ -30,14 +30,14 @@ project("CatDogConsumer")
 	}
 
 	files {
-		path.join(RootPath, "public/Consumers/CatDogConsumer/**.*"),
-		path.join(RootPath, "private/Consumers/CatDogConsumer/**.*"),
+		path.join(RootPath, "public/Producers/CDProducer/**.*"),
+		path.join(RootPath, "private/Producers/CDProducer/**.*"),
 	}
 	
 	vpaths {
 		["Source/*"] = { 
-			path.join(RootPath, "public/Consumers/CatDogConsumer/**.*"),
-			path.join(RootPath, "private/Consumers/CatDogConsumer/**.*"),
+			path.join(RootPath, "public/Producers/CDProducer/**.*"),
+			path.join(RootPath, "private/Producers/CDProducer/**.*"),
 		},
 	}
 

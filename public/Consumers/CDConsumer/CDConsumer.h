@@ -6,18 +6,18 @@
 namespace cdtools
 {
 
-class CatDogConsumerImpl;
+class CDConsumerImpl;
 
-class TOOL_API CatDogConsumer final : public IConsumer
+class TOOL_API CDConsumer final : public IConsumer
 {
 public:
-	CatDogConsumer() = delete;
-	explicit CatDogConsumer(const char* pFilePath);
-	CatDogConsumer(const CatDogConsumer&) = delete;
-	CatDogConsumer& operator=(const CatDogConsumer&) = delete;
-	CatDogConsumer(CatDogConsumer&&) = delete;
-	CatDogConsumer& operator=(CatDogConsumer&&) = delete;
-	virtual ~CatDogConsumer();
+	CDConsumer() = delete;
+	explicit CDConsumer(const char* pFilePath);
+	CDConsumer(const CDConsumer&) = delete;
+	CDConsumer& operator=(const CDConsumer&) = delete;
+	CDConsumer(CDConsumer&&) = delete;
+	CDConsumer& operator=(CDConsumer&&) = delete;
+	virtual ~CDConsumer();
 	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) override;
 
 	ExportMode GetExportMode() const;
@@ -28,7 +28,7 @@ private:
 	void ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase);
 
 private:
-	CatDogConsumerImpl* m_pCatDogConsumerImpl;
+	CDConsumerImpl* m_pCDConsumerImpl;
 };
 
 }
