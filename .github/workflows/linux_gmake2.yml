@@ -12,7 +12,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3.2.0
 
     - name: Checkout submodules
       run: git submodule update --init --recursive
@@ -21,12 +21,15 @@ jobs:
       run: |
         chmod +x ${{github.workspace}}/make_linux_gmake2.sh
         bash ${{github.workspace}}/make_linux_gmake2.sh
-    - name: Use makefile to compile
-      run: make
+    - name: Use makefile to compile debug version
+      run: make config=debug
+    - name: Use makefile to compile release version
+      run: make config=release
     - name: Upload built results to Artifact
       uses: actions/upload-artifact@v3.1.1
       with:
         name: cdscene_sdk_linux_gmake2
         path: |
           ${{github.workspace}}/public/**/*.*
-          ${{github.workspace}}/build/bin/**/*.*
+          ${{github.workspace}}/build/bin/**/AssetPipelineCore.*
+          ${{github.workspace}}/build/bin/**/CDProducer.*
