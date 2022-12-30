@@ -31,5 +31,5 @@ jobs:
         name: cdscene_sdk_linux_gmake2
         path: |
           ${{github.workspace}}/public/**/*.*
-          ${{github.workspace}}/build/bin/**/AssetPipelineCore.*
-          ${{github.workspace}}/build/bin/**/CDProducer.*
+          ${{github.workspace}}/build/bin/**/libAssetPipelineCore.*
+          ${{github.workspace}}/build/bin/**/libCDProducer.*
