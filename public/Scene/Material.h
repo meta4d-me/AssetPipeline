@@ -4,7 +4,7 @@
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
 #include "MaterialTextureType.h"
-#include "Math/VectorDerived.hpp"
+#include "Math/Vector.hpp"
 #include "Scene/ObjectID.h"
 
 #include <map>

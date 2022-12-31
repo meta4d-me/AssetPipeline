@@ -364,7 +364,7 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	}
 
 	// Post-process meshes.
-	cd::AABB sceneAABB;
+	cd::AABB sceneAABB(0.0f, 0.0f);
 	std::optional<std::set<uint32_t>> optUsedMaterialIndexes = std::nullopt;
 	if (IsCleanUnusedServiceActive())
 	{

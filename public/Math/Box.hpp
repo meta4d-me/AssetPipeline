@@ -3,7 +3,7 @@
 #include "Base/Template.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
-#include "VectorDerived.hpp"
+#include "Math/Vector.hpp"
 
 #include <assert.h>
 
@@ -19,7 +19,7 @@ template<typename T>
 class TBox final
 {
 private:
-	using Vec = VectorDerived<T, 3>;
+	using Vec = TVector<T, 3>;
 
 public:
 	explicit constexpr TBox() = default;
@@ -49,7 +49,7 @@ public:
 
 	void Expand(const TBox& other)
 	{
-		for (int index = 0; index < m_min.size(); ++index)
+		for (int index = 0; index < m_min.Size; ++index)
 		{
 			m_min.x() = std::min(m_min.x(), other.Min().x());
 			m_min.y() = std::min(m_min.y(), other.Min().y());
@@ -64,8 +64,8 @@ public:
 	template<bool SwapBytesOrder>
 	TBox& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
-		inputArchive.ImportBuffer(m_min.begin());
-		inputArchive.ImportBuffer(m_max.begin());
+		inputArchive.ImportBuffer(m_min.Begin());
+		inputArchive.ImportBuffer(m_max.Begin());
 
 		return *this;
 	}
@@ -73,8 +73,8 @@ public:
 	template<bool SwapBytesOrder>
 	const TBox& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive.ExportBuffer(m_min.begin(), m_min.size());
-		outputArchive.ExportBuffer(m_max.begin(), m_max.size());
+		outputArchive.ExportBuffer(m_min.Begin(), m_min.Size);
+		outputArchive.ExportBuffer(m_max.Begin(), m_max.Size);
 
 		return *this;
 	}

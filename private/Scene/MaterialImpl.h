@@ -5,7 +5,7 @@
 #include "IO/OutputArchive.hpp"
 #include "Scene/MaterialTextureType.h"
 #include "Scene/ObjectID.h"
-#include "Math/VectorDerived.hpp"
+#include "Math/Vector.hpp"
 
 #include <map>
 #include <optional>

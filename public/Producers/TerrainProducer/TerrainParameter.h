@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Math/VectorDerived.hpp"
+#include "Math/Vector.hpp"
 
 #include <cstdint>
 #include <vector>
