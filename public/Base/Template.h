@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Base/Platform.h"
+
 #include <type_traits>
 
 namespace cd

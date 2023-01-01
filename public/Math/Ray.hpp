@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VectorDerived.hpp"
+#include "Vector.hpp"
 
 namespace cd
 {
@@ -12,8 +12,8 @@ template<typename T>
 class TRay
 {
 public:
-	using TDirection = VectorDerived<T, 3>;
-	using TPoint = VectorDerived<T, 3>;
+	using TDirection = TVector<T, 3>;
+	using TPoint = TVector<T, 3>;
 
 public:
 	TRay() = default;

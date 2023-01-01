@@ -61,7 +61,6 @@ std::optional<Mesh> MeshGenerator::Generate(const Box& box, const VertexFormat& 
 		for (uint32_t polygonIndex = 0U; polygonIndex < mesh.GetPolygonCount(); ++polygonIndex)
 		{
 			const Mesh::Polygon& polygon = mesh.GetPolygon(polygonIndex);
-			assert(polygon.size() == 3U && "Should be a triangle mesh.");
 
 			const Point& v1 = mesh.GetVertexPosition(polygon[0].Data());
 			const Point& v2 = mesh.GetVertexPosition(polygon[1].Data());

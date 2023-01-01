@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Base/Template.h"
-#include "VectorDerived.hpp"
+#include "Vector.hpp"
 
 namespace cd
 {

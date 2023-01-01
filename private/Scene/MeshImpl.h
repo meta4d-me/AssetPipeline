@@ -18,7 +18,7 @@ class MeshImpl final
 {
 public:
 	// We expect to use triangulated mesh data in game engine.
-	using Polygon = VectorDerived<VertexID, 3>;
+	using Polygon = TVector<VertexID, 3>;
 
 public:
 	MeshImpl() = delete;

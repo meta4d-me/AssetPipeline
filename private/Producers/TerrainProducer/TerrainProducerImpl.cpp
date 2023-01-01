@@ -10,6 +10,8 @@
 #include "Utilities/MeshUtils.h"
 #include "Utilities/Utils.h"
 
+#include <cinttypes>
+
 namespace cdtools
 {
 
@@ -45,7 +47,7 @@ TerrainProducerImpl::TerrainProducerImpl(const TerrainGenParams& genParams)
 	printf("\t\tEach Quad has dimension(%d, %d)\n", m_quadLengthInX, m_quadLengthInZ);
 	for (const HeightOctave& octave : m_octaves)
 	{
-		printf("\tOctave: seed: %I64d, freq: %f, weight: %f\n", octave.seed, octave.frequency, octave.weight);
+		printf("\tOctave: seed: %" PRId64 ", freq: %f, weight: %f\n", octave.seed, octave.frequency, octave.weight);
 	}
 }
 

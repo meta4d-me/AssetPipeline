@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Base/Platform.h"
 #include "Base/Template.h"
 #include "Consumers/CDConsumer/ExportMode.h"
 

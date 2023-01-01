@@ -3,7 +3,7 @@
 #include "Base/Template.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
-#include "Math/VectorDerived.hpp"
+#include "Math/Vector.hpp"
 #include "Scene/ObjectID.h"
 
 #include <string>
