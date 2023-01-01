@@ -30,7 +30,6 @@ public:
 		: m_min(MoveTemp(min))
 		, m_max(MoveTemp(max))
 	{
-		assert(!Empty() && "Init an empty Box.");
 	}
 
 	TBox(const TBox&) = default;
