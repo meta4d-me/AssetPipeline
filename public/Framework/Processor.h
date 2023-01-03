@@ -22,7 +22,7 @@ class CORE_API Processor final
 {
 public:
 	Processor() = delete;
-	explicit Processor(IProducer* pProducer, IConsumer* pConsumer);
+	explicit Processor(IProducer* pProducer, IConsumer* pConsumer, cd::SceneDatabase* pHostSceneDatabase = nullptr);
 	Processor(const Processor&) = delete;
 	Processor& operator=(const Processor&) = delete;
 	Processor(Processor&&) = delete;

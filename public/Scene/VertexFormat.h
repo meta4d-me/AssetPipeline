@@ -29,6 +29,10 @@ public:
 	// Returns if vertex format contains vertex attribute type.
 	bool Contains(VertexAttributeType attributeType) const;
 
+	bool IsCompatiableTo(const VertexFormat& other) const;
+
+	uint32_t GetStride() const;
+
 	VertexFormat& operator<<(InputArchive& inputArchive);
 	VertexFormat& operator<<(InputArchiveSwapBytes& inputArchive);
 	const VertexFormat& operator>>(OutputArchive& outputArchive) const;

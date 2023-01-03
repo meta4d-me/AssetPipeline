@@ -4,9 +4,9 @@
 namespace cdtools
 {
 
-Processor::Processor(IProducer* pProducer, IConsumer* pConsumer)
+Processor::Processor(IProducer* pProducer, IConsumer* pConsumer, cd::SceneDatabase* pHostSceneDatabase)
 {
-	m_pProcessorImpl = new ProcessorImpl(pProducer, pConsumer);
+	m_pProcessorImpl = new ProcessorImpl(pProducer, pConsumer, pHostSceneDatabase);
 }
 
 Processor::~Processor()

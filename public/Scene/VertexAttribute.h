@@ -23,6 +23,7 @@ enum class AttributeValueType : uint8_t
 {
 	Uint8,
 	Float,
+	Uint16,
 };
 
 template<typename T>
@@ -31,6 +32,10 @@ static constexpr AttributeValueType GetAttributeValueType()
 	if constexpr (std::is_same<T, uint8_t>())
 	{
 		return AttributeValueType::Uint8;
+	}
+	else if constexpr (std::is_same<T, uint16_t>())
+	{
+		return AttributeValueType::Uint16;
 	}
 	else if constexpr (std::is_same<T, float>())
 	{
