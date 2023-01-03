@@ -44,6 +44,16 @@ bool VertexFormat::Contains(VertexAttributeType attributeType) const
 	return m_pVertexFormatImpl->Contains(attributeType);
 }
 
+bool VertexFormat::IsCompatiableTo(const VertexFormat& other) const
+{
+	return m_pVertexFormatImpl->IsCompatiableTo(*other.m_pVertexFormatImpl);
+}
+
+uint32_t VertexFormat::GetStride() const
+{
+	return m_pVertexFormatImpl->GetStride();
+}
+
 VertexFormat& VertexFormat::operator<<(InputArchive& inputArchive)
 {
 	*m_pVertexFormatImpl << inputArchive;

@@ -25,6 +25,10 @@ public:
 	// Returns if vertex format contains vertex attribute type.
 	bool Contains(VertexAttributeType attributeType) const;
 
+	bool IsCompatiableTo(const VertexFormatImpl& other) const;
+
+	uint32_t GetStride() const;
+
 	template<bool SwapBytesOrder>
 	VertexFormatImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{

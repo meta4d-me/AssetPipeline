@@ -9,13 +9,24 @@
 namespace cdtools
 {
 
-ProcessorImpl::ProcessorImpl(IProducer* pProducer, IConsumer* pConsumer) :
+ProcessorImpl::ProcessorImpl(IProducer* pProducer, IConsumer* pConsumer, cd::SceneDatabase* pHostSceneDatabase) :
 	m_pProducer(pProducer),
-	m_pConsumer(pConsumer),
-	m_pSceneDatabase(std::make_unique<cd::SceneDatabase>())
+	m_pConsumer(pConsumer)
 {
 	assert(pProducer && "pProducer is invalid.");
 	assert(pConsumer && "pConsumer is invalid.");
+
+	if (nullptr == pHostSceneDatabase)
+	{
+		// Processor will create a SceneDatabase managed by itself.
+		m_pLocalSceneDatabase = std::make_unique<cd::SceneDatabase>();
+		m_pCurrentSceneDatabase = m_pLocalSceneDatabase.get();
+	}
+	else
+	{
+		// The SceneDatabase is from outside resource.
+		m_pCurrentSceneDatabase = pHostSceneDatabase;
+	}
 }
 
 ProcessorImpl::~ProcessorImpl()
@@ -24,8 +35,8 @@ ProcessorImpl::~ProcessorImpl()
 
 void ProcessorImpl::Run()
 {
-	m_pProducer->Execute(m_pSceneDatabase.get());
-	m_pConsumer->Execute(m_pSceneDatabase.get());
+	m_pProducer->Execute(m_pCurrentSceneDatabase);
+	m_pConsumer->Execute(m_pCurrentSceneDatabase);
 }
 
 }
