@@ -30,7 +30,10 @@ public:
 	GenericProducerImpl& operator=(GenericProducerImpl&&) = delete;
 	~GenericProducerImpl() = default;
 
+	void SetSceneDatabaseIDs(uint32_t meshID, uint32_t materialID, uint32_t textureID);
+
 	void Execute(cd::SceneDatabase* pSceneDatabase);
+
 	uint32_t GetImportFlags() const;
 	void AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial);
 	void AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh);
@@ -62,6 +65,7 @@ private:
 	bool m_bWantTangentsSpace = false;
 	bool m_bWantCleanUnused = false;
 
+	cd::ObjectIDGenerator<cd::MeshID> m_meshIDGenerator;
 	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
 	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
 	std::string m_filePath;

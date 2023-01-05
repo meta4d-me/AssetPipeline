@@ -28,6 +28,9 @@ public:
 	ObjectIDGenerator& operator=(ObjectIDGenerator&&) = delete;
 	~ObjectIDGenerator() = default;
 
+	void GetCurrentID() const { return m_currentID; }
+	void SetCurrentID(Vty id) { m_currentID = id; }
+
 	// Set generated id range in [min, max]
 	void SetRange(Vty min, Vty max) { m_minID = min; m_maxID = max; }
 
