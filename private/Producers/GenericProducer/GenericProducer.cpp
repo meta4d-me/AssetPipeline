@@ -33,6 +33,11 @@ void GenericProducer::AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* p
 	m_pGenericProducerImpl->AddMesh(pSceneDatabase, pSourceMesh);
 }
 
+void GenericProducer::SetSceneDatabaseIDs(uint32_t meshID, uint32_t materialID, uint32_t textureID)
+{
+	m_pGenericProducerImpl->SetSceneDatabaseIDs(meshID, materialID, textureID);
+}
+
 void GenericProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 {
 	m_pGenericProducerImpl->Execute(pSceneDatabase);

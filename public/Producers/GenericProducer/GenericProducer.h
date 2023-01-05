@@ -24,6 +24,7 @@ public:
 	GenericProducer& operator=(GenericProducer&&) = delete;
 	virtual ~GenericProducer();
 
+	void SetSceneDatabaseIDs(uint32_t meshID, uint32_t materialID, uint32_t textureID);
 	virtual void Execute(cd::SceneDatabase* pSceneDatabase) override;
 
 	/// <summary>

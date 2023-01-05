@@ -175,7 +175,9 @@ void GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMes
 
 	assert(pSourceMesh->mVertices && numVertices > 0 && "No vertex data.");
 
-	cd::MeshID meshID(pSceneDatabase->GetMeshCount());
+	bool isMeshReused;
+	cd::MeshID::ValueType meshHash = cd::StringHash<cd::MeshID::ValueType>(pSourceMesh->mName.C_Str());
+	cd::MeshID meshID = m_meshIDGenerator.AllocateID(meshHash, isMeshReused);
 	printf("\t[MeshID %u] face number : %u, vertex number : %u\n", meshID.Data(), pSourceMesh->mNumFaces, numVertices);
 
 	cd::Mesh mesh(meshID, pSourceMesh->mName.C_Str(), numVertices, pSourceMesh->mNumFaces);
@@ -341,6 +343,13 @@ void GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMes
 
 	mesh.SetVertexFormat(cd::MoveTemp(meshVertexFormat));
 	pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
+}
+
+void GenericProducerImpl::SetSceneDatabaseIDs(uint32_t meshID, uint32_t materialID, uint32_t textureID)
+{
+	m_meshIDGenerator.SetCurrentID(meshID);
+	m_materialIDGenerator.SetCurrentID(materialID);
+	m_textureIDGenerator.SetCurrentID(textureID);
 }
 
 void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
