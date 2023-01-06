@@ -1,10 +1,12 @@
 #pragma once
 
 #include "Base/Export.h"
+#include "Base/Template.h"
 #include "Math/AABB.hpp"
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
 #include "Scene/Texture.h"
+#include "Scene/Transform.h"
 #include "Scene/Light.h"
 
 #include <vector>
@@ -30,6 +32,13 @@ public:
 	void SetAABB(AABB aabb);
 	AABB& GetAABB();
 	const AABB& GetAABB() const;
+
+	// Transform
+	void AddTransform(Transform transform);
+	const std::vector<Transform>& GetTransforms() const;
+	void SetTransformCount(uint32_t transformCount);
+	const Transform& GetTransform(uint32_t index) const;
+	uint32_t GetTransformCount() const;
 
 	// Mesh
 	void AddMesh(Mesh mesh);
