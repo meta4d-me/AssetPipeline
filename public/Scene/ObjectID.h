@@ -27,6 +27,7 @@ public:
 	ObjectID& operator=(ObjectID&&) = default;
 	~ObjectID() = default;
 	const T& Data() const { return m_id; }
+	void Set(T id) { m_id = id; }
 
 	ObjectID& operator=(T id) { m_id = id; return *this; } 
 	bool IsValid() const { return m_id != InvalidID; }
@@ -46,5 +47,7 @@ using MeshID = ObjectID<uint32_t, ObjectType::Mesh>;
 using MaterialID = ObjectID<uint32_t, ObjectType::Material>;
 using TextureID = ObjectID<uint32_t, ObjectType::Texture>;
 using LightID = ObjectID<uint32_t, ObjectType::Light>;
+using TransformID = ObjectID<uint32_t, ObjectType::Transform>;
+using CameraID = ObjectID<uint32_t, ObjectType::Camera>;
 
 }

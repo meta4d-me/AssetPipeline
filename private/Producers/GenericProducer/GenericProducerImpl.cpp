@@ -16,6 +16,29 @@
 #include <set>
 #include <unordered_map>
 
+namespace
+{
+
+uint32_t GetSceneNodesCount(const aiNode* pSceneNode)
+{
+	if (0U == pSceneNode->mNumChildren)
+	{
+		return 1U;
+	}
+
+	uint32_t totalCount = 0U;
+	uint32_t childCount = pSceneNode->mNumChildren;
+	for (uint32_t childIndex = 0U; childIndex < childCount; ++childIndex)
+	{
+		const aiNode* pChildNode = pSceneNode->mChildren[childIndex];
+		totalCount += GetSceneNodesCount(pChildNode);
+	}
+
+	return totalCount;
+}
+
+}
+
 namespace cdtools
 {
 
@@ -54,7 +77,7 @@ uint32_t GenericProducerImpl::GetImportFlags() const
 	return importFlags;
 }
 
-void GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial)
+cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial)
 {
 	static std::unordered_map<aiTextureType, cd::MaterialTextureType> materialTextureMapping;
 	{
@@ -98,7 +121,7 @@ void GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabase, const a
 		// Skip to parse material which should already exist in SceneDatabase.
 		// Note that two materials with same configs but have different names will be considered as different materia.
 		// Because we only use material name as hash value. Don't want to compare all parameters.
-		return;
+		return materialID;
 	}
 
 	printf("\t[MaterialID %u] %s\n", materialID.Data(), finalMaterialName.c_str());
@@ -161,9 +184,10 @@ void GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabase, const a
 	}
 
 	pSceneDatabase->AddMaterial(cd::MoveTemp(material));
+	return materialID;
 }
 
-void GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh)
+cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh)
 {
 	assert(pSourceMesh->mFaces && pSourceMesh->mNumFaces > 0 && "No polygon data.");
 
@@ -343,13 +367,53 @@ void GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMes
 
 	mesh.SetVertexFormat(cd::MoveTemp(meshVertexFormat));
 	pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
+	return meshID;
 }
 
-void GenericProducerImpl::SetSceneDatabaseIDs(uint32_t meshID, uint32_t materialID, uint32_t textureID)
+cd::TransformID GenericProducerImpl::AddTransform(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t transformID)
 {
+	aiMatrix4x4 sourceMatrix = pSourceNode->mTransformation;
+	cd::Matrix4x4 transformation(sourceMatrix.a1, sourceMatrix.b1, sourceMatrix.c1, sourceMatrix.d1,
+		sourceMatrix.a2, sourceMatrix.b2, sourceMatrix.c2, sourceMatrix.d2,
+		sourceMatrix.a3, sourceMatrix.b3, sourceMatrix.c3, sourceMatrix.d3,
+		sourceMatrix.a4, sourceMatrix.b4, sourceMatrix.c4, sourceMatrix.d4);
+
+	cd::TransformID sceneTransformID(transformID);
+	cd::Transform transform(sceneTransformID, cd::MoveTemp(transformation));
+
+	// Add meshes from transform node.
+	for (uint32_t meshIndex = 0; meshIndex < pSourceNode->mNumMeshes; ++meshIndex)
+	{
+		uint32_t sceneMeshIndex = pSourceNode->mMeshes[meshIndex];
+		cd::MeshID meshID = AddMesh(pSceneDatabase, pSourceScene->mMeshes[sceneMeshIndex]);
+		transform.AddMeshID(meshID.Data());
+	}
+
+	std::vector<uint32_t> childTransformIDs;
+	for (uint32_t childIndex = 0U; childIndex < pSourceNode->mNumChildren; ++childIndex)
+	{
+		uint32_t childTransformID = m_transformIDGenerator.AllocateID();
+		childTransformIDs.push_back(childTransformID);
+	}
+
+	for (uint32_t childIndex = 0U; childIndex < pSourceNode->mNumChildren; ++childIndex)
+	{
+		uint32_t childTransformID = childTransformIDs[childIndex];
+		transform.AddChildID(childTransformID);
+		AddTransform(pSceneDatabase, pSourceScene, pSourceNode->mChildren[childIndex], childTransformID);
+	}
+
+	pSceneDatabase->AddTransform(cd::MoveTemp(transform));
+	return sceneTransformID;
+}
+
+void GenericProducerImpl::SetSceneDatabaseIDs(uint32_t transformID, uint32_t meshID, uint32_t materialID, uint32_t textureID, uint32_t lightID)
+{
+	m_transformIDGenerator.SetCurrentID(transformID);
 	m_meshIDGenerator.SetCurrentID(meshID);
 	m_materialIDGenerator.SetCurrentID(materialID);
 	m_textureIDGenerator.SetCurrentID(textureID);
+	m_lightIDGenerator.SetCurrentID(lightID);
 }
 
 void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
@@ -365,12 +429,11 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 
 	pSceneDatabase->SetName(m_filePath.c_str());
 
-	// Process all meshes.
+	// Process all transforms.
+	aiNode* pSceneRootNode = pScene->mRootNode;
+	pSceneDatabase->SetTransformCount(GetSceneNodesCount(pSceneRootNode));
 	pSceneDatabase->SetMeshCount(pScene->mNumMeshes);
-	for (uint32_t meshIndex = 0; meshIndex < pScene->mNumMeshes; ++meshIndex)
-	{
-		AddMesh(pSceneDatabase, pScene->mMeshes[meshIndex]);
-	}
+	AddTransform(pSceneDatabase, pScene, pSceneRootNode, m_transformIDGenerator.AllocateID());
 
 	// Post-process meshes.
 	cd::AABB sceneAABB(0.0f, 0.0f);

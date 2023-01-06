@@ -12,6 +12,8 @@ enum class ObjectType
 	Material,
 	Texture,
 	Light,
+	Transform,
+	Camera
 };
 
 }

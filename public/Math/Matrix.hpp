@@ -13,7 +13,7 @@ public:
 	static constexpr std::size_t ColCount = Cols;
 	static constexpr std::size_t Size = RowCount * ColCount;
 
-	static TMatrix<T, Rows, Cols> Identity() const
+	static TMatrix<T, Rows, Cols> Identity()
 	{
 		if constexpr (2 == Rows && 2 == Cols)
 		{
@@ -30,6 +30,7 @@ public:
 		else
 		{
 			static_assert("What do you expect to get?");
+			return TMatrix<T, Rows, Cols>(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 		}
 	}
 	
@@ -38,15 +39,14 @@ public:
 	TMatrix() = default;
 	
 	// Rows x Cols
-	TMatrix(const T* const a)
+	TMatrix(const T* const pRawData)
 	{
 		int index = 0;
-		std::for_each(Begin(), End(), [&index](T& component) { component = a[index++]; });
+		std::for_each(Begin(), End(), [&pRawData, &index](T& component) { component = pRawData[index++]; });
 	}
 	
 	// 2x2
-	TMatrix(T a00, T a10,
-		T a01, T a11,)
+	TMatrix(T a00, T a10, T a01, T a11)
 	{
 		static_assert(2 == Rows && 2 == Cols);
 		data[0] = TVector<T, 2>(a00, a10);
@@ -113,18 +113,18 @@ public:
 	// STL style's iterators.
 	using iterator = T*;
 	using const_iterator = const T*;
-	iterator Begin() { return &data[0]; }
-	iterator End() { return &data[0] + Size; }
-	const_iterator Begin() const { return &data[0]; }
-	const_iterator End() const { return &data[0] + Size; }
+	iterator Begin() { return &data[0][0]; }
+	iterator End() { return &data[0][0] + Size; }
+	const_iterator Begin() const { return &data[0][0]; }
+	const_iterator End() const { return &data[0][0] + Size; }
 
 	// Get
 	CD_FORCEINLINE const TVector<T, Rows>& GetColumn(int index) const { return data[index]; }
-	CD_FORCEINLINE TVector<T, Rows>& GetColumn(int index) const { return data[index]; }
+	CD_FORCEINLINE TVector<T, Rows>& GetColumn(int index) { return data[index]; }
 	CD_FORCEINLINE T operator()(int row, int col) const { return data[col][row]; }
-	CD_FORCEINLINE T& operator()(int row, int col) const { return data[col][row]; }
+	CD_FORCEINLINE T& operator()(int row, int col) { return data[col][row]; }
 	CD_FORCEINLINE T Data(int index) const { return reinterpret_cast<T*>(data)[index]; }
-	CD_FORCEINLINE T& Data(int index) const { return reinterpret_cast<T*>(data)[index]; }
+	CD_FORCEINLINE T& Data(int index) { return reinterpret_cast<T*>(data)[index]; }
 
 	// Math
 	TMatrix<T, Rows, Cols> Inverse() const
@@ -176,7 +176,7 @@ public:
 		TMatrix<T, Rows, Cols> result;
 		
 		int index = 0;
-		std::for_each(Begin(), End(), [&result, &index](T& component)
+		std::for_each(Begin(), End(), [&rhs, &result, &index](T& component)
 		{
 			result.Data(index) = Data(index) * rhs.Data(index);
 			++index;
@@ -199,10 +199,11 @@ public:
 		else
 		{
 			static_assert("Unknown matrix type to get translation.");
+			return TVector<T, 3>(data[3][0], data[3][1], data[3][2]);
 		}
 	}
 	
-	CD_FORCEINLINE TMatrix<T, Rows, Cols> GetTranslation() const
+	CD_FORCEINLINE TMatrix<T, Rows, Cols> GetTranslationMatrix() const
 	{
 		if constexpr (3 == Rows && 3 == Cols)
 		{
@@ -215,6 +216,7 @@ public:
 		else
 		{
 			static_assert("Unknown matrix type to get translation matrix.");
+			return TMatrix<T, Rows, Cols>(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, data[3][0], data[3][1], data[3][2], 1);
 		}
 	}
 	
@@ -279,7 +281,7 @@ public:
 	}	
 	
 	// Transform
-	static TMatrix<T, 4, 4> Transform(const TVector<T, 3>& position, const TVector<T, 3, 3>& rotation, const TVector<T, 3>& scale)
+	static TMatrix<T, 4, 4> Transform(const TVector<T, 3>& position, const TMatrix<T, 3, 3>& rotation, const TVector<T, 3>& scale)
 	{
 		// rotation
 		TVector<T, 4> c0(rotation(0, 0), rotation(1, 0), rotation(2, 0), 0);
@@ -315,10 +317,10 @@ public:
 	{
 		return TMatrix<T, 4, 4>(static_cast<T>(2) / (right - left), 0, 0, 0, 0,
 							 static_cast<T>(2) / (top - bottom), 0, 0, 0, 0,
-							 -handedness * static_cast<T>(2) / (zfar - znear), 0,
+							 -handness * static_cast<T>(2) / (farPlane - nearPlane), 0,
 							 -(right + left) / (right - left),
 							 -(top + bottom) / (top - bottom),
-							 -(zfar + znear) / (zfar - znear), static_cast<T>(1));
+							 -(farPlane + nearPlane) / (farPlane - nearPlane), static_cast<T>(1));
 	}
 	
 	// LookAt
@@ -339,7 +341,7 @@ public:
 		TMatrix<T, Rows, Cols> result;
 		
 		int index = 0;
-		std::for_each(Begin(), End(), [&result, &index](T& component)
+		std::for_each(Begin(), End(), [&value, &result, &index](T& component)
 		{
 			result.Data(index) = component + value;
 			++index;
@@ -351,7 +353,7 @@ public:
 	TMatrix<T, Rows, Cols>& operator+=(T value) const
 	{
 		int index = 0;
-		std::for_each(Begin(), End(), [&index](T& component)
+		std::for_each(Begin(), End(), [&value, &index](T& component)
 		{
 			component += value;
 			++index;
@@ -365,7 +367,7 @@ public:
 		TMatrix<T, Rows, Cols> result;
 		
 		int index = 0;
-		std::for_each(Begin(), End(), [&result, &index](T& component)
+		std::for_each(Begin(), End(), [&rhs, &result, &index](T& component)
 		{
 			result.Data(index) = component + rhs.Data(index);
 			++index;
@@ -377,7 +379,7 @@ public:
 	TMatrix<T, Rows, Cols>& operator+=(const TMatrix<T, Rows, Cols>& rhs) const
 	{
 		int index = 0;
-		std::for_each(Begin(), End(), [&index](T& component)
+		std::for_each(Begin(), End(), [&rhs, &index](T& component)
 		{
 			component += rhs.Data(index);
 			++index;
@@ -408,7 +410,7 @@ public:
 		TMatrix<T, Rows, Cols> result;
 		
 		int index = 0;
-		std::for_each(Begin(), End(), [&result, &index](T& component)
+		std::for_each(Begin(), End(), [&rhs, &result, &index](T& component)
 		{
 			result.Data(index) = component - rhs.Data(index);
 			++index;
@@ -420,7 +422,7 @@ public:
 	TMatrix<T, Rows, Cols>& operator-=(const TMatrix<T, Rows, Cols>& rhs) const
 	{
 		int index = 0;
-		std::for_each(Begin(), End(), [&index](T& component)
+		std::for_each(Begin(), End(), [&rhs, &index](T& component)
 		{
 			component -= rhs.Data(index);
 			++index;
@@ -509,7 +511,7 @@ public:
 		TMatrix<T, Rows, Cols> result;
 		
 		int index = 0;
-		std::for_each(Begin(), End(), [&result, &index](T& component)
+		std::for_each(Begin(), End(), [&value, &result, &index](T& component)
 		{
 			result.Data(index) = component * value;
 			++index;
@@ -521,7 +523,7 @@ public:
 	TMatrix<T, Rows, Cols>& operator*=(T value) const
 	{
 		int index = 0;
-		std::for_each(Begin(), End(), [&index](T& component)
+		std::for_each(Begin(), End(), [&value, &index](T& component)
 		{
 			component *= value;
 			++index;

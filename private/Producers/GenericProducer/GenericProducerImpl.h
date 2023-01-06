@@ -8,6 +8,8 @@
 
 struct aiMaterial;
 struct aiMesh;
+struct aiNode;
+struct aiScene;
 
 namespace cd
 {
@@ -30,13 +32,14 @@ public:
 	GenericProducerImpl& operator=(GenericProducerImpl&&) = delete;
 	~GenericProducerImpl() = default;
 
-	void SetSceneDatabaseIDs(uint32_t meshID, uint32_t materialID, uint32_t textureID);
+	void SetSceneDatabaseIDs(uint32_t transformID, uint32_t meshID, uint32_t materialID, uint32_t textureID, uint32_t lightID);
 
 	void Execute(cd::SceneDatabase* pSceneDatabase);
 
 	uint32_t GetImportFlags() const;
-	void AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial);
-	void AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh);
+	cd::MaterialID AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial);
+	cd::MeshID AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh);
+	cd::TransformID AddTransform(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t transformID);
 
 	void ActivateDuplicateVertexService() { m_bWantDuplicatedVertex = true; }
 	bool IsDuplicateVertexServiceActive() const { return m_bWantDuplicatedVertex; }
@@ -65,9 +68,11 @@ private:
 	bool m_bWantTangentsSpace = false;
 	bool m_bWantCleanUnused = false;
 
+	cd::ObjectIDGenerator<cd::TransformID> m_transformIDGenerator;
 	cd::ObjectIDGenerator<cd::MeshID> m_meshIDGenerator;
 	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
 	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
+	cd::ObjectIDGenerator<cd::LightID> m_lightIDGenerator;
 	std::string m_filePath;
 };
 

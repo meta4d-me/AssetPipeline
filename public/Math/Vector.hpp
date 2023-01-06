@@ -70,7 +70,9 @@ public:
 	CD_FORCEINLINE bool IsNearlyZero(float eps = SmallNumberTolerance) const { return std::abs(x()) <= eps && std::abs(y()) <= eps && std::abs(z()) <= eps; }
 	
 	CD_FORCEINLINE constexpr T& operator[](int index) { return data[index]; }
+	CD_FORCEINLINE constexpr T& operator()(int index) { return data[index]; }
 	CD_FORCEINLINE constexpr const T& operator[](int index) const { return data[index]; }
+	CD_FORCEINLINE constexpr const T& operator()(int index) const { return data[index]; }
 
 	// Named getters for convenience.
 	// You can follow this pattern to write more.

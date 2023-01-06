@@ -1,8 +1,6 @@
 #include "Scene/SceneDatabase.h"
 #include "SceneDatabaseImpl.h"
 
-#include "Base/Template.h"
-
 #include <cassert>
 
 namespace cd
@@ -56,6 +54,34 @@ AABB& SceneDatabase::GetAABB()
 const AABB& SceneDatabase::GetAABB() const
 {
 	return m_pSceneDatabaseImpl->GetAABB();
+}
+
+///////////////////////////////////////////////////////////////////
+// Transform
+///////////////////////////////////////////////////////////////////
+void SceneDatabase::AddTransform(Transform transform)
+{
+	return m_pSceneDatabaseImpl->AddTransform(cd::MoveTemp(transform));
+}
+
+const std::vector<Transform>& SceneDatabase::GetTransforms() const
+{
+	return m_pSceneDatabaseImpl->GetTransforms();
+}
+
+void SceneDatabase::SetTransformCount(uint32_t transformCount)
+{
+	return m_pSceneDatabaseImpl->SetTransformCount(transformCount);
+}
+
+const Transform& SceneDatabase::GetTransform(uint32_t index) const
+{
+	return m_pSceneDatabaseImpl->GetTransform(index);
+}
+
+uint32_t SceneDatabase::GetTransformCount() const
+{
+	return m_pSceneDatabaseImpl->GetTransformCount();
 }
 
 ///////////////////////////////////////////////////////////////////
