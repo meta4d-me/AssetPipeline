@@ -28,11 +28,17 @@ public:
 	ObjectIDGenerator& operator=(ObjectIDGenerator&&) = delete;
 	~ObjectIDGenerator() = default;
 
-	void GetCurrentID() const { return m_currentID; }
+	Vty GetCurrentID() const { return m_currentID; }
 	void SetCurrentID(Vty id) { m_currentID = id; }
 
 	// Set generated id range in [min, max]
 	void SetRange(Vty min, Vty max) { m_minID = min; m_maxID = max; }
+
+	// Allocate new id without hash value to keep unique.
+	Vty AllocateID()
+	{
+		return m_currentID++;
+	}
 
 	// Pass hash value is used to keep allocating unique ObjectID.
 	Oty AllocateID(Vty hashValue, bool& isReused)

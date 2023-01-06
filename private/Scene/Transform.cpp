@@ -14,9 +14,9 @@ Transform::Transform(InputArchiveSwapBytes& inputArchive)
     m_pTransformImpl = new TransformImpl(inputArchive);
 }
 
-Transform::Transform(TransformID transformID)
+Transform::Transform(TransformID transformID, Matrix4x4 transformation)
 {
-    m_pTransformImpl = new TransformImpl(transformID);
+    m_pTransformImpl = new TransformImpl(transformID, cd::MoveTemp(transformation));
 }
 
 Transform::Transform(Transform&& rhs)
@@ -39,9 +39,9 @@ Transform::~Transform()
     }
 }
 
-void Transform::Init(TransformID transformID)
+void Transform::Init(TransformID transformID, Matrix4x4 transformation)
 {
-    m_pTransformImpl->Init(transformID);
+    m_pTransformImpl->Init(transformID, cd::MoveTemp(transformation));
 }
 
 const TransformID& Transform::GetID() const

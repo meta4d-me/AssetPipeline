@@ -18,24 +18,9 @@ GenericProducer::~GenericProducer()
 	}
 }
 
-uint32_t GenericProducer::GetImportFlags() const
+void GenericProducer::SetSceneDatabaseIDs(uint32_t transformID, uint32_t meshID, uint32_t materialID, uint32_t textureID, uint32_t lightID)
 {
-	return m_pGenericProducerImpl->GetImportFlags();
-}
-
-void GenericProducer::AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial)
-{
-	m_pGenericProducerImpl->AddMaterial(pSceneDatabase, pSourceMaterial);
-}
-
-void GenericProducer::AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh)
-{
-	m_pGenericProducerImpl->AddMesh(pSceneDatabase, pSourceMesh);
-}
-
-void GenericProducer::SetSceneDatabaseIDs(uint32_t meshID, uint32_t materialID, uint32_t textureID)
-{
-	m_pGenericProducerImpl->SetSceneDatabaseIDs(meshID, materialID, textureID);
+	m_pGenericProducerImpl->SetSceneDatabaseIDs(transformID, meshID, materialID, textureID, lightID);
 }
 
 void GenericProducer::Execute(cd::SceneDatabase* pSceneDatabase)

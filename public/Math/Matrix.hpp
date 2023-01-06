@@ -39,10 +39,10 @@ public:
 	TMatrix() = default;
 	
 	// Rows x Cols
-	TMatrix(const T* const a)
+	TMatrix(const T* const pRawData)
 	{
 		int index = 0;
-		std::for_each(Begin(), End(), [&index](T& component) { component = a[index++]; });
+		std::for_each(Begin(), End(), [&pRawData, &index](T& component) { component = pRawData[index++]; });
 	}
 	
 	// 2x2
@@ -176,7 +176,7 @@ public:
 		TMatrix<T, Rows, Cols> result;
 		
 		int index = 0;
-		std::for_each(Begin(), End(), [&result, &index](T& component)
+		std::for_each(Begin(), End(), [&rhs, &result, &index](T& component)
 		{
 			result.Data(index) = Data(index) * rhs.Data(index);
 			++index;
@@ -341,7 +341,7 @@ public:
 		TMatrix<T, Rows, Cols> result;
 		
 		int index = 0;
-		std::for_each(Begin(), End(), [&result, &index](T& component)
+		std::for_each(Begin(), End(), [&value, &result, &index](T& component)
 		{
 			result.Data(index) = component + value;
 			++index;
@@ -353,7 +353,7 @@ public:
 	TMatrix<T, Rows, Cols>& operator+=(T value) const
 	{
 		int index = 0;
-		std::for_each(Begin(), End(), [&index](T& component)
+		std::for_each(Begin(), End(), [&value, &index](T& component)
 		{
 			component += value;
 			++index;
@@ -367,7 +367,7 @@ public:
 		TMatrix<T, Rows, Cols> result;
 		
 		int index = 0;
-		std::for_each(Begin(), End(), [&result, &index](T& component)
+		std::for_each(Begin(), End(), [&rhs, &result, &index](T& component)
 		{
 			result.Data(index) = component + rhs.Data(index);
 			++index;
@@ -379,7 +379,7 @@ public:
 	TMatrix<T, Rows, Cols>& operator+=(const TMatrix<T, Rows, Cols>& rhs) const
 	{
 		int index = 0;
-		std::for_each(Begin(), End(), [&index](T& component)
+		std::for_each(Begin(), End(), [&rhs, &index](T& component)
 		{
 			component += rhs.Data(index);
 			++index;
@@ -410,7 +410,7 @@ public:
 		TMatrix<T, Rows, Cols> result;
 		
 		int index = 0;
-		std::for_each(Begin(), End(), [&result, &index](T& component)
+		std::for_each(Begin(), End(), [&rhs, &result, &index](T& component)
 		{
 			result.Data(index) = component - rhs.Data(index);
 			++index;
@@ -422,7 +422,7 @@ public:
 	TMatrix<T, Rows, Cols>& operator-=(const TMatrix<T, Rows, Cols>& rhs) const
 	{
 		int index = 0;
-		std::for_each(Begin(), End(), [&index](T& component)
+		std::for_each(Begin(), End(), [&rhs, &index](T& component)
 		{
 			component -= rhs.Data(index);
 			++index;
@@ -511,7 +511,7 @@ public:
 		TMatrix<T, Rows, Cols> result;
 		
 		int index = 0;
-		std::for_each(Begin(), End(), [&result, &index](T& component)
+		std::for_each(Begin(), End(), [&value, &result, &index](T& component)
 		{
 			result.Data(index) = component * value;
 			++index;
@@ -523,7 +523,7 @@ public:
 	TMatrix<T, Rows, Cols>& operator*=(T value) const
 	{
 		int index = 0;
-		std::for_each(Begin(), End(), [&index](T& component)
+		std::for_each(Begin(), End(), [&value, &index](T& component)
 		{
 			component *= value;
 			++index;

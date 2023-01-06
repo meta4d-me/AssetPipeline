@@ -20,14 +20,14 @@ public:
 	{
 		*this << inputArchive;
 	}
-	explicit TransformImpl(TransformID transformID);
+	explicit TransformImpl(TransformID transformID, Matrix4x4 transformation);
 	TransformImpl(const TransformImpl&) = default;
 	TransformImpl& operator=(const TransformImpl&) = default;
 	TransformImpl(TransformImpl&&) = default;
 	TransformImpl& operator=(TransformImpl&&) = default;
 	~TransformImpl() = default;
 
-	void Init(TransformID transformID);
+	void Init(TransformID transformID, Matrix4x4 transformation);
 
 	const TransformID& GetID() const { return m_id; }
 
@@ -61,14 +61,14 @@ public:
 		inputArchive >> parentID;
 		inputArchive >> childCount;
 		inputArchive >> meshCount;
+		inputArchive.ImportBuffer(GetTransformation().Begin());
 
-		Init(TransformID(transformID));
+		Init(TransformID(transformID), cd::MoveTemp(transformation));
 		m_childIDs.resize(childCount);
 		m_meshIDs.resize(meshCount);
 
 		inputArchive.ImportBuffer(GetChildIDs().data());
 		inputArchive.ImportBuffer(GetMeshIDs().data());
-		inputArchive.ImportBuffer(transformation.Begin());
 
 		return *this;
 	}
@@ -80,10 +80,10 @@ public:
 		outputArchive << GetParentID().Data();
 		outputArchive << GetChildCount();
 		outputArchive << GetMeshCount();
+		outputArchive.ExportBuffer(GetTransformation().Begin(), GetTransformation().Size);
 
 		outputArchive.ExportBuffer(GetChildIDs().data(), GetChildIDs().size());
 		outputArchive.ExportBuffer(GetMeshIDs().data(), GetMeshIDs().size());
-		outputArchive.ExportBuffer(GetTransformation().Begin(), GetTransformation().Size);
 
 		return *this;
 	}

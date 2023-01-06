@@ -19,14 +19,14 @@ public:
 	Transform() = delete;
 	explicit Transform(InputArchive& inputArchive);
 	explicit Transform(InputArchiveSwapBytes& inputArchive);
-	explicit Transform(TransformID transformID);
+	explicit Transform(TransformID transformID, Matrix4x4 transformation);
 	Transform(const Transform&) = delete;
 	Transform& operator=(const Transform&) = delete;
 	Transform(Transform&&);
 	Transform& operator=(Transform&&);
 	~Transform();
 	
-	void Init(TransformID transformID);
+	void Init(TransformID transformID, Matrix4x4 transformation);
 
 	const TransformID& GetID() const;
 
