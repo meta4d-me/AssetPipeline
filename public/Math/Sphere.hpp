@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Math.hpp"
 #include "Vector.hpp"
 
 namespace cd
@@ -24,11 +25,11 @@ public:
 	TSphere& operator=(TSphere&& rhs) = default;
 	~TSphere() = default;
 
-	bool IsValid() const { return m_radius > SmallNumberTolerance; }
-	bool IsPointInside(const TPoint& point) { return (point - m_center).LengthSquare() <= (m_radius + SmallNumberTolerance) * (m_radius + SmallNumberTolerance); }
-	TPoint GetCenter() const { return m_center; }
-	T GetRadius() const { return m_radius; }
-	T GetVolume() const { return static_cast<T>(4) / static_cast<T>(3) * PI * m_radius * m_radius * m_radius; }
+	CD_FORCEINLINE bool IsValid() const { return IsEqualToZero(m_radius); }
+	CD_FORCEINLINE bool IsPointInside(const TPoint& point) { return (point - m_center).LengthSquare() <= (m_radius + GetEpsilon<T>()) * (m_radius + GetEpsilon<T>()); }
+	CD_FORCEINLINE TPoint GetCenter() const { return m_center; }
+	CD_FORCEINLINE T GetRadius() const { return m_radius; }
+	CD_FORCEINLINE T GetVolume() const { return static_cast<T>(4) / static_cast<T>(3) * MATH_PI * m_radius * m_radius * m_radius; }
 
 private:
 	TPoint m_center;

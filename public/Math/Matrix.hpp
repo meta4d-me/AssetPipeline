@@ -2,38 +2,132 @@
 
 #include "Math/Vector.hpp"
 
+#include <cstring> // std::memset
+
 namespace cd
 {
 
+// TMatrix majors in column order.
 template<typename T, std::size_t Rows, std::size_t Cols>
 class TMatrix
 {
 public:
+	using MatrixType = TMatrix<T, Rows, Cols>;
 	static constexpr std::size_t RowCount = Rows;
 	static constexpr std::size_t ColCount = Cols;
 	static constexpr std::size_t Size = RowCount * ColCount;
+	using iterator = T*;
+	using const_iterator = const T*;
 
-	static TMatrix<T, Rows, Cols> Identity()
+	static MatrixType Identity()
 	{
 		if constexpr (2 == Rows && 2 == Cols)
 		{
-			return TMatrix<T, Rows, Cols>(1, 0, 0, 1);
+			return MatrixType(1, 0, 0, 1);
 		}	
 		else if constexpr (3 == Rows && 3 == Cols)
 		{
-			return TMatrix<T, Rows, Cols>(1, 0, 0, 0, 1, 0, 0, 0, 1);
+			return MatrixType(1, 0, 0, 0, 1, 0, 0, 0, 1);
 		}
 		else if constexpr (4 == Rows && 4 == Cols)
 		{
-			return TMatrix<T, Rows, Cols>(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+			return MatrixType(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		}
+	}
+
+	// Transform
+	static MatrixType Transform(const TVector<T, 3>& position, const TMatrix<T, 3, 3>& rotation, const TVector<T, 3>& scale)
+	{
+		static_assert(4 == Rows && 4 == Cols);
+
+		// rotation
+		TVector<T, 4> c0(rotation(0, 0), rotation(1, 0), rotation(2, 0), 0);
+		TVector<T, 4> c1(rotation(0, 1), rotation(1, 1), rotation(2, 1), 0);
+		TVector<T, 4> c2(rotation(0, 2), rotation(1, 2), rotation(2, 2), 0);
+		TVector<T, 4> c3(0, 0, 0, 1);
+
+		// scale
+		c0 *= scale.x;
+		c1 *= scale.y;
+		c2 *= scale.z;
+
+		// translation
+		c3[0] = position.x;
+		c3[1] = position.y;
+		c3[2] = position.z;
+
+		return Matrix<T, 4, 4>(cd::MoveTemp(c0), cd::MoveTemp(c1), cd::MoveTemp(c2), cd::MoveTemp(c3));
+	}
+
+	template<Handedness Hand>
+	static MatrixType LookAt(const TVector<T, 3>& eye, const TVector<T, 3>& at, const TVector<T, 3>& up)
+	{
+		static_assert(4 == Rows && 4 == Cols);
+
+		TVector<T, 3> view;
+		if constexpr (Handedness::Left == Hand)
+		{
+			view = at - eye;
 		}
 		else
 		{
-			static_assert("What do you expect to get?");
-			return TMatrix<T, Rows, Cols>(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+			view = eye - at;
+		}
+		view.Normalize();
+
+		TVector<T, 3> right = up.Cross(view).Normalize();
+		TVector<T, 3> upDirection = view.Cross(right);
+
+		return MatrixType(right.x(), right.y(), right.z(), -right.Dot(eye),
+			upDirection.x(), upDirection.y(), upDirection.z(), -upDirection.Dot(eye),
+			view.x(), view.y(), view.z(), -view.Dot(eye),
+			static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(1));
+	}
+
+	template<Handedness Hand, NDCDepth NDC>
+	static MatrixType Perspective(T fovy, T aspect, T near, T far)
+	{
+		float height = static_cast<T>(1) / std::tan(cd::DegreeToRadian<T>(fovy) * static_cast<T>(0.5));
+		float width = height * 1.0f / aspect;
+		float delta = far - near;
+
+		float aa;
+		float bb;
+		if constexpr (NDCDepth::MinusOneToOne == NDC)
+		{
+			aa = (far + near) / delta;
+			bb = (2.0f * far * near) / delta;
+		}
+		else
+		{
+			aa = far / delta;
+			bb = near * aa;
+		}
+
+		constexpr float xx = static_cast<T>(0);
+		constexpr float yy = static_cast<T>(0);
+		if constexpr (Handedness::Left == Hand)
+		{
+			return MatrixType(width, static_cast<T>(0), -xx, static_cast<T>(0),
+				static_cast<T>(0), height, -yy, static_cast<T>(0),
+				static_cast<T>(0), static_cast<T>(0), aa, -bb,
+				static_cast<T>(0), static_cast<T>(0), 1.0f, static_cast<T>(0));
+		}
+		else
+		{
+			return MatrixType(width, static_cast<T>(0), xx, static_cast<T>(0),
+				static_cast<T>(0), height, yy, static_cast<T>(0),
+				static_cast<T>(0), static_cast<T>(0), -aa, -bb,
+				static_cast<T>(0), static_cast<T>(0), -1.0f, static_cast<T>(0));
 		}
 	}
-	
+
+	//
+	//// Ortho
+	//static TMatrix<T, 4, 4> Ortho(T left, T right, T top, T bottom, T nearPlane, T farPlane)
+	//{
+	//}
+
 public:
 	// Default uninitialized.
 	TMatrix() = default;
@@ -110,26 +204,26 @@ public:
 	TMatrix& operator=(TMatrix&&) = default;
 	~TMatrix() = default;
 
-	// STL style's iterators.
-	using iterator = T*;
-	using const_iterator = const T*;
-	iterator Begin() { return &data[0][0]; }
-	iterator End() { return &data[0][0] + Size; }
-	const_iterator Begin() const { return &data[0][0]; }
-	const_iterator End() const { return &data[0][0] + Size; }
+	CD_FORCEINLINE iterator Begin() { return &data[0][0]; }
+	CD_FORCEINLINE iterator End() { return &data[0][0] + Size; }
+	CD_FORCEINLINE const_iterator Begin() const { return &data[0][0]; }
+	CD_FORCEINLINE const_iterator End() const { return &data[0][0] + Size; }
 
 	// Get
 	CD_FORCEINLINE const TVector<T, Rows>& GetColumn(int index) const { return data[index]; }
 	CD_FORCEINLINE TVector<T, Rows>& GetColumn(int index) { return data[index]; }
 	CD_FORCEINLINE T operator()(int row, int col) const { return data[col][row]; }
 	CD_FORCEINLINE T& operator()(int row, int col) { return data[col][row]; }
-	CD_FORCEINLINE T Data(int index) const { return reinterpret_cast<T*>(data)[index]; }
+	CD_FORCEINLINE T Data(int index) const { return reinterpret_cast<const T*>(data)[index]; }
 	CD_FORCEINLINE T& Data(int index) { return reinterpret_cast<T*>(data)[index]; }
 
+	// Clear
+	void Clear() { std::memset(Begin(), static_cast<T>(0), Size); }
+
 	// Math
-	TMatrix<T, Rows, Cols> Inverse() const
+	MatrixType Inverse() const
 	{
-		TMatrix<T, Rows, Cols> result;
+		MatrixType result;
 		if constexpr (2 == Rows && 2 == Cols)
 		{
 			T determinant = Data(0) * Data(3) - Data(1) * Data(2);
@@ -157,23 +251,34 @@ public:
 			result.Data(7) = (Data(6) * Data(1) - Data(0) * Data(7)) / determinant;
 			result.Data(8) = (Data(0) * Data(4) - Data(3) * Data(1)) / determinant;
 		}
-		else if constexpr (4 == Rows && 4 == Cols)
-		{
-			static_assert("TODO");
-		}
-		else
-		{
-			static_assert("Unknown matrix type to get translation.");
-		}
 		
 		return result;
 	}
 	
-	//TMatrix<T, Rows, Cols> Transpose() const;
-	
-	TMatrix<T, Rows, Cols> HadamardProduct(const TMatrix<T, Rows, Cols>& rhs) const
+	MatrixType Transpose() const
 	{
-		TMatrix<T, Rows, Cols> result;
+		if constexpr (2 == Rows && 2 == Cols)
+		{
+			return MatrixType(Data(0), Data(2), Data(1), Data(3));
+		}
+		else if constexpr (3 == Rows && 3 == Cols)
+		{
+			return MatrixType(Data(0), Data(3), Data(6),
+				Data(1), Data(4), Data(7),
+				Data(2), Data(5), Data(8));
+		}
+		else if constexpr (4 == Rows && 4 == Cols)
+		{
+			return MatrixType(Data(0), Data(4), Data(8), Data(12),
+				Data(1), Data(5), Data(9), Data(13),
+				Data(2), Data(6), Data(10), Data(14),
+				Data(3), Data(7), Data(11), Data(15));
+		}
+	}
+
+	MatrixType HadamardProduct(const MatrixType& rhs) const
+	{
+		MatrixType result;
 		
 		int index = 0;
 		std::for_each(Begin(), End(), [&rhs, &result, &index](T& component)
@@ -196,27 +301,17 @@ public:
 		{
 			return TVector<T, 3>(data[3][0], data[3][1], data[3][2]);
 		}
-		else
-		{
-			static_assert("Unknown matrix type to get translation.");
-			return TVector<T, 3>(data[3][0], data[3][1], data[3][2]);
-		}
 	}
 	
-	CD_FORCEINLINE TMatrix<T, Rows, Cols> GetTranslationMatrix() const
+	CD_FORCEINLINE MatrixType GetTranslationMatrix() const
 	{
 		if constexpr (3 == Rows && 3 == Cols)
 		{
-			return TMatrix<T, Rows, Cols>(1, 0, 0, 0, 1, 0, data[2][0], data[2][1], 1);
+			return MatrixType(1, 0, 0, 0, 1, 0, data[2][0], data[2][1], 1);
 		}
 		else if constexpr (4 == Rows && 4 == Cols)
 		{
-			return TMatrix<T, Rows, Cols>(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, data[3][0], data[3][1], data[3][2], 1);
-		}
-		else
-		{
-			static_assert("Unknown matrix type to get translation matrix.");
-			return TMatrix<T, Rows, Cols>(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, data[3][0], data[3][1], data[3][2], 1);
+			return MatrixType(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, data[3][0], data[3][1], data[3][2], 1);
 		}
 	}
 	
@@ -228,117 +323,50 @@ public:
 	}
 
 	// Rotation
-	static CD_FORCEINLINE TMatrix<T, Rows, Cols> RotationX(T angle) { return RotationX(TVector<T, 2>(std::cos(angle), std::sin(angle))); }
-	static CD_FORCEINLINE TMatrix<T, Rows, Cols> RotationY(T angle) { return RotationY(TVector<T, 2>(std::cos(angle), std::sin(angle))); }
-	static CD_FORCEINLINE TMatrix<T, Rows, Cols> RotationZ(T angle) { return RotationZ(TVector<T, 2>(std::cos(angle), std::sin(angle))); }
+	static CD_FORCEINLINE MatrixType RotationX(T angle) { return RotationX(TVector<T, 2>(std::cos(angle), std::sin(angle))); }
+	static CD_FORCEINLINE MatrixType RotationY(T angle) { return RotationY(TVector<T, 2>(std::cos(angle), std::sin(angle))); }
+	static CD_FORCEINLINE MatrixType RotationZ(T angle) { return RotationZ(TVector<T, 2>(std::cos(angle), std::sin(angle))); }
 	
-	static CD_FORCEINLINE TMatrix<T, Rows, Cols> RotationX(const TVector<T, 2>& v)
+	static CD_FORCEINLINE MatrixType RotationX(const TVector<T, 2>& v)
 	{
 		if constexpr(3 == Rows && 3 == Cols)
 		{
-			return TMatrix<T, Rows, Cols>(1, 0, 0, 0, v.x(), v.y(), 0, -v.y(), v.x());
+			return MatrixType(1, 0, 0, 0, v.x(), v.y(), 0, -v.y(), v.x());
 		}
 		else if constexpr(4 == Rows && 4 == Cols)
 		{
-			return TMatrix<T, Rows, Cols>(1, 0, 0, 0, 0, v.x(), v.y(), 0, 0, -v.y(), v.x(), 0, 0, 0, 0, 1);
-		}
-		else
-		{
-			static_assert("TODO");
+			return MatrixType(1, 0, 0, 0, 0, v.x(), v.y(), 0, 0, -v.y(), v.x(), 0, 0, 0, 0, 1);
 		}
 	}
 	
-	static CD_FORCEINLINE TMatrix<T, Rows, Cols> RotationY(const TVector<T, 2>& v)
+	static CD_FORCEINLINE MatrixType RotationY(const TVector<T, 2>& v)
 	{
 		if constexpr(3 == Rows && 3 == Cols)
 		{
-			return TMatrix<T, Rows, Cols>(v.x(), 0, -v.y(), 0, 1, 0, v.y(), 0, v.x());
+			return MatrixType(v.x(), 0, -v.y(), 0, 1, 0, v.y(), 0, v.x());
 		}
 		else if constexpr(4 == Rows && 4 == Cols)
 		{
-			return TMatrix<T, Rows, Cols>(v.x(), 0, -v.y(), 0, 0, 1, 0, 0, v.y(), 0, v.x(), 0, 0, 0, 0, 1);
-		}
-		else
-		{
-			static_assert("TODO");
+			return MatrixType(v.x(), 0, -v.y(), 0, 0, 1, 0, 0, v.y(), 0, v.x(), 0, 0, 0, 0, 1);
 		}
 	}
 
-	static CD_FORCEINLINE TMatrix<T, Rows, Cols> RotationZ(const TVector<T, 2>& v)
+	static CD_FORCEINLINE MatrixType RotationZ(const TVector<T, 2>& v)
 	{
 		if constexpr(3 == Rows && 3 == Cols)
 		{
-			return TMatrix<T, Rows, Cols>(v.x(), v.y(), 0, -v.y(), v.x(), 0, 0, 0, 1);
+			return MatrixType(v.x(), v.y(), 0, -v.y(), v.x(), 0, 0, 0, 1);
 		}
 		else if constexpr(4 == Rows && 4 == Cols)
 		{
-			return TMatrix<T, Rows, Cols>(v.x(), v.y(), 0, 0, -v.y(), v.x(), 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-		}
-		else
-		{
-			static_assert("TODO");
+			return MatrixType(v.x(), v.y(), 0, 0, -v.y(), v.x(), 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 		}
 	}	
 	
-	// Transform
-	static TMatrix<T, 4, 4> Transform(const TVector<T, 3>& position, const TMatrix<T, 3, 3>& rotation, const TVector<T, 3>& scale)
-	{
-		// rotation
-		TVector<T, 4> c0(rotation(0, 0), rotation(1, 0), rotation(2, 0), 0);
-		TVector<T, 4> c1(rotation(0, 1), rotation(1, 1), rotation(2, 1), 0);
-		TVector<T, 4> c2(rotation(0, 2), rotation(1, 2), rotation(2, 2), 0);
-		TVector<T, 4> c3(0, 0, 0, 1);
-			
-		// scale
-		c0 *= scale.x;
-		c1 *= scale.y;
-		c2 *= scale.z;
-		
-		// translation
-		c3[0] = position.x;
-		c3[1] = position.y;
-		c3[2] = position.z;
-		
-		return Matrix<T, 4, 4>(cd::MoveTemp(c0), cd::MoveTemp(c1), cd::MoveTemp(c2), cd::MoveTemp(c3));
-	}
-	
-	// Perspective
-	static TMatrix<T, 4, 4> Perspective(T fovy, T aspect, T nearPlane, T farPlane, T handness = 1)
-	{
-		T y = 1 / std::tan(fovy * static_cast<T>(0.5));
-		T x = y / aspect;
-		T dist = nearPlane - farPlane;
-		T farPerDist = farPlane / dist;
-		return TMatrix<T, 4, 4>(x, 0, 0, 0, 0, y, 0, 0, 0, 0, farPerDist * handness, -1 * handness, 0, 0, 2.0f * nearPlane * farPerDist, 0);
-	}
-	
-	// Ortho
-	static TMatrix<T, 4, 4> Ortho(T left, T right, T top, T bottom, T nearPlane, T farPlane, T handness = 1)
-	{
-		return TMatrix<T, 4, 4>(static_cast<T>(2) / (right - left), 0, 0, 0, 0,
-							 static_cast<T>(2) / (top - bottom), 0, 0, 0, 0,
-							 -handness * static_cast<T>(2) / (farPlane - nearPlane), 0,
-							 -(right + left) / (right - left),
-							 -(top + bottom) / (top - bottom),
-							 -(farPlane + nearPlane) / (farPlane - nearPlane), static_cast<T>(1));
-	}
-	
-	// LookAt
-	//static TMatrix<T, 4, 4> LookAt(const TVector<T, 3>& target, const TVector<T, 3>& eye, const TVector<T, 3>& up, T handness = 1)
-	//{
-	//	TVector<T, 3> eyeToTarget = (target - eye).Normalized();
-	//	TVector<T, 3> rightAxis = up.CrossProduct(eyeToTarget).Normalized();
-	//	TVector<T, 3> upAxis = rightAxis.CrossProduct(eyeToTarget);
-	//	
-	//	handness * rightAxis.DotProduct(eye);
-	//	-upAxis.DotProduct(eye);
-	//	handness * eyeToTarget.DotProduct(eye);
-	//}	
-	
 	// Operators
-	TMatrix<T, Rows, Cols> operator+(T value) const
+	MatrixType operator+(T value) const
 	{
-		TMatrix<T, Rows, Cols> result;
+		MatrixType result;
 		
 		int index = 0;
 		std::for_each(Begin(), End(), [&value, &result, &index](T& component)
@@ -350,7 +378,7 @@ public:
 		return result;
 	}
 	
-	TMatrix<T, Rows, Cols>& operator+=(T value) const
+	MatrixType& operator+=(T value) const
 	{
 		int index = 0;
 		std::for_each(Begin(), End(), [&value, &index](T& component)
@@ -362,9 +390,9 @@ public:
 		return *this;
 	}
 	
-	TMatrix<T, Rows, Cols> operator+(const TMatrix<T, Rows, Cols>& rhs) const
+	MatrixType operator+(const MatrixType& rhs) const
 	{
-		TMatrix<T, Rows, Cols> result;
+		MatrixType result;
 		
 		int index = 0;
 		std::for_each(Begin(), End(), [&rhs, &result, &index](T& component)
@@ -376,7 +404,7 @@ public:
 		return result;
 	}
 	
-	TMatrix<T, Rows, Cols>& operator+=(const TMatrix<T, Rows, Cols>& rhs) const
+	MatrixType& operator+=(const MatrixType& rhs) const
 	{
 		int index = 0;
 		std::for_each(Begin(), End(), [&rhs, &index](T& component)
@@ -388,12 +416,12 @@ public:
 		return *this;
 	}		
 	
-	CD_FORCEINLINE TMatrix<T, Rows, Cols> operator-(T value) const { return (*this) += (-value); }
-	CD_FORCEINLINE TMatrix<T, Rows, Cols>& operator-=(T value) const { return (*this) += (-value); }
+	CD_FORCEINLINE MatrixType operator-(T value) const { return (*this) += (-value); }
+	CD_FORCEINLINE MatrixType& operator-=(T value) const { return (*this) += (-value); }
 	
-	TMatrix<T, Rows, Cols> operator-() const
+	MatrixType operator-() const
 	{
-		TMatrix<T, Rows, Cols> result;
+		MatrixType result;
 		
 		int index = 0;
 		std::for_each(Begin(), End(), [&result, &index](T& component)
@@ -405,9 +433,9 @@ public:
 		return result;
 	}
 	
-	TMatrix<T, Rows, Cols> operator-(const TMatrix<T, Rows, Cols>& rhs) const
+	MatrixType operator-(const MatrixType& rhs) const
 	{
-		TMatrix<T, Rows, Cols> result;
+		MatrixType result;
 		
 		int index = 0;
 		std::for_each(Begin(), End(), [&rhs, &result, &index](T& component)
@@ -419,7 +447,7 @@ public:
 		return result;
 	}
 	
-	TMatrix<T, Rows, Cols>& operator-=(const TMatrix<T, Rows, Cols>& rhs) const
+	MatrixType& operator-=(const MatrixType& rhs) const
 	{
 		int index = 0;
 		std::for_each(Begin(), End(), [&rhs, &index](T& component)
@@ -431,9 +459,9 @@ public:
 		return *this;
 	}	
 	
-	TMatrix<T, Rows, Cols> operator*(const TMatrix<T, Rows, Cols>& rhs) const
+	MatrixType operator*(const MatrixType& rhs) const
 	{
-		TMatrix<T, Rows, Cols> result;
+		MatrixType result;
 		if constexpr(2 == Rows && 2 == Cols)
 		{
 			result.Data(0) = Data(0) * rhs.Data(0) + Data(2) * rhs.Data(1);
@@ -498,17 +526,13 @@ public:
 				result.Data[15] = rhs.GetColumn(3).DotProduct(row);
 			}			
 		}
-		else
-		{
-			static_assert("Unexpected");
-		}
 		
 		return result;
 	}
 	
-	TMatrix<T, Rows, Cols> operator*(T value) const
+	MatrixType operator*(T value) const
 	{
-		TMatrix<T, Rows, Cols> result;
+		MatrixType result;
 		
 		int index = 0;
 		std::for_each(Begin(), End(), [&value, &result, &index](T& component)
@@ -520,7 +544,7 @@ public:
 		return result;		
 	}
 	
-	TMatrix<T, Rows, Cols>& operator*=(T value) const
+	MatrixType& operator*=(T value) const
 	{
 		int index = 0;
 		std::for_each(Begin(), End(), [&value, &index](T& component)
@@ -532,8 +556,8 @@ public:
 		return *this;		
 	}
 	
-	CD_FORCEINLINE TMatrix<T, Rows, Cols> operator/(T value) const { return (*this) *= (1 / value); }
-	CD_FORCEINLINE TMatrix<T, Rows, Cols>& operator/=(T value) const { return (*this) *= (1 / value); }
+	CD_FORCEINLINE MatrixType operator/(T value) const { return (*this) *= (1 / value); }
+	CD_FORCEINLINE MatrixType& operator/=(T value) const { return (*this) *= (1 / value); }
 
 private:
 	TVector<T, Rows> data[Cols];
@@ -542,5 +566,13 @@ private:
 using Matrix2x2 = TMatrix<float, 2, 2>;
 using Matrix3x3 = TMatrix<float, 3, 3>;
 using Matrix4x4 = TMatrix<float, 4, 4>;
+
+static_assert(4 * sizeof(float) == sizeof(Matrix2x2));
+static_assert(9 * sizeof(float) == sizeof(Matrix3x3));
+static_assert(16 * sizeof(float) == sizeof(Matrix4x4));
+
+static_assert(std::is_standard_layout_v<Matrix2x2> && std::is_trivial_v<Matrix2x2>);
+static_assert(std::is_standard_layout_v<Matrix3x3> && std::is_trivial_v<Matrix3x3>);
+static_assert(std::is_standard_layout_v<Matrix4x4> && std::is_trivial_v<Matrix4x4>);
 
 }
