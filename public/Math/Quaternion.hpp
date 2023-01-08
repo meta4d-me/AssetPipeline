@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Math/Vector.hpp"
-#include "Math/Vector.hpp"
 
 namespace cd
 {
@@ -10,7 +9,12 @@ template<typename T>
 class TQuaternion
 {
 public:
-	using Vec = TVector<T, 3>;
+	static TQuaternion<T> FromAxisAngle(const TVector<T, 3>& axis, float angleRadian)
+	{
+		float halfAngle = angleRadian * 0.5f;
+		float sinHalfAngle = std::sin(halfAngle);
+		return TQuaternion<T>(std::cos(halfAngle), axis.x() * sinHalfAngle, axis.y() * sinHalfAngle, axis.z() * sinHalfAngle);
+	}
 
 	static TQuaternion<T> SphericalLerp(const TQuaternion<T>& a, const TQuaternion<T>& b, T s)
 	{
@@ -20,7 +24,7 @@ public:
 public:
 	TQuaternion() = default;
 	explicit TQuaternion(T s, T vx, T vy, T vz) : m_scalar(s), m_vector(vx, vy, vz) {}
-	explicit TQuaternion(T s, Vec v) : m_scalar(s), m_vector(cd::MoveTemp(v)) {}
+	explicit TQuaternion(T s, TVector<T, 3> v) : m_scalar(s), m_vector(cd::MoveTemp(v)) {}
 	TQuaternion(const TQuaternion&) = default;
 	TQuaternion& operator=(const TQuaternion&) = default;
 	TQuaternion(TQuaternion&&) = default;
@@ -31,7 +35,7 @@ public:
 	CD_FORCEINLINE void SetScalar(T s) { m_scalar = s; }
 
 	CD_FORCEINLINE const T& GetVector() const { return m_vector; }
-	CD_FORCEINLINE void SetVector(Vec v) { m_vector = cd::MoveTemp(v); }
+	CD_FORCEINLINE void SetVector(TVector<T, 3> v) { m_vector = cd::MoveTemp(v); }
 	CD_FORCEINLINE T x() const { return m_vector.x(); }
 	CD_FORCEINLINE T y() const { return m_vector.y(); }
 	CD_FORCEINLINE T z() const { return m_vector.z(); }
@@ -62,9 +66,15 @@ public:
 	CD_FORCEINLINE TQuaternion<T>& operator-=(const TQuaternion<T>& rhs) { m_scalar -= rhs.m_scalar; m_vector -= rhs.m_vector; return *this; }
 
 	CD_FORCEINLINE TQuaternion<T> operator*(T scalar) const { return TQuaternion<T>(m_scalar * scalar, m_vector.x() * scalar, m_vector.y() * scalar, m_vector.z() * scalar); }
-	CD_FORCEINLINE TQuaternion<T> operator*(const TQuaternion<T>& rhs) const {
+	CD_FORCEINLINE TQuaternion<T> operator*(const TQuaternion<T>& rhs) const
+	{
 		return TQuaternion<T>(m_scalar * rhs.m_scalar - m_vector.Dot(rhs.m_vector),
 			m_scalar * rhs.m_vector + rhs.m_scalar * m_vector + m_vector.Cross(rhs.m_vector));
+	}
+	CD_FORCEINLINE TVector<T, 3> operator*(const TVector<T, 3>& v) const
+	{
+		T doubleScalar = m_scalar + m_scalar;
+		return m_vector.Cross(v) * doubleScalar + v * (doubleScalar * m_scalar - 1) + m_vector * m_vector.Dot(v) * 2;
 	}
 
 	CD_FORCEINLINE TQuaternion<T> operator/(T scalar) const { return TQuaternion<T>(m_scalar / scalar, m_vector.x() / scalar, m_vector.y() / scalar, m_vector.z() / scalar); }
@@ -74,7 +84,7 @@ public:
 
 private:
 	T m_scalar;
-	Vec m_vector;
+	TVector<T, 3> m_vector;
 };
 	
 using Quaternion = TQuaternion<float>;

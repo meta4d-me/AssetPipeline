@@ -318,20 +318,21 @@ public:
 	{
 		if constexpr (2 == Rows && 2 == Cols)
 		{
-			return MatrixType(Data(0), Data(2), Data(1), Data(3));
+			return MatrixType(Data(0), Data(2),
+							  Data(1), Data(3));
 		}
 		else if constexpr (3 == Rows && 3 == Cols)
 		{
 			return MatrixType(Data(0), Data(3), Data(6),
-				Data(1), Data(4), Data(7),
-				Data(2), Data(5), Data(8));
+							  Data(1), Data(4), Data(7),
+							  Data(2), Data(5), Data(8));
 		}
 		else if constexpr (4 == Rows && 4 == Cols)
 		{
 			return MatrixType(Data(0), Data(4), Data(8), Data(12),
-				Data(1), Data(5), Data(9), Data(13),
-				Data(2), Data(6), Data(10), Data(14),
-				Data(3), Data(7), Data(11), Data(15));
+							  Data(1), Data(5), Data(9), Data(13),
+							  Data(2), Data(6), Data(10), Data(14),
+							  Data(3), Data(7), Data(11), Data(15));
 		}
 	}
 

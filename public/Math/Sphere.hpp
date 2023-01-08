@@ -38,6 +38,7 @@ private:
 
 using Sphere = TSphere<float>;
 
+static_assert(4 * sizeof(float) == sizeof(Sphere));
 //static_cast(std::is_standard_layout_v<Sphere>&& std::is_trivial_v<Sphere>, "Sphere needs to implement copy/move constructors in hand.");
 
 }

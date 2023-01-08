@@ -85,6 +85,7 @@ private:
 
 using Box = TBox<float>;
 
-//static_assert(std::is_standard_layout_v<Box> && std::is_trivial_v<Box>);
+static_assert(6 * sizeof(float) == sizeof(Box));
+static_assert(std::is_standard_layout_v<Box> && std::is_trivial_v<Box>);
 
 }
