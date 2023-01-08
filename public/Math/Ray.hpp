@@ -24,7 +24,7 @@ public:
 	TRay& operator=(TRay&& rhs) = default;
 	~TRay() = default;
 
-	bool IsValid() const { return !m_normal.IsNearlyZero(); }
+	bool IsValid() const { return !m_normal.IsZero() && !m_normal.IsNaN(); }
 	TPoint GetPointAt(T parameter) const { return m_origin + m_normal * parameter; }
 	T GetParameter(const TPoint& point) const { return (point - m_origin).Dot(m_normal); }
 	const TDirection& GetNormal() const { return m_normal; }
