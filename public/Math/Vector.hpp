@@ -121,7 +121,7 @@ public:
 	CD_FORCEINLINE T Dot(const TVector& rhs) const
 	{
 		static_assert(3 == N);
-		return x() * rhs.x(), y() * rhs.y(), z() * rhs.z();
+		return x() * rhs.x() + y() * rhs.y() + z() * rhs.z();
 	}
 
 	CD_FORCEINLINE TVector3 Cross(const TVector3& rhs) const

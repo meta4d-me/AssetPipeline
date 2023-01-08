@@ -29,6 +29,7 @@ public:
 	Processor& operator=(Processor&&) = delete;
 	~Processor();
 
+	const cd::SceneDatabase* GetSceneDatabase() const;
 	void Run();
 
 private:

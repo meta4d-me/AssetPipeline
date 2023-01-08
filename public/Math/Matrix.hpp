@@ -122,11 +122,70 @@ public:
 		}
 	}
 
-	//
-	//// Ortho
-	//static TMatrix<T, 4, 4> Ortho(T left, T right, T top, T bottom, T nearPlane, T farPlane)
-	//{
-	//}
+	static MatrixType Perspective(T fovy, T aspect, T near, T far, bool isNDCDepthHomogeneous)
+	{
+		if (isNDCDepthHomogeneous)
+		{
+			return MatrixType::Perspective<cd::Handedness::Left, cd::NDCDepth::MinusOneToOne>(fovy, aspect, near, far);
+		}
+		else
+		{
+			return MatrixType::Perspective<cd::Handedness::Left, cd::NDCDepth::ZeroToOne>(fovy, aspect, near, far);
+		}
+	}
+
+	template<Handedness Hand, NDCDepth NDC>
+	static MatrixType Orthographic(T left, T right, T top, T bottom, T near, T far, T offset)
+	{
+		float deltaX = right - left;
+		float deltaY = top - bottom;
+		float deltaZ = far - near;
+
+		T aa = static_cast<T>(2) / deltaX;
+		T bb = static_cast<T>(2) / deltaY;
+		T dd = (left + right) / -deltaX;
+		T ee = (top + bottom) / -deltaY;
+
+		T cc;
+		T ff;
+		if constexpr (NDCDepth::MinusOneToOne == NDC)
+		{
+			cc = static_cast<T>(2) / deltaZ;
+			ff = (near + far) / -deltaZ;
+		}
+		else
+		{
+			cc = static_cast<T>(1) / deltaZ;
+			ff = near / -deltaZ;
+		}
+
+		if constexpr (Handedness::Left == Hand)
+		{
+			return MatrixType(aa, static_cast<T>(0), static_cast<T>(0), dd,
+				static_cast<T>(0), bb, static_cast<T>(0), ee,
+				static_cast<T>(0), static_cast<T>(0), cc, ff,
+				static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(1));
+		}
+		else
+		{
+			return MatrixType(aa, static_cast<T>(0), static_cast<T>(0), dd,
+				static_cast<T>(0), bb, static_cast<T>(0), ee,
+				static_cast<T>(0), static_cast<T>(0), -cc, ff,
+				static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(1));
+		}
+	}
+
+	static MatrixType Orthographic(T left, T right, T top, T bottom, T near, T far, T offset, bool isNDCDepthHomogeneous)
+	{
+		if (isNDCDepthHomogeneous)
+		{
+			return MatrixType::Orthographic<cd::Handedness::Left, cd::NDCDepth::MinusOneToOne>(left, right, top, bottom, near, far, offset);
+		}
+		else
+		{
+			return MatrixType::Orthographic<cd::Handedness::Left, cd::NDCDepth::ZeroToOne>(left, right, top, bottom, near, far, offset);
+		}
+	}
 
 public:
 	// Default uninitialized.
@@ -259,20 +318,21 @@ public:
 	{
 		if constexpr (2 == Rows && 2 == Cols)
 		{
-			return MatrixType(Data(0), Data(2), Data(1), Data(3));
+			return MatrixType(Data(0), Data(2),
+							  Data(1), Data(3));
 		}
 		else if constexpr (3 == Rows && 3 == Cols)
 		{
 			return MatrixType(Data(0), Data(3), Data(6),
-				Data(1), Data(4), Data(7),
-				Data(2), Data(5), Data(8));
+							  Data(1), Data(4), Data(7),
+							  Data(2), Data(5), Data(8));
 		}
 		else if constexpr (4 == Rows && 4 == Cols)
 		{
 			return MatrixType(Data(0), Data(4), Data(8), Data(12),
-				Data(1), Data(5), Data(9), Data(13),
-				Data(2), Data(6), Data(10), Data(14),
-				Data(3), Data(7), Data(11), Data(15));
+							  Data(1), Data(5), Data(9), Data(13),
+							  Data(2), Data(6), Data(10), Data(14),
+							  Data(3), Data(7), Data(11), Data(15));
 		}
 	}
 

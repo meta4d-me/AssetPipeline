@@ -37,6 +37,7 @@ private:
 
 using Ray = TRay<float>;
 
-static_cast(std::is_standard_layout_v<Ray>&& std::is_trivial_v<Ray>, "Ray needs to implement copy/move constructors in hand.");
+static_assert(6 * sizeof(float) == sizeof(Ray));
+//static_cast(std::is_standard_layout_v<Ray>&& std::is_trivial_v<Ray>);
 
 }

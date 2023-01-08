@@ -26,6 +26,7 @@ public:
 	ProcessorImpl& operator=(ProcessorImpl&&) = delete;
 	~ProcessorImpl();
 
+	const cd::SceneDatabase* GetSceneDatabase() const;
 	void Run();
 
 private:

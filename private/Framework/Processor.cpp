@@ -18,6 +18,11 @@ Processor::~Processor()
 	}
 }
 
+const cd::SceneDatabase* Processor::GetSceneDatabase() const
+{
+	return m_pProcessorImpl->GetSceneDatabase();
+}
+
 void Processor::Run()
 {
 	m_pProcessorImpl->Run();

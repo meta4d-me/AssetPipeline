@@ -33,6 +33,11 @@ ProcessorImpl::~ProcessorImpl()
 {
 }
 
+const cd::SceneDatabase* ProcessorImpl::GetSceneDatabase() const
+{
+	return m_pCurrentSceneDatabase;
+}
+
 void ProcessorImpl::Run()
 {
 	m_pProducer->Execute(m_pCurrentSceneDatabase);
