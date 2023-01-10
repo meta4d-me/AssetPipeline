@@ -36,8 +36,7 @@ void CDConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
 void CDConsumerImpl::ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, cd::endian targetEndian)
 {
 	std::ofstream foutBin(m_filePath, std::ios::out | std::ios::binary);
-	uint8_t platformEndian = static_cast<uint8_t>(cd::endian::native);
-	foutBin.write(reinterpret_cast<const char*>(&platformEndian), sizeof(uint8_t));
+	foutBin.write(reinterpret_cast<const char*>(&targetEndian), sizeof(uint8_t));
 
 	if (cd::endian::native == targetEndian)
 	{
