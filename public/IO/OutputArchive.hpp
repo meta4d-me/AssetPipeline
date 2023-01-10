@@ -46,7 +46,7 @@ public:
 		}
 
 		m_pOStream->write(reinterpret_cast<const char*>(&bufferBytes), sizeof(size_t));
-		m_pOStream->write(reinterpret_cast<const char*>(data), bufferBytes);
+		m_pOStream->write(reinterpret_cast<const char*>(data), size * sizeof(std::remove_pointer_t<T>));
 
 		return *this;
 	}
