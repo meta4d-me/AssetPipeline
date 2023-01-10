@@ -107,9 +107,7 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 	}
 	else
 	{
-		static int unnamedMaterialCount = 0;
-		finalMaterialName = "untitled_";
-		finalMaterialName += unnamedMaterialCount++;
+		finalMaterialName = "untitled_" + pSceneDatabase->GetMaterialCount();
 		printf("\tWarning : current material doesn't have name?\n");
 	}
 
@@ -202,10 +200,10 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 	bool isMeshReused;
 	cd::MeshID::ValueType meshHash = cd::StringHash<cd::MeshID::ValueType>(pSourceMesh->mName.C_Str());
 	cd::MeshID meshID = m_meshIDGenerator.AllocateID(meshHash, isMeshReused);
-	printf("\t[MeshID %u] face number : %u, vertex number : %u\n", meshID.Data(), pSourceMesh->mNumFaces, numVertices);
-
 	cd::Mesh mesh(meshID, pSourceMesh->mName.C_Str(), numVertices, pSourceMesh->mNumFaces);
-	mesh.SetMaterialID(pSourceMesh->mMaterialIndex);
+	mesh.SetMaterialID(m_materialIDGenerator.GetCurrentID() + pSourceMesh->mMaterialIndex);
+
+	printf("\t[MeshID %u] face number : %u, vertex number : %u, materialID : %u\n", meshID.Data(), mesh.GetPolygonCount(), mesh.GetVertexCount(), mesh.GetMaterialID().Data());
 
 	// By default, aabb will be empty.
 	if (IsBoundingBoxServiceActive())
