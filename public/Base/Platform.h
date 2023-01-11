@@ -22,14 +22,3 @@
 #	define CD_FORCEINLINE inline __attribute__((always_inline))
 #	define CD_NOINLINE __attribute__((noinline))
 #endif
-
-namespace cd
-{
-
-#ifdef _MSC_VER
-enum class endian { little = 0, big = 1, native = little };
-#elif defined(__GNUC__)
-enum class endian { little = 0, big = 1, native = big};
-#endif
-
-}

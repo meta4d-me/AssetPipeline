@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Base/Endian.h"
 #include "ExportMode.h"
 #include "Framework/IConsumer.h"
 
@@ -24,7 +25,7 @@ public:
 	void SetExportMode(ExportMode mode);
 
 private:
-	void ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, cd::endian targetEndian = cd::endian::native);
+	void ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, cd::EndianType targetEndian = cd::Endian::GetNative());
 	void ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase);
 
 private:
