@@ -14,9 +14,9 @@ Texture::Texture(InputArchiveSwapBytes& inputArchive)
     m_pTextureImpl = new TextureImpl(inputArchive);
 }
 
-Texture::Texture(TextureID textureID, const char* pTexturePath)
+Texture::Texture(TextureID textureID, MaterialTextureType textureType, const char* pTexturePath)
 {
-    m_pTextureImpl = new TextureImpl(textureID, pTexturePath);
+    m_pTextureImpl = new TextureImpl(textureID, textureType, pTexturePath);
 }
 
 Texture::Texture(Texture&& rhs)
@@ -39,14 +39,19 @@ Texture::~Texture()
     }
 }
 
-void Texture::Init(TextureID textureID, const char* pTexturePath)
+void Texture::Init(TextureID textureID, MaterialTextureType textureType, const char* pTexturePath)
 {
-    m_pTextureImpl->Init(textureID, pTexturePath);
+    m_pTextureImpl->Init(textureID, textureType, pTexturePath);
 }
 
 const TextureID& Texture::GetID() const
 {
     return m_pTextureImpl->GetID();
+}
+
+cd::MaterialTextureType Texture::GetType() const
+{
+    return m_pTextureImpl->GetType();
 }
 
 const char* Texture::GetPath() const

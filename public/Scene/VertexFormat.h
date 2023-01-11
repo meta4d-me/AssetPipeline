@@ -16,7 +16,7 @@ class VertexFormatImpl;
 class CORE_API VertexFormat final
 {
 public:
-	explicit VertexFormat();
+	VertexFormat();
 	VertexFormat(const VertexFormat&) = delete;
 	VertexFormat& operator=(const VertexFormat&) = delete;
 	VertexFormat(VertexFormat&&);

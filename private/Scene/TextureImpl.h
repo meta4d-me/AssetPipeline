@@ -3,6 +3,7 @@
 #include "Base/Template.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
+#include "Scene/MaterialTextureType.h"
 #include "Scene/ObjectID.h"
 
 #include <string>
@@ -19,26 +20,29 @@ public:
 	{
 		*this << inputArchive;
 	}
-	explicit TextureImpl(TextureID textureID, std::string texturePath);
+	explicit TextureImpl(TextureID textureID, MaterialTextureType textureType, std::string texturePath);
 	TextureImpl(const TextureImpl&) = default;
 	TextureImpl& operator=(const TextureImpl&) = default;
 	TextureImpl(TextureImpl&&) = default;
 	TextureImpl& operator=(TextureImpl&&) = default;
 	~TextureImpl() = default;
 
-	void Init(TextureID textureID, std::string texturePath);
+	void Init(TextureID textureID, MaterialTextureType textureType, std::string texturePath);
 
 	const TextureID& GetID() const { return m_id; }
+	cd::MaterialTextureType GetType() const { return m_textureType; }
 	const std::string& GetPath() const { return m_path; }
 
 	template<bool SwapBytesOrder>
 	TextureImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
-		std::string texturePath;
 		uint32_t textureID;
-		inputArchive >> texturePath >> textureID;
+		uint8_t textureType;
+		std::string texturePath;
 
-		Init(TextureID(textureID), MoveTemp(texturePath));
+		inputArchive >> textureID >> textureType >> texturePath;
+
+		Init(TextureID(textureID), static_cast<cd::MaterialTextureType>(textureType), MoveTemp(texturePath));
 
 		return *this;
 	}
@@ -46,13 +50,14 @@ public:
 	template<bool SwapBytesOrder>
 	const TextureImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetPath() << GetID().Data();
+		outputArchive << GetID().Data() << static_cast<uint8_t>(GetType()) << GetPath();
 
 		return *this;
 	}
 
 private:
 	TextureID m_id;
+	cd::MaterialTextureType m_textureType;
 	std::string m_path;
 };
 

@@ -3,6 +3,7 @@
 #include "Base/Export.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
+#include "Scene/MaterialTextureType.h"
 #include "Scene/ObjectID.h"
 
 namespace cd
@@ -16,16 +17,17 @@ public:
 	Texture() = delete;
 	explicit Texture(InputArchive& inputArchive);
 	explicit Texture(InputArchiveSwapBytes& inputArchive);
-	explicit Texture(TextureID textureID, const char* pTexturePath);
+	explicit Texture(TextureID textureID, MaterialTextureType textureType, const char* pTexturePath);
 	Texture(const Texture&) = delete;
 	Texture& operator=(const Texture&) = delete;
 	Texture(Texture&&);
 	Texture& operator=(Texture&&);
 	~Texture();
 
-	void Init(TextureID textureID, const char* pTexturePath);
+	void Init(TextureID textureID, MaterialTextureType textureType, const char* pTexturePath);
 
 	const TextureID& GetID() const;
+	cd::MaterialTextureType GetType() const;
 	const char* GetPath() const;
 
 	Texture& operator<<(InputArchive& inputArchive);
