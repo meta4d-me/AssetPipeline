@@ -38,15 +38,19 @@ public:
 	TOutputArchive& ExportBuffer(T data, std::size_t size)
 	{
 		static_assert(std::is_pointer_v<T> && "Data buffer should be a pointer.");
-		size_t bufferBytes = size * sizeof(std::remove_pointer_t<T>);
+		uint64_t sourceBufferBytes = static_cast<uint64_t>(size * sizeof(std::remove_pointer_t<T>));
+		uint64_t bufferBytes;
 		if constexpr (SwapBytesOrder)
 		{
-			// bufferBytes = std::byteswap(bufferBytes);
-			bufferBytes = byte_swap<size_t>(bufferBytes);
+			bufferBytes = byte_swap<uint64_t>(sourceBufferBytes);
+		}
+		else
+		{
+			bufferBytes = sourceBufferBytes;
 		}
 
-		m_pOStream->write(reinterpret_cast<const char*>(&bufferBytes), sizeof(size_t));
-		m_pOStream->write(reinterpret_cast<const char*>(data), bufferBytes);
+		m_pOStream->write(reinterpret_cast<const char *>(&bufferBytes), sizeof(uint64_t));
+		m_pOStream->write(reinterpret_cast<const char *>(data), sourceBufferBytes);
 
 		return *this;
 	}
@@ -59,7 +63,6 @@ private:
 		{
 			if constexpr (SwapBytesOrder)
 			{
-				// T checkedData = std::byteswap(data);
 				T checkedData = byte_swap<T>(data);
 				m_pOStream->write(reinterpret_cast<const char*>(&checkedData), sizeof(T));
 			}
@@ -74,13 +77,11 @@ private:
 			{
 				if constexpr (4 == sizeof(T))
 				{
-					// uint32_t checkedData = std::byteswap(static_cast<uint32_t>(data));
 					float checkedData = byte_swap<float>(data);
 					m_pOStream->write(reinterpret_cast<const char*>(&checkedData), sizeof(T));
 				}
 				else if constexpr (8 == sizeof(T))
 				{
-					// uint64_t checkedData = std::byteswap(static_cast<uint64_t>(data));
 					double checkedData = byte_swap<double>(data);
 					m_pOStream->write(reinterpret_cast<const char*>(&checkedData), sizeof(T));
 				}
@@ -96,15 +97,14 @@ private:
 		}
 		else if constexpr (std::is_same<T, std::string>())
 		{
-			size_t dataLength = data.size();
+			uint64_t dataLength = data.size();
 			if constexpr (SwapBytesOrder)
 			{
 				// std::string is just array of 1 byte char so don't need to swap bytes.
-				// dataLength = std::byteswap(dataLength);
-				dataLength = byte_swap<size_t>(dataLength);
+				dataLength = byte_swap<uint64_t>(dataLength);
 			}
 
-			m_pOStream->write(reinterpret_cast<const char*>(&dataLength), sizeof(size_t));
+			m_pOStream->write(reinterpret_cast<const char*>(&dataLength), sizeof(uint64_t));
 			m_pOStream->write(data.c_str(), data.size());
 		}
 		else
