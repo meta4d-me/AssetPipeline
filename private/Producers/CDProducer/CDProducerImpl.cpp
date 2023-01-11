@@ -13,10 +13,9 @@ void CDProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	std::ifstream fin(m_filePath, std::ios::in | std::ios::binary);
 	
 	uint8_t fileEndian;
-	fin.read(reinterpret_cast<char*>(&fileEndian), sizeof(fileEndian));
-	uint8_t platformEndian = static_cast<uint8_t>(cd::endian::native);
+	fin.read(reinterpret_cast<char*>(&fileEndian), sizeof(uint8_t));
 
-	if (fileEndian != platformEndian)
+	if (fileEndian != cd::Endian::GetNative())
 	{
 		cd::InputArchiveSwapBytes inputArchive(&fin);
 		*pSceneDatabase << inputArchive;

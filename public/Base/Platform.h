@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Base/Endian.h"
+
 #ifdef _MSC_VER
 #define API_EXPORT __declspec(dllexport)
 #define API_IMPORT __declspec(dllimport)
@@ -22,14 +24,3 @@
 #	define CD_FORCEINLINE inline __attribute__((always_inline))
 #	define CD_NOINLINE __attribute__((noinline))
 #endif
-
-namespace cd
-{
-
-#ifdef _MSC_VER
-enum class endian { little = 0, big = 1, native = little };
-#elif defined(__GNUC__)
-enum class endian { little = 0, big = 1, native = big};
-#endif
-
-}
