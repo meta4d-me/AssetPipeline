@@ -14,8 +14,9 @@ void CDProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	
 	uint8_t fileEndian;
 	fin.read(reinterpret_cast<char*>(&fileEndian), sizeof(uint8_t));
+	uint8_t paltformEndian = static_cast<uint8_t>(cd::Endian::GetNative());
 
-	if (static_cast<cd::EndianType>(fileEndian) != cd::Endian::GetNative())
+	if (fileEndian != paltformEndian)
 	{
 		cd::InputArchiveSwapBytes inputArchive(&fin);
 		*pSceneDatabase << inputArchive;
