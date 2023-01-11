@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Base/Endian.h"
-
 #ifdef _MSC_VER
 #define API_EXPORT __declspec(dllexport)
 #define API_IMPORT __declspec(dllimport)

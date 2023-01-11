@@ -1,19 +1,18 @@
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
+#include "Base/Export.h"
 
 namespace cd
 {
 
-namespace
+enum class EndianType : uint8_t
 {
+    LittelEndian = 0,
+    BigEndian = 1,
+};
 
-constexpr uint8_t LITTLE_ENDIAN = 0x00;
-constexpr uint8_t BIG_ENDIAN = 0x01;
-
-}
-
-class Endian
+class CORE_API Endian final
 {
 public:
     Endian(const Endian&) = delete;
@@ -21,15 +20,15 @@ public:
     Endian(Endian&&) = delete;
     Endian& operator=(Endian&&) = delete;
 
-    static const uint8_t GetNative();
+    static const EndianType GetNative();
 
 private:
     Endian();
     ~Endian();
 
-    const bool isLittleEndian() const;
+    const bool IsLittleEndian() const;
 
-    uint8_t m_native;
+    EndianType m_native;
 };
 
 } // namespace cd

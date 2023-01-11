@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Base/Endian.h"
 #include "Base/Template.h"
 
 #include <string>

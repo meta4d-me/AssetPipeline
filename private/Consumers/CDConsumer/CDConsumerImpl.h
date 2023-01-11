@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Base/Endian.h"
 #include "Base/Template.h"
 #include "Consumers/CDConsumer/ExportMode.h"
 
@@ -30,7 +31,7 @@ public:
 	ExportMode GetExportMode() const { return m_exportMode; }
 	void SetExportMode(ExportMode mode) { m_exportMode = mode; }
 
-	void ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, uint8_t targetEndian = cd::Endian::GetNative());
+	void ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, cd::EndianType targetEndian = cd::Endian::GetNative());
 
 	// WIP : 1.Xml/Json in a same way to export. 2.endianess
 	void ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase);

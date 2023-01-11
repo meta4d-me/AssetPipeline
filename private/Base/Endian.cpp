@@ -5,7 +5,9 @@ namespace cd
 
 Endian::Endian()
 {
-    m_native = isLittleEndian() ? LITTLE_ENDIAN : BIG_ENDIAN;
+    m_native = IsLittleEndian()
+        ? EndianType::LittelEndian
+        : EndianType::BigEndian;
 }
 
 Endian::~Endian()
@@ -13,14 +15,14 @@ Endian::~Endian()
 
 }
 
-const uint8_t Endian::GetNative()
+const EndianType Endian::GetNative()
 {
     static Endian instance;
     return instance.m_native;
 }
 
 
-const bool Endian::isLittleEndian() const
+const bool Endian::IsLittleEndian() const
 {
     union {
         uint32_t i;
