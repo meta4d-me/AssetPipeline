@@ -7,7 +7,7 @@
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
 #include "Scene/Texture.h"
-#include "Scene/Transform.h"
+#include "Scene/Node.h"
 #include "Scene/Light.h"
 
 #include <vector>
@@ -34,12 +34,12 @@ public:
 	AABB& GetAABB();
 	const AABB& GetAABB() const;
 
-	// Transform
-	void AddTransform(Transform transform);
-	const std::vector<Transform>& GetTransforms() const;
-	void SetTransformCount(uint32_t transformCount);
-	const Transform& GetTransform(uint32_t index) const;
-	uint32_t GetTransformCount() const;
+	// Node
+	void AddNode(Node node);
+	const std::vector<Node>& GetNodes() const;
+	void SetNodeCount(uint32_t nodeCount);
+	const Node& GetNode(uint32_t index) const;
+	uint32_t GetNodeCount() const;
 
 	// Mesh
 	void AddMesh(Mesh mesh);

@@ -163,7 +163,7 @@ cd::Mesh TerrainProducerImpl::CreateTerrainMesh(uint32_t sector_x, uint32_t sect
 			const cd::Direction topLeftToBottomRight = bottomRightPoint - topLeftPoint;
 			const cd::Direction topLeftToTopRight = topRightPoint - topLeftPoint;
 			normal = topLeftToBottomLeft.Cross(topLeftToBottomRight);
-			normal.Add(topLeftToBottomRight.Cross(topLeftToTopRight));
+			normal += topLeftToBottomRight.Cross(topLeftToTopRight);
 			normal.Normalize();
 			terrain.SetVertexNormal(currentRow[x].topLeftVertexId, normal);
 			// top-right
@@ -177,7 +177,7 @@ cd::Mesh TerrainProducerImpl::CreateTerrainMesh(uint32_t sector_x, uint32_t sect
 			const cd::Direction bottomRightToTopLeft = topLeftPoint - bottomRightPoint;
 			const cd::Direction bottomRightToBottomLeft = bottomLeftPoint - bottomRightPoint;
 			normal = bottomRightToTopRight.Cross(bottomRightToTopLeft);
-			normal.Add(bottomRightToTopLeft.Cross(bottomRightToBottomLeft));
+			normal += bottomRightToTopLeft.Cross(bottomRightToBottomLeft);
 			normal.Normalize();
 			terrain.SetVertexNormal(currentRow[x].bottomRightVertexId, normal);
 		}
@@ -198,17 +198,17 @@ cd::Mesh TerrainProducerImpl::CreateTerrainMesh(uint32_t sector_x, uint32_t sect
 			if (hasLeft)
 			{
 				const TerrainQuad leftQuad = terrainQuads[z][x - 1];
-				normal.Add(terrain.GetVertexNormal(leftQuad.bottomRightVertexId));
+				normal += terrain.GetVertexNormal(leftQuad.bottomRightVertexId);
 			}
 			if (hasLeft && hasBottom)
 			{
 				const TerrainQuad bottomLeftQuad = terrainQuads[z - 1][x - 1];
-				normal.Add(terrain.GetVertexNormal(bottomLeftQuad.topRightVertexId));
+				normal += terrain.GetVertexNormal(bottomLeftQuad.topRightVertexId);
 			}
 			if (hasBottom)
 			{
 				const TerrainQuad bottomQuad = terrainQuads[z - 1][x];
-				normal.Add(terrain.GetVertexNormal(bottomQuad.topLeftVertexId));
+				normal += terrain.GetVertexNormal(bottomQuad.topLeftVertexId);
 			}
 			normal.Normalize();
 			currentQuad.bottomLeftNormal = normal;
@@ -218,17 +218,17 @@ cd::Mesh TerrainProducerImpl::CreateTerrainMesh(uint32_t sector_x, uint32_t sect
 			if (hasLeft)
 			{
 				const TerrainQuad leftQuad = terrainQuads[z][x - 1];
-				normal.Add(terrain.GetVertexNormal(leftQuad.topRightVertexId));
+				normal += terrain.GetVertexNormal(leftQuad.topRightVertexId);
 			}
 			if (hasLeft && hasTop)
 			{
 				const TerrainQuad topLeftQuad = terrainQuads[z + 1][x - 1];
-				normal.Add(terrain.GetVertexNormal(topLeftQuad.bottomRightVertexId));
+				normal += terrain.GetVertexNormal(topLeftQuad.bottomRightVertexId);
 			}
 			if (hasTop)
 			{
 				const TerrainQuad topQuad = terrainQuads[z + 1][x];
-				normal.Add(terrain.GetVertexNormal(topQuad.bottomLeftVertexId));
+				normal += terrain.GetVertexNormal(topQuad.bottomLeftVertexId);
 			}
 			normal.Normalize();
 			currentQuad.topRightNormal = normal;
@@ -238,17 +238,17 @@ cd::Mesh TerrainProducerImpl::CreateTerrainMesh(uint32_t sector_x, uint32_t sect
 			if (hasTop)
 			{
 				const TerrainQuad topQuad = terrainQuads[z + 1][x];
-				normal.Add(terrain.GetVertexNormal(topQuad.bottomRightVertexId));
+				normal += terrain.GetVertexNormal(topQuad.bottomRightVertexId);
 			}
 			if (hasTop && hasRight)
 			{
 				const TerrainQuad topRightQuad = terrainQuads[z + 1][x + 1];
-				normal.Add(terrain.GetVertexNormal(topRightQuad.bottomLeftVertexId));
+				normal += terrain.GetVertexNormal(topRightQuad.bottomLeftVertexId);
 			}
 			if (hasRight)
 			{
 				const TerrainQuad rightQuad = terrainQuads[z][x + 1];
-				normal.Add(terrain.GetVertexNormal(rightQuad.topLeftVertexId));
+				normal += terrain.GetVertexNormal(rightQuad.topLeftVertexId);
 			}
 			normal.Normalize();
 			currentQuad.topRightNormal = normal;
@@ -258,17 +258,17 @@ cd::Mesh TerrainProducerImpl::CreateTerrainMesh(uint32_t sector_x, uint32_t sect
 			if (hasRight)
 			{
 				const TerrainQuad rightQuad = terrainQuads[z][x + 1];
-				normal.Add(terrain.GetVertexNormal(rightQuad.bottomLeftVertexId));
+				normal += terrain.GetVertexNormal(rightQuad.bottomLeftVertexId);
 			}
 			if (hasRight && hasBottom)
 			{
 				const TerrainQuad bottomRightQuad = terrainQuads[z - 1][x + 1];
-				normal.Add(terrain.GetVertexNormal(bottomRightQuad.topLeftVertexId));
+				normal += terrain.GetVertexNormal(bottomRightQuad.topLeftVertexId);
 			}
 			if (hasBottom)
 			{
 				const TerrainQuad bottomQuad = terrainQuads[z - 1][x];
-				normal.Add(terrain.GetVertexNormal(bottomQuad.topRightVertexId));
+				normal += terrain.GetVertexNormal(bottomQuad.topRightVertexId);
 			}
 			normal.Normalize();
 			currentQuad.bottomRightNormal = normal;
@@ -289,9 +289,9 @@ cd::Mesh TerrainProducerImpl::CreateTerrainMesh(uint32_t sector_x, uint32_t sect
 
 	// Set vertex attribute
 	cd::VertexFormat meshVertexFormat;
-	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), 3);
-	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), 3);
-	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), 2);
+	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
 	terrain.SetVertexFormat(std::move(meshVertexFormat));
 
 	// Set aabb

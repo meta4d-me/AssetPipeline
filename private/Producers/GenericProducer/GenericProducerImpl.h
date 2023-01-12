@@ -4,6 +4,7 @@
 #include "Scene/ObjectIDGenerator.h"
 
 #include <cstdint>
+#include <map>
 #include <string>
 
 struct aiMaterial;
@@ -32,14 +33,14 @@ public:
 	GenericProducerImpl& operator=(GenericProducerImpl&&) = delete;
 	~GenericProducerImpl() = default;
 
-	void SetSceneDatabaseIDs(uint32_t transformID, uint32_t meshID, uint32_t materialID, uint32_t textureID, uint32_t lightID);
+	void SetSceneDatabaseIDs(uint32_t nodeID, uint32_t meshID, uint32_t materialID, uint32_t textureID, uint32_t lightID);
 
 	void Execute(cd::SceneDatabase* pSceneDatabase);
 
 	uint32_t GetImportFlags() const;
 	cd::MaterialID AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial);
 	cd::MeshID AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh);
-	cd::TransformID AddTransform(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t transformID);
+	cd::NodeID AddNode(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t nodeID);
 
 	void ActivateDuplicateVertexService() { m_bWantDuplicatedVertex = true; }
 	bool IsDuplicateVertexServiceActive() const { return m_bWantDuplicatedVertex; }
@@ -60,6 +61,8 @@ public:
 	bool IsCleanUnusedServiceActive() const { return m_bWantCleanUnused; }
 
 private:
+	std::string m_filePath;
+
 	// Service flags
 	bool m_bWantDuplicatedVertex = false;
 	bool m_bWantBoundingBox = false;
@@ -68,12 +71,14 @@ private:
 	bool m_bWantTangentsSpace = false;
 	bool m_bWantCleanUnused = false;
 
-	cd::ObjectIDGenerator<cd::TransformID> m_transformIDGenerator;
+	// Generate IDs for different objects
+	cd::ObjectIDGenerator<cd::NodeID> m_nodeIDGenerator;
 	cd::ObjectIDGenerator<cd::MeshID> m_meshIDGenerator;
 	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
 	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
 	cd::ObjectIDGenerator<cd::LightID> m_lightIDGenerator;
-	std::string m_filePath;
+
+	std::map<const aiNode*, uint32_t> m_aiNodeToNodeIDLookup;
 };
 
 }

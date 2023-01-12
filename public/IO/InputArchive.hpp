@@ -2,6 +2,8 @@
 
 #include <istream>
 
+#include "Math/Matrix.hpp"
+#include "Math/Transform.hpp"
 #include "Utilities/ByteSwap.h"
 
 namespace cd
@@ -34,9 +36,17 @@ public:
 	TInputArchive& operator>>(double& data) { return Import(data); }
 	TInputArchive& operator>>(char& data) { return Import(data); }
 	TInputArchive& operator>>(std::string& data) { return Import(data); }
+	TInputArchive& operator>>(Vec2f& data) { return ImportBuffer(data.Begin()); }
+	TInputArchive& operator>>(Vec3f& data) { return ImportBuffer(data.Begin()); }
+	TInputArchive& operator>>(Vec4f& data) { return ImportBuffer(data.Begin()); }
+	TInputArchive& operator>>(Quaternion& data) { return ImportBuffer(data.Begin()); }
+	TInputArchive& operator>>(Matrix2x2& data) { return ImportBuffer(data.Begin()); }
+	TInputArchive& operator>>(Matrix3x3& data) { return ImportBuffer(data.Begin()); }
+	TInputArchive& operator>>(Matrix4x4& data) { return ImportBuffer(data.Begin()); }
+	TInputArchive& operator>>(Transform& data) { return ImportBuffer(data.Begin()); }
 
 	template<typename T>
-	void ImportBuffer(T data)
+	TInputArchive& ImportBuffer(T data)
 	{
 		static_assert(std::is_pointer_v<T> && "Data buffer should be pointer.");
 		uint64_t bufferBytes;
@@ -46,6 +56,8 @@ public:
 			bufferBytes = byte_swap<uint64_t>(bufferBytes);
 		}
 		m_pIStream->read(reinterpret_cast<char*>(data), bufferBytes);
+
+		return *this;
 	}
 
 public:

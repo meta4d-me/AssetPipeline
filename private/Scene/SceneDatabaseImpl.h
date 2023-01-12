@@ -5,7 +5,7 @@
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
 #include "Scene/Texture.h"
-#include "Scene/Transform.h"
+#include "Scene/Node.h"
 #include "Scene/Light.h"
 
 #include <optional>
@@ -34,12 +34,12 @@ public:
 	AABB& GetAABB() { return m_aabb; }
 	const AABB& GetAABB() const { return m_aabb; }
 
-	// Transform
-	void AddTransform(Transform mesh);
-	const std::vector<Transform>& GetTransforms() const { return m_transforms; }
-	void SetTransformCount(uint32_t meshCount);
-	const Transform& GetTransform(uint32_t index) const { return m_transforms[index]; }
-	uint32_t GetTransformCount() const { return static_cast<uint32_t>(m_transforms.size()); }
+	// Node
+	void AddNode(Node node);
+	const std::vector<Node>& GetNodes() const { return m_nodes; }
+	void SetNodeCount(uint32_t nodeCount);
+	const Node& GetNode(uint32_t index) const { return m_nodes[index]; }
+	uint32_t GetNodeCount() const { return static_cast<uint32_t>(m_nodes.size()); }
 
 	// Mesh
 	void AddMesh(Mesh mesh);
@@ -152,7 +152,7 @@ private:
 	std::string m_name;
 	AABB m_aabb;
 
-	std::vector<Transform> m_transforms;
+	std::vector<Node> m_nodes;
 	std::vector<Mesh> m_meshes;
 	std::vector<Material> m_materials;
 	std::vector<Texture> m_textures;
