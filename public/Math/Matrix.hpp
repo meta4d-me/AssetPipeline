@@ -2,8 +2,6 @@
 
 #include "Math/Vector.hpp"
 
-#include <cstring> // std::memset
-
 namespace cd
 {
 
@@ -58,7 +56,7 @@ public:
 		c3[1] = translation.y();
 		c3[2] = translation.z();
 		
-		return Matrix<T, 4, 4>(cd::MoveTemp(c0), cd::MoveTemp(c1), cd::MoveTemp(c2), cd::MoveTemp(c3));
+		return MatrixType(cd::MoveTemp(c0), cd::MoveTemp(c1), cd::MoveTemp(c2), cd::MoveTemp(c3));
 	}
 
 	template<Handedness Hand>
@@ -286,7 +284,7 @@ public:
 	CD_FORCEINLINE T& Data(int index) { return reinterpret_cast<T*>(data)[index]; }
 
 	// Clear
-	void Clear() { std::memset(Begin(), static_cast<T>(0), Size); }
+	void Clear() { std::memset(Begin(), 0, Size); }
 
 	// Math
 	MatrixType Inverse() const

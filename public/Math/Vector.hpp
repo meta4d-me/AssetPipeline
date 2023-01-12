@@ -4,6 +4,8 @@
 #include "Math/Constants.h"
 #include "Math/Math.hpp"
 
+#include <cstring> // std::memset
+
 namespace cd
 {
 
@@ -54,6 +56,8 @@ public:
 		static_assert(sizeof...(Args) == N);
 		data = { static_cast<T>(args)... };
 	}
+
+	void Clear() { std::memset(Begin(), 0, Size); }
 
 	// Get
 	CD_FORCEINLINE Iterator Begin() { return &data[0]; }

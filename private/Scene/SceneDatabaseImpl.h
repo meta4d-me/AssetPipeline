@@ -4,8 +4,8 @@
 #include "Math/AABB.hpp"
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
-#include "Scene/Texture.h"
 #include "Scene/Node.h"
+#include "Scene/Texture.h"
 #include "Scene/Light.h"
 
 #include <optional>

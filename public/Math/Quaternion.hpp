@@ -80,6 +80,8 @@ public:
 	TQuaternion& operator=(TQuaternion&&) = default;
 	~TQuaternion() = default;
 
+	void Clear() { std::memset(Begin(), 0, Size); }
+
 	// Get
 	CD_FORCEINLINE Iterator Begin() { return m_vector.Begin(); }
 	CD_FORCEINLINE Iterator End() { return &m_scalar + 1; }

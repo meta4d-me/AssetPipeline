@@ -30,6 +30,13 @@ public:
 	TTransform& operator=(TTransform&&) = default;
 	~TTransform() = default;
 
+	void Clear()
+	{
+		m_translation.Clear();
+		m_rotation.Clear();
+		m_scale.Clear();
+	}
+
 	// Get
 	CD_FORCEINLINE Iterator Begin() { return &m_translation[0]; }
 	CD_FORCEINLINE Iterator End() { return &m_translation[0] + Size; }

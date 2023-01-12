@@ -62,6 +62,7 @@ public:
 
 private:
 	std::string m_filePath;
+	std::string m_folderPath;
 
 	// Service flags
 	bool m_bWantDuplicatedVertex = false;

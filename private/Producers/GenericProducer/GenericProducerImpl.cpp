@@ -12,6 +12,7 @@
 #include <assimp/version.h>
 
 #include <cassert>
+#include <filesystem>
 #include <optional>
 #include <set>
 #include <unordered_map>
@@ -166,17 +167,17 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			bool isTextureReused;
 			uint32_t textureHash = cd::StringHash<cd::TextureID::ValueType>(ai_path.C_Str());
 			cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, isTextureReused);
-			printf("\t\t[TextureID %u] %s - %s\n",
-				textureID.Data(),
-				GetMaterialTextureTypeName(materialTextureType),
-				ai_path.C_Str());
+
+			std::string textureAbsolutePath = m_folderPath + "/" + ai_path.C_Str();
+			printf("\t\t[TextureID %u] %s - %s\n", textureID.Data(),
+				GetMaterialTextureTypeName(materialTextureType), textureAbsolutePath.c_str());
 
 			material.SetTextureID(materialTextureType, textureID);
 
 			// Reused textures don't need to add to SceneDatabase again.
 			if (!isTextureReused)
 			{
-				pSceneDatabase->AddTexture(cd::Texture(textureID, ai_path.C_Str()));
+				pSceneDatabase->AddTexture(cd::Texture(textureID, textureAbsolutePath.c_str()));
 			}
 		}
 	}
@@ -370,9 +371,6 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 
 cd::NodeID GenericProducerImpl::AddNode(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t nodeID)
 {
-	// Cache it for searching parent node id.
-	m_aiNodeToNodeIDLookup[pSourceNode] = nodeID;
-
 	cd::NodeID sceneNodeID(nodeID);
 	cd::Node sceneNode(sceneNodeID);
 
@@ -384,9 +382,15 @@ cd::NodeID GenericProducerImpl::AddNode(cd::SceneDatabase* pSceneDatabase, const
 	sceneNode.SetTransform(cd::Transform(transformation.GetTranslation(), cd::Quaternion(transformation.GetRotation()), transformation.GetScale()));
 
 	// Parent node ID should be queried because we are doing Depth-First search.
-	const auto itParentNodeID = m_aiNodeToNodeIDLookup.find(pSourceNode->mParent);
-	assert(itParentNodeID != m_aiNodeToNodeIDLookup.end() && "Failed to query parent node ID in scene database.");
-	sceneNode.SetParentID(itParentNodeID->second);
+	if (pSourceNode->mParent)
+	{
+		// Cache it for searching parent node id.
+		m_aiNodeToNodeIDLookup[pSourceNode] = nodeID;
+
+		const auto itParentNodeID = m_aiNodeToNodeIDLookup.find(pSourceNode->mParent);
+		assert(itParentNodeID != m_aiNodeToNodeIDLookup.end() && "Failed to query parent node ID in scene database.");
+		sceneNode.SetParentID(itParentNodeID->second);
+	}
 
 	// Add meshes from node.
 	for (uint32_t meshIndex = 0; meshIndex < pSourceNode->mNumMeshes; ++meshIndex)
@@ -427,6 +431,9 @@ void GenericProducerImpl::SetSceneDatabaseIDs(uint32_t nodeID, uint32_t meshID, 
 
 void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 {
+	std::filesystem::path fileFolderPath = m_filePath;
+	m_folderPath = fileFolderPath.parent_path().generic_string();
+
 	printf("ImportStaticMesh : %s\n", m_filePath.c_str());
 	const aiScene* pScene = aiImportFile(m_filePath.c_str(), GetImportFlags());
 	if (!pScene || !pScene->HasMeshes())
