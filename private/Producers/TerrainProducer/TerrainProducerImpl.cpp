@@ -72,7 +72,7 @@ void TerrainProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
 	baseColorMaterial.SetTextureID(cd::MaterialTextureType::BaseColor, textureID);
 	pSceneDatabase->AddMaterial(cd::MoveTemp(baseColorMaterial));
-	pSceneDatabase->AddTexture(cd::Texture(textureID, textureName.c_str()));
+	pSceneDatabase->AddTexture(cd::Texture(textureID, cd::MaterialTextureType::BaseColor, textureName.c_str()));
 	
 	for (uint32_t z = 0; z < m_numSectorsInZ; ++z)
 	{

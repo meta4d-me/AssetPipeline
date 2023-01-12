@@ -177,7 +177,7 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			// Reused textures don't need to add to SceneDatabase again.
 			if (!isTextureReused)
 			{
-				pSceneDatabase->AddTexture(cd::Texture(textureID, textureAbsolutePath.c_str()));
+				pSceneDatabase->AddTexture(cd::Texture(textureID, materialTextureType, textureAbsolutePath.c_str()));
 			}
 		}
 	}
