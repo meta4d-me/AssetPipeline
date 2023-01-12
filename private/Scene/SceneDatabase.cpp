@@ -57,31 +57,31 @@ const AABB& SceneDatabase::GetAABB() const
 }
 
 ///////////////////////////////////////////////////////////////////
-// Transform
+// Node
 ///////////////////////////////////////////////////////////////////
-void SceneDatabase::AddTransform(Transform transform)
+void SceneDatabase::AddNode(Node node)
 {
-	return m_pSceneDatabaseImpl->AddTransform(cd::MoveTemp(transform));
+	return m_pSceneDatabaseImpl->AddNode(cd::MoveTemp(node));
 }
 
-const std::vector<Transform>& SceneDatabase::GetTransforms() const
+const std::vector<Node>& SceneDatabase::GetNodes() const
 {
-	return m_pSceneDatabaseImpl->GetTransforms();
+	return m_pSceneDatabaseImpl->GetNodes();
 }
 
-void SceneDatabase::SetTransformCount(uint32_t transformCount)
+void SceneDatabase::SetNodeCount(uint32_t nodeCount)
 {
-	return m_pSceneDatabaseImpl->SetTransformCount(transformCount);
+	return m_pSceneDatabaseImpl->SetNodeCount(nodeCount);
 }
 
-const Transform& SceneDatabase::GetTransform(uint32_t index) const
+const Node& SceneDatabase::GetNode(uint32_t index) const
 {
-	return m_pSceneDatabaseImpl->GetTransform(index);
+	return m_pSceneDatabaseImpl->GetNode(index);
 }
 
-uint32_t SceneDatabase::GetTransformCount() const
+uint32_t SceneDatabase::GetNodeCount() const
 {
-	return m_pSceneDatabaseImpl->GetTransformCount();
+	return m_pSceneDatabaseImpl->GetNodeCount();
 }
 
 ///////////////////////////////////////////////////////////////////

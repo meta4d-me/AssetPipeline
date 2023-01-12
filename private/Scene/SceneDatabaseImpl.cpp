@@ -8,16 +8,16 @@ namespace cd
 {
 
 ///////////////////////////////////////////////////////////////////
-// Transform
+// Node
 ///////////////////////////////////////////////////////////////////
-void SceneDatabaseImpl::SetTransformCount(uint32_t transformCount)
+void SceneDatabaseImpl::SetNodeCount(uint32_t nodeCount)
 {
-	m_transforms.reserve(transformCount);
+	m_nodes.reserve(nodeCount);
 }
 
-void SceneDatabaseImpl::AddTransform(Transform transform)
+void SceneDatabaseImpl::AddNode(Node node)
 {
-	m_transforms.emplace_back(MoveTemp(transform));
+	m_nodes.emplace_back(MoveTemp(node));
 }
 
 ///////////////////////////////////////////////////////////////////
