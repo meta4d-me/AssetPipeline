@@ -2,6 +2,8 @@
 
 #include <ostream>
 
+#include "Math/Matrix.hpp"
+#include "Math/Transform.hpp"
 #include "Utilities/ByteSwap.h"
 
 namespace cd
@@ -33,6 +35,14 @@ public:
 	TOutputArchive& operator<<(double data) { return Export(data); }
 	TOutputArchive& operator<<(char data) { return Export(data); }
 	TOutputArchive& operator<<(const std::string& data) { return Export(data); }
+	TOutputArchive& operator<<(const Vec2f& data) { return ExportBuffer(data.Begin(), data.Size); }
+	TOutputArchive& operator<<(const Vec3f& data) { return ExportBuffer(data.Begin(), data.Size); }
+	TOutputArchive& operator<<(const Vec4f& data) { return ExportBuffer(data.Begin(), data.Size); }
+	TOutputArchive& operator<<(const Quaternion& data) { return ExportBuffer(data.Begin(), data.Size); }
+	TOutputArchive& operator<<(const Matrix2x2& data) { return ExportBuffer(data.Begin(), data.Size); }
+	TOutputArchive& operator<<(const Matrix3x3& data) { return ExportBuffer(data.Begin(), data.Size); }
+	TOutputArchive& operator<<(const Matrix4x4& data) { return ExportBuffer(data.Begin(), data.Size); }
+	TOutputArchive& operator<<(const Transform& data) { return ExportBuffer(data.Begin(), data.Size); }
 
 	template<typename T>
 	TOutputArchive& ExportBuffer(T data, std::size_t size)

@@ -12,6 +12,7 @@
 #include <assimp/version.h>
 
 #include <cassert>
+#include <filesystem>
 #include <optional>
 #include <set>
 #include <unordered_map>
@@ -166,17 +167,17 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			bool isTextureReused;
 			uint32_t textureHash = cd::StringHash<cd::TextureID::ValueType>(ai_path.C_Str());
 			cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, isTextureReused);
-			printf("\t\t[TextureID %u] %s - %s\n",
-				textureID.Data(),
-				GetMaterialTextureTypeName(materialTextureType),
-				ai_path.C_Str());
+
+			std::string textureAbsolutePath = m_folderPath + "/" + ai_path.C_Str();
+			printf("\t\t[TextureID %u] %s - %s\n", textureID.Data(),
+				GetMaterialTextureTypeName(materialTextureType), textureAbsolutePath.c_str());
 
 			material.SetTextureID(materialTextureType, textureID);
 
 			// Reused textures don't need to add to SceneDatabase again.
 			if (!isTextureReused)
 			{
-				pSceneDatabase->AddTexture(cd::Texture(textureID, ai_path.C_Str()));
+				pSceneDatabase->AddTexture(cd::Texture(textureID, textureAbsolutePath.c_str()));
 			}
 		}
 	}
@@ -368,54 +369,71 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 	return meshID;
 }
 
-cd::TransformID GenericProducerImpl::AddTransform(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t transformID)
+cd::NodeID GenericProducerImpl::AddNode(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t nodeID)
 {
+	cd::NodeID sceneNodeID(nodeID);
+	cd::Node sceneNode(sceneNodeID);
+
 	aiMatrix4x4 sourceMatrix = pSourceNode->mTransformation;
 	cd::Matrix4x4 transformation(sourceMatrix.a1, sourceMatrix.b1, sourceMatrix.c1, sourceMatrix.d1,
-		sourceMatrix.a2, sourceMatrix.b2, sourceMatrix.c2, sourceMatrix.d2,
-		sourceMatrix.a3, sourceMatrix.b3, sourceMatrix.c3, sourceMatrix.d3,
-		sourceMatrix.a4, sourceMatrix.b4, sourceMatrix.c4, sourceMatrix.d4);
+								 sourceMatrix.a2, sourceMatrix.b2, sourceMatrix.c2, sourceMatrix.d2,
+								 sourceMatrix.a3, sourceMatrix.b3, sourceMatrix.c3, sourceMatrix.d3,
+								 sourceMatrix.a4, sourceMatrix.b4, sourceMatrix.c4, sourceMatrix.d4);
+	sceneNode.SetTransform(cd::Transform(transformation.GetTranslation(), cd::Quaternion(transformation.GetRotation()), transformation.GetScale()));
 
-	cd::TransformID sceneTransformID(transformID);
-	cd::Transform transform(sceneTransformID, cd::MoveTemp(transformation));
+	// Parent node ID should be queried because we are doing Depth-First search.
+	if (pSourceNode->mParent)
+	{
+		// Cache it for searching parent node id.
+		m_aiNodeToNodeIDLookup[pSourceNode] = nodeID;
 
-	// Add meshes from transform node.
+		const auto itParentNodeID = m_aiNodeToNodeIDLookup.find(pSourceNode->mParent);
+		assert(itParentNodeID != m_aiNodeToNodeIDLookup.end() && "Failed to query parent node ID in scene database.");
+		sceneNode.SetParentID(itParentNodeID->second);
+	}
+
+	// Add meshes from node.
 	for (uint32_t meshIndex = 0; meshIndex < pSourceNode->mNumMeshes; ++meshIndex)
 	{
 		uint32_t sceneMeshIndex = pSourceNode->mMeshes[meshIndex];
 		cd::MeshID meshID = AddMesh(pSceneDatabase, pSourceScene->mMeshes[sceneMeshIndex]);
-		transform.AddMeshID(meshID.Data());
+		sceneNode.AddMeshID(meshID.Data());
 	}
 
-	std::vector<uint32_t> childTransformIDs;
+	std::vector<uint32_t> childNodeIDs;
 	for (uint32_t childIndex = 0U; childIndex < pSourceNode->mNumChildren; ++childIndex)
 	{
-		uint32_t childTransformID = m_transformIDGenerator.AllocateID();
-		childTransformIDs.push_back(childTransformID);
+		childNodeIDs.push_back(m_nodeIDGenerator.AllocateID());
 	}
 
 	for (uint32_t childIndex = 0U; childIndex < pSourceNode->mNumChildren; ++childIndex)
 	{
-		uint32_t childTransformID = childTransformIDs[childIndex];
-		transform.AddChildID(childTransformID);
-		AddTransform(pSceneDatabase, pSourceScene, pSourceNode->mChildren[childIndex], childTransformID);
+		uint32_t childNodeID = childNodeIDs[childIndex];
+		sceneNode.AddChildID(childNodeID);
+		AddNode(pSceneDatabase, pSourceScene, pSourceNode->mChildren[childIndex], childNodeID);
 	}
 
-	pSceneDatabase->AddTransform(cd::MoveTemp(transform));
-	return sceneTransformID;
+	pSceneDatabase->AddNode(cd::MoveTemp(sceneNode));
+	return sceneNodeID;
 }
 
-void GenericProducerImpl::SetSceneDatabaseIDs(uint32_t transformID, uint32_t meshID, uint32_t materialID, uint32_t textureID, uint32_t lightID)
+void GenericProducerImpl::SetSceneDatabaseIDs(uint32_t nodeID, uint32_t meshID, uint32_t materialID, uint32_t textureID, uint32_t lightID)
 {
-	m_transformIDGenerator.SetCurrentID(transformID);
+	m_nodeIDGenerator.SetCurrentID(nodeID);
 	m_meshIDGenerator.SetCurrentID(meshID);
 	m_materialIDGenerator.SetCurrentID(materialID);
 	m_textureIDGenerator.SetCurrentID(textureID);
 	m_lightIDGenerator.SetCurrentID(lightID);
+
+	// As previous aiNode has been destroyed, clear the lookup table.
+	m_aiNodeToNodeIDLookup.clear();
 }
 
 void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 {
+	std::filesystem::path fileFolderPath = m_filePath;
+	m_folderPath = fileFolderPath.parent_path().generic_string();
+
 	printf("ImportStaticMesh : %s\n", m_filePath.c_str());
 	const aiScene* pScene = aiImportFile(m_filePath.c_str(), GetImportFlags());
 	if (!pScene || !pScene->HasMeshes())
@@ -427,11 +445,11 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 
 	pSceneDatabase->SetName(m_filePath.c_str());
 
-	// Process all transforms.
+	// Process all nodes.
 	aiNode* pSceneRootNode = pScene->mRootNode;
-	pSceneDatabase->SetTransformCount(GetSceneNodesCount(pSceneRootNode));
+	pSceneDatabase->SetNodeCount(GetSceneNodesCount(pSceneRootNode));
 	pSceneDatabase->SetMeshCount(pScene->mNumMeshes);
-	AddTransform(pSceneDatabase, pScene, pSceneRootNode, m_transformIDGenerator.AllocateID());
+	AddNode(pSceneDatabase, pScene, pSceneRootNode, m_nodeIDGenerator.AllocateID());
 
 	// Post-process meshes.
 	cd::AABB sceneAABB(0.0f, 0.0f);
