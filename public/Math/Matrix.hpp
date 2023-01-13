@@ -36,29 +36,6 @@ public:
 		}
 	}
 
-	static MatrixType Transform(const TVector<T, 3>& translation, const TMatrix<T, 3, 3>& rotation, const TVector<T, 3>& scale)
-	{
-		static_assert(4 == Rows && 4 == Cols);
-		
-		// rotation
-		TVector<T, 4> c0(rotation(0, 0), rotation(1, 0), rotation(2, 0), 0);
-		TVector<T, 4> c1(rotation(0, 1), rotation(1, 1), rotation(2, 1), 0);
-		TVector<T, 4> c2(rotation(0, 2), rotation(1, 2), rotation(2, 2), 0);
-		TVector<T, 4> c3(0, 0, 0, 1);
-		
-		// scale
-		c0 *= scale.x();
-		c1 *= scale.y();
-		c2 *= scale.z();
-		
-		// translation
-		c3[0] = translation.x();
-		c3[1] = translation.y();
-		c3[2] = translation.z();
-		
-		return MatrixType(cd::MoveTemp(c0), cd::MoveTemp(c1), cd::MoveTemp(c2), cd::MoveTemp(c3));
-	}
-
 	template<Handedness Hand>
 	static MatrixType LookAt(const TVector<T, 3>& eye, const TVector<T, 3>& at, const TVector<T, 3>& up)
 	{
@@ -80,10 +57,10 @@ public:
 		TVector<T, 3> right = up.Cross(view).Normalize();
 		TVector<T, 3> upDirection = view.Cross(right);
 
-		return MatrixType(right.x(), right.y(), right.z(), -right.Dot(eye),
-						  upDirection.x(), upDirection.y(), upDirection.z(), -upDirection.Dot(eye),
-						  view.x(), view.y(), view.z(), -view.Dot(eye),
-						  zero, zero, zero, one);
+		return MatrixType(right.x(), upDirection.x(), view.x(), zero,
+                          right.y(), upDirection.y(), view.y(), zero,
+                          right.z(), upDirection.z(), view.z(), zero,
+                          -right.Dot(eye), -upDirection.Dot(eye), -view.Dot(eye), one);
 	}
 
 	template<Handedness Hand, NDCDepth NDC>
@@ -116,17 +93,17 @@ public:
 		constexpr T yy = zero;
 		if constexpr (Handedness::Left == Hand)
 		{
-			return MatrixType(width, zero, -xx, zero,
-							  zero, height, -yy, zero,
-							  zero, zero, aa, -bb,
-							  zero, zero, one, zero);
+			return MatrixType(width, zero, zero, zero,
+                              zero, height, zero, zero,
+                              -xx, -yy, aa, one,
+                              zero, zero, -bb, zero);
 		}
 		else
 		{
-			return MatrixType(width, zero, xx, zero,
-							  zero, height, yy, zero,
-							  zero, zero, -aa, -bb,
-							  zero, zero, -one, zero);
+			return MatrixType(width, zero, zero, zero,
+                              zero, height, zero, zero,
+                              xx, yy, -aa, -one,
+                              zero, zero, -bb, zero);
 		}
 	}
 
@@ -175,17 +152,17 @@ public:
 
 		if constexpr (Handedness::Left == Hand)
 		{
-			return MatrixType(aa, zero, zero, dd,
-							  zero, bb, zero, ee,
-							  zero, zero, cc, ff,
-							  zero, zero, zero, one);
+			return MatrixType(aa, zero, zero, zero,
+                              zero, bb, zero, zero,
+                              zero, zero, cc, zero,
+                              dd, ee, ff, one);
 		}
 		else
 		{
-			return MatrixType(aa, zero, zero, dd,
-							  zero, bb, zero, ee,
-							  zero, zero, -cc, ff,
-							  zero, zero, zero, one);
+			return MatrixType(aa, zero, zero, zero,
+                              zero, bb, zero, zero,
+                              zero, zero, -cc, zero,
+                              dd, ee, ff, one);
 		}
 	}
 
