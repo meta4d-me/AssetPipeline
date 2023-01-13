@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 	const char* pInputFilePath = argv[1];
 	const char* pOutputFilePath = argv[2];
 	GenericProducer producer(pInputFilePath);
-	//producer.ActivateFlattenHierarchyService();
+	producer.ActivateFlattenHierarchyService();
 	producer.ActivateBoundingBoxService();
 	producer.ActivateTriangulateService();
 	producer.ActivateTangentsSpaceService();

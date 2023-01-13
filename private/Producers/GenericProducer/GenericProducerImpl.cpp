@@ -204,7 +204,7 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 	cd::Mesh mesh(meshID, pSourceMesh->mName.C_Str(), numVertices, pSourceMesh->mNumFaces);
 	mesh.SetMaterialID(m_materialIDGenerator.GetCurrentID() + pSourceMesh->mMaterialIndex);
 
-	printf("\t[MeshID %u] face number : %u, vertex number : %u, materialID : %u\n", meshID.Data(), mesh.GetPolygonCount(), mesh.GetVertexCount(), mesh.GetMaterialID().Data());
+	printf("\t\t[MeshID %u] face number : %u, vertex number : %u, materialID : %u\n", meshID.Data(), mesh.GetPolygonCount(), mesh.GetVertexCount(), mesh.GetMaterialID().Data());
 
 	// By default, aabb will be empty.
 	if (IsBoundingBoxServiceActive())
@@ -376,9 +376,9 @@ cd::NodeID GenericProducerImpl::AddNode(cd::SceneDatabase* pSceneDatabase, const
 
 	aiMatrix4x4 sourceMatrix = pSourceNode->mTransformation;
 	cd::Matrix4x4 transformation(sourceMatrix.a1, sourceMatrix.b1, sourceMatrix.c1, sourceMatrix.d1,
-								 sourceMatrix.a2, sourceMatrix.b2, sourceMatrix.c2, sourceMatrix.d2,
-								 sourceMatrix.a3, sourceMatrix.b3, sourceMatrix.c3, sourceMatrix.d3,
-								 sourceMatrix.a4, sourceMatrix.b4, sourceMatrix.c4, sourceMatrix.d4);
+                                 sourceMatrix.a2, sourceMatrix.b2, sourceMatrix.c2, sourceMatrix.d2,
+                                 sourceMatrix.a3, sourceMatrix.b3, sourceMatrix.c3, sourceMatrix.d3,
+                                 sourceMatrix.a4, sourceMatrix.b4, sourceMatrix.c4, sourceMatrix.d4);
 	sceneNode.SetTransform(cd::Transform(transformation.GetTranslation(), cd::Quaternion(transformation.GetRotation()), transformation.GetScale()));
 
 	// Cache it for searching parent node id.
@@ -391,6 +391,8 @@ cd::NodeID GenericProducerImpl::AddNode(cd::SceneDatabase* pSceneDatabase, const
 		sceneNode.SetParentID(itParentNodeID->second);
 	}
 
+	printf("\t[Node %u] ParentID : %u, Name : %s\n", nodeID, sceneNode.GetParentID().Data(), pSourceNode->mName.C_Str());
+
 	// Add meshes from node.
 	for (uint32_t meshIndex = 0; meshIndex < pSourceNode->mNumMeshes; ++meshIndex)
 	{
@@ -402,17 +404,19 @@ cd::NodeID GenericProducerImpl::AddNode(cd::SceneDatabase* pSceneDatabase, const
 	std::vector<uint32_t> childNodeIDs;
 	for (uint32_t childIndex = 0U; childIndex < pSourceNode->mNumChildren; ++childIndex)
 	{
-		childNodeIDs.push_back(m_nodeIDGenerator.AllocateID());
+		uint32_t childNodeID = m_nodeIDGenerator.AllocateID();
+		sceneNode.AddChildID(childNodeID);
+		childNodeIDs.push_back(childNodeID);
 	}
+
+	pSceneDatabase->AddNode(cd::MoveTemp(sceneNode));
 
 	for (uint32_t childIndex = 0U; childIndex < pSourceNode->mNumChildren; ++childIndex)
 	{
 		uint32_t childNodeID = childNodeIDs[childIndex];
-		sceneNode.AddChildID(childNodeID);
 		AddNode(pSceneDatabase, pSourceScene, pSourceNode->mChildren[childIndex], childNodeID);
 	}
 
-	pSceneDatabase->AddNode(cd::MoveTemp(sceneNode));
 	return sceneNodeID;
 }
 
