@@ -381,12 +381,11 @@ cd::NodeID GenericProducerImpl::AddNode(cd::SceneDatabase* pSceneDatabase, const
 								 sourceMatrix.a4, sourceMatrix.b4, sourceMatrix.c4, sourceMatrix.d4);
 	sceneNode.SetTransform(cd::Transform(transformation.GetTranslation(), cd::Quaternion(transformation.GetRotation()), transformation.GetScale()));
 
-	// Parent node ID should be queried because we are doing Depth-First search.
+	// Cache it for searching parent node id.
+	m_aiNodeToNodeIDLookup[pSourceNode] = nodeID;
 	if (pSourceNode->mParent)
 	{
-		// Cache it for searching parent node id.
-		m_aiNodeToNodeIDLookup[pSourceNode] = nodeID;
-
+		// Parent node ID should be queried because we are doing Depth-First search.
 		const auto itParentNodeID = m_aiNodeToNodeIDLookup.find(pSourceNode->mParent);
 		assert(itParentNodeID != m_aiNodeToNodeIDLookup.end() && "Failed to query parent node ID in scene database.");
 		sceneNode.SetParentID(itParentNodeID->second);
