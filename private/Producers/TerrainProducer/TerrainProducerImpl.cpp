@@ -109,10 +109,10 @@ cd::Mesh TerrainProducerImpl::CreateTerrainMesh(uint32_t sector_x, uint32_t sect
 	uint32_t current_vertex_id = 0;
 	uint32_t current_polygon_id = 0;
 	// Generate all the quads
-	for (uint32_t z = 0; z < static_cast<uint32_t>(m_numQuadsInSectorInZ) - 1; ++z)
+	for (uint32_t z = 0; z < static_cast<uint32_t>(m_numQuadsInSectorInZ); ++z)
 	{
 		std::vector<TerrainQuad>& currentRow = terrainQuads[z];
-		for (uint32_t x = 0; x < static_cast<uint32_t>(m_numQuadsInSectorInX) - 1; ++x)
+		for (uint32_t x = 0; x < static_cast<uint32_t>(m_numQuadsInSectorInX); ++x)
 		{
 			currentRow[x] = CreateQuadAt(current_vertex_id, current_polygon_id);
 			const uint32_t leftX = (sector_x * m_sectorLengthInX) + x * m_quadLengthInX;
