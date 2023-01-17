@@ -80,7 +80,7 @@ void TerrainProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		{
 			cd::Mesh terrain = CreateTerrainMesh(x, z);
 			terrain.SetMaterialID(materialID.Data());
-			pSceneDatabase->GetAABB().Expand(terrain.GetAABB());
+			pSceneDatabase->GetAABB().Merge(terrain.GetAABB());
 
 			// Add it to the scene
 			pSceneDatabase->AddMesh(std::move(terrain));

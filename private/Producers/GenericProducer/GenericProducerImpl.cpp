@@ -465,7 +465,7 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	for (const auto& mesh : pSceneDatabase->GetMeshes())
 	{
 		// Merge a total AABB for all meshes in the scene.
-		sceneAABB.Expand(mesh.GetAABB());
+		sceneAABB.Merge(mesh.GetAABB());
 
 		// Query mesh used material indexes.
 		if (optUsedMaterialIndexes.has_value())

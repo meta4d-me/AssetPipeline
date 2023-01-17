@@ -26,10 +26,10 @@ public:
 	~TSphere() = default;
 
 	CD_FORCEINLINE bool IsValid() const { return IsEqualToZero(m_radius); }
-	CD_FORCEINLINE bool IsPointInside(const TPoint& point) { return (point - m_center).LengthSquare() <= (m_radius + GetEpsilon<T>()) * (m_radius + GetEpsilon<T>()); }
-	CD_FORCEINLINE TPoint GetCenter() const { return m_center; }
-	CD_FORCEINLINE T GetRadius() const { return m_radius; }
-	CD_FORCEINLINE T GetVolume() const { return static_cast<T>(4) / static_cast<T>(3) * MATH_PI * m_radius * m_radius * m_radius; }
+	CD_FORCEINLINE bool IsPointInside(const TPoint& point) { return (point - m_center).LengthSquare() <= (m_radius + Math::GetEpsilon<T>()) * (m_radius + Math::GetEpsilon<T>()); }
+	CD_FORCEINLINE TPoint Center() const { return m_center; }
+	CD_FORCEINLINE T Radius() const { return m_radius; }
+	CD_FORCEINLINE T Volume() const { return static_cast<T>(4) / static_cast<T>(3) * Math::PI * m_radius * m_radius * m_radius; }
 
 private:
 	TPoint m_center;
