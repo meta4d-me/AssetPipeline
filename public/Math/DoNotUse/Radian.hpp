@@ -12,8 +12,8 @@ class TRadian
 public:
 	TRadian() = default;
 	explicit TRadian(T radian) : m_radian(radian) {}
-	explicit TRadian(const TDegree<T>& degree) : m_radian(cd::DegreeToRadian<T>(degree)) {}
-	TRadian& operator=(const TDegree<T>& degree) { m_radian = cd::DegreeToRadian<T>(degree); return *this; }
+	explicit TRadian(const TDegree<T>& degree) : m_radian(Math::DegreeToRadian<T>(degree)) {}
+	TRadian& operator=(const TDegree<T>& degree) { m_radian = Math::DegreeToRadian<T>(degree); return *this; }
 	TRadian(const TRadian&) = default;
 	TRadian& operator(const TRadian&) = default;
 	TRadian(TRadian&&) = default;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Base/Platform.h"
-#include "Math.hpp"
+#include "Math/Math.hpp"
 #include "Radian.hpp"
 
 namespace cd
@@ -13,8 +13,8 @@ class TDegree
 public:
 	TDegree() = default;
 	explicit TDegree(T degree) : m_degree(degree) {}
-	explicit TDegree(const TRadian<T>& radian) : m_degree(cd::RadianToDegree<T>(radian)) {}
-	TDegree& operator=(const TRadian<T>& radian) { m_degree = cd::RadianToDegree<T>(radian); return *this; }
+	explicit TDegree(const TRadian<T>& radian) : m_degree(Math::RadianToDegree<T>(radian)) {}
+	TDegree& operator=(const TRadian<T>& radian) { m_degree = Math::RadianToDegree<T>(radian); return *this; }
 	TDegree(const TDegree&) = default;
 	TDegree& operator=(const TDegree&) = default;
 	TDegree(TDegree&&) = default;

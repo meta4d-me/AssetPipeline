@@ -40,7 +40,6 @@ public:
 	TInputArchive& operator>>(Vec3f& data) { return ImportBuffer(data.Begin()); }
 	TInputArchive& operator>>(Vec4f& data) { return ImportBuffer(data.Begin()); }
 	TInputArchive& operator>>(Quaternion& data) { return ImportBuffer(data.Begin()); }
-	TInputArchive& operator>>(Matrix2x2& data) { return ImportBuffer(data.Begin()); }
 	TInputArchive& operator>>(Matrix3x3& data) { return ImportBuffer(data.Begin()); }
 	TInputArchive& operator>>(Matrix4x4& data) { return ImportBuffer(data.Begin()); }
 	TInputArchive& operator>>(Transform& data) { return ImportBuffer(data.Begin()); }

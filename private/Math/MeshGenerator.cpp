@@ -6,6 +6,8 @@
 #include "Scene/Mesh.h"
 #include "Scene/VertexFormat.h"
 
+#include <cassert>
+
 namespace cd
 {
 

@@ -39,7 +39,6 @@ public:
 	TOutputArchive& operator<<(const Vec3f& data) { return ExportBuffer(data.Begin(), data.Size); }
 	TOutputArchive& operator<<(const Vec4f& data) { return ExportBuffer(data.Begin(), data.Size); }
 	TOutputArchive& operator<<(const Quaternion& data) { return ExportBuffer(data.Begin(), data.Size); }
-	TOutputArchive& operator<<(const Matrix2x2& data) { return ExportBuffer(data.Begin(), data.Size); }
 	TOutputArchive& operator<<(const Matrix3x3& data) { return ExportBuffer(data.Begin(), data.Size); }
 	TOutputArchive& operator<<(const Matrix4x4& data) { return ExportBuffer(data.Begin(), data.Size); }
 	TOutputArchive& operator<<(const Transform& data) { return ExportBuffer(data.Begin(), data.Size); }

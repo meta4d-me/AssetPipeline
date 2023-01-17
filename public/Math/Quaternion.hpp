@@ -47,31 +47,31 @@ public:
 			w() = half * t;
 
 			t = half / t;
-			x() = rotationMatrix(2, 1) - rotationMatrix(1, 2) * t;
-			y() = rotationMatrix(0, 2) - rotationMatrix(2, 0) * t;
-			z() = rotationMatrix(1, 0) - rotationMatrix(0, 1) * t;
+			x() = rotationMatrix.Data(2, 1) - rotationMatrix.Data(1, 2) * t;
+			y() = rotationMatrix.Data(0, 2) - rotationMatrix.Data(2, 0) * t;
+			z() = rotationMatrix.Data(1, 0) - rotationMatrix.Data(0, 1) * t;
 		}
 		else
 		{
 			int i = 0;
-			if (rotationMatrix(1, 1) > rotationMatrix(0, 0))
+			if (rotationMatrix.Data(1, 1) > rotationMatrix.Data(0, 0))
 			{
 				i = 1;
 			}
 
-			if (rotationMatrix(2, 2) > rotationMatrix(i, i))
+			if (rotationMatrix.Data(2, 2) > rotationMatrix.Data(i, i))
 			{
 				i = 2;
 			}
 				
 			int j = (i + 1) % 3;
 			int k = (j + 1) % 3;
-			t = std::sqrt(rotationMatrix(i, i) - rotationMatrix(j, j) - rotationMatrix(k, k) + one);
+			t = std::sqrt(rotationMatrix.Data(i, i) - rotationMatrix.Data(j, j) - rotationMatrix.Data(k, k) + one);
 			Data(i) = half * t;
 			t = half / t;
-			w() = (rotationMatrix(k, j) - rotationMatrix(j, k)) * t;
-			Data(j) = (rotationMatrix(j, i) + rotationMatrix(i, j)) * t;
-			Data(k) = (rotationMatrix(k, i) + rotationMatrix(i, k)) * t;
+			w() = (rotationMatrix.Data(k, j) - rotationMatrix.Data(j, k)) * t;
+			Data(j) = (rotationMatrix.Data(j, i) + rotationMatrix.Data(i, j)) * t;
+			Data(k) = (rotationMatrix.Data(k, i) + rotationMatrix.Data(i, k)) * t;
 		}
 	}
 	TQuaternion(const TQuaternion&) = default;
@@ -143,11 +143,9 @@ public:
 	}
 
 	// Operators
-	CD_FORCEINLINE TQuaternion<T>& operator+() const { return *this; }
 	CD_FORCEINLINE TQuaternion<T> operator+(const TQuaternion<T>& rhs) const { return TQuaternion<T>(m_scalar + rhs.m_scalar, m_vector + rhs.m_vector); }
 	CD_FORCEINLINE TQuaternion<T>& operator+=(const TQuaternion<T>& rhs) { m_scalar += rhs.m_scalar; m_vector += rhs.m_vector; return *this; }
 	
-	CD_FORCEINLINE TQuaternion<T> operator-() const { return Quaternion(-m_scalar, -m_vector.x(), -m_vector.y(), -m_vector.z()); }
 	CD_FORCEINLINE TQuaternion<T> operator-(const TQuaternion<T>& rhs) const { return TQuaternion<T>(m_scalar - rhs.m_scalar, m_vector - rhs.m_vector); }
 	CD_FORCEINLINE TQuaternion<T>& operator-=(const TQuaternion<T>& rhs) { m_scalar -= rhs.m_scalar; m_vector -= rhs.m_vector; return *this; }
 

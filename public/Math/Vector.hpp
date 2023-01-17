@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Base/Template.h"
-#include "Math/Constants.h"
 #include "Math/Math.hpp"
 
 #include <cstring> // std::memset
@@ -35,6 +34,14 @@ public:
 	// Single value constructor is used to initialize all components to the same value.
 	explicit constexpr TVector(T value) { std::fill(Begin(), End(), value); }
 
+	// Smaller size vector + single value constructor.
+	//explicit constexpr TVector(TVector<T, Size - 1> vector, T value)
+	//{
+	//	static_assert(N > 2);
+	//	std::fill(Begin(), Begin() + Size - 1, value);
+	//	data[Size - 1] = value;
+	//}
+
 	// N parameters constructor.
 	template <typename... Args>
 	explicit constexpr TVector(Args... args) :
@@ -65,9 +72,7 @@ public:
 	CD_FORCEINLINE ConstIterator Begin() const { return &data[0]; }
 	CD_FORCEINLINE ConstIterator End() const { return &data[0] + Size; }
 	CD_FORCEINLINE constexpr T& operator[](int index) { return data[index]; }
-	CD_FORCEINLINE constexpr T& operator()(int index) { return data[index]; }
 	CD_FORCEINLINE constexpr const T& operator[](int index) const { return data[index]; }
-	CD_FORCEINLINE constexpr const T& operator()(int index) const { return data[index]; }
 	CD_FORCEINLINE constexpr T& x() { static_assert(1 <= N); return data[0]; }
 	CD_FORCEINLINE constexpr const T& x() const { static_assert(1 <= N); return data[0]; }
 	CD_FORCEINLINE constexpr T& y() { static_assert(2 <= N); return data[1]; }
@@ -87,15 +92,15 @@ public:
 	{
 		if constexpr (2 == N)
 		{
-			return IsEqualToZero(x()) && IsEqualToZero(y());
+			return Math::IsEqualToZero(x()) && Math::IsEqualToZero(y());
 		}
 		else if constexpr (3 == N)
 		{
-			return IsEqualToZero(x()) && IsEqualToZero(y()) && IsEqualToZero(z());
+			return Math::IsEqualToZero(x()) && Math::IsEqualToZero(y()) && Math::IsEqualToZero(z());
 		}
 		else if constexpr (4 == N)
 		{
-			return IsEqualToZero(x()) && IsEqualToZero(y()) && IsEqualToZero(z()) && IsEqualToZero(w());
+			return Math::IsEqualToZero(x()) && Math::IsEqualToZero(y()) && Math::IsEqualToZero(z()) && Math::IsEqualToZero(w());
 		}
 	}
 
@@ -153,7 +158,7 @@ public:
 		{
 			if constexpr (std::is_floating_point<T>())
 			{
-				if (std::abs(data[index] - rhs[index]) > GetEpsilon<T>())
+				if (std::abs(data[index] - rhs[index]) > Math::GetEpsilon<T>())
 				{
 					return false;
 				}
@@ -170,7 +175,6 @@ public:
 		return true;
 	}
 
-	CD_FORCEINLINE TVector& operator+() const { return *this; }
 	CD_FORCEINLINE TVector operator+(T value) const { return TVector(*this) += value; }
 	TVector& operator+=(T value)
 	{
@@ -185,7 +189,6 @@ public:
 		return *this;
 	}
 
-	CD_FORCEINLINE TVector operator-() const { return TVector(*this) *= static_cast<T>(-1); }
 	CD_FORCEINLINE TVector operator-(T value) const { return TVector(*this) -= value; }
 	TVector& operator-=(T value)
 	{

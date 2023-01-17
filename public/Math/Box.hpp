@@ -3,9 +3,8 @@
 #include "Base/Template.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
-#include "Math/Vector.hpp"
-
-#include <assert.h>
+#include "Math/Matrix.hpp"
+#include "Math/Ray.hpp"
 
 namespace cd
 {
@@ -18,15 +17,12 @@ namespace cd
 template<typename T>
 class TBox final
 {
-private:
-	using Vec = TVector<T, 3>;
-
 public:
 	explicit constexpr TBox() = default;
 
-	explicit constexpr TBox(T min, T max) : TBox(Vec(min), Vec(max)) {}
+	explicit constexpr TBox(T min, T max) : TBox(TVector<T, 3>(min), TVector<T, 3>(max)) {}
 
-	explicit constexpr TBox(Vec min, Vec max)
+	explicit constexpr TBox(TVector<T, 3> min, TVector<T, 3> max)
 		: m_min(MoveTemp(min))
 		, m_max(MoveTemp(max))
 	{
@@ -38,15 +34,17 @@ public:
 	TBox& operator=(TBox&&) = default;
 	~TBox() = default;
 
-	Vec& Min() { return m_min; }
-	Vec& Max() { return m_max; }
-	const Vec& Min() const { return m_min; }
-	const Vec& Max() const { return m_max; }
-	bool Empty() const { return m_min == m_max; }
-	Vec GetCenter() const { return m_min + (m_max - m_min) * static_cast<T>(0.5); }
-	Vec GetExtent() const { return m_max - m_min; }
+	TVector<T, 3>& Min() { return m_min; }
+	TVector<T, 3>& Max() { return m_max; }
+	const TVector<T, 3>& Min() const { return m_min; }
+	const TVector<T, 3>& Max() const { return m_max; }
+	TVector<T, 3> Center() const { return m_min + (m_max - m_min) * static_cast<T>(0.5); }
+	TVector<T, 3> Size() const { return m_max - m_min; }
 
-	void Expand(const TBox& other)
+	bool Empty() const { return m_min == m_max; }
+	bool IsPointInside(const Point& point) const { return !(point.x() < m_min.x() || point.x() > m_max.x() || point.y() < m_min.y() || point.y() > m_max.y() || point.z() < m_min.z() || point.z() > m_max.z()); }
+
+	void Merge(const TBox& other)
 	{
 		for (int index = 0; index < m_min.Size; ++index)
 		{
@@ -58,6 +56,44 @@ public:
 			m_max.y() = std::max(m_max.y(), other.Max().y());
 			m_max.z() = std::max(m_max.z(), other.Max().z());
 		}
+	}
+
+	TBox Transform(const cd::Matrix4x4& transform)
+	{
+		TBox result(*this);
+
+		TVector<T, 3> newCenter = transform * cd::TVector<T, 4>(result.Center(), static_cast<T>(1));
+		TVector<T, 3> oldEdge = result.Size();
+		oldEdge *= static_cast<T>(0.5);
+
+		TVector<T, 3> newEdge(
+			std::abs(transform.Data(0, 0)) * oldEdge.x() + std::abs(transform.Data(1, 0)) * oldEdge.y() + std::abs(transform.Data(2, 0)) * oldEdge.z(),
+			std::abs(transform.Data(0, 1)) * oldEdge.x() + std::abs(transform.Data(1, 1)) * oldEdge.y() + std::abs(transform.Data(2, 1)) * oldEdge.z(),
+			std::abs(transform.Data(0, 2)) * oldEdge.x() + std::abs(transform.Data(1, 2)) * oldEdge.y() + std::abs(transform.Data(2, 2)) * oldEdge.z());
+
+		result.Min() = newCenter - newEdge;
+		result.Max() = newCenter + newEdge;
+
+		return result;
+	}
+
+	// TODO : have a look at "Fast Ray-Box Intersection" Graphics Gems, 1990.
+	bool Intersects(const TRay<T>& ray) const
+	{
+		const TVector<T, 3>& origin = ray.Origin();
+		if (IsPointInside(origin))
+		{
+			return true;
+		}
+		
+		const TVector<T, 3>& direction = ray.Direction();
+		TVector<T, 3> tMin = (m_min - origin) / direction;
+		TVector<T, 3> tMax = (m_max - origin) / direction;
+		TVector<T, 3> t1(std::min(tMin.x(), tMax.x()), std::min(tMin.y(), tMax.y()), std::min(tMin.z(), tMax.z()));
+		TVector<T, 3> t2(std::max(tMin.x(), tMax.x()), std::max(tMin.y(), tMax.y()), std::max(tMin.z(), tMax.z()));
+		T tNear = std::max(std::max(t1.x(), t1.y()), t1.z());
+		T tFar = std::min(std::min(t2.x(), t2.y()), t2.z());
+		return tNear <= tFar;
 	}
 
 	template<bool SwapBytesOrder>
@@ -79,8 +115,8 @@ public:
 	}
 
 private:
-	Vec m_min;
-	Vec m_max;
+	TVector<T, 3> m_min;
+	TVector<T, 3> m_max;
 };
 
 using Box = TBox<float>;
