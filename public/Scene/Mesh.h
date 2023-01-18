@@ -77,6 +77,8 @@ public:
 	void SetVertexUV(uint32_t setIndex, uint32_t vertexIndex, const UV& uv);
 	std::vector<UV>& GetVertexUV(uint32_t uvSetIndex);
 	const std::vector<UV>& GetVertexUV(uint32_t uvSetIndex) const;
+	UV& GetVertexUV(uint32_t setIndex, uint32_t vertexIndex);
+	const UV& GetVertexUV(uint32_t setIndex, uint32_t vertexIndex) const;
 
 	void SetVertexColorSetCount(uint32_t setCount);
 	uint32_t GetVertexColorSetCount() const;

@@ -85,6 +85,8 @@ public:
 	void SetVertexUV(uint32_t setIndex, uint32_t vertexIndex, const UV& uv);
 	std::vector<UV>& GetVertexUV(uint32_t uvSetIndex) { return m_vertexUVSets[uvSetIndex]; }
 	const std::vector<UV>& GetVertexUV(uint32_t uvSetIndex) const { return m_vertexUVSets[uvSetIndex]; }
+	UV& GetVertexUV(uint32_t setIndex, uint32_t vertexIndex) { return m_vertexUVSets[setIndex][vertexIndex]; }
+	const UV& GetVertexUV(uint32_t setIndex, uint32_t vertexIndex) const { return m_vertexUVSets[setIndex][vertexIndex]; }
 
 	void SetVertexColorSetCount(uint32_t setCount);
 	uint32_t GetVertexColorSetCount() const { return m_vertexColorSetCount; }
