@@ -241,6 +241,16 @@ const std::vector<UV>& Mesh::GetVertexUV(uint32_t uvSetIndex) const
 	return m_pMeshImpl->GetVertexUV(uvSetIndex);
 }
 
+UV& Mesh::GetVertexUV(uint32_t setIndex, uint32_t vertexIndex)
+{
+	return m_pMeshImpl->GetVertexUV(setIndex, vertexIndex);
+}
+
+const UV& Mesh::GetVertexUV(uint32_t setIndex, uint32_t vertexIndex) const
+{
+	return m_pMeshImpl->GetVertexUV(setIndex, vertexIndex);
+}
+
 void Mesh::SetVertexColorSetCount(uint32_t setCount)
 {
 	m_pMeshImpl->SetVertexColorSetCount(setCount);
