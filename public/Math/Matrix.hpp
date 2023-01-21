@@ -194,8 +194,10 @@ public:
 			                   Math::GetValueInNewRange((window.y() - viewport.y()) / viewport.w(), 0.0f, 1.0f, -1.0f, 1.0f),
 			                   Math::GetValueInNewRange(window.z() / one, 0.0f, 1.0f, -1.0f, 1.0f), one);
 		TVector<T, 4> multiply = inversePV * standard;
+		TVector<T, 3> result = multiply.xyz();
+		result /= multiply.w();
 		// assert(multiply.w() != 0);
-		return multiply.xyz() / multiply.w();
+		return result;
 	}
 
 public:
@@ -472,34 +474,34 @@ public:
 	{
 		if constexpr (3 == Rows && 3 == Cols)
 		{
-			return MatrixType(Data(0) * rhs.Data(0) + Data(1) * rhs.Data(3) + Data(2) * rhs.Data(6),
-				Data(0) * rhs.Data(1) + Data(1) * rhs.Data(4) + Data(2) * rhs.Data(7),
-				Data(0) * rhs.Data(2) + Data(1) * rhs.Data(5) + Data(2) * rhs.Data(8),
-				Data(3) * rhs.Data(0) + Data(4) * rhs.Data(3) + Data(5) * rhs.Data(6),
-				Data(3) * rhs.Data(1) + Data(4) * rhs.Data(4) + Data(5) * rhs.Data(7),
-				Data(3) * rhs.Data(2) + Data(4) * rhs.Data(5) + Data(5) * rhs.Data(8),
-				Data(6) * rhs.Data(0) + Data(7) * rhs.Data(3) + Data(8) * rhs.Data(6),
-				Data(6) * rhs.Data(1) + Data(7) * rhs.Data(4) + Data(8) * rhs.Data(7),
-				Data(6) * rhs.Data(2) + Data(7) * rhs.Data(5) + Data(8) * rhs.Data(8));
+			return MatrixType(Data(0) * rhs.Data(0) + Data(3) * rhs.Data(1) + Data(6) * rhs.Data(2),
+							  Data(1) * rhs.Data(0) + Data(4) * rhs.Data(1) + Data(7) * rhs.Data(2),
+							  Data(2) * rhs.Data(0) + Data(5) * rhs.Data(1) + Data(8) * rhs.Data(2),
+							  Data(0) * rhs.Data(3) + Data(3) * rhs.Data(4) + Data(6) * rhs.Data(5),
+							  Data(1) * rhs.Data(3) + Data(4) * rhs.Data(4) + Data(7) * rhs.Data(5),
+							  Data(2) * rhs.Data(3) + Data(5) * rhs.Data(4) + Data(8) * rhs.Data(5),
+							  Data(0) * rhs.Data(6) + Data(3) * rhs.Data(7) + Data(6) * rhs.Data(8),
+							  Data(1) * rhs.Data(6) + Data(4) * rhs.Data(7) + Data(7) * rhs.Data(8),
+							  Data(2) * rhs.Data(6) + Data(5) * rhs.Data(7) + Data(8) * rhs.Data(8));
 		}
 		else if constexpr (4 == Rows && 4 == Cols)
 		{
-			return MatrixType(Data(0) * rhs.Data(0) + Data(1) * rhs.Data(4) + Data(2) * rhs.Data(8) + Data(3) * rhs.Data(12),
-				Data(0) * rhs.Data(1) + Data(1) * rhs.Data(5) + Data(2) * rhs.Data(9) + Data(3) * rhs.Data(13),
-				Data(0) * rhs.Data(2) + Data(1) * rhs.Data(6) + Data(2) * rhs.Data(10) + Data(3) * rhs.Data(14),
-				Data(0) * rhs.Data(3) + Data(1) * rhs.Data(7) + Data(2) * rhs.Data(11) + Data(3) * rhs.Data(15),
-				Data(4) * rhs.Data(0) + Data(5) * rhs.Data(4) + Data(6) * rhs.Data(8) + Data(7) * rhs.Data(12),
-				Data(4) * rhs.Data(1) + Data(5) * rhs.Data(5) + Data(6) * rhs.Data(9) + Data(7) * rhs.Data(13),
-				Data(4) * rhs.Data(2) + Data(5) * rhs.Data(6) + Data(6) * rhs.Data(10) + Data(7) * rhs.Data(14),
-				Data(4) * rhs.Data(3) + Data(5) * rhs.Data(7) + Data(6) * rhs.Data(11) + Data(7) * rhs.Data(15),
-				Data(8) * rhs.Data(0) + Data(9) * rhs.Data(4) + Data(10) * rhs.Data(8) + Data(11) * rhs.Data(12),
-				Data(8) * rhs.Data(1) + Data(9) * rhs.Data(5) + Data(10) * rhs.Data(9) + Data(11) * rhs.Data(13),
-				Data(8) * rhs.Data(2) + Data(9) * rhs.Data(6) + Data(10) * rhs.Data(10) + Data(11) * rhs.Data(14),
-				Data(8) * rhs.Data(3) + Data(9) * rhs.Data(7) + Data(10) * rhs.Data(11) + Data(11) * rhs.Data(15),
-				Data(12) * rhs.Data(0) + Data(13) * rhs.Data(4) + Data(14) * rhs.Data(8) + Data(15) * rhs.Data(12),
-				Data(12) * rhs.Data(1) + Data(13) * rhs.Data(5) + Data(14) * rhs.Data(9) + Data(15) * rhs.Data(13),
-				Data(12) * rhs.Data(2) + Data(13) * rhs.Data(6) + Data(14) * rhs.Data(10) + Data(15) * rhs.Data(14),
-				Data(12) * rhs.Data(3) + Data(13) * rhs.Data(7) + Data(14) * rhs.Data(11) + Data(15) * rhs.Data(15));
+			return MatrixType(Data(0) * rhs.Data(0)  + Data(4) * rhs.Data(1)  + Data(8)  * rhs.Data(2)  + Data(12) * rhs.Data(3),
+							  Data(1) * rhs.Data(0)  + Data(5) * rhs.Data(1)  + Data(9)  * rhs.Data(2)  + Data(13) * rhs.Data(3),
+							  Data(2) * rhs.Data(0)  + Data(6) * rhs.Data(1)  + Data(10) * rhs.Data(2)  + Data(14) * rhs.Data(3),
+							  Data(3) * rhs.Data(0)  + Data(7) * rhs.Data(1)  + Data(11) * rhs.Data(2)  + Data(15) * rhs.Data(3),
+							  Data(0) * rhs.Data(4)  + Data(4) * rhs.Data(5)  + Data(8)  * rhs.Data(6)  + Data(12) * rhs.Data(7),
+							  Data(1) * rhs.Data(4)  + Data(5) * rhs.Data(5)  + Data(9)  * rhs.Data(6)  + Data(13) * rhs.Data(7),
+							  Data(2) * rhs.Data(4)  + Data(6) * rhs.Data(5)  + Data(10) * rhs.Data(6)  + Data(14) * rhs.Data(7),
+							  Data(3) * rhs.Data(4)  + Data(7) * rhs.Data(5)  + Data(11) * rhs.Data(6)  + Data(15) * rhs.Data(7),
+							  Data(0) * rhs.Data(8)  + Data(4) * rhs.Data(9)  + Data(8)  * rhs.Data(10) + Data(12) * rhs.Data(11),
+							  Data(1) * rhs.Data(8)  + Data(5) * rhs.Data(9)  + Data(9)  * rhs.Data(10) + Data(13) * rhs.Data(11),
+							  Data(2) * rhs.Data(8)  + Data(6) * rhs.Data(9)  + Data(10) * rhs.Data(10) + Data(14) * rhs.Data(11),
+							  Data(3) * rhs.Data(8)  + Data(7) * rhs.Data(9)  + Data(11) * rhs.Data(10) + Data(15) * rhs.Data(11),
+							  Data(0) * rhs.Data(12) + Data(4) * rhs.Data(13) + Data(8)  * rhs.Data(14) + Data(12) * rhs.Data(15),
+							  Data(1) * rhs.Data(12) + Data(5) * rhs.Data(13) + Data(9)  * rhs.Data(14) + Data(13) * rhs.Data(15),
+							  Data(2) * rhs.Data(12) + Data(6) * rhs.Data(13) + Data(10) * rhs.Data(14) + Data(14) * rhs.Data(15),
+							  Data(3) * rhs.Data(12) + Data(7) * rhs.Data(13) + Data(11) * rhs.Data(14) + Data(15) * rhs.Data(15));
 		}
 	}
 

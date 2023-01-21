@@ -19,7 +19,7 @@ public:
 	{
 		T halfAngle = angleRadian * static_cast<T>(0.5);
 		T sinHalfAngle = std::sin(halfAngle);
-		return TQuaternion<T>(std::cos(halfAngle), axis.x() * sinHalfAngle, axis.y() * sinHalfAngle, axis.z() * sinHalfAngle);
+		return TQuaternion<T>(axis.x() * sinHalfAngle, axis.y() * sinHalfAngle, axis.z() * sinHalfAngle, std::cos(halfAngle));
 	}
 
 	//static TQuaternion<T> SphericalLerp(const TQuaternion<T>& a, const TQuaternion<T>& b, T s)
@@ -29,8 +29,8 @@ public:
 
 public:
 	TQuaternion() = default;
-	explicit TQuaternion(T s, T vx, T vy, T vz) : m_scalar(s), m_vector(vx, vy, vz) {}
-	explicit TQuaternion(T s, TVector<T, 3> v) : m_scalar(s), m_vector(cd::MoveTemp(v)) {}
+	explicit TQuaternion(T vx, T vy, T vz, T s) : m_scalar(s), m_vector(vx, vy, vz) {}
+	explicit TQuaternion(TVector<T, 3> v, T s) : m_scalar(s), m_vector(cd::MoveTemp(v)) {}
 	explicit TQuaternion(const TMatrix<T, 3, 3>& rotationMatrix)
 	{
 		constexpr T zero = static_cast<T>(0);
@@ -124,9 +124,41 @@ public:
 		T tyz = tz * y();
 		T tzz = tz * z();
 
-		return TMatrix<T, 3, 3>(1 - (tyy + tzz), txy + twz, txz - twy,
-								txy - twz, one - (txx + tzz), tyz + twx,
-								txz + twy, tyz - twx, one - (txx + tyy));
+		return TMatrix<T, 3, 3>(one - (tyy + tzz), txy - twz, txz + twy,
+			txy + twz, one - (txx + tzz), tyz - twx,
+			txz - twy, tyz + twx, one - (txx + tyy));
+	}
+
+	TMatrix<T, 4, 4> ToMatrix4x4() const
+	{
+		constexpr T zero = static_cast<T>(0);
+		constexpr T one = static_cast<T>(1);
+		constexpr T two = static_cast<T>(2);
+
+		T tx = two * x();
+		T ty = two * y();
+		T tz = two * z();
+		T twx = tx * w();
+		T twy = ty * w();
+		T twz = tz * w();
+		T txx = tx * x();
+		T txy = ty * x();
+		T txz = tz * x();
+		T tyy = ty * y();
+		T tyz = tz * y();
+		T tzz = tz * z();
+
+		// RHS
+		//return TMatrix<T, 4, 4>(one - (tyy + tzz), txy + twz, txz - twy, zero,
+		//	txy - twz, one - (txx + tzz), tyz + twx, zero,
+		//	txz + twy, tyz - twx, one - (txx + tyy), zero,
+		//	zero, zero, zero, one);
+		 
+		// LHS
+		return TMatrix<T, 4, 4>(one - (tyy + tzz), txy - twz, txz + twy, zero,
+			txy + twz, one - (txx + tzz), tyz - twx, zero,
+			txz - twy, tyz + twx, one - (txx + tyy), zero,
+			zero, zero, zero, one);
 	}
 
 	// Calculations
