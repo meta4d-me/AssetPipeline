@@ -78,22 +78,38 @@ public:
 	}
 
 	// TODO : have a look at "Fast Ray-Box Intersection" Graphics Gems, 1990.
-	bool Intersects(const TRay<T>& ray) const
+	bool Intersects(const TRay<T>& ray, T& t) const
 	{
-		const TVector<T, 3>& origin = ray.Origin();
-		if (IsPointInside(origin))
+		// We can cache it inside Ray class to speed up calculations.
+		T dirfracx = 1.0f / ray.Direction().x();
+		T dirfracy = 1.0f / ray.Direction().y();
+		T dirfracz = 1.0f / ray.Direction().z();
+
+		T t1 = (m_min.x() - ray.Origin().x()) * dirfracx;
+		T t2 = (m_max.x() - ray.Origin().x()) * dirfracx;
+		T t3 = (m_min.y() - ray.Origin().y()) * dirfracy;
+		T t4 = (m_max.y() - ray.Origin().y()) * dirfracy;
+		T t5 = (m_min.z() - ray.Origin().z()) * dirfracz;
+		T t6 = (m_max.z() - ray.Origin().z()) * dirfracz;
+		T tmin = std::max(std::max(std::min(t1, t2), std::min(t3, t4)), std::min(t5, t6));
+		T tmax = std::min(std::min(std::max(t1, t2), std::max(t3, t4)), std::max(t5, t6));
+
+		// if tmax < 0, ray (line) is intersecting AABB, but the whole AABB is behind us
+		if (tmax < 0)
 		{
-			return true;
+			t = tmax;
+			return false;
 		}
-		
-		const TVector<T, 3>& direction = ray.Direction();
-		TVector<T, 3> tMin = (m_min - origin) / direction;
-		TVector<T, 3> tMax = (m_max - origin) / direction;
-		TVector<T, 3> t1(std::min(tMin.x(), tMax.x()), std::min(tMin.y(), tMax.y()), std::min(tMin.z(), tMax.z()));
-		TVector<T, 3> t2(std::max(tMin.x(), tMax.x()), std::max(tMin.y(), tMax.y()), std::max(tMin.z(), tMax.z()));
-		T tNear = std::max(std::max(t1.x(), t1.y()), t1.z());
-		T tFar = std::min(std::min(t2.x(), t2.y()), t2.z());
-		return tNear <= tFar;
+
+		// if tmin > tmax, ray doesn't intersect AABB
+		if (tmin > tmax)
+		{
+			t = tmax;
+			return false;
+		}
+
+		t = tmin;
+		return true;
 	}
 
 	template<bool SwapBytesOrder>
