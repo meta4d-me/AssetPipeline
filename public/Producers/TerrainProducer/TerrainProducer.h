@@ -1,12 +1,15 @@
 #pragma once
 
 #include "Framework/IProducer.h"
-#include "TerrainParameter.h"
+
+#include <stdint.h>
 
 namespace cd
 {
 
 class Mesh;
+struct TerrainMetadata;
+struct TerrainSectorMetadata;
 
 }
 
@@ -19,18 +22,27 @@ class TOOL_API TerrainProducer : public IProducer
 {
 public:
 	TerrainProducer() = delete;
-	explicit TerrainProducer(const TerrainGenParams& genParams);
+	explicit TerrainProducer(const cd::TerrainMetadata& terrainMetadata, const cd::TerrainSectorMetadata& sectorMetadata);
 	TerrainProducer(const TerrainProducer& rhs) = delete;
 	TerrainProducer& operator=(const TerrainProducer& rhs) = delete;
 	TerrainProducer(TerrainProducer&& rhs) = delete;
 	TerrainProducer& operator=(TerrainProducer&& rhs) = delete;
 	virtual ~TerrainProducer();
 
-	virtual void Execute(cd::SceneDatabase* pSceneDatabase) override;
+	void SetSceneDatabaseIDs(const cd::SceneDatabase* pSceneDatabase);
+	void SetTerrainMetadata(const cd::TerrainMetadata& metadata);
+	void SetSectorMetadata(const cd::TerrainSectorMetadata& metadata);
+	void Initialize();
 
-private:
-	cd::Mesh CreateTerrainMesh(uint32_t sector_x, uint32_t sector_z);
-	TerrainQuad CreateQuadAt(uint32_t& currentVertexId, uint32_t& currentPolygonId) const;
+	uint32_t GetTerrainLengthInX() const;
+	uint32_t GetTerrainLengthInZ() const;
+	uint32_t GetSectorCount() const;
+	uint32_t GetSectorLengthInX() const;
+	uint32_t GetSectorLengthInZ() const;
+	uint32_t GetQuadsPerSector() const;
+	uint32_t GetVertsPerSector() const;
+
+	virtual void Execute(cd::SceneDatabase* pSceneDatabase) override;
 
 private:
 	TerrainProducerImpl* m_pTerrainProducerImpl;

@@ -11,7 +11,7 @@
 namespace cd
 {
 
-std::optional<Mesh> MeshGenerator::Generate(const Box& box, const VertexFormat& vertexFormat)
+std::optional<Mesh> MeshGenerator::Generate(const TBox<float>& box, const VertexFormat& vertexFormat)
 {
 	assert(vertexFormat.Contains(VertexAttributeType::Position));
 
@@ -100,7 +100,7 @@ std::optional<Mesh> MeshGenerator::Generate(const Box& box, const VertexFormat& 
 	return mesh;
 }
 
-std::optional<Mesh> MeshGenerator::Generate(const Plane& plane, float width, float height, const VertexFormat& vertexFormat)
+std::optional<Mesh> MeshGenerator::Generate(const TPlane<float>& plane, float width, float height, const VertexFormat& vertexFormat)
 {
 	assert(vertexFormat.Contains(VertexAttributeType::Position) && "Don't want to generate position?");
 
@@ -140,7 +140,12 @@ std::optional<Mesh> MeshGenerator::Generate(const Plane& plane, float width, flo
 	return std::nullopt;
 }
 
-std::optional<Mesh> MeshGenerator::Generate(const Sphere& sphere, const VertexFormat& vertexFormat)
+std::optional<Mesh> MeshGenerator::Generate(const TSphere<float>& sphere, const VertexFormat& vertexFormat)
+{
+	return std::nullopt;
+}
+
+std::optional<Mesh> MeshGenerator::GenerateNonUnique(const TBox<float>& box, const VertexFormat& vertexFormat)
 {
 	return std::nullopt;
 }

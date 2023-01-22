@@ -5,6 +5,9 @@
 #include "IO/OutputArchive.hpp"
 #include "Scene/MaterialTextureType.h"
 #include "Scene/ObjectID.h"
+#include "Scene/TextureFormat.h"
+
+#include <vector>
 
 namespace cd
 {
@@ -20,15 +23,21 @@ public:
 	explicit Texture(TextureID textureID, MaterialTextureType textureType, const char* pTexturePath);
 	Texture(const Texture&) = delete;
 	Texture& operator=(const Texture&) = delete;
-	Texture(Texture&&);
-	Texture& operator=(Texture&&);
+	Texture(Texture&&) noexcept;
+	Texture& operator=(Texture&&) noexcept;
 	~Texture();
 
 	void Init(TextureID textureID, MaterialTextureType textureType, const char* pTexturePath);
 
+	void SetRawTexture(const std::vector<int32_t>& inputData, const cd::TextureFormat format);
+
+	void ClearRawTexture();
+
 	const TextureID& GetID() const;
 	cd::MaterialTextureType GetType() const;
 	const char* GetPath() const;
+	const cd::TextureFormat GetTextureFormat() const;
+	const std::vector<std::byte>& GetRawTexture() const;
 
 	Texture& operator<<(InputArchive& inputArchive);
 	Texture& operator<<(InputArchiveSwapBytes& inputArchive);

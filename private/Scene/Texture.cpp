@@ -19,12 +19,12 @@ Texture::Texture(TextureID textureID, MaterialTextureType textureType, const cha
     m_pTextureImpl = new TextureImpl(textureID, textureType, pTexturePath);
 }
 
-Texture::Texture(Texture&& rhs)
+Texture::Texture(Texture&& rhs) noexcept
 {
     *this = cd::MoveTemp(rhs);
 }
 
-Texture& Texture::operator=(Texture&& rhs)
+Texture& Texture::operator=(Texture&& rhs) noexcept
 {
     std::swap(m_pTextureImpl, rhs.m_pTextureImpl);
     return *this;
@@ -44,6 +44,16 @@ void Texture::Init(TextureID textureID, MaterialTextureType textureType, const c
     m_pTextureImpl->Init(textureID, textureType, pTexturePath);
 }
 
+void Texture::SetRawTexture(const std::vector<int32_t>& inputData, const cd::TextureFormat format)
+{
+    m_pTextureImpl->SetRawTexture(inputData, format);
+}
+
+void Texture::ClearRawTexture()
+{
+    m_pTextureImpl->ClearRawTexture();
+}
+
 const TextureID& Texture::GetID() const
 {
     return m_pTextureImpl->GetID();
@@ -57,6 +67,16 @@ cd::MaterialTextureType Texture::GetType() const
 const char* Texture::GetPath() const
 {
     return m_pTextureImpl->GetPath().c_str();
+}
+
+const cd::TextureFormat Texture::GetTextureFormat() const
+{
+    return m_pTextureImpl->GetTextureFormat();
+}
+
+const std::vector<std::byte>& Texture::GetRawTexture() const
+{
+    return m_pTextureImpl->GetRawTexture();
 }
 
 Texture& Texture::operator<<(InputArchive& inputArchive)

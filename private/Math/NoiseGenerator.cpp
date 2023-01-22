@@ -1,7 +1,7 @@
-#include "Noise.h"
+#include "Math/NoiseGenerator.h"
 
 // Adopted from https://github.com/KdotJPG/OpenSimplex2/blob/master/java/OpenSimplex2S.java
-namespace Details {
+namespace {
 
     constexpr int64_t PRIME_X = 0x5205402B9270C86FL;
     constexpr int64_t PRIME_Y = 0x598CD327003817B5L;
@@ -127,16 +127,17 @@ namespace Details {
 
 }
 
-using namespace Details;
+namespace cd {
 
-namespace cdtools {
-
-    float Noise::SimplexNoise2D(int64_t seed, double x, double y) {
+    float NoiseGenerator::SimplexNoise2D(int64_t seed, double x, double y, bool normalize /* = true */) {
         // Get points for A2* lattice
         double s = SKEW_2D * (x + y);
         double xs = x + s, ys = y + s;
-        // Rescale to [0.0, 1.0]
-        return Noise2D_UnskewedBase(seed, xs, ys) / 2.0f + 0.5f;
+        if (normalize) {
+            // Rescale to [0.0, 1.0]
+            return Noise2D_UnskewedBase(seed, xs, ys) / 2.0f + 0.5f;
+        }
+        return Noise2D_UnskewedBase(seed, xs, ys);
     }
 
 }	// namespace cdtools
