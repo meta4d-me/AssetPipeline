@@ -276,6 +276,16 @@ const std::vector<Color>& Mesh::GetVertexColor(uint32_t colorSetIndex) const
 	return m_pMeshImpl->GetVertexColor(colorSetIndex);
 }
 
+Color& Mesh::GetVertexColor(uint32_t setIndex, uint32_t vertexIndex)
+{
+	return m_pMeshImpl->GetVertexColor(setIndex, vertexIndex);
+}
+
+const Color& Mesh::GetVertexColor(uint32_t setIndex, uint32_t vertexIndex) const
+{
+	return m_pMeshImpl->GetVertexColor(setIndex, vertexIndex);
+}
+
 void Mesh::SetPolygon(uint32_t polygonIndex, const VertexID& v0, const VertexID& v1, const VertexID& v2)
 {
 	m_pMeshImpl->SetPolygon(polygonIndex, v0, v1, v2);

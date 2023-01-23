@@ -85,6 +85,8 @@ public:
 	void SetVertexColor(uint32_t setIndex, uint32_t vertexIndex, const Color& color);
 	std::vector<Color>& GetVertexColor(uint32_t colorSetIndex);
 	const std::vector<Color>& GetVertexColor(uint32_t colorSetIndex) const;
+	Color& GetVertexColor(uint32_t setIndex, uint32_t vertexIndex);
+	const Color& GetVertexColor(uint32_t setIndex, uint32_t vertexIndex) const;
 
 	void SetPolygon(uint32_t polygonIndex, const VertexID& v0, const VertexID& v1, const VertexID& v2);
 	std::vector<Polygon>& GetPolygons();
