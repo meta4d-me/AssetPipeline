@@ -458,15 +458,23 @@ public:
 		return *this;
 	}
 
-	TVector<T, Cols> operator*(const TVector<T, Rows>& vector) const
+	TVector<T, Cols> operator*(const TVector<T, Rows>& v) const
 	{
+		// TODO : glm has a register based optimization on it.
 		if constexpr (3 == Rows && 3 == Cols)
 		{
-			return TVector<T, Cols>(vector.Dot(GetColumn(0)), vector.Dot(GetColumn(1)), vector.Dot(GetColumn(2)));
+			return TVector<T, Cols>(
+				Data(0) * v.x() + Data(3) * v.y() + Data(6) * v.z(),
+				Data(1) * v.x() + Data(4) * v.y() + Data(7) * v.z(),
+				Data(2) * v.x() + Data(5) * v.y() + Data(8) * v.z());
 		}
 		else if constexpr (4 == Rows && 4 == Cols)
 		{
-			return TVector<T, Cols>(vector.Dot(GetColumn(0)), vector.Dot(GetColumn(1)), vector.Dot(GetColumn(2)), vector.Dot(GetColumn(3)));
+			return TVector<T, Cols>(
+				Data(0) * v.x() + Data(4) * v.y() + Data(8)  * v.z() + Data(12) * v.w(),
+				Data(1) * v.x() + Data(5) * v.y() + Data(9)  * v.z() + Data(13) * v.w(),
+				Data(2) * v.x() + Data(6) * v.y() + Data(10) * v.z() + Data(14) * v.w(),
+				Data(3) * v.x() + Data(7) * v.y() + Data(11) * v.z() + Data(15) * v.w());
 		}
 	}
 
