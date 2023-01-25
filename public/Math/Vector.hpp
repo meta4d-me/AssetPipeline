@@ -64,7 +64,7 @@ public:
 		data = { static_cast<T>(args)... };
 	}
 
-	void Clear() { std::memset(Begin(), 0, Size); }
+	void Clear() { std::memset(data, 0, Size * sizeof(float)); }
 
 	// Get
 	CD_FORCEINLINE Iterator Begin() { return &data[0]; }

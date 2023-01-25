@@ -20,7 +20,7 @@ public:
 	using TextureMap = std::unordered_map<std::string, TextureID>;
 
 public:
-	explicit SceneDatabaseImpl() = default;
+	SceneDatabaseImpl();
 	SceneDatabaseImpl(const SceneDatabaseImpl&) = default;
 	SceneDatabaseImpl& operator=(const SceneDatabaseImpl&) = default;
 	SceneDatabaseImpl(SceneDatabaseImpl&&) = default;

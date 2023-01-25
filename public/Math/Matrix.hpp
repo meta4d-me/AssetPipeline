@@ -264,11 +264,9 @@ public:
 	CD_FORCEINLINE T& Data(int index) { return reinterpret_cast<T*>(data)[index]; }
 	CD_FORCEINLINE T Data(int row, int col) const { return data[col][row]; }
 	CD_FORCEINLINE T& Data(int row, int col) { return data[col][row]; }
+	void Clear() { std::memset(Begin(), 0, Size * sizeof(float)); }
 
-	// Clear
-	void Clear() { std::memset(Begin(), 0, Size); }
-
-	// Math
+	// Calculations
 	MatrixType Inverse() const
 	{
 		static_assert(4 == Rows && 4 == Cols);
