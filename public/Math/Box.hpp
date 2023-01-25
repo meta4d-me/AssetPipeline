@@ -40,6 +40,7 @@ public:
 	const TVector<T, 3>& Max() const { return m_max; }
 	TVector<T, 3> Center() const { return m_min + (m_max - m_min) * static_cast<T>(0.5); }
 	TVector<T, 3> Size() const { return m_max - m_min; }
+	void Clear() { m_min.Clear(); m_max.Clear(); }
 
 	bool Empty() const { return m_min == m_max; }
 	bool IsPointInside(const Point& point) const { return !(point.x() < m_min.x() || point.x() > m_max.x() || point.y() < m_min.y() || point.y() > m_max.y() || point.z() < m_min.z() || point.z() > m_max.z()); }
@@ -62,7 +63,8 @@ public:
 	{
 		TBox result(*this);
 
-		TVector<T, 3> newCenter = transform * cd::TVector<T, 4>(result.Center(), static_cast<T>(1));
+		TVector<T, 4> transformedCenter = transform * cd::TVector<T, 4>(result.Center().x(), result.Center().y(), result.Center().z(), static_cast<T>(1));
+		TVector<T, 3> newCenter(transformedCenter.x(), transformedCenter.y(), transformedCenter.z());
 		TVector<T, 3> oldEdge = result.Size();
 		oldEdge *= static_cast<T>(0.5);
 

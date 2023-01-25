@@ -15,6 +15,15 @@ public:
 	using Iterator = T*;
 	using ConstIterator = const T*;
 
+	static TTransform Identity()
+	{
+		constexpr T zero = static_cast<T>(0);
+		constexpr T one = static_cast<T>(1);
+		return TTransform(TVector<T, 3>(zero, zero, zero),
+			TQuaternion<T>(one, zero, zero, zero),
+			TVector<T, 3>(one, one, one));
+	}
+
 public:
 	TTransform() = default;
 
