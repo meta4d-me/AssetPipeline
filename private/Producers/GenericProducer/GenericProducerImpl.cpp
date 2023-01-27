@@ -379,7 +379,7 @@ cd::NodeID GenericProducerImpl::AddNode(cd::SceneDatabase* pSceneDatabase, const
                                  sourceMatrix.a2, sourceMatrix.b2, sourceMatrix.c2, sourceMatrix.d2,
                                  sourceMatrix.a3, sourceMatrix.b3, sourceMatrix.c3, sourceMatrix.d3,
                                  sourceMatrix.a4, sourceMatrix.b4, sourceMatrix.c4, sourceMatrix.d4);
-	sceneNode.SetTransform(cd::Transform(transformation.GetTranslation(), cd::Quaternion(transformation.GetRotation()), transformation.GetScale()));
+	sceneNode.SetTransform(cd::Transform(transformation.GetTranslation(), cd::Quaternion::FromMatrix(transformation.GetRotation()), transformation.GetScale()));
 
 	// Cache it for searching parent node id.
 	m_aiNodeToNodeIDLookup[pSourceNode] = nodeID;
