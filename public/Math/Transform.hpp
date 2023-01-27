@@ -20,7 +20,7 @@ public:
 		constexpr T zero = static_cast<T>(0);
 		constexpr T one = static_cast<T>(1);
 		return TTransform(TVector<T, 3>(zero, zero, zero),
-			TQuaternion<T>(one, zero, zero, zero),
+			TQuaternion<T>::Identity(),
 			TVector<T, 3>(one, one, one));
 	}
 
@@ -71,9 +71,9 @@ public:
 		result.GetColumn(3)[0] = m_translation.x();
 		result.GetColumn(3)[1] = m_translation.y();
 		result.GetColumn(3)[2] = m_translation.z();
-		result.GetColumn(0)[0] = result.GetColumn(0).Length() * m_scale.x();
-		result.GetColumn(1)[1] = result.GetColumn(1).Length() * m_scale.y();
-		result.GetColumn(2)[2] = result.GetColumn(2).Length() * m_scale.z();
+		result.GetColumn(0)[0] *= m_scale.x();
+		result.GetColumn(1)[1] *= m_scale.y();
+		result.GetColumn(2)[2] *= m_scale.z();
 		
 		return result;
 	}

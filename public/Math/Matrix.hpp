@@ -396,7 +396,7 @@ public:
 
 			return TMatrix<T, 3, 3>(Data(0) / sx, Data(1) / sx, Data(2) / sx,
 									Data(4) / sy, Data(5) / sy, Data(6) / sy,
-									Data(7) / sz, Data(8) / sz, Data(9) / sz);
+									Data(8) / sz, Data(9) / sz, Data(10) / sz);
 		}
 	}
 
