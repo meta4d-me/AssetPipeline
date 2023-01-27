@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Math/Matrix.hpp"
-#include "Math/Vector.hpp"
 
 namespace cd
 {
@@ -15,11 +14,18 @@ public:
 	using Iterator = T*;
 	using ConstIterator = const T*;
 
+	static TQuaternion<T> Identity()
+	{
+		constexpr T zero = static_cast<T>(0);
+		constexpr T one = static_cast<T>(1);
+		return TQuaternion<T>(one, zero, zero, zero);
+	}
+
 	static TQuaternion<T> FromAxisAngle(const TVector<T, 3>& axis, T angleRadian)
 	{
 		T halfAngle = angleRadian * static_cast<T>(0.5);
 		T sinHalfAngle = std::sin(halfAngle);
-		return TQuaternion<T>(axis.x() * sinHalfAngle, axis.y() * sinHalfAngle, axis.z() * sinHalfAngle, std::cos(halfAngle));
+		return TQuaternion<T>(std::cos(halfAngle), axis.x() * sinHalfAngle, axis.y() * sinHalfAngle, axis.z() * sinHalfAngle);
 	}
 
 	//static TQuaternion<T> SphericalLerp(const TQuaternion<T>& a, const TQuaternion<T>& b, T s)
@@ -27,53 +33,58 @@ public:
 	//
 	//}
 
-public:
-	TQuaternion() = default;
-	explicit TQuaternion(T vx, T vy, T vz, T s) : m_scalar(s), m_vector(vx, vy, vz) {}
-	explicit TQuaternion(TVector<T, 3> v, T s) : m_scalar(s), m_vector(cd::MoveTemp(v)) {}
-	explicit TQuaternion(const TMatrix<T, 3, 3>& rotationMatrix)
+	// "Quaternion Calculus and Fast Animation" Ken Shoemake, 1987 SIGGRAPH.
+	// intel report https://www.intel.com/content/dam/develop/external/us/en/documents/293748-142817.pdf.
+	static TQuaternion<T> FromMatrix(const TMatrix<T, 3, 3>& m)
 	{
-		constexpr T zero = static_cast<T>(0);
 		constexpr T half = static_cast<T>(0.5);
 		constexpr T one = static_cast<T>(1);
-		constexpr T two = static_cast<T>(2);
 
-		// Same to Eigen's implementation based on "Quaternion Calculus and Fast Animation" Ken Shoemake, 1987 SIGGRAPH.
-		// TODO : Have a look at intel report https://www.intel.com/content/dam/develop/external/us/en/documents/293748-142817.pdf.
-		T t = rotationMatrix.Trace();
-		if (t > zero)
+		T fourXSquaredMinus1 = m.Data(0, 0) - m.Data(1, 1) - m.Data(2, 2);
+		T fourYSquaredMinus1 = m.Data(1, 1) - m.Data(0, 0) - m.Data(2, 2);
+		T fourZSquaredMinus1 = m.Data(2, 2) - m.Data(0, 0) - m.Data(1, 1);
+		T fourWSquaredMinus1 = m.Data(0, 0) + m.Data(1, 1) + m.Data(2, 2);
+
+		int biggestIndex = 0;
+		T fourBiggestSquaredMinus1 = fourWSquaredMinus1;
+		if (fourXSquaredMinus1 > fourBiggestSquaredMinus1)
 		{
-			t = std::sqrt(t + one);
-			w() = half * t;
-
-			t = half / t;
-			x() = rotationMatrix.Data(2, 1) - rotationMatrix.Data(1, 2) * t;
-			y() = rotationMatrix.Data(0, 2) - rotationMatrix.Data(2, 0) * t;
-			z() = rotationMatrix.Data(1, 0) - rotationMatrix.Data(0, 1) * t;
+			fourBiggestSquaredMinus1 = fourXSquaredMinus1;
+			biggestIndex = 1;
 		}
-		else
+		if (fourYSquaredMinus1 > fourBiggestSquaredMinus1)
 		{
-			int i = 0;
-			if (rotationMatrix.Data(1, 1) > rotationMatrix.Data(0, 0))
-			{
-				i = 1;
-			}
+			fourBiggestSquaredMinus1 = fourYSquaredMinus1;
+			biggestIndex = 2;
+		}
+		if (fourZSquaredMinus1 > fourBiggestSquaredMinus1)
+		{
+			fourBiggestSquaredMinus1 = fourZSquaredMinus1;
+			biggestIndex = 3;
+		}
 
-			if (rotationMatrix.Data(2, 2) > rotationMatrix.Data(i, i))
-			{
-				i = 2;
-			}
-				
-			int j = (i + 1) % 3;
-			int k = (j + 1) % 3;
-			t = std::sqrt(rotationMatrix.Data(i, i) - rotationMatrix.Data(j, j) - rotationMatrix.Data(k, k) + one);
-			Data(i) = half * t;
-			t = half / t;
-			w() = (rotationMatrix.Data(k, j) - rotationMatrix.Data(j, k)) * t;
-			Data(j) = (rotationMatrix.Data(j, i) + rotationMatrix.Data(i, j)) * t;
-			Data(k) = (rotationMatrix.Data(k, i) + rotationMatrix.Data(i, k)) * t;
+		T biggestVal = std::sqrt(fourBiggestSquaredMinus1 + one) * half;
+		T mult = static_cast<T>(0.25) / biggestVal;
+
+		switch (biggestIndex)
+		{
+		case 0:
+			return TQuaternion<T>(biggestVal, (m.Data(1, 2) - m.Data(2, 1)) * mult, (m.Data(2, 0) - m.Data(0, 2)) * mult, (m.Data(0, 1) - m.Data(1, 0)) * mult);
+		case 1:
+			return TQuaternion<T>((m.Data(1, 2) - m.Data(2, 1)) * mult, biggestVal, (m.Data(0, 1) + m.Data(1, 0)) * mult, (m.Data(2, 0) + m.Data(0, 2)) * mult);
+		case 2:
+			return TQuaternion<T>((m.Data(2, 0) - m.Data(0, 2)) * mult, (m.Data(0, 1) + m.Data(1, 0)) * mult, biggestVal, (m.Data(1, 2) + m.Data(2, 1)) * mult);
+		case 3:
+			return TQuaternion<T>((m.Data(0, 1) - m.Data(1, 0)) * mult, (m.Data(2, 0) + m.Data(0, 2)) * mult, (m.Data(1, 2) + m.Data(2, 1)) * mult, biggestVal);
+		default:
+			return TQuaternion<T>::Identity();
 		}
 	}
+
+public:
+	TQuaternion() = default;
+	explicit TQuaternion(T s, T vx, T vy, T vz) : m_scalar(s), m_vector(vx, vy, vz) {}
+	explicit TQuaternion(T s, TVector<T, 3> v) : m_scalar(s), m_vector(cd::MoveTemp(v)) {}
 	TQuaternion(const TQuaternion&) = default;
 	TQuaternion& operator=(const TQuaternion&) = default;
 	TQuaternion(TQuaternion&&) = default;
@@ -159,6 +170,48 @@ public:
 			txy + twz, one - (txx + tzz), tyz - twx, zero,
 			txz - twy, tyz + twx, one - (txx + tyy), zero,
 			zero, zero, zero, one);
+	}
+
+	CD_FORCEINLINE T Roll() const
+	{
+		constexpr T two = static_cast<T>(2);
+
+		T resultX = w() * w() - x() * x() - y() * y() + z() * z();
+		T resultY = two * (x() * y() + w() * z());
+
+		if (Math::IsEqualToZero(resultX) && Math::IsEqualToZero(resultY))
+		{
+			// avoid atan2(0, 0)
+			return static_cast<T>(two * std::atan2(x(), w()));
+		}
+
+		return static_cast<T>(std::atan2(resultY, resultX));
+	}
+
+	CD_FORCEINLINE T Pitch() const
+	{
+		constexpr T two = static_cast<T>(2);
+
+		T resultX = w() * w() - x() * x() - y() * y() + z() * z();
+		T resultY = two * (y() * z() + w() * x());
+
+		if (Math::IsEqualToZero(resultX) && Math::IsEqualToZero(resultY))
+		{
+			// avoid atan2(0, 0)
+			return static_cast<T>(two * std::atan2(x(), w()));
+		}
+
+		return static_cast<T>(std::atan2(resultY, resultX));
+	}
+
+	CD_FORCEINLINE T Yaw() const
+	{
+		return std::asin(std::clamp(static_cast<T>(-2) * (x() * z() - w() * y()), static_cast<T>(-1), static_cast<T>(1)));
+	}
+
+	CD_FORCEINLINE TVector<T, 3> ToEulerAngles()
+	{
+		return TVector<T, 3>(Pitch(), Yaw(x), Roll());
 	}
 
 	// Calculations
