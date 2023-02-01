@@ -42,9 +42,9 @@ public:
 
 	void Clear()
 	{
-		m_translation.Clear();
+		m_translation.Set(static_cast<T>(0));
 		m_rotation.Clear();
-		m_scale.Clear();
+		m_scale.Set(static_cast<T>(1));
 	}
 
 	// Get
