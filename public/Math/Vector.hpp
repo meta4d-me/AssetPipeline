@@ -57,6 +57,8 @@ public:
 	~TVector() = default;
 
 	// Set
+	void Set(T value) { std::fill(Begin(), End(), value); }
+
 	template <typename... Args>
 	void Set(Args... args)
 	{
