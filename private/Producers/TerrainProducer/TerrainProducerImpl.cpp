@@ -7,12 +7,8 @@
 #include "Scene/SceneDatabase.h"
 #include "Scene/Texture.h"
 #include "Scene/VertexFormat.h"
-#include "Utilities/MeshUtils.h"
-#include "Utilities/Utils.h"
-
-
+#include "Utilities/StringUtils.h"
 #include <cinttypes>
-#include <format>
 
 using namespace cd;
 
@@ -145,7 +141,7 @@ void TerrainProducerImpl::GenerateAllSectors(cd::SceneDatabase* pSceneDatabase)
 
 Mesh TerrainProducerImpl::GenerateSectorAt(uint32_t sector_x, uint32_t sector_z, const std::vector<int32_t>& elevationMap)
 {
-	const std::string terrainMeshName = std::format("TerrainSector({}, {})", sector_x, sector_z);
+	const std::string terrainMeshName = string_format("TerrainSector({}, {})", sector_x, sector_z);
 	bool isUsed = false;
 	const MeshID::ValueType meshHash = StringHash<MeshID::ValueType>(terrainMeshName);
 	const MeshID terrainMeshID = m_meshIDGenerator.AllocateID(meshHash, isUsed);
@@ -217,7 +213,7 @@ Mesh TerrainProducerImpl::GenerateSectorAt(uint32_t sector_x, uint32_t sector_z,
 
 void TerrainProducerImpl::GenerateMaterialAndTextures(cd::SceneDatabase* pSceneDatabase, uint32_t sector_x, uint32_t sector_z, std::vector<int32_t>& elevationMap)
 {
-	const std::string materialName = std::format("TerrainMaterial({}, {})", sector_x, sector_z);
+	const std::string materialName = string_format("TerrainMaterial({}, {})", sector_x, sector_z);
 	bool isUsed = false;
 	MaterialID::ValueType materialHash = StringHash<MaterialID::ValueType>(materialName);
 	MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, isUsed);
@@ -233,7 +229,7 @@ void TerrainProducerImpl::GenerateMaterialAndTextures(cd::SceneDatabase* pSceneD
 
 	// ElevationMap texture
 	isUsed = false;
-	textureName = std::format("TerrainElevationMap({}, {})", sector_x, sector_z);
+	textureName = string_format("TerrainElevationMap({}, {})", sector_x, sector_z);
 	textureHash = StringHash<TextureID::ValueType>(textureName);
 	textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
 	terrainSectorMaterial.SetTextureID(MaterialTextureType::Terrain, textureID);
