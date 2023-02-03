@@ -1,6 +1,12 @@
 [submodule "assimp"]
 	path = external/assimp
 	url = https://github.com/CatDogEngine/assimp
+	branch = master
 [submodule "external/rapidxml"]
 	path = external/rapidxml
 	url = https://github.com/CatDogEngine/rapidxml
+	branch = master
+[submodule "stb"]
+	path = stb
+	url = https://github.com/CatDogEngine/stb.git
+	branch = master
