@@ -60,7 +60,7 @@ public:
 	}
 
 	template<Handedness Hand, NDCDepth NDC>
-	static MatrixType Perspective(T fovy, T aspect, T near, T far)
+	static MatrixType Perspective(T fovy, T aspect, T nearPlane, T farPlane)
 	{
 		static_assert(4 == Rows && 4 == Cols);
 		constexpr T zero = static_cast<T>(0);
@@ -70,19 +70,19 @@ public:
 
 		T height = one / std::tan(Math::DegreeToRadian<T>(fovy) * half);
 		T width = height * one / aspect;
-		T delta = far - near;
+		T delta = farPlane - nearPlane;
 
 		T aa;
 		T bb;
 		if constexpr (NDCDepth::MinusOneToOne == NDC)
 		{
-			aa = (far + near) / delta;
-			bb = (two * far * near) / delta;
+			aa = (farPlane + nearPlane) / delta;
+			bb = (two * farPlane * nearPlane) / delta;
 		}
 		else
 		{
-			aa = far / delta;
-			bb = near * aa;
+			aa = farPlane / delta;
+			bb = nearPlane * aa;
 		}
 
 		constexpr T xx = zero;
@@ -103,21 +103,21 @@ public:
 		}
 	}
 
-	static MatrixType Perspective(T fovy, T aspect, T near, T far, bool isNDCDepthHomogeneous)
+	static MatrixType Perspective(T fovy, T aspect, T nearPlane, T farPlane, bool isNDCDepthHomogeneous)
 	{
 		static_assert(4 == Rows && 4 == Cols);
 		if (isNDCDepthHomogeneous)
 		{
-			return MatrixType::Perspective<cd::Handedness::Left, cd::NDCDepth::MinusOneToOne>(fovy, aspect, near, far);
+			return MatrixType::Perspective<cd::Handedness::Left, cd::NDCDepth::MinusOneToOne>(fovy, aspect, nearPlane, farPlane);
 		}
 		else
 		{
-			return MatrixType::Perspective<cd::Handedness::Left, cd::NDCDepth::ZeroToOne>(fovy, aspect, near, far);
+			return MatrixType::Perspective<cd::Handedness::Left, cd::NDCDepth::ZeroToOne>(fovy, aspect, nearPlane, farPlane);
 		}
 	}
 
 	template<Handedness Hand, NDCDepth NDC>
-	static MatrixType Orthographic(T left, T right, T top, T bottom, T near, T far, T offset)
+	static MatrixType Orthographic(T left, T right, T top, T bottom, T nearPlane, T farPlane, T offset)
 	{
 		static_assert(4 == Rows && 4 == Cols);
 		constexpr T zero = static_cast<T>(0);
@@ -126,7 +126,7 @@ public:
 
 		T deltaX = right - left;
 		T deltaY = top - bottom;
-		T deltaZ = far - near;
+		T deltaZ = farPlane - nearPlane;
 
 		T aa = two / deltaX;
 		T bb = two / deltaY;
@@ -138,12 +138,12 @@ public:
 		if constexpr (NDCDepth::MinusOneToOne == NDC)
 		{
 			cc = two / deltaZ;
-			ff = (near + far) / -deltaZ;
+			ff = (nearPlane + farPlane) / -deltaZ;
 		}
 		else
 		{
 			cc = one / deltaZ;
-			ff = near / -deltaZ;
+			ff = nearPlane / -deltaZ;
 		}
 
 		if constexpr (Handedness::Left == Hand)
@@ -162,23 +162,23 @@ public:
 		}
 	}
 
-	static MatrixType Orthographic(T left, T right, T top, T bottom, T near, T far, T offset, bool isNDCDepthHomogeneous)
+	static MatrixType Orthographic(T left, T right, T top, T bottom, T nearPlane, T farPlane, T offset, bool isNDCDepthHomogeneous)
 	{
 		static_assert(4 == Rows && 4 == Cols);
 		if (isNDCDepthHomogeneous)
 		{
-			return MatrixType::Orthographic<cd::Handedness::Left, cd::NDCDepth::MinusOneToOne>(left, right, top, bottom, near, far, offset);
+			return MatrixType::Orthographic<cd::Handedness::Left, cd::NDCDepth::MinusOneToOne>(left, right, top, bottom, nearPlane, farPlane, offset);
 		}
 		else
 		{
-			return MatrixType::Orthographic<cd::Handedness::Left, cd::NDCDepth::ZeroToOne>(left, right, top, bottom, near, far, offset);
+			return MatrixType::Orthographic<cd::Handedness::Left, cd::NDCDepth::ZeroToOne>(left, right, top, bottom, nearPlane, farPlane, offset);
 		}
 	}
 
 	/// <summary>
 	/// Convert 2D window position to a 3D position in the world space.
 	/// </summary>
-	/// <param name="window"> The 2D window's selected position. Z is between near and far in range [0, 1]. </param>
+	/// <param name="window"> The 2D window's selected position. Z is between nearPlane and farPlane in range [0, 1]. </param>
 	/// <param name="view"> The model view matrix. </param>
 	/// <param name="projection"> The projection matrix. </param>
 	/// <param name="viewport"> (x, y, w, h) The 2D window's left top 2D position, width, height. </param>
