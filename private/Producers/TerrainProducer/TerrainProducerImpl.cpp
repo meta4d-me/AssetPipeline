@@ -8,9 +8,11 @@
 #include "Scene/Texture.h"
 #include "Scene/VertexFormat.h"
 #include "Utilities/StringUtils.h"
+
 #include <cinttypes>
 
 using namespace cd;
+using namespace cdtools;
 
 namespace
 {
@@ -76,7 +78,7 @@ void TerrainProducerImpl::SetTerrainMetadata(const TerrainMetadata& metadata)
 	m_terrainMetadata = metadata;
 }
 
-void TerrainProducerImpl::SetSectorMetadata(const cd::TerrainSectorMetadata& metadata)
+void TerrainProducerImpl::SetSectorMetadata(const TerrainSectorMetadata& metadata)
 {
 	m_sectorMetadata = metadata;
 }
@@ -232,8 +234,8 @@ void TerrainProducerImpl::GenerateMaterialAndTextures(cd::SceneDatabase* pSceneD
 	textureName = string_format("TerrainElevationMap({}, {})", sector_x, sector_z);
 	textureHash = StringHash<TextureID::ValueType>(textureName);
 	textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
-	terrainSectorMaterial.SetTextureID(MaterialTextureType::Terrain, textureID);
-	Texture elevationTexture = Texture(textureID, MaterialTextureType::Terrain, textureName.c_str());
+	terrainSectorMaterial.SetTextureID(MaterialTextureType::Roughness, textureID);
+	Texture elevationTexture = Texture(textureID, MaterialTextureType::Roughness, textureName.c_str());
 	elevationTexture.SetRawTexture(elevationMap, TextureFormat::R32I);
 	pSceneDatabase->AddTexture(MoveTemp(elevationTexture));
 	

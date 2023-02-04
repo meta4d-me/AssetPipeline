@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <vector>
 
-namespace cd
+namespace cdtools
 {
 
 /*
@@ -28,13 +28,13 @@ struct ElevationOctave
 	{}
 
 	template<bool SwapBytesOrder>
-	explicit ElevationOctave(TInputArchive<SwapBytesOrder>& inputArchive)
+	explicit ElevationOctave(cd::TInputArchive<SwapBytesOrder>& inputArchive)
 	{
 		*this << inputArchive;
 	}
 
 	template<bool SwapBytesOrder>
-	ElevationOctave& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
+	ElevationOctave& operator<<(cd::TInputArchive<SwapBytesOrder>& inputArchive)
 	{
 		int64_t _seed;
 		float _frequency;
@@ -50,7 +50,7 @@ struct ElevationOctave
 	}
 
 	template<bool SwapBytesOrder>
-	const ElevationOctave& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
+	const ElevationOctave& operator>>(cd::TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
 		outputArchive << seed << frequency << weight;
 		return *this;
@@ -86,13 +86,13 @@ struct TerrainSectorMetadata
 	{}
 
 	template<bool SwapBytesOrder>
-	explicit TerrainSectorMetadata(TInputArchive<SwapBytesOrder>& inputArchive)
+	explicit TerrainSectorMetadata(cd::TInputArchive<SwapBytesOrder>& inputArchive)
 	{
 		*this << inputArchive;
 	}
 
 	template<bool SwapBytesOrder>
-	TerrainSectorMetadata& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
+	TerrainSectorMetadata& operator<<(cd::TInputArchive<SwapBytesOrder>& inputArchive)
 	{
 		uint16_t _numQuadsInX;
 		uint16_t _numQuadsInZ;
@@ -110,7 +110,7 @@ struct TerrainSectorMetadata
 	}
 
 	template<bool SwapBytesOrder>
-	const TerrainSectorMetadata& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
+	const TerrainSectorMetadata& operator>>(cd::TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
 		outputArchive << numQuadsInX << numQuadsInZ << quadLenInX << quadLenInZ;
 		return *this;
@@ -147,13 +147,13 @@ struct TerrainQuad
 	{}
 
 	template<bool SwapBytesOrder>
-	explicit TerrainQuad(TInputArchive<SwapBytesOrder>& inputArchive)
+	explicit TerrainQuad(cd::TInputArchive<SwapBytesOrder>& inputArchive)
 	{
 		*this << inputArchive;
 	}
 
 	template<bool SwapBytesOrder>
-	TerrainQuad& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
+	TerrainQuad& operator<<(cd::TInputArchive<SwapBytesOrder>& inputArchive)
 	{
 		uint32_t leftTri;
 		uint32_t rightTri;
@@ -175,7 +175,7 @@ struct TerrainQuad
 	}
 
 	template<bool SwapBytesOrder>
-	const TerrainQuad& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
+	const TerrainQuad& operator>>(cd::TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
 		outputArchive << leftTriPolygonId << rightTriPolygonId 
 			<< topLeftVertexId << topRightVertexId << bottomRightVertexId << bottomLeftVertexId;
@@ -221,13 +221,13 @@ struct TerrainMetadata
 	{}
 
 	template<bool SwapBytesOrder>
-	explicit TerrainMetadata(TInputArchive<SwapBytesOrder>& inputArchive)
+	explicit TerrainMetadata(cd::TInputArchive<SwapBytesOrder>& inputArchive)
 	{
 		*this << inputArchive;
 	}
 
 	template<bool SwapBytesOrder>
-	TerrainMetadata& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
+	TerrainMetadata& operator<<(cd::TInputArchive<SwapBytesOrder>& inputArchive)
 	{
 		uint16_t _numSectorsInX;
 		uint16_t _numSectorsInZ;
@@ -250,7 +250,7 @@ struct TerrainMetadata
 	}
 
 	template<bool SwapBytesOrder>
-	const TerrainMetadata& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
+	const TerrainMetadata& operator>>(cd::TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
 		outputArchive << numSectorsInX << numSectorsInZ
 			<< minElevation << maxElevation << redistPow << octaves.size();

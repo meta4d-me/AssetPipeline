@@ -1,6 +1,6 @@
 #include "CDConsumer.h"
 #include "Framework/Processor.h"
-#include "Scene/TerrainTypes.h"
+#include "TerrainTypes.h"
 #include "TerrainProducer.h"
 #include "Utilities/PerformanceProfiler.h"
 

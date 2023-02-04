@@ -13,7 +13,6 @@ enum class MaterialTextureType : uint8_t
 	Roughness,
 	Emissive,
 	AO,
-	Terrain,
 	Count
 };
 
@@ -24,7 +23,6 @@ constexpr const char* MaterialTextureTypeName[] =
 	"Metalness",
 	"Roughness",
 	"Emissive",
-	"Terrain",
 	"AO",
 };
 

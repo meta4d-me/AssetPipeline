@@ -2,13 +2,12 @@
 #include "TerrainProducerImpl.h"
 
 #include "Scene/Mesh.h"
-#include "Scene/TerrainTypes.h"
-
+#include "TerrainTypes.h"
 
 namespace cdtools
 {
 
-TerrainProducer::TerrainProducer(const cd::TerrainMetadata& terrainMetadata, const cd::TerrainSectorMetadata& sectorMetadata)
+TerrainProducer::TerrainProducer(const TerrainMetadata& terrainMetadata, const TerrainSectorMetadata& sectorMetadata)
 {
 	m_pTerrainProducerImpl = new TerrainProducerImpl(terrainMetadata, sectorMetadata);
 }
@@ -27,12 +26,12 @@ void TerrainProducer::SetSceneDatabaseIDs(const cd::SceneDatabase* pSceneDatabas
 	m_pTerrainProducerImpl->SetSceneDatabaseIDs(pSceneDatabase);
 }
 
-void TerrainProducer::SetTerrainMetadata(const cd::TerrainMetadata& metadata)
+void TerrainProducer::SetTerrainMetadata(const TerrainMetadata& metadata)
 {
 	m_pTerrainProducerImpl->SetTerrainMetadata(metadata);
 }
 
-void TerrainProducer::SetSectorMetadata(const cd::TerrainSectorMetadata& metadata)
+void TerrainProducer::SetSectorMetadata(const TerrainSectorMetadata& metadata)
 {
 	m_pTerrainProducerImpl->SetSectorMetadata(metadata);
 }

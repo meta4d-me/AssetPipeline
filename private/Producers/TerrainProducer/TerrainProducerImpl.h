@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Scene/ObjectIDGenerator.h"
-#include "Scene/TerrainTypes.h"
+#include "TerrainTypes.h"
 
 namespace cd
 {
@@ -10,7 +10,6 @@ class Material;
 class Mesh;
 class SceneDatabase;
 class Texture;
-
 
 }
 
@@ -21,7 +20,7 @@ class TerrainProducerImpl
 {
 public:
 	TerrainProducerImpl() = delete;
-	explicit TerrainProducerImpl(const cd::TerrainMetadata& terrainMetadata, const cd::TerrainSectorMetadata& sectorMetadata);
+	explicit TerrainProducerImpl(const cdtools::TerrainMetadata& terrainMetadata, const cdtools::TerrainSectorMetadata& sectorMetadata);
 	TerrainProducerImpl(const TerrainProducerImpl& rhs) = delete;
 	TerrainProducerImpl& operator=(const TerrainProducerImpl& rhs) = delete;
 	TerrainProducerImpl(TerrainProducerImpl&& rhs) = delete;
@@ -29,8 +28,8 @@ public:
 	~TerrainProducerImpl() = default;
 
 	void SetSceneDatabaseIDs(const cd::SceneDatabase* pSceneDatabase);
-	void SetTerrainMetadata(const cd::TerrainMetadata& metadata);
-	void SetSectorMetadata(const cd::TerrainSectorMetadata& metadata);
+	void SetTerrainMetadata(const cdtools::TerrainMetadata& metadata);
+	void SetSectorMetadata(const cdtools::TerrainSectorMetadata& metadata);
 	void Initialize();
 
 	uint32_t GetTerrainLengthInX() const {
@@ -64,8 +63,8 @@ public:
 	void Execute(cd::SceneDatabase* pSceneDatabase);
 
 private:
-	cd::TerrainMetadata m_terrainMetadata;
-	cd::TerrainSectorMetadata m_sectorMetadata;
+	cdtools::TerrainMetadata m_terrainMetadata;
+	cdtools::TerrainSectorMetadata m_sectorMetadata;
 	uint32_t m_terrainLenInX;
 	uint32_t m_terrainLenInZ;
 	uint32_t m_sectorCount;

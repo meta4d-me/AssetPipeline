@@ -8,8 +8,6 @@ namespace cd
 {
 
 class Mesh;
-struct TerrainMetadata;
-struct TerrainSectorMetadata;
 
 }
 
@@ -17,12 +15,14 @@ namespace cdtools
 {
 
 class TerrainProducerImpl;
+struct TerrainMetadata;
+struct TerrainSectorMetadata;
 
 class TOOL_API TerrainProducer : public IProducer
 {
 public:
 	TerrainProducer() = delete;
-	explicit TerrainProducer(const cd::TerrainMetadata& terrainMetadata, const cd::TerrainSectorMetadata& sectorMetadata);
+	explicit TerrainProducer(const cdtools::TerrainMetadata& terrainMetadata, const cdtools::TerrainSectorMetadata& sectorMetadata);
 	TerrainProducer(const TerrainProducer& rhs) = delete;
 	TerrainProducer& operator=(const TerrainProducer& rhs) = delete;
 	TerrainProducer(TerrainProducer&& rhs) = delete;
@@ -30,8 +30,8 @@ public:
 	virtual ~TerrainProducer();
 
 	void SetSceneDatabaseIDs(const cd::SceneDatabase* pSceneDatabase);
-	void SetTerrainMetadata(const cd::TerrainMetadata& metadata);
-	void SetSectorMetadata(const cd::TerrainSectorMetadata& metadata);
+	void SetTerrainMetadata(const cdtools::TerrainMetadata& metadata);
+	void SetSectorMetadata(const cdtools::TerrainSectorMetadata& metadata);
 	void Initialize();
 
 	uint32_t GetTerrainLengthInX() const;
