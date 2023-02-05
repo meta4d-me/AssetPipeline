@@ -1,11 +1,13 @@
 #include "FbxConsumer.h"
 #include "Framework/Processor.h"
-#include "HeightFunctions.h"
+#include "TerrainTypes.h"
 #include "TerrainProducer.h"
 #include "Utilities/PerformanceProfiler.h"
 
 #include <random>
 #include <vector>
+
+using namespace cd;
 
 int main(int argc, char** argv)
 {
@@ -27,23 +29,26 @@ int main(int argc, char** argv)
 	std::default_random_engine generator;
 	std::uniform_int_distribution<int64_t> uniform_long = std::uniform_int_distribution<int64_t>(LONG_MIN, LONG_MAX);
 
-	TerrainGenParams generationParams;
-	generationParams.numSectorsInX = 8;
-	generationParams.numSectorsInZ = 8;
-	generationParams.numQuadsInSectorInX = 32;
-	generationParams.numQuadsInSectorInZ = 32;
-	generationParams.quadLengthInX = 100;
-	generationParams.quadLengthInZ = 100;
-	generationParams.minElevation = 0;
-	generationParams.maxElevation = 2000;
-	generationParams.octaves.emplace_back(uniform_long(generator), 1.0f, 0.0f);
-	generationParams.octaves.emplace_back(uniform_long(generator), 2.0f, 0.8f);
-	generationParams.octaves.emplace_back(uniform_long(generator), 4.0f, 0.8f);
-	generationParams.octaves.emplace_back(uniform_long(generator), 8.0f, 0.5f);
-	generationParams.octaves.emplace_back(uniform_long(generator), 16.0f, 0.4f);
-	generationParams.octaves.emplace_back(uniform_long(generator), 32.0f, 0.6f);
+	TerrainMetadata terrainMetadata;
+	terrainMetadata.numSectorsInX = 8;
+	terrainMetadata.numSectorsInZ = 8;
+	terrainMetadata.minElevation = 0;
+	terrainMetadata.maxElevation = 2000;
+	terrainMetadata.redistPow = 5.0f;
+	terrainMetadata.octaves.emplace_back(uniform_long(generator), 1.0f, 0.0f);
+	terrainMetadata.octaves.emplace_back(uniform_long(generator), 2.0f, 0.8f);
+	terrainMetadata.octaves.emplace_back(uniform_long(generator), 4.0f, 0.8f);
+	terrainMetadata.octaves.emplace_back(uniform_long(generator), 8.0f, 0.5f);
+	terrainMetadata.octaves.emplace_back(uniform_long(generator), 16.0f, 0.4f);
+	terrainMetadata.octaves.emplace_back(uniform_long(generator), 32.0f, 0.6f);
 
-	TerrainProducer producer(generationParams);
+	TerrainSectorMetadata sectorMetadata;
+	sectorMetadata.numQuadsInX = 8;
+	sectorMetadata.numQuadsInZ = 8;
+	sectorMetadata.quadLenInX = 10;
+	sectorMetadata.quadLenInZ = 10;
+
+	TerrainProducer producer(terrainMetadata, sectorMetadata);
 	FbxConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);
 	processor.Run();

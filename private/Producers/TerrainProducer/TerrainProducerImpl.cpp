@@ -1,326 +1,245 @@
 #include "TerrainProducerImpl.h"
 
 #include "Hashers/StringHash.hpp"
-#include "Noise/Noise.h"
-#include "Producers/TerrainProducer/HeightFunctions.h"
+#include "Math/NoiseGenerator.h"
 #include "Scene/Material.h"
+#include "Scene/Mesh.h"
 #include "Scene/SceneDatabase.h"
 #include "Scene/Texture.h"
 #include "Scene/VertexFormat.h"
-#include "Utilities/MeshUtils.h"
-#include "Utilities/Utils.h"
+#include "Utilities/StringUtils.h"
 
 #include <cinttypes>
+
+using namespace cd;
+using namespace cdtools;
+
+namespace
+{
+
+float GetNoiseAt(
+	const uint32_t x,
+	const uint32_t z,
+	const uint32_t terrainLenInX,
+	const uint32_t terrainLenInZ,
+	const float redistPower,
+	const std::vector<ElevationOctave>& octaves)
+{
+	const double nx = x / static_cast<double>(terrainLenInX);
+	const double nz = z / static_cast<double>(terrainLenInZ);
+	float height = 0.0f;
+	float totalWeight = 0.0f;
+	for (uint32_t i = 0; i < octaves.size(); ++i)
+	{
+		const ElevationOctave& octave = octaves[i];
+		height += octave.weight * NoiseGenerator::SimplexNoise2D(octave.seed, octave.frequency * nx, octave.frequency * nz);
+		totalWeight += octave.weight;
+	}
+	if (totalWeight != 0.0f)
+	{
+		height /= totalWeight;
+	}
+	height = pow(height, redistPower);
+	return height;
+}
+
+}
 
 namespace cdtools
 {
 
-TerrainProducerImpl::TerrainProducerImpl(const TerrainGenParams& genParams)
-	: m_numSectorsInX(genParams.numSectorsInX)
-	, m_numSectorsInZ(genParams.numSectorsInZ)
-	, m_numQuadsInSectorInX(genParams.numQuadsInSectorInX)
-	, m_numQuadsInSectorInZ(genParams.numQuadsInSectorInZ)
-	, m_quadLengthInX(genParams.quadLengthInX)
-	, m_quadLengthInZ(genParams.quadLengthInZ)
-	, m_minElevation(genParams.minElevation)
-	, m_maxElevation(genParams.maxElevation)
-	, m_octaves(std::move(genParams.octaves))
+TerrainProducerImpl::TerrainProducerImpl(const TerrainMetadata& terrainMetadata, const TerrainSectorMetadata& sectorMetadata)
+	: m_terrainMetadata(terrainMetadata)
+	, m_sectorMetadata(sectorMetadata)
 {
 	// sanity checks
-	assert(m_numSectorsInX >= 1);
-	assert(m_numSectorsInZ >= 1);
-	assert(m_numQuadsInSectorInX >= 1);
-	assert(m_numQuadsInSectorInZ >= 1);
-	assert(m_quadLengthInX >= 1);
-	assert(m_quadLengthInZ >= 1);
-	assert(m_minElevation <= m_maxElevation);
+	assert(m_terrainMetadata.numSectorsInX >= 1);
+	assert(m_terrainMetadata.numSectorsInZ >= 1);
+	assert(m_sectorMetadata.numQuadsInX >= 1);
+	assert(m_sectorMetadata.numQuadsInZ >= 1);
+	assert(m_sectorMetadata.quadLenInX >= 1);
+	assert(m_sectorMetadata.quadLenInZ >= 1);
+	assert(m_terrainMetadata.minElevation < m_terrainMetadata.maxElevation);
 
 	// Calculate terrain dimensions
-	m_sectorLengthInX = m_numQuadsInSectorInX * m_quadLengthInX;
-	m_sectorLengthInZ = m_numQuadsInSectorInZ * m_quadLengthInZ;
-	m_terrainLengthInX = m_numSectorsInX * m_sectorLengthInX;
-	m_terrainLengthInZ = m_numSectorsInZ * m_sectorLengthInZ;
-
-	// Print logs on what's being generated
-	printf("Generating terrain with %d sectors (%d, %d). Min elevation: %d, max elevation: %d.\n", m_numSectorsInX * m_numSectorsInZ, m_numSectorsInX, m_numSectorsInZ, m_minElevation, m_maxElevation);
-	printf("\tEach Sectors has %d quads (%d, %d)\n", m_numQuadsInSectorInX * m_numQuadsInSectorInZ, m_numQuadsInSectorInX, m_numQuadsInSectorInZ);
-	printf("\t\tEach Quad has dimension(%d, %d)\n", m_quadLengthInX, m_quadLengthInZ);
-	for (const HeightOctave& octave : m_octaves)
-	{
-		printf("\tOctave: seed: %" PRId64 ", freq: %f, weight: %f\n", octave.seed, octave.frequency, octave.weight);
-	}
+	Initialize();
 }
 
-void TerrainProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
+void TerrainProducerImpl::SetSceneDatabaseIDs(const SceneDatabase* pSceneDatabase)
 {
-	pSceneDatabase->SetName("Generated Terrain");
-	pSceneDatabase->SetMeshCount(1);
+	m_nodeIDGenerator.SetCurrentID(pSceneDatabase->GetNodeCount());
+	m_meshIDGenerator.SetCurrentID(pSceneDatabase->GetMeshCount());
+	m_materialIDGenerator.SetCurrentID(pSceneDatabase->GetMaterialCount());
+	m_textureIDGenerator.SetCurrentID(pSceneDatabase->GetTextureCount());
+}
 
-	// TODO get this from file later
-	bool isUsed = false;
-	pSceneDatabase->SetMaterialCount(2);
-	pSceneDatabase->SetTextureCount(2);
+void TerrainProducerImpl::SetTerrainMetadata(const TerrainMetadata& metadata)
+{
+	m_terrainMetadata = metadata;
+}
 
-	std::string materialName = "baseColor";
-	cd::MaterialID::ValueType materialHash = cd::StringHash<cd::MaterialID::ValueType>(materialName);
-	cd::MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, isUsed);
-	cd::Material baseColorMaterial(materialID, materialName.c_str());
+void TerrainProducerImpl::SetSectorMetadata(const TerrainSectorMetadata& metadata)
+{
+	m_sectorMetadata = metadata;
+}
 
-	isUsed = false;
-	std::string textureName = "TerrainDirtTexture";
-	cd::TextureID::ValueType textureHash = cd::StringHash<cd::TextureID::ValueType>(textureName);
-	cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
-	baseColorMaterial.SetTextureID(cd::MaterialTextureType::BaseColor, textureID);
-	pSceneDatabase->AddMaterial(cd::MoveTemp(baseColorMaterial));
-	pSceneDatabase->AddTexture(cd::Texture(textureID, cd::MaterialTextureType::BaseColor, textureName.c_str()));
-	
-	for (uint32_t z = 0; z < m_numSectorsInZ; ++z)
+void TerrainProducerImpl::Initialize()
+{
+	m_sectorLenInX = m_sectorMetadata.numQuadsInX * m_sectorMetadata.quadLenInX;
+	m_sectorLenInZ = m_sectorMetadata.numQuadsInZ * m_sectorMetadata.quadLenInZ;
+	m_sectorCount = m_terrainMetadata.numSectorsInX * m_terrainMetadata.numSectorsInZ;
+	m_terrainLenInX = m_terrainMetadata.numSectorsInX * m_sectorLenInX;
+	m_terrainLenInZ = m_terrainMetadata.numSectorsInZ * m_sectorLenInZ;
+	m_quadsPerSector = m_sectorMetadata.numQuadsInX * m_sectorMetadata.numQuadsInZ;
+	m_verticesPerSector = m_quadsPerSector * 4;
+	m_trianglesPerSector = m_quadsPerSector * 2;
+}
+
+void TerrainProducerImpl::Execute(SceneDatabase* pSceneDatabase)
+{
+	pSceneDatabase->SetName("Terrain");
+	GenerateAllSectors(pSceneDatabase);
+}
+
+void TerrainProducerImpl::GenerateElevationMap(std::vector<int32_t>& outElevationMap, uint32_t sector_x, uint32_t sector_z) const
+{
+	const uint32_t numVerticesInX = m_sectorMetadata.numQuadsInX * m_sectorMetadata.quadLenInX;
+	const uint32_t numVerticesInZ = m_sectorMetadata.numQuadsInZ * m_sectorMetadata.quadLenInZ;
+	const uint32_t numVertices = numVerticesInX * numVerticesInZ;
+	outElevationMap.clear();
+	outElevationMap.reserve(numVertices);
+	for (uint32_t row = 0; row < numVerticesInZ; ++row)
 	{
-		for (uint32_t x = 0; x < m_numSectorsInX; ++x)
+		for (uint32_t col = 0; col < numVerticesInX; ++col)
 		{
-			cd::Mesh terrain = CreateTerrainMesh(x, z);
-			terrain.SetMaterialID(materialID.Data());
-			pSceneDatabase->GetAABB().Merge(terrain.GetAABB());
-
-			// Add it to the scene
-			pSceneDatabase->AddMesh(std::move(terrain));
+			const uint32_t x = (sector_x * m_sectorLenInX) + col;
+			const uint32_t z = (sector_z * m_sectorLenInZ) + row;
+			outElevationMap.push_back(static_cast<int32_t>(
+				std::round(
+					std::lerp(
+						static_cast<float>(m_terrainMetadata.minElevation),
+						static_cast<float>(m_terrainMetadata.maxElevation),
+						GetNoiseAt(x, z, m_terrainLenInX, m_terrainLenInZ, m_terrainMetadata.redistPow, m_terrainMetadata.octaves)
+					)
+				)
+				));
 		}
 	}
 }
 
-cd::Mesh TerrainProducerImpl::CreateTerrainMesh(uint32_t sector_x, uint32_t sector_z)
+void TerrainProducerImpl::GenerateAllSectors(cd::SceneDatabase* pSceneDatabase)
 {
-	const uint32_t num_quads = m_numQuadsInSectorInX * m_numQuadsInSectorInZ;
-	const uint32_t num_vertices = num_quads * 4;	// 4 vertices per quad
-	const uint32_t num_polygons = num_quads * 2;	// 2 triangles per quad
+	std::vector<int32_t> elevationMap;
+	for (uint32_t sector_row = 0; sector_row < m_terrainMetadata.numSectorsInZ; ++sector_row)
+	{
+		for (uint32_t sector_col = 0; sector_col < m_terrainMetadata.numSectorsInX; ++sector_col)
+		{
+			GenerateElevationMap(elevationMap, sector_col, sector_row);
+			pSceneDatabase->AddMesh(std::move(GenerateSectorAt(sector_col, sector_row, elevationMap)));
+			GenerateMaterialAndTextures(pSceneDatabase, sector_col, sector_row, elevationMap);
+		}
+	}
+}
 
-	std::string terrainMeshName = "TerrainSector(";
-	terrainMeshName += sector_x + ",";
-	terrainMeshName += sector_z + ")";
-
+Mesh TerrainProducerImpl::GenerateSectorAt(uint32_t sector_x, uint32_t sector_z, const std::vector<int32_t>& elevationMap)
+{
+	const std::string terrainMeshName = string_format("TerrainSector({}, {})", sector_x, sector_z);
 	bool isUsed = false;
-	cd::MeshID::ValueType meshHash = cd::StringHash<cd::TextureID::ValueType>(terrainMeshName);
-	cd::MeshID terrainMeshID = m_meshIDGenerator.AllocateID(meshHash, isUsed);
-	cd::Mesh terrain(terrainMeshID, terrainMeshName.c_str(), num_vertices, num_polygons);
+	const MeshID::ValueType meshHash = StringHash<MeshID::ValueType>(terrainMeshName);
+	const MeshID terrainMeshID = m_meshIDGenerator.AllocateID(meshHash, isUsed);
+	Mesh terrain(terrainMeshID, terrainMeshName.c_str(), m_verticesPerSector, m_trianglesPerSector);
 
-	terrain.SetVertexColorSetCount(0);	// No colors
-	terrain.SetVertexUVSetCount(1);		// Only 1 set of UV
-	std::vector<std::vector<TerrainQuad>> terrainQuads(m_numQuadsInSectorInZ, std::vector<TerrainQuad>(m_numQuadsInSectorInX));	// We need to store this for normal calculation later
 	uint32_t current_vertex_id = 0;
 	uint32_t current_polygon_id = 0;
-	// Generate all the quads
-	for (uint32_t z = 0; z < static_cast<uint32_t>(m_numQuadsInSectorInZ); ++z)
+	for (uint32_t z = 0; z < static_cast<uint32_t>(m_sectorMetadata.numQuadsInZ); ++z)
 	{
-		std::vector<TerrainQuad>& currentRow = terrainQuads[z];
-		for (uint32_t x = 0; x < static_cast<uint32_t>(m_numQuadsInSectorInX); ++x)
+		for (uint32_t x = 0; x < static_cast<uint32_t>(m_sectorMetadata.numQuadsInX); ++x)
 		{
-			currentRow[x] = CreateQuadAt(current_vertex_id, current_polygon_id);
-			const uint32_t leftX = (sector_x * m_sectorLengthInX) + x * m_quadLengthInX;
-			const uint32_t rightX = (sector_x * m_sectorLengthInX) + (x + 1) * m_quadLengthInX;
-			const uint32_t bottomZ = (sector_z * m_sectorLengthInZ) + z * m_quadLengthInZ;
-			const uint32_t topZ = (sector_z * m_sectorLengthInZ) + (z + 1) * m_quadLengthInZ;
-			cd::Point bottomLeftPoint(
+			const uint32_t leftX = (sector_x * m_sectorLenInX) + x * m_sectorMetadata.quadLenInX;
+			const uint32_t rightX = (sector_x * m_sectorLenInX) + (x + 1) * m_sectorMetadata.quadLenInX;
+			const uint32_t bottomZ = (sector_z * m_sectorLenInZ) + z * m_sectorMetadata.quadLenInZ;
+			const uint32_t topZ = (sector_z * m_sectorLenInZ) + (z + 1) * m_sectorMetadata.quadLenInZ;
+			const Point bottomLeftPoint(
 				static_cast<float>(leftX), 
-				HeightFunctions::GetDefaultHeight(leftX, bottomZ, m_terrainLengthInX, m_terrainLengthInZ, m_maxElevation * 1.0f, 5.0f, m_octaves),
+				static_cast<float>(m_terrainMetadata.minElevation), 
 				static_cast<float>(bottomZ));
-			cd::Point topLeftPoint(
-				static_cast<float>(leftX),
-				HeightFunctions::GetDefaultHeight(leftX, topZ, m_terrainLengthInX, m_terrainLengthInZ, m_maxElevation * 1.0f, 5.0f, m_octaves),
+			const Point topLeftPoint(
+				static_cast<float>(leftX), 
+				static_cast<float>(m_terrainMetadata.minElevation), 
 				static_cast<float>(topZ));
-			cd::Point topRightPoint(
-				static_cast<float>(rightX),
-				HeightFunctions::GetDefaultHeight(rightX, topZ, m_terrainLengthInX, m_terrainLengthInZ, m_maxElevation * 1.0f, 5.0f, m_octaves),
+			const Point topRightPoint(
+				static_cast<float>(rightX), 
+				static_cast<float>(m_terrainMetadata.minElevation), 
 				static_cast<float>(topZ));
-			cd::Point bottomRightPoint(
-				static_cast<float>(rightX),
-				HeightFunctions::GetDefaultHeight(rightX, bottomZ, m_terrainLengthInX, m_terrainLengthInZ, m_maxElevation * 1.0f, 5.0f, m_octaves),
+			const Point bottomRightPoint(
+				static_cast<float>(rightX), 
+				static_cast<float>(m_terrainMetadata.minElevation), 
 				static_cast<float>(bottomZ));
-
-			// Sets the attribute in the terrain
+			const uint32_t bottomLeftPointId = current_vertex_id++;
+			const uint32_t topLeftPointId = current_vertex_id++;
+			const uint32_t topRightPointId = current_vertex_id++;
+			const uint32_t bottomRightPointId = current_vertex_id++;
 			// Position
-			terrain.SetVertexPosition(currentRow[x].bottomLeftVertexId, bottomLeftPoint);
-			terrain.SetVertexPosition(currentRow[x].topLeftVertexId, topLeftPoint);
-			terrain.SetVertexPosition(currentRow[x].topRightVertexId, topRightPoint);
-			terrain.SetVertexPosition(currentRow[x].bottomRightVertexId, bottomRightPoint);
+			terrain.SetVertexPosition(bottomLeftPointId, bottomLeftPoint);
+			terrain.SetVertexPosition(topLeftPointId, topLeftPoint);
+			terrain.SetVertexPosition(topRightPointId, topRightPoint);
+			terrain.SetVertexPosition(bottomRightPointId, bottomRightPoint);
 			// UV
-			terrain.SetVertexUV(0, currentRow[x].bottomLeftVertexId, cd::UV(0.0f, 0.0f));
-			terrain.SetVertexUV(0, currentRow[x].topLeftVertexId, cd::UV(0.0f, 1.0f));
-			terrain.SetVertexUV(0, currentRow[x].topRightVertexId, cd::UV(1.0f, 1.0f));
-			terrain.SetVertexUV(0, currentRow[x].bottomRightVertexId, cd::UV(1.0f, 0.0f));
+			terrain.SetVertexUV(0, bottomLeftPointId, UV(0.0f, 0.0f));
+			terrain.SetVertexUV(0, topLeftPointId, UV(0.0f, 1.0f));
+			terrain.SetVertexUV(0, topRightPointId, UV(1.0f, 1.0f));
+			terrain.SetVertexUV(0, bottomRightPointId, UV(1.0f, 0.0f));
 			// The two triangle indices
-			terrain.SetPolygon(currentRow[x].leftTriPolygonId, cd::VertexID(currentRow[x].bottomLeftVertexId), cd::VertexID(currentRow[x].topLeftVertexId), cd::VertexID(currentRow[x].bottomRightVertexId));
-			terrain.SetPolygon(currentRow[x].rightTriPolygonId, cd::VertexID(currentRow[x].bottomRightVertexId), cd::VertexID(currentRow[x].topLeftVertexId), cd::VertexID(currentRow[x].topRightVertexId));
-			// Normals
-			cd::Direction normal;
-			// bottom-left
-			const cd::Direction bottomLeftToBottomRight = bottomRightPoint - bottomLeftPoint;
-			const cd::Direction bottomLeftToTopLeft = topLeftPoint - bottomLeftPoint;
-			normal = bottomLeftToBottomRight.Cross(bottomLeftToTopLeft);
-			normal.Normalize();
-			terrain.SetVertexNormal(currentRow[x].bottomLeftVertexId, normal);
-			// top-left
-			const cd::Direction topLeftToBottomLeft = bottomLeftPoint - topLeftPoint;
-			const cd::Direction topLeftToBottomRight = bottomRightPoint - topLeftPoint;
-			const cd::Direction topLeftToTopRight = topRightPoint - topLeftPoint;
-			normal = topLeftToBottomLeft.Cross(topLeftToBottomRight);
-			normal += topLeftToBottomRight.Cross(topLeftToTopRight);
-			normal.Normalize();
-			terrain.SetVertexNormal(currentRow[x].topLeftVertexId, normal);
-			// top-right
-			const cd::Direction topRightToTopLeft = topLeftPoint - topRightPoint;
-			const cd::Direction topRightToBottomRight = bottomRightPoint - topRightPoint;
-			normal = topRightToTopLeft.Cross(topRightToBottomRight);
-			normal.Normalize();
-			terrain.SetVertexNormal(currentRow[x].topRightVertexId, normal);
-			// bottom-right
-			const cd::Direction bottomRightToTopRight = topRightPoint - bottomRightPoint;
-			const cd::Direction bottomRightToTopLeft = topLeftPoint - bottomRightPoint;
-			const cd::Direction bottomRightToBottomLeft = bottomLeftPoint - bottomRightPoint;
-			normal = bottomRightToTopRight.Cross(bottomRightToTopLeft);
-			normal += bottomRightToTopLeft.Cross(bottomRightToBottomLeft);
-			normal.Normalize();
-			terrain.SetVertexNormal(currentRow[x].bottomRightVertexId, normal);
+			terrain.SetPolygon(current_polygon_id++, VertexID(bottomLeftPointId), VertexID(topLeftPointId), VertexID(bottomRightPointId));
+			terrain.SetPolygon(current_polygon_id++, VertexID(bottomRightPointId), VertexID(topLeftPointId), VertexID(topRightPointId));
 		}
 	}
-	// Smooth out all the normals by summing all the near-by quads' normals
-	for (int32_t z = 0; z < terrainQuads.size(); ++z)
-	{
-		for (int32_t x = 0; x < terrainQuads[z].size(); ++x)
-		{
-			const bool hasTop = z + 1 < terrainQuads.size();
-			const bool hasRight = x + 1 < terrainQuads[z].size();
-			const bool hasLeft = x - 1 >= 0;
-			const bool hasBottom = z - 1 >= 0;
-			TerrainQuad currentQuad = terrainQuads[z][x];
-			cd::Direction normal;
-			// bottom-left
-			normal = terrain.GetVertexNormal(currentQuad.bottomLeftVertexId);
-			if (hasLeft)
-			{
-				const TerrainQuad leftQuad = terrainQuads[z][x - 1];
-				normal += terrain.GetVertexNormal(leftQuad.bottomRightVertexId);
-			}
-			if (hasLeft && hasBottom)
-			{
-				const TerrainQuad bottomLeftQuad = terrainQuads[z - 1][x - 1];
-				normal += terrain.GetVertexNormal(bottomLeftQuad.topRightVertexId);
-			}
-			if (hasBottom)
-			{
-				const TerrainQuad bottomQuad = terrainQuads[z - 1][x];
-				normal += terrain.GetVertexNormal(bottomQuad.topLeftVertexId);
-			}
-			normal.Normalize();
-			currentQuad.bottomLeftNormal = normal;
-
-			// top-left
-			normal = terrain.GetVertexNormal(currentQuad.topLeftVertexId);
-			if (hasLeft)
-			{
-				const TerrainQuad leftQuad = terrainQuads[z][x - 1];
-				normal += terrain.GetVertexNormal(leftQuad.topRightVertexId);
-			}
-			if (hasLeft && hasTop)
-			{
-				const TerrainQuad topLeftQuad = terrainQuads[z + 1][x - 1];
-				normal += terrain.GetVertexNormal(topLeftQuad.bottomRightVertexId);
-			}
-			if (hasTop)
-			{
-				const TerrainQuad topQuad = terrainQuads[z + 1][x];
-				normal += terrain.GetVertexNormal(topQuad.bottomLeftVertexId);
-			}
-			normal.Normalize();
-			currentQuad.topRightNormal = normal;
-
-			// top-right
-			normal = terrain.GetVertexNormal(currentQuad.topRightVertexId);
-			if (hasTop)
-			{
-				const TerrainQuad topQuad = terrainQuads[z + 1][x];
-				normal += terrain.GetVertexNormal(topQuad.bottomRightVertexId);
-			}
-			if (hasTop && hasRight)
-			{
-				const TerrainQuad topRightQuad = terrainQuads[z + 1][x + 1];
-				normal += terrain.GetVertexNormal(topRightQuad.bottomLeftVertexId);
-			}
-			if (hasRight)
-			{
-				const TerrainQuad rightQuad = terrainQuads[z][x + 1];
-				normal += terrain.GetVertexNormal(rightQuad.topLeftVertexId);
-			}
-			normal.Normalize();
-			currentQuad.topRightNormal = normal;
-
-			// bottom-right
-			normal = terrain.GetVertexNormal(currentQuad.bottomRightVertexId);
-			if (hasRight)
-			{
-				const TerrainQuad rightQuad = terrainQuads[z][x + 1];
-				normal += terrain.GetVertexNormal(rightQuad.bottomLeftVertexId);
-			}
-			if (hasRight && hasBottom)
-			{
-				const TerrainQuad bottomRightQuad = terrainQuads[z - 1][x + 1];
-				normal += terrain.GetVertexNormal(bottomRightQuad.topLeftVertexId);
-			}
-			if (hasBottom)
-			{
-				const TerrainQuad bottomQuad = terrainQuads[z - 1][x];
-				normal += terrain.GetVertexNormal(bottomQuad.topRightVertexId);
-			}
-			normal.Normalize();
-			currentQuad.bottomRightNormal = normal;
-		}
-	}
-	// Set the normal
-	for (int32_t z = 0; z < terrainQuads.size(); ++z)
-	{
-		for (int32_t x = 0; x < terrainQuads[z].size(); ++x)
-		{
-			const TerrainQuad currentQuad = terrainQuads[z][x];
-			terrain.SetVertexNormal(currentQuad.bottomLeftVertexId, currentQuad.bottomLeftNormal);
-			terrain.SetVertexNormal(currentQuad.topLeftVertexId, currentQuad.topLeftNormal);
-			terrain.SetVertexNormal(currentQuad.topRightVertexId, currentQuad.topRightNormal);
-			terrain.SetVertexNormal(currentQuad.bottomRightVertexId, currentQuad.bottomRightNormal);
-		}
-	}
-
 	// Set vertex attribute
-	cd::VertexFormat meshVertexFormat;
-	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
-	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
-	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+	VertexFormat meshVertexFormat;
+	meshVertexFormat.AddAttributeLayout(VertexAttributeType::Position, GetAttributeValueType<Point::ValueType>(), Point::Size);
+	meshVertexFormat.AddAttributeLayout(VertexAttributeType::UV, GetAttributeValueType<UV::ValueType>(), UV::Size);
 	terrain.SetVertexFormat(std::move(meshVertexFormat));
 
 	// Set aabb
-	terrain.SetAABB(CalculateAABB(terrain));
-
+	terrain.SetAABB(AABB(
+		Point(
+			static_cast<float>(sector_x * m_sectorLenInX),
+			static_cast<float>(*std::min_element(elevationMap.begin(), elevationMap.end())),
+			static_cast<float>(sector_z * m_sectorLenInZ)),
+		Point(
+			static_cast<float>((sector_x + 1) * m_sectorLenInX),
+			static_cast<float>(*std::max_element(elevationMap.begin(), elevationMap.end())),
+			static_cast<float>((sector_z + 1) * m_sectorLenInZ))));
 	return terrain;
 }
 
-TerrainQuad TerrainProducerImpl::CreateQuadAt(uint32_t& currentVertexId, uint32_t& currentPolygonId) const
+void TerrainProducerImpl::GenerateMaterialAndTextures(cd::SceneDatabase* pSceneDatabase, uint32_t sector_x, uint32_t sector_z, std::vector<int32_t>& elevationMap)
 {
-	TerrainQuad quad;
+	const std::string materialName = string_format("TerrainMaterial({}, {})", sector_x, sector_z);
+	bool isUsed = false;
+	MaterialID::ValueType materialHash = StringHash<MaterialID::ValueType>(materialName);
+	MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, isUsed);
+	Material terrainSectorMaterial(materialID, materialName.c_str());
 
-	// Sets the vertex IDs in CW manner
-	quad.bottomLeftVertexId = currentVertexId;
-	++currentVertexId;
-	quad.topLeftVertexId = currentVertexId;
-	++currentVertexId;
-	quad.topRightVertexId = currentVertexId;
-	++currentVertexId;
-	quad.bottomRightVertexId = currentVertexId;
-	++currentVertexId;
+	// Base color texture
+	isUsed = false;
+	std::string textureName = "TerrainDirtTexture";
+	TextureID::ValueType textureHash = StringHash<TextureID::ValueType>(textureName);
+	TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
+	terrainSectorMaterial.SetTextureID(MaterialTextureType::BaseColor, textureID);
+	pSceneDatabase->AddTexture(Texture(textureID, MaterialTextureType::BaseColor, textureName.c_str()));
 
-	// Sets the polygon IDs
-	quad.leftTriPolygonId = currentPolygonId;
-	++currentPolygonId;
-	quad.rightTriPolygonId = currentPolygonId;
-	++currentPolygonId;
-
-	return quad;
+	// ElevationMap texture
+	isUsed = false;
+	textureName = string_format("TerrainElevationMap({}, {})", sector_x, sector_z);
+	textureHash = StringHash<TextureID::ValueType>(textureName);
+	textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
+	terrainSectorMaterial.SetTextureID(MaterialTextureType::Roughness, textureID);
+	Texture elevationTexture = Texture(textureID, MaterialTextureType::Roughness, textureName.c_str());
+	elevationTexture.SetRawTexture(elevationMap, TextureFormat::R32I);
+	pSceneDatabase->AddTexture(MoveTemp(elevationTexture));
+	
+	pSceneDatabase->AddMaterial(MoveTemp(terrainSectorMaterial));
 }
 
 }	// namespace cdtools

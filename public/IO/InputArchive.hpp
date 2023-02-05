@@ -35,6 +35,7 @@ public:
 	TInputArchive& operator>>(float& data) { return Import(data); }
 	TInputArchive& operator>>(double& data) { return Import(data); }
 	TInputArchive& operator>>(char& data) { return Import(data); }
+	TInputArchive& operator>>(bool& data) { return Import(data); }
 	TInputArchive& operator>>(std::string& data) { return Import(data); }
 	TInputArchive& operator>>(Vec2f& data) { return ImportBuffer(data.Begin()); }
 	TInputArchive& operator>>(Vec3f& data) { return ImportBuffer(data.Begin()); }
