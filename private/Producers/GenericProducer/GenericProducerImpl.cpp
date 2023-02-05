@@ -191,11 +191,6 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 	assert(pSourceMesh->mFaces && pSourceMesh->mNumFaces > 0 && "No polygon data.");
 
 	uint32_t numVertices = pSourceMesh->mNumVertices;
-	if (IsDuplicateVertexServiceActive())
-	{
-		numVertices = pSourceMesh->mNumFaces * 3;
-	}
-
 	assert(pSourceMesh->mVertices && numVertices > 0 && "No vertex data.");
 
 	bool isMeshReused;
@@ -214,8 +209,6 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 		mesh.SetAABB(cd::MoveTemp(meshAABB));
 	}
 
-	std::map<uint32_t, uint32_t> mapNewIndexToOriginIndex;
-	uint32_t currentVertexID = 0U;
 	for (uint32_t faceIndex = 0; faceIndex < pSourceMesh->mNumFaces; ++faceIndex)
 	{
 		const aiFace& face = pSourceMesh->mFaces[faceIndex];
@@ -228,18 +221,6 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 		uint32_t index0 = originIndex0;
 		uint32_t index1 = originIndex1;
 		uint32_t index2 = originIndex2;
-		if (IsDuplicateVertexServiceActive())
-		{
-			index0 = currentVertexID;
-			index1 = currentVertexID + 1;
-			index2 = currentVertexID + 2;
-
-			mapNewIndexToOriginIndex[index0] = originIndex0;
-			mapNewIndexToOriginIndex[index1] = originIndex1;
-			mapNewIndexToOriginIndex[index2] = originIndex2;
-
-			currentVertexID += 3;
-		}
 		mesh.SetPolygon(faceIndex, cd::VertexID(index0), cd::VertexID(index1), cd::VertexID(index2));
 	}
 
@@ -248,13 +229,6 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 	for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 	{
 		uint32_t vertexDataIndex = vertexIndex;
-		if (IsDuplicateVertexServiceActive())
-		{
-			auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-			assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-			vertexDataIndex = itNewIndex->second;
-		}
-
 		const aiVector3D& position = pSourceMesh->mVertices[vertexDataIndex];
 		mesh.SetVertexPosition(vertexIndex, cd::Point(position.x, position.y, position.z));
 	}
@@ -265,13 +239,6 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 		for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 		{
 			uint32_t vertexDataIndex = vertexIndex;
-			if (IsDuplicateVertexServiceActive())
-			{
-				auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-				assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-				vertexDataIndex = itNewIndex->second;
-			}
-
 			const aiVector3D& normal = pSourceMesh->mNormals[vertexDataIndex];
 			mesh.SetVertexNormal(vertexIndex, cd::Direction(normal.x, normal.y, normal.z));
 		}
@@ -282,13 +249,6 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
 				uint32_t vertexDataIndex = vertexIndex;
-				if (IsDuplicateVertexServiceActive())
-				{
-					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-					vertexDataIndex = itNewIndex->second;
-				}
-
 				const aiVector3D& tangent = pSourceMesh->mTangents[vertexDataIndex];
 				mesh.SetVertexTangent(vertexIndex, cd::Direction(tangent.x, tangent.y, tangent.z));
 			}
@@ -298,13 +258,6 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
 				uint32_t vertexDataIndex = vertexIndex;
-				if (IsDuplicateVertexServiceActive())
-				{
-					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-					vertexDataIndex = itNewIndex->second;
-				}
-
 				const aiVector3D& biTangent = pSourceMesh->mBitangents[vertexDataIndex];
 				mesh.SetVertexBiTangent(vertexIndex, cd::Direction(biTangent.x, biTangent.y, biTangent.z));
 			}
@@ -329,13 +282,6 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 		for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 		{
 			uint32_t vertexDataIndex = vertexIndex;
-			if (IsDuplicateVertexServiceActive())
-			{
-				auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-				assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-				vertexDataIndex = itNewIndex->second;
-			}
-
 			const aiVector3D& uv = vertexUVArray[vertexDataIndex];
 			mesh.SetVertexUV(uvSetIndex, vertexIndex, cd::UV(uv.x, uv.y));
 		}
@@ -351,13 +297,6 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 		for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 		{
 			uint32_t vertexDataIndex = vertexIndex;
-			if (IsDuplicateVertexServiceActive())
-			{
-				auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-				assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-				vertexDataIndex = itNewIndex->second;
-			}
-
 			const aiColor4D& color = vertexColorArray[vertexDataIndex];
 			mesh.SetVertexColor(colorSetIndex, vertexIndex, cd::Color(color.r, color.g, color.b, color.a));
 		}

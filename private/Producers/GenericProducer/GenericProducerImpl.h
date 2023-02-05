@@ -42,9 +42,6 @@ public:
 	cd::MeshID AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh);
 	cd::NodeID AddNode(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t nodeID);
 
-	void ActivateDuplicateVertexService() { m_bWantDuplicatedVertex = true; }
-	bool IsDuplicateVertexServiceActive() const { return m_bWantDuplicatedVertex; }
-
 	void ActivateBoundingBoxService() { m_bWantBoundingBox = true; }
 	bool IsBoundingBoxServiceActive() const { return m_bWantBoundingBox; }
 
@@ -65,7 +62,6 @@ private:
 	std::string m_folderPath;
 
 	// Service flags
-	bool m_bWantDuplicatedVertex = false;
 	bool m_bWantBoundingBox = false;
 	bool m_bWantFlattenHierarchy = false;
 	bool m_bWantTriangulate = false;
