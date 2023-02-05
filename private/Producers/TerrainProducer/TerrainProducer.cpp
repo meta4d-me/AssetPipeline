@@ -1,8 +1,8 @@
-#include "Producers/TerrainProducer/TerrainProducer.h"
+#include "TerrainProducer/TerrainProducer.h"
 #include "TerrainProducerImpl.h"
 
 #include "Scene/Mesh.h"
-#include "TerrainTypes.h"
+#include "TerrainProducer/TerrainTypes.h"
 
 namespace cdtools
 {

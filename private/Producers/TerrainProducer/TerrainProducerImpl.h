@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Scene/ObjectIDGenerator.h"
-#include "TerrainTypes.h"
+#include "TerrainProducer/TerrainTypes.h"
 
 namespace cd
 {

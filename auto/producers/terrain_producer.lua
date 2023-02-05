@@ -43,6 +43,7 @@ project("TerrainProducer")
 
 	includedirs {
 		path.join(RootPath, "public"),
+		path.join(RootPath, "public/Producers"),
 		path.join(RootPath, "private"),
 		path.join(RootPath, "external"),
 	}
