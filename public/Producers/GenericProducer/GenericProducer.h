@@ -29,12 +29,6 @@ public:
 	virtual void Execute(cd::SceneDatabase* pSceneDatabase) override;
 
 	/// <summary>
-	/// Duplicate vertices from the unique vertex in the same positions.
-	/// </summary>
-	void ActivateDuplicateVertexService();
-	bool IsDuplicateVertexServiceActive() const;
-
-	/// <summary>
 	/// Generate bounding boxes for every mesh.
 	/// </summary>
 	void ActivateBoundingBoxService();

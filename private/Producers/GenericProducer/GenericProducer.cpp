@@ -28,16 +28,6 @@ void GenericProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 	m_pGenericProducerImpl->Execute(pSceneDatabase);
 }
 
-void GenericProducer::ActivateDuplicateVertexService()
-{
-	m_pGenericProducerImpl->ActivateDuplicateVertexService();
-}
-
-bool GenericProducer::IsDuplicateVertexServiceActive() const
-{
-	return m_pGenericProducerImpl->IsDuplicateVertexServiceActive();
-}
-
 void GenericProducer::ActivateBoundingBoxService()
 {
 	m_pGenericProducerImpl->ActivateBoundingBoxService();
