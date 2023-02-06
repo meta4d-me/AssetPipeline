@@ -15,14 +15,7 @@ public:
 	using Iterator = T*;
 	using ConstIterator = const T*;
 
-	static TTransform Identity()
-	{
-		constexpr T zero = static_cast<T>(0);
-		constexpr T one = static_cast<T>(1);
-		return TTransform(TVector<T, 3>(zero, zero, zero),
-			TQuaternion<T>::Identity(),
-			TVector<T, 3>(one, one, one));
-	}
+	static TTransform Identity() { return TTransform(TVector<T, 3>::Zero(), TQuaternion<T>::Identity(), TVector<T, 3>::One()); }
 
 public:
 	TTransform() = default;
@@ -68,9 +61,11 @@ public:
 	TMatrix<T, 4, 4> GetMatrix() const
 	{
 		TMatrix<T, 4, 4> result = m_rotation.ToMatrix4x4();
+
 		result.GetColumn(3)[0] = m_translation.x();
 		result.GetColumn(3)[1] = m_translation.y();
 		result.GetColumn(3)[2] = m_translation.z();
+
 		result.GetColumn(0)[0] *= m_scale.x();
 		result.GetColumn(1)[1] *= m_scale.y();
 		result.GetColumn(2)[2] *= m_scale.z();

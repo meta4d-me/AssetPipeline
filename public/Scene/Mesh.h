@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Base/Export.h"
-#include "Math/AABB.hpp"
+#include "Math/Box.hpp"
 #include "Scene/ObjectID.h"
 
 #include <vector>

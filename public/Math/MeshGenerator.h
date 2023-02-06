@@ -8,7 +8,7 @@
 namespace cd
 {
 
-template<typename T>
+template<typename T, std::size_t N>
 class TBox;
 
 class Mesh;
@@ -34,8 +34,7 @@ public:
 	MeshGenerator& operator=(MeshGenerator&&) = delete;
 	~MeshGenerator() = delete;
 
-	static std::optional<Mesh> Generate(const TBox<float>& box, const VertexFormat& vertexFormat);
-	static std::optional<Mesh> GenerateNonUnique(const TBox<float>& box, const VertexFormat& vertexFormat);
+	static std::optional<Mesh> Generate(const TBox<float, 3>& box, const VertexFormat& vertexFormat);
 	static std::optional<Mesh> Generate(const TPlane<float>& plane, float width, float height, const VertexFormat& vertexFormat);
 	static std::optional<Mesh> Generate(const TSphere<float>& sphere, const VertexFormat& vertexFormat);
 };
