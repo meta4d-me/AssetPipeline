@@ -3,7 +3,7 @@
 #include "Base/Template.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
-#include "Math/AABB.hpp"
+#include "Math/Box.hpp"
 #include "Scene/ObjectID.h"
 #include "Scene/VertexFormat.h"
 

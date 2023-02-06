@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Math/AABB.hpp"
+#include "Math/Box.hpp"
 #include "Math/Vector.hpp"
 #include "Scene/Mesh.h"
 

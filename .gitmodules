@@ -6,6 +6,7 @@
 	path = external/rapidxml
 	url = https://github.com/CatDogEngine/rapidxml
 	branch = master
-[submodule "stb"]
+[submodule "external/stb"]
 	path = external/stb
 	url = https://github.com/CatDogEngine/stb.git
+	branch = master
