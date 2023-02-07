@@ -1,13 +1,21 @@
 #pragma once
 
+#include "Math/Vector.hpp"
+#include "Scene/ObjectID.h"
+
 #include <cstdint>
 #include <type_traits>
 
 namespace cd
 {
 
-static constexpr uint32_t MaxUVSetNumber = 4U;
-static constexpr uint32_t MaxColorSetNumber = 4U;
+static constexpr uint32_t MaxUVSetCount = 4U;
+static constexpr uint32_t MaxColorSetCount = 4U;
+static constexpr uint32_t MaxBoneInfluenceCount = 8U;
+using VertexWeight = float;
+
+// We expect to use triangulated mesh data in game engine.
+using Polygon = TVector<VertexID, 3>;
 
 enum class VertexAttributeType : uint8_t
 {

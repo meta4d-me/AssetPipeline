@@ -48,5 +48,8 @@ using TextureID = ObjectID<uint32_t, ObjectType::Texture>;
 using LightID = ObjectID<uint32_t, ObjectType::Light>;
 using NodeID = ObjectID<uint32_t, ObjectType::Node>;
 using CameraID = ObjectID<uint32_t, ObjectType::Camera>;
+using BoneID = ObjectID<uint32_t, ObjectType::Bone>;
+
+static_assert(sizeof(VertexID) == sizeof(uint32_t));
 
 }
