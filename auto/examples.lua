@@ -106,6 +106,7 @@ function MakeExample(exampleProject)
 		
 		includedirs {
 			path.join(RootPath, "public"),
+			path.join(RootPath, "external"),
 			table.unpack(extraIncludeDirs)
 		}
 

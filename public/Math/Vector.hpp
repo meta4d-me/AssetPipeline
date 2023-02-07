@@ -73,8 +73,8 @@ public:
 	CD_FORCEINLINE Iterator End() { return &data[0] + Size; }
 	CD_FORCEINLINE ConstIterator Begin() const { return &data[0]; }
 	CD_FORCEINLINE ConstIterator End() const { return &data[0] + Size; }
-	CD_FORCEINLINE constexpr T& operator[](int index) { return data[index]; }
-	CD_FORCEINLINE constexpr const T& operator[](int index) const { return data[index]; }
+	CD_FORCEINLINE constexpr T& operator[](std::size_t index) { return data[index]; }
+	CD_FORCEINLINE constexpr const T& operator[](std::size_t index) const { return data[index]; }
 	CD_FORCEINLINE constexpr T& x() { static_assert(1 <= N); return data[0]; }
 	CD_FORCEINLINE constexpr const T& x() const { static_assert(1 <= N); return data[0]; }
 	CD_FORCEINLINE constexpr T& y() { static_assert(2 <= N); return data[1]; }

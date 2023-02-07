@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Base/Template.h"
-#include "Math/AABB.hpp"
+#include "Math/Box.hpp"
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
 #include "Scene/Node.h"
