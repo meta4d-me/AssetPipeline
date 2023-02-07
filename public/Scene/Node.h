@@ -7,6 +7,7 @@
 #include "Scene/ObjectID.h"
 
 #include <vector>
+#include <string>
 
 namespace cd
 {
@@ -19,16 +20,20 @@ public:
 	Node() = delete;
 	explicit Node(InputArchive& inputArchive);
 	explicit Node(InputArchiveSwapBytes& inputArchive);
-	explicit Node(NodeID nodeID);
+	explicit Node(NodeID nodeID, std::string name);
 	Node(const Node&) = delete;
 	Node& operator=(const Node&) = delete;
 	Node(Node&&);
 	Node& operator=(Node&&);
 	~Node();
 	
-	void Init(NodeID nodeID);
+	void Init(NodeID nodeID, std::string name);
 
 	const NodeID& GetID() const;
+
+	void SetName(std::string name);
+	std::string& GetName();
+	const std::string& GetName() const;
 
 	void SetParentID(uint32_t parentID);
 	const NodeID& GetParentID() const;

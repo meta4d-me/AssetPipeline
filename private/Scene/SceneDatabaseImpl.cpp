@@ -25,6 +25,45 @@ void SceneDatabaseImpl::AddNode(Node node)
 	m_nodes.emplace_back(MoveTemp(node));
 }
 
+const Node* SceneDatabaseImpl::GetNodeByName(const std::string& name) const
+{
+	for (const auto& node : m_nodes)
+	{
+		if (name == node.GetName())
+		{
+			return &node;
+		}
+	}
+
+	return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////
+// Bone
+///////////////////////////////////////////////////////////////////
+void SceneDatabaseImpl::SetBoneCount(uint32_t boneCount)
+{
+	m_bones.reserve(boneCount);
+}
+
+void SceneDatabaseImpl::AddBone(Bone bone)
+{
+	m_bones.emplace_back(MoveTemp(bone));
+}
+
+const Bone* SceneDatabaseImpl::GetBoneByName(const std::string& name) const
+{
+	for (const auto& bone : m_bones)
+	{
+		if (name == bone.GetName())
+		{
+			return &bone;
+		}
+	}
+
+	return nullptr;
+}
+
 ///////////////////////////////////////////////////////////////////
 // Mesh
 ///////////////////////////////////////////////////////////////////

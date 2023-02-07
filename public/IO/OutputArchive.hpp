@@ -1,10 +1,11 @@
 #pragma once
 
-#include <ostream>
-
 #include "Math/Matrix.hpp"
 #include "Math/Transform.hpp"
 #include "Utilities/ByteSwap.h"
+
+#include <cassert>
+#include <ostream>
 
 namespace cd
 {

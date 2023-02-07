@@ -41,6 +41,10 @@ void MeshImpl::Init(MeshID meshID, std::string meshName, uint32_t vertexCount, u
 	Init(vertexCount, polygonCount);
 }
 
+////////////////////////////////////////////////////////////////////////////////////
+// Vertex geometry data
+////////////////////////////////////////////////////////////////////////////////////
+
 void MeshImpl::SetVertexPosition(uint32_t vertexIndex, const Point& position)
 {
 	m_vertexPositions[vertexIndex] = position;
@@ -61,12 +65,15 @@ void MeshImpl::SetVertexBiTangent(uint32_t vertexIndex, const Direction& biTange
 	m_vertexBiTangents[vertexIndex] = biTangent;
 }
 
+////////////////////////////////////////////////////////////////////////////////////
+// Vertex texturing data
+////////////////////////////////////////////////////////////////////////////////////
 void MeshImpl::SetVertexUVSetCount(uint32_t setCount)
 {
 	m_vertexUVSetCount = setCount;
-	for(uint32_t i = 0; i < m_vertexUVSetCount; ++i)
+	for(uint32_t setIndex = 0U; setIndex < m_vertexUVSetCount; ++setIndex)
 	{
-		m_vertexUVSets[i].resize(m_vertexCount);
+		m_vertexUVSets[setIndex].resize(m_vertexCount);
 	}
 }
 
@@ -78,9 +85,9 @@ void MeshImpl::SetVertexUV(uint32_t setIndex, uint32_t vertexIndex, const UV& uv
 void MeshImpl::SetVertexColorSetCount(uint32_t setCount)
 {
 	m_vertexColorSetCount = setCount;
-	for (uint32_t i = 0; i < m_vertexColorSetCount; ++i)
+	for (uint32_t setIndex = 0U; setIndex < m_vertexColorSetCount; ++setIndex)
 	{
-		m_vertexColorSets[i].resize(m_vertexCount);
+		m_vertexColorSets[setIndex].resize(m_vertexCount);
 	}
 }
 
@@ -89,7 +96,43 @@ void MeshImpl::SetVertexColor(uint32_t setIndex, uint32_t vertexIndex, const Col
 	m_vertexColorSets[setIndex][vertexIndex] = color;
 }
 
-void MeshImpl::SetPolygon(uint32_t polygonIndex, const VertexID& v0, const VertexID& v1, const VertexID& v2)
+////////////////////////////////////////////////////////////////////////////////////
+// Vertex animation data
+////////////////////////////////////////////////////////////////////////////////////
+void MeshImpl::SetVertexInfluenceCount(uint32_t influenceCount)
+{
+	assert(m_vertexCount != 0U);
+
+	m_vertexInfluenceCount = influenceCount;
+	for (uint32_t influenceIndex = 0U; influenceIndex < influenceCount; ++influenceIndex)
+	{
+		m_vertexBoneIDs[influenceIndex].resize(m_vertexCount);
+		m_vertexWeights[influenceIndex].resize(m_vertexCount);
+	}
+}
+
+void MeshImpl::SetVertexBoneWeight(uint32_t boneIndex, uint32_t vertexIndex, BoneID boneID, VertexWeight weight)
+{
+	assert(vertexIndex < m_vertexCount);
+
+	if(m_vertexBoneIDs[boneIndex].empty() &&
+		m_vertexWeights[boneIndex].empty())
+	{
+		m_vertexBoneIDs[boneIndex].resize(m_vertexCount);
+		m_vertexWeights[boneIndex].resize(m_vertexCount);
+
+		++m_vertexInfluenceCount;
+		assert(m_vertexInfluenceCount <= cd::MaxBoneInfluenceCount);
+	}
+
+	m_vertexBoneIDs[boneIndex][vertexIndex] = boneID;
+	m_vertexWeights[boneIndex][vertexIndex] = weight;
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+// Polygon index data
+////////////////////////////////////////////////////////////////////////////////////
+void MeshImpl::SetPolygon(uint32_t polygonIndex, VertexID v0, VertexID v1, VertexID v2)
 {
 	m_polygons[polygonIndex][0] = v0;
 	m_polygons[polygonIndex][1] = v1;
