@@ -13,7 +13,7 @@ namespace cdtools
  * Octave data used to feed into Simplex2D noise function to compute the elevation of a
  * Terrain. Seeds are fed into random generator for consistency, frequencies are usually
  * powers of 2 representing different noise levels that when combined create interesting
- * results. In a way, it tunes smoothness where lower (and lack of) frequencies will 
+ * results. In a way, it tunes smoothness where lower (and lack of) frequencies will
  * produce smoother results rather than more rough outcomes. Finally we can also tune
  * the weights of each frequency and they should be normalized in the end when summing.
  */
@@ -21,7 +21,7 @@ struct ElevationOctave
 {
 	explicit ElevationOctave() = default;
 
-	explicit ElevationOctave(int64_t _seed, float _frequency, float _weight) 
+	explicit ElevationOctave(int64_t _seed, float _frequency, float _weight)
 		: seed(_seed)
 		, frequency(_frequency)
 		, weight(_weight)
@@ -41,7 +41,7 @@ struct ElevationOctave
 		float _weight;
 
 		inputArchive >> _seed >> _frequency >> _weight;
-		
+
 		seed = _seed;
 		frequency = _frequency;
 		weight = _weight;
@@ -75,9 +75,9 @@ struct TerrainSectorMetadata
 	{}
 
 	explicit TerrainSectorMetadata(
-		uint16_t _numQuadsInX, 
-		uint16_t _numQuadsInZ, 
-		uint16_t _quadLenInX, 
+		uint16_t _numQuadsInX,
+		uint16_t _numQuadsInZ,
+		uint16_t _quadLenInX,
 		uint16_t _quadLenInZ)
 		: numQuadsInX(_numQuadsInX)
 		, numQuadsInZ(_numQuadsInZ)
@@ -130,7 +130,7 @@ struct TerrainSectorMetadata
  * |  /  |
  * | / T2|
  * D-----C
- * 
+ *
  * Vertices are A, B, C and D
  */
 struct TerrainQuad
@@ -177,7 +177,7 @@ struct TerrainQuad
 	template<bool SwapBytesOrder>
 	const TerrainQuad& operator>>(cd::TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << leftTriPolygonId << rightTriPolygonId 
+		outputArchive << leftTriPolygonId << rightTriPolygonId
 			<< topLeftVertexId << topRightVertexId << bottomRightVertexId << bottomLeftVertexId;
 		return *this;
 	}
@@ -192,7 +192,7 @@ struct TerrainQuad
 
 /*
  * Metadata regarding an entire Terrain. It is broken into row times column number of
- * Sectors; see SectorMetadata for details. 
+ * Sectors; see SectorMetadata for details.
  */
 struct TerrainMetadata
 {
@@ -206,18 +206,32 @@ struct TerrainMetadata
 	{}
 
 	explicit TerrainMetadata(
-		uint16_t _numSectorsInX, 
-		uint16_t _numSectorsInZ, 
+		uint16_t _numSectorsInX,
+		uint16_t _numSectorsInZ,
 		int32_t _minElevation,
 		int32_t _maxElevation,
-		float _redistPow,
-		std::vector<ElevationOctave>& _octaves)
+		float _redistPow)
 		: numSectorsInX(_numSectorsInX)
 		, numSectorsInZ(_numSectorsInZ)
 		, minElevation(_minElevation)
 		, maxElevation(_maxElevation)
 		, redistPow(_redistPow)
-		, octaves(std::move(_octaves))
+		, octaves()
+	{}
+
+	explicit TerrainMetadata(
+		uint16_t _numSectorsInX,
+		uint16_t _numSectorsInZ,
+		int32_t _minElevation,
+		int32_t _maxElevation,
+		float _redistPow,
+		const std::vector<ElevationOctave>& _octaves)
+		: numSectorsInX(_numSectorsInX)
+		, numSectorsInZ(_numSectorsInZ)
+		, minElevation(_minElevation)
+		, maxElevation(_maxElevation)
+		, redistPow(_redistPow)
+		, octaves(_octaves)
 	{}
 
 	template<bool SwapBytesOrder>
