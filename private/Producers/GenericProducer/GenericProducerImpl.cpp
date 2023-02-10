@@ -5,7 +5,7 @@
 #include "Scene/VertexFormat.h"
 #include "Utilities/Utils.h"
 
-#define ASSIMP_BUILD_NO_ARMATUREPOPULATE_PROCESS
+//#define ASSIMP_BUILD_NO_ARMATUREPOPULATE_PROCESS
 #include <assimp/cimport.h>
 #include <assimp/material.h>
 #include <assimp/postprocess.h>
@@ -367,7 +367,6 @@ void GenericProducerImpl::AddMeshBones(cd::SceneDatabase* pSceneDatabase, const 
 	for (uint32_t boneIndex = 0U; boneIndex < boneCount; ++boneIndex)
 	{
 		const aiBone* pSourceBone = pSourceMesh->mBones[boneIndex];
-
 		bool isBoneReused = false;
 		std::string boneName(pSourceBone->mName.C_Str());
 		cd::BoneID::ValueType boneHash = cd::StringHash<cd::BoneID::ValueType>(boneName);

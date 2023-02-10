@@ -122,6 +122,7 @@ void MeshImpl::SetVertexBoneWeight(uint32_t boneIndex, uint32_t vertexIndex, Bon
 		m_vertexWeights[boneIndex].resize(m_vertexCount);
 
 		++m_vertexInfluenceCount;
+
 		assert(m_vertexInfluenceCount <= cd::MaxBoneInfluenceCount);
 	}
 
