@@ -5,6 +5,7 @@
 #include "Scene/VertexFormat.h"
 #include "Utilities/Utils.h"
 
+#define ASSIMP_BUILD_NO_ARMATUREPOPULATE_PROCESS
 #include <assimp/cimport.h>
 #include <assimp/material.h>
 #include <assimp/postprocess.h>
@@ -50,39 +51,40 @@ cd::Matrix4x4 ConvertAssimpMatrix(const aiMatrix4x4& matrix)
 
 void DumpSceneDatabase(const cd::SceneDatabase& sceneDatabase)
 {
-	printf("Scene node number : %d\n", sceneDatabase.GetNodeCount());
-	printf("Scene bone number : %d\n", sceneDatabase.GetBoneCount());
-	printf("Scene mesh number : %d\n", sceneDatabase.GetMeshCount());
-	printf("Scene material number : %d\n", sceneDatabase.GetMaterialCount());
-	printf("Scene texture number : %d\n", sceneDatabase.GetTextureCount());
+	printf("Node count : %d\n", sceneDatabase.GetNodeCount());
+	printf("Bone count : %d\n", sceneDatabase.GetBoneCount());
+	printf("Mesh count : %d\n", sceneDatabase.GetMeshCount());
+	printf("Material count : %d\n", sceneDatabase.GetMaterialCount());
+	printf("Texture count : %d\n", sceneDatabase.GetTextureCount());
+	printf("\n");
 
 	for (const auto& node : sceneDatabase.GetNodes())
 	{
-		printf("\t[Node %u] ParentID : %u, Name : %s\n", node.GetID().Data(), node.GetParentID().Data(), node.GetName().c_str());
+		printf("[Node %u] ParentID : %u, Name : %s\n", node.GetID().Data(), node.GetParentID().Data(), node.GetName().c_str());
 
 		for (cd::MeshID meshID : node.GetMeshIDs())
 		{
 			const auto& mesh = sceneDatabase.GetMesh(meshID.Data());
-			printf("\t\t[MeshID %u] name : %s, face number : %u, vertex number : %u, materialID : %u\n", meshID.Data(), mesh.GetName(),
+			printf("\t[MeshID %u] name : %s, face number : %u, vertex number : %u, materialID : %u\n", meshID.Data(), mesh.GetName(),
 				mesh.GetPolygonCount(), mesh.GetVertexCount(), mesh.GetMaterialID().Data());
 		}
 	}
 
 	for (const auto& material : sceneDatabase.GetMaterials())
 	{
-		printf("\t[MaterialID %u] %s\n", material.GetID().Data(), material.GetName());
+		printf("[MaterialID %u] %s\n", material.GetID().Data(), material.GetName());
 
 		for (const auto& [materialTextureType, textureID] : material.GetTextureIDMap())
 		{
 			const auto& texture = sceneDatabase.GetTexture(textureID.Data());
-			printf("\t\t[TextureID %u] %s - %s\n", textureID.Data(),
+			printf("\t[TextureID %u] %s - %s\n", textureID.Data(),
 				GetMaterialTextureTypeName(materialTextureType), texture.GetPath());
 		}
 	}
 
 	for (auto& bone : sceneDatabase.GetBones())
 	{
-		printf("\t[Bone %u] ParentID : %u, Name : %s\n", bone.GetID().Data(), bone.GetParentID().Data(), bone.GetName().c_str());
+		printf("[Bone %u] ParentID : %u, Name : %s\n", bone.GetID().Data(), bone.GetParentID().Data(), bone.GetName().c_str());
 	}
 }
 
@@ -364,10 +366,10 @@ void GenericProducerImpl::AddMeshBones(cd::SceneDatabase* pSceneDatabase, const 
 	uint32_t boneCount = pSourceMesh->mNumBones;
 	for (uint32_t boneIndex = 0U; boneIndex < boneCount; ++boneIndex)
 	{
-		const aiBone* pBone = pSourceMesh->mBones[boneIndex];
+		const aiBone* pSourceBone = pSourceMesh->mBones[boneIndex];
 
 		bool isBoneReused = false;
-		std::string boneName(pBone->mName.C_Str());
+		std::string boneName(pSourceBone->mName.C_Str());
 		cd::BoneID::ValueType boneHash = cd::StringHash<cd::BoneID::ValueType>(boneName);
 		cd::BoneID boneID = m_boneIDGenerator.AllocateID(boneHash, &isBoneReused);
 		if (!isBoneReused)
@@ -378,9 +380,9 @@ void GenericProducerImpl::AddMeshBones(cd::SceneDatabase* pSceneDatabase, const 
 			pSceneDatabase->AddBone(cd::MoveTemp(bone));
 		}
 		
-		for (uint32_t influencedVertexIndex = 0U; influencedVertexIndex < pBone->mNumWeights; ++influencedVertexIndex)
+		for (uint32_t influencedVertexIndex = 0U; influencedVertexIndex < pSourceBone->mNumWeights; ++influencedVertexIndex)
 		{
-			const aiVertexWeight& boneVertexWeight = pBone->mWeights[influencedVertexIndex];
+			const aiVertexWeight& boneVertexWeight = pSourceBone->mWeights[influencedVertexIndex];
 			uint32_t vertexIndex = boneVertexWeight.mVertexId;
 
 			uint32_t currentBoneCount = 0U;

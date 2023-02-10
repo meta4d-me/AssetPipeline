@@ -34,7 +34,7 @@ project("AutoMake")
 	kind("Utility")
 	location(path.join(RootPath, "build"))
 	files {
-		path.join(RootPath, "auto/*.lua"),
+		path.join(RootPath, "auto/**.lua"),
 	}
 
 	filter { "system:windows", "action:vs2022" }
