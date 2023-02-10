@@ -15,6 +15,7 @@ struct aiScene;
 namespace cd
 {
 
+class Mesh;
 class SceneDatabase;
 
 }
@@ -40,10 +41,8 @@ public:
 	uint32_t GetImportFlags() const;
 	cd::MaterialID AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial);
 	cd::MeshID AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh);
-	cd::NodeID AddNode(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t nodeID);
-
-	void ActivateDuplicateVertexService() { m_bWantDuplicatedVertex = true; }
-	bool IsDuplicateVertexServiceActive() const { return m_bWantDuplicatedVertex; }
+	void AddMeshBones(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh, cd::Mesh& mesh);
+	void AddNode(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t nodeID);
 
 	void ActivateBoundingBoxService() { m_bWantBoundingBox = true; }
 	bool IsBoundingBoxServiceActive() const { return m_bWantBoundingBox; }
@@ -65,7 +64,6 @@ private:
 	std::string m_folderPath;
 
 	// Service flags
-	bool m_bWantDuplicatedVertex = false;
 	bool m_bWantBoundingBox = false;
 	bool m_bWantFlattenHierarchy = false;
 	bool m_bWantTriangulate = false;
@@ -74,11 +72,13 @@ private:
 
 	// Generate IDs for different objects
 	cd::ObjectIDGenerator<cd::NodeID> m_nodeIDGenerator;
+	cd::ObjectIDGenerator<cd::BoneID> m_boneIDGenerator;
 	cd::ObjectIDGenerator<cd::MeshID> m_meshIDGenerator;
 	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
 	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
 	cd::ObjectIDGenerator<cd::LightID> m_lightIDGenerator;
 
+	std::map<uint32_t, uint32_t> m_nodeIDToNodeIndexLookup;
 	std::map<const aiNode*, uint32_t> m_aiNodeToNodeIDLookup;
 };
 

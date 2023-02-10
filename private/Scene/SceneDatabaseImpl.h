@@ -2,6 +2,7 @@
 
 #include "Base/Template.h"
 #include "Math/Box.hpp"
+#include "Scene/Bone.h"
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
 #include "Scene/Node.h"
@@ -36,13 +37,25 @@ public:
 
 	// Node
 	void AddNode(Node node);
+	std::vector<Node>& GetNodes() { return m_nodes; }
 	const std::vector<Node>& GetNodes() const { return m_nodes; }
 	void SetNodeCount(uint32_t nodeCount);
 	const Node& GetNode(uint32_t index) const { return m_nodes[index]; }
+	const Node* GetNodeByName(const std::string& name) const;
 	uint32_t GetNodeCount() const { return static_cast<uint32_t>(m_nodes.size()); }
+
+	// Bone
+	void AddBone(Bone bone);
+	std::vector<Bone>& GetBones() { return m_bones; }
+	const std::vector<Bone>& GetBones() const { return m_bones; }
+	void SetBoneCount(uint32_t boneCount);
+	const Bone& GetBone(uint32_t index) const { return m_bones[index]; }
+	const Bone* GetBoneByName(const std::string& name) const;
+	uint32_t GetBoneCount() const { return static_cast<uint32_t>(m_bones.size()); }
 
 	// Mesh
 	void AddMesh(Mesh mesh);
+	std::vector<Mesh>& GetMeshes() { return m_meshes; }
 	const std::vector<Mesh>& GetMeshes() const { return m_meshes; }
 	void SetMeshCount(uint32_t meshCount);
 	const Mesh& GetMesh(uint32_t index) const { return m_meshes[index];  }
@@ -50,6 +63,7 @@ public:
 
 	// Material
 	void AddMaterial(Material material);
+	std::vector<Material>& GetMaterials() { return m_materials; }
 	const std::vector<Material>& GetMaterials() const { return m_materials; }
 	void SetMaterialCount(uint32_t materialCount);
 	const Material& GetMaterial(uint32_t index) const { return m_materials[index]; }
@@ -57,6 +71,7 @@ public:
 
 	// Texture
 	void AddTexture(Texture texture);
+	std::vector<Texture>& GetTextures() { return m_textures; }
 	const std::vector<Texture>& GetTextures() const { return m_textures; }
 	void SetTextureCount(uint32_t textureCount);
 	const Texture& GetTexture(uint32_t index) const { return m_textures[index]; }
@@ -64,6 +79,7 @@ public:
 
 	// Light
 	void AddLight(Light light);
+	std::vector<Light>& GetLights() { return m_lights; }
 	const std::vector<Light>& GetLights() const { return m_lights; }
 	void SetLightCount(uint32_t lightCount);
 	const Light& GetLight(uint32_t index) const { return m_lights[index]; }
@@ -80,15 +96,34 @@ public:
 		sceneAABB << inputArchive;
 		SetAABB(MoveTemp(sceneAABB));
 
+		uint32_t nodeCount = 0;
+		uint32_t boneCount = 0;
 		uint32_t meshCount = 0;
 		uint32_t materialCount = 0;
 		uint32_t textureCount = 0;
 		uint32_t lightCount = 0;
-		inputArchive >> meshCount >> materialCount >> textureCount >> lightCount;
+		inputArchive >> nodeCount >> boneCount >> meshCount >> materialCount >> textureCount >> lightCount;
+		SetNodeCount(nodeCount);
+		SetBoneCount(boneCount);
 		SetMeshCount(meshCount);
 		SetMaterialCount(materialCount);
 		SetTextureCount(textureCount);
 		SetLightCount(lightCount);
+
+		for (uint32_t nodeIndex = 0; nodeIndex < nodeCount; ++nodeIndex)
+		{
+			AddNode(Node(inputArchive));
+		}
+
+		for (uint32_t boneIndex = 0; boneIndex < boneCount; ++boneIndex)
+		{
+			AddBone(Bone(inputArchive));
+		}
+
+		for (uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex)
+		{
+			AddMesh(Mesh(inputArchive));
+		}
 
 		for (uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex)
 		{
@@ -119,7 +154,19 @@ public:
 		outputArchive << GetName();
 		GetAABB() >> outputArchive;
 
-		outputArchive << GetMeshCount() << GetMaterialCount() << GetTextureCount() << GetLightCount();
+		outputArchive << GetNodeCount() << GetBoneCount() << GetMeshCount() << GetMaterialCount() << GetTextureCount() << GetLightCount();
+
+		for (uint32_t nodeIndex = 0; nodeIndex < GetNodeCount(); ++nodeIndex)
+		{
+			const Node& node = GetNode(nodeIndex);
+			node >> outputArchive;
+		}
+
+		for (uint32_t boneIndex = 0; boneIndex < GetBoneCount(); ++boneIndex)
+		{
+			const Bone& bone = GetBone(boneIndex);
+			bone >> outputArchive;
+		}
 
 		for (uint32_t meshIndex = 0; meshIndex < GetMeshCount(); ++meshIndex)
 		{
@@ -153,6 +200,7 @@ private:
 	AABB m_aabb;
 
 	std::vector<Node> m_nodes;
+	std::vector<Bone> m_bones;
 	std::vector<Mesh> m_meshes;
 	std::vector<Material> m_materials;
 	std::vector<Texture> m_textures;

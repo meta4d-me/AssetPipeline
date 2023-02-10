@@ -116,6 +116,9 @@ const MaterialID& Mesh::GetMaterialID() const
 	return m_pMeshImpl->GetMaterialID();
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Vertex geometry data
+//////////////////////////////////////////////////////////////////////////
 void Mesh::SetVertexPosition(uint32_t vertexIndex, const Point& position)
 {
 	m_pMeshImpl->SetVertexPosition(vertexIndex, position);
@@ -216,6 +219,9 @@ const std::vector<Direction>& Mesh::GetVertexBiTangents() const
 	return m_pMeshImpl->GetVertexBiTangents();
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Vertex texturing data
+//////////////////////////////////////////////////////////////////////////
 void Mesh::SetVertexUVSetCount(uint32_t setCount)
 {
 	m_pMeshImpl->SetVertexUVSetCount(setCount);
@@ -231,14 +237,14 @@ void Mesh::SetVertexUV(uint32_t setIndex, uint32_t vertexIndex, const UV& uv)
 	return m_pMeshImpl->SetVertexUV(setIndex, vertexIndex, uv);
 }
 
-std::vector<UV>& Mesh::GetVertexUV(uint32_t uvSetIndex)
+std::vector<UV>& Mesh::GetVertexUVs(uint32_t uvSetIndex)
 {
-	return m_pMeshImpl->GetVertexUV(uvSetIndex);
+	return m_pMeshImpl->GetVertexUVs(uvSetIndex);
 }
 
 const std::vector<UV>& Mesh::GetVertexUV(uint32_t uvSetIndex) const
 {
-	return m_pMeshImpl->GetVertexUV(uvSetIndex);
+	return m_pMeshImpl->GetVertexUVs(uvSetIndex);
 }
 
 UV& Mesh::GetVertexUV(uint32_t setIndex, uint32_t vertexIndex)
@@ -266,14 +272,14 @@ void Mesh::SetVertexColor(uint32_t setIndex, uint32_t vertexIndex, const Color& 
 	return m_pMeshImpl->SetVertexColor(setIndex, vertexIndex, color);
 }
 
-std::vector<Color>& Mesh::GetVertexColor(uint32_t colorSetIndex)
+std::vector<Color>& Mesh::GetVertexColors(uint32_t colorSetIndex)
 {
-	return m_pMeshImpl->GetVertexColor(colorSetIndex);
+	return m_pMeshImpl->GetVertexColors(colorSetIndex);
 }
 
 const std::vector<Color>& Mesh::GetVertexColor(uint32_t colorSetIndex) const
 {
-	return m_pMeshImpl->GetVertexColor(colorSetIndex);
+	return m_pMeshImpl->GetVertexColors(colorSetIndex);
 }
 
 Color& Mesh::GetVertexColor(uint32_t setIndex, uint32_t vertexIndex)
@@ -286,22 +292,83 @@ const Color& Mesh::GetVertexColor(uint32_t setIndex, uint32_t vertexIndex) const
 	return m_pMeshImpl->GetVertexColor(setIndex, vertexIndex);
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Vertex animation data
+//////////////////////////////////////////////////////////////////////////
+void Mesh::SetVertexInfluenceCount(uint32_t influenceCount)
+{
+	m_pMeshImpl->SetVertexInfluenceCount(influenceCount);
+}
+
+uint32_t Mesh::GetVertexInfluenceCount() const
+{
+	return m_pMeshImpl->GetVertexInfluenceCount();
+}
+
+void Mesh::SetVertexBoneWeight(uint32_t boneIndex, uint32_t vertexIndex, BoneID boneID, VertexWeight weight)
+{
+	m_pMeshImpl->SetVertexBoneWeight(boneIndex, vertexIndex, boneID, weight);
+}
+
+std::vector<BoneID>& Mesh::GetVertexBoneIDs(uint32_t boneIndex)
+{
+	return m_pMeshImpl->GetVertexBoneIDs(boneIndex);
+}
+
+const std::vector<BoneID>& Mesh::GetVertexBoneIDs(uint32_t boneIndex) const
+{
+	return m_pMeshImpl->GetVertexBoneIDs(boneIndex);
+}
+
+BoneID& Mesh::GetVertexBoneID(uint32_t boneIndex, uint32_t vertexIndex)
+{
+	return m_pMeshImpl->GetVertexBoneID(boneIndex, vertexIndex);
+}
+
+const BoneID& Mesh::GetVertexBoneID(uint32_t boneIndex, uint32_t vertexIndex) const
+{
+	return m_pMeshImpl->GetVertexBoneID(boneIndex, vertexIndex);
+}
+
+std::vector<VertexWeight>& Mesh::GetVertexWeights(uint32_t boneIndex)
+{
+	return m_pMeshImpl->GetVertexWeights(boneIndex);
+}
+
+const std::vector<VertexWeight>& Mesh::GetVertexWeights(uint32_t boneIndex) const
+{
+	return m_pMeshImpl->GetVertexWeights(boneIndex);
+}
+
+VertexWeight& Mesh::GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex)
+{
+	return m_pMeshImpl->GetVertexWeight(boneIndex, vertexIndex);
+}
+
+const VertexWeight& Mesh::GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex) const
+{
+	return m_pMeshImpl->GetVertexWeight(boneIndex, vertexIndex);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Polygon index data
+//////////////////////////////////////////////////////////////////////////
 void Mesh::SetPolygon(uint32_t polygonIndex, const VertexID& v0, const VertexID& v1, const VertexID& v2)
 {
 	m_pMeshImpl->SetPolygon(polygonIndex, v0, v1, v2);
 }
 
-std::vector<Mesh::Polygon>& Mesh::GetPolygons()
+std::vector<Polygon>& Mesh::GetPolygons()
 {
 	return m_pMeshImpl->GetPolygons();
 }
 
-const std::vector<Mesh::Polygon>& Mesh::GetPolygons() const
+const std::vector<Polygon>& Mesh::GetPolygons() const
 {
 	return m_pMeshImpl->GetPolygons();
 }
 
-const Mesh::Polygon& Mesh::GetPolygon(uint32_t polygonIndex) const
+const Polygon& Mesh::GetPolygon(uint32_t polygonIndex) const
 {
 	return m_pMeshImpl->GetPolygon(polygonIndex);
 }

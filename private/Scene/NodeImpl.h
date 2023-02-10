@@ -21,16 +21,20 @@ public:
 	{
 		*this << inputArchive;
 	}
-	explicit NodeImpl(NodeID nodeID);
+	explicit NodeImpl(NodeID nodeID, std::string name);
 	NodeImpl(const NodeImpl&) = default;
 	NodeImpl& operator=(const NodeImpl&) = default;
 	NodeImpl(NodeImpl&&) = default;
 	NodeImpl& operator=(NodeImpl&&) = default;
 	~NodeImpl() = default;
 
-	void Init(NodeID nodeID);
+	void Init(NodeID nodeID, std::string name);
 
 	const NodeID& GetID() const { return m_id; }
+
+	void SetName(std::string name) { m_name = cd::MoveTemp(name); }
+	std::string& GetName() { return m_name; }
+	const std::string& GetName() const { return m_name; }
 
 	void SetParentID(uint32_t parentID) { m_parentID.Set(parentID); }
 	const NodeID& GetParentID() const { return m_parentID; }
@@ -54,15 +58,16 @@ public:
 	{
 		uint32_t nodeID;
 		uint32_t parentID;
+		std::string nodeName;
 		Transform transform;
 		uint32_t childCount;
 		uint32_t meshCount;
 
 		inputArchive >> nodeID >> parentID;
-		inputArchive >> transform;
+		inputArchive >> nodeName >> transform;
 		inputArchive >> childCount >> meshCount;
 
-		Init(NodeID(nodeID));
+		Init(NodeID(nodeID), cd::MoveTemp(nodeName));
 		SetParentID(parentID);
 		SetTransform(cd::MoveTemp(transform));
 
@@ -79,7 +84,7 @@ public:
 	const NodeImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
 		outputArchive << GetID().Data() << GetParentID().Data();
-		outputArchive << GetTransform();
+		outputArchive << GetName() << GetTransform();
 		outputArchive << GetChildCount() << GetMeshCount();
 		outputArchive.ExportBuffer(GetChildIDs().data(), GetChildIDs().size());
 		outputArchive.ExportBuffer(GetMeshIDs().data(), GetMeshIDs().size());
@@ -93,6 +98,7 @@ private:
 	std::vector<NodeID> m_childIDs;
 	std::vector<MeshID> m_meshIDs;
 	
+	std::string m_name;
 	Transform m_transform;
 };
 

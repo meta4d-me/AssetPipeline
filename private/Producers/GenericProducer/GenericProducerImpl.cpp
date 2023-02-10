@@ -5,6 +5,7 @@
 #include "Scene/VertexFormat.h"
 #include "Utilities/Utils.h"
 
+//#define ASSIMP_BUILD_NO_ARMATUREPOPULATE_PROCESS
 #include <assimp/cimport.h>
 #include <assimp/material.h>
 #include <assimp/postprocess.h>
@@ -36,6 +37,55 @@ uint32_t GetSceneNodesCount(const aiNode* pSceneNode)
 	}
 
 	return totalCount;
+}
+
+// Assimp matrix is row major which needs a transpose to convert to cd::Matrix4x4.
+cd::Matrix4x4 ConvertAssimpMatrix(const aiMatrix4x4& matrix)
+{
+	return cd::Matrix4x4(
+		matrix.a1, matrix.b1, matrix.c1, matrix.d1,
+		matrix.a2, matrix.b2, matrix.c2, matrix.d2,
+		matrix.a3, matrix.b3, matrix.c3, matrix.d3,
+		matrix.a4, matrix.b4, matrix.c4, matrix.d4);
+}
+
+void DumpSceneDatabase(const cd::SceneDatabase& sceneDatabase)
+{
+	printf("Node count : %d\n", sceneDatabase.GetNodeCount());
+	printf("Bone count : %d\n", sceneDatabase.GetBoneCount());
+	printf("Mesh count : %d\n", sceneDatabase.GetMeshCount());
+	printf("Material count : %d\n", sceneDatabase.GetMaterialCount());
+	printf("Texture count : %d\n", sceneDatabase.GetTextureCount());
+	printf("\n");
+
+	for (const auto& node : sceneDatabase.GetNodes())
+	{
+		printf("[Node %u] ParentID : %u, Name : %s\n", node.GetID().Data(), node.GetParentID().Data(), node.GetName().c_str());
+
+		for (cd::MeshID meshID : node.GetMeshIDs())
+		{
+			const auto& mesh = sceneDatabase.GetMesh(meshID.Data());
+			printf("\t[MeshID %u] name : %s, face number : %u, vertex number : %u, materialID : %u\n", meshID.Data(), mesh.GetName(),
+				mesh.GetPolygonCount(), mesh.GetVertexCount(), mesh.GetMaterialID().Data());
+		}
+	}
+
+	for (const auto& material : sceneDatabase.GetMaterials())
+	{
+		printf("[MaterialID %u] %s\n", material.GetID().Data(), material.GetName());
+
+		for (const auto& [materialTextureType, textureID] : material.GetTextureIDMap())
+		{
+			const auto& texture = sceneDatabase.GetTexture(textureID.Data());
+			printf("\t[TextureID %u] %s - %s\n", textureID.Data(),
+				GetMaterialTextureTypeName(materialTextureType), texture.GetPath());
+		}
+	}
+
+	for (auto& bone : sceneDatabase.GetBones())
+	{
+		printf("[Bone %u] ParentID : %u, Name : %s\n", bone.GetID().Data(), bone.GetParentID().Data(), bone.GetName().c_str());
+	}
 }
 
 }
@@ -114,7 +164,7 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 
 	bool isMaterialReused;
 	cd::MaterialID::ValueType materialHash = cd::StringHash<cd::MaterialID::ValueType>(finalMaterialName);
-	cd::MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, isMaterialReused);
+	cd::MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, &isMaterialReused);
 	if (isMaterialReused)
 	{
 		// Skip to parse material which should already exist in SceneDatabase.
@@ -123,7 +173,7 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 		return materialID;
 	}
 
-	printf("\t[MaterialID %u] %s\n", materialID.Data(), finalMaterialName.c_str());
+	//printf("\t[MaterialID %u] %s\n", materialID.Data(), finalMaterialName.c_str());
 	cd::Material material(materialID, finalMaterialName.c_str());
 
 	// Process all textures
@@ -148,36 +198,35 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			aiReturn result = aiGetMaterialTexture(pSourceMaterial, textureType, textureIndex, &ai_path);
 			if (aiReturn_SUCCESS != result)
 			{
-				printf("\t\tFailed to read material texture property, textureType is %u, texture index is %u", textureType, textureIndex);
+				//printf("\t\tFailed to read material texture property, textureType is %u, texture index is %u", textureType, textureIndex);
 				continue;
 			}
 
 			if (textureType == aiTextureType_NONE)
 			{
-				printf("\t\tTextureType is none? Investigate the cause please.");
+				//printf("\t\tTextureType is none? Investigate the cause please.");
 				continue;
 			}
 
 			if (textureType == aiTextureType_UNKNOWN)
 			{
-				printf("\t\tTextureType is unknown. Should find ways to map it.");
+				//printf("\t\tTextureType is unknown. Should find ways to map it.");
 				continue;
 			}
 
 			bool isTextureReused;
 			uint32_t textureHash = cd::StringHash<cd::TextureID::ValueType>(ai_path.C_Str());
-			cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, isTextureReused);
+			cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, &isTextureReused);
 
-			std::string textureAbsolutePath = m_folderPath + "/" + ai_path.C_Str();
-			printf("\t\t[TextureID %u] %s - %s\n", textureID.Data(),
-				GetMaterialTextureTypeName(materialTextureType), textureAbsolutePath.c_str());
+			std::filesystem::path textureAbsolutePath = m_folderPath;
+			textureAbsolutePath.append(ai_path.C_Str());
 
 			material.SetTextureID(materialTextureType, textureID);
 
 			// Reused textures don't need to add to SceneDatabase again.
 			if (!isTextureReused)
 			{
-				pSceneDatabase->AddTexture(cd::Texture(textureID, materialTextureType, textureAbsolutePath.c_str()));
+				pSceneDatabase->AddTexture(cd::Texture(textureID, materialTextureType, textureAbsolutePath.generic_string().c_str()));
 			}
 		}
 	}
@@ -191,20 +240,12 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 	assert(pSourceMesh->mFaces && pSourceMesh->mNumFaces > 0 && "No polygon data.");
 
 	uint32_t numVertices = pSourceMesh->mNumVertices;
-	if (IsDuplicateVertexServiceActive())
-	{
-		numVertices = pSourceMesh->mNumFaces * 3;
-	}
-
 	assert(pSourceMesh->mVertices && numVertices > 0 && "No vertex data.");
 
-	bool isMeshReused;
 	cd::MeshID::ValueType meshHash = cd::StringHash<cd::MeshID::ValueType>(pSourceMesh->mName.C_Str());
-	cd::MeshID meshID = m_meshIDGenerator.AllocateID(meshHash, isMeshReused);
+	cd::MeshID meshID = m_meshIDGenerator.AllocateID(meshHash);
 	cd::Mesh mesh(meshID, pSourceMesh->mName.C_Str(), numVertices, pSourceMesh->mNumFaces);
 	mesh.SetMaterialID(m_materialIDGenerator.GetCurrentID() + pSourceMesh->mMaterialIndex);
-
-	printf("\t\t[MeshID %u] face number : %u, vertex number : %u, materialID : %u\n", meshID.Data(), mesh.GetPolygonCount(), mesh.GetVertexCount(), mesh.GetMaterialID().Data());
 
 	// By default, aabb will be empty.
 	if (IsBoundingBoxServiceActive())
@@ -214,8 +255,6 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 		mesh.SetAABB(cd::MoveTemp(meshAABB));
 	}
 
-	std::map<uint32_t, uint32_t> mapNewIndexToOriginIndex;
-	uint32_t currentVertexID = 0U;
 	for (uint32_t faceIndex = 0; faceIndex < pSourceMesh->mNumFaces; ++faceIndex)
 	{
 		const aiFace& face = pSourceMesh->mFaces[faceIndex];
@@ -228,18 +267,6 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 		uint32_t index0 = originIndex0;
 		uint32_t index1 = originIndex1;
 		uint32_t index2 = originIndex2;
-		if (IsDuplicateVertexServiceActive())
-		{
-			index0 = currentVertexID;
-			index1 = currentVertexID + 1;
-			index2 = currentVertexID + 2;
-
-			mapNewIndexToOriginIndex[index0] = originIndex0;
-			mapNewIndexToOriginIndex[index1] = originIndex1;
-			mapNewIndexToOriginIndex[index2] = originIndex2;
-
-			currentVertexID += 3;
-		}
 		mesh.SetPolygon(faceIndex, cd::VertexID(index0), cd::VertexID(index1), cd::VertexID(index2));
 	}
 
@@ -248,13 +275,6 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 	for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 	{
 		uint32_t vertexDataIndex = vertexIndex;
-		if (IsDuplicateVertexServiceActive())
-		{
-			auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-			assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-			vertexDataIndex = itNewIndex->second;
-		}
-
 		const aiVector3D& position = pSourceMesh->mVertices[vertexDataIndex];
 		mesh.SetVertexPosition(vertexIndex, cd::Point(position.x, position.y, position.z));
 	}
@@ -265,13 +285,6 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 		for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 		{
 			uint32_t vertexDataIndex = vertexIndex;
-			if (IsDuplicateVertexServiceActive())
-			{
-				auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-				assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-				vertexDataIndex = itNewIndex->second;
-			}
-
 			const aiVector3D& normal = pSourceMesh->mNormals[vertexDataIndex];
 			mesh.SetVertexNormal(vertexIndex, cd::Direction(normal.x, normal.y, normal.z));
 		}
@@ -282,13 +295,6 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
 				uint32_t vertexDataIndex = vertexIndex;
-				if (IsDuplicateVertexServiceActive())
-				{
-					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-					vertexDataIndex = itNewIndex->second;
-				}
-
 				const aiVector3D& tangent = pSourceMesh->mTangents[vertexDataIndex];
 				mesh.SetVertexTangent(vertexIndex, cd::Direction(tangent.x, tangent.y, tangent.z));
 			}
@@ -298,13 +304,6 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 			{
 				uint32_t vertexDataIndex = vertexIndex;
-				if (IsDuplicateVertexServiceActive())
-				{
-					auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-					assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-					vertexDataIndex = itNewIndex->second;
-				}
-
 				const aiVector3D& biTangent = pSourceMesh->mBitangents[vertexDataIndex];
 				mesh.SetVertexBiTangent(vertexIndex, cd::Direction(biTangent.x, biTangent.y, biTangent.z));
 			}
@@ -329,13 +328,6 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 		for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 		{
 			uint32_t vertexDataIndex = vertexIndex;
-			if (IsDuplicateVertexServiceActive())
-			{
-				auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-				assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-				vertexDataIndex = itNewIndex->second;
-			}
-
 			const aiVector3D& uv = vertexUVArray[vertexDataIndex];
 			mesh.SetVertexUV(uvSetIndex, vertexIndex, cd::UV(uv.x, uv.y));
 		}
@@ -351,17 +343,15 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 		for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
 		{
 			uint32_t vertexDataIndex = vertexIndex;
-			if (IsDuplicateVertexServiceActive())
-			{
-				auto itNewIndex = mapNewIndexToOriginIndex.find(vertexIndex);
-				assert(itNewIndex != mapNewIndexToOriginIndex.end() && "Cannot find origin vertex index.");
-				vertexDataIndex = itNewIndex->second;
-			}
-
 			const aiColor4D& color = vertexColorArray[vertexDataIndex];
 			mesh.SetVertexColor(colorSetIndex, vertexIndex, cd::Color(color.r, color.g, color.b, color.a));
 		}
 		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Color::ValueType>(), cd::Color::Size);
+	}
+
+	if(pSourceMesh->HasBones())
+	{
+		AddMeshBones(pSceneDatabase, pSourceMesh, mesh);
 	}
 
 	mesh.SetVertexFormat(cd::MoveTemp(meshVertexFormat));
@@ -369,16 +359,51 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 	return meshID;
 }
 
-cd::NodeID GenericProducerImpl::AddNode(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t nodeID)
+void GenericProducerImpl::AddMeshBones(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh, cd::Mesh& mesh)
+{
+	std::map<uint32_t, uint32_t> mapVertexIndexToCurrentBoneCount;
+
+	uint32_t boneCount = pSourceMesh->mNumBones;
+	for (uint32_t boneIndex = 0U; boneIndex < boneCount; ++boneIndex)
+	{
+		const aiBone* pSourceBone = pSourceMesh->mBones[boneIndex];
+		bool isBoneReused = false;
+		std::string boneName(pSourceBone->mName.C_Str());
+		cd::BoneID::ValueType boneHash = cd::StringHash<cd::BoneID::ValueType>(boneName);
+		cd::BoneID boneID = m_boneIDGenerator.AllocateID(boneHash, &isBoneReused);
+		if (!isBoneReused)
+		{
+			//printf("\t[InitBone %u] Name : %s\n", boneID.Data(), boneName.c_str());
+			// Other hierarchy data will be added in the post-process stage.
+			cd::Bone bone(boneID, cd::MoveTemp(boneName));
+			pSceneDatabase->AddBone(cd::MoveTemp(bone));
+		}
+		
+		for (uint32_t influencedVertexIndex = 0U; influencedVertexIndex < pSourceBone->mNumWeights; ++influencedVertexIndex)
+		{
+			const aiVertexWeight& boneVertexWeight = pSourceBone->mWeights[influencedVertexIndex];
+			uint32_t vertexIndex = boneVertexWeight.mVertexId;
+
+			uint32_t currentBoneCount = 0U;
+			auto itVertexBoneCount = mapVertexIndexToCurrentBoneCount.find(vertexIndex);
+			if (itVertexBoneCount != mapVertexIndexToCurrentBoneCount.end())
+			{
+				currentBoneCount = mapVertexIndexToCurrentBoneCount[vertexIndex] + 1;
+				assert(currentBoneCount <= cd::MaxBoneInfluenceCount);
+			}
+
+			mesh.SetVertexBoneWeight(currentBoneCount, vertexIndex, boneID, boneVertexWeight.mWeight);
+			mapVertexIndexToCurrentBoneCount[vertexIndex] = currentBoneCount;
+		}
+	}
+}
+
+void GenericProducerImpl::AddNode(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t nodeID)
 {
 	cd::NodeID sceneNodeID(nodeID);
-	cd::Node sceneNode(sceneNodeID);
+	cd::Node sceneNode(sceneNodeID, pSourceNode->mName.C_Str());
 
-	aiMatrix4x4 sourceMatrix = pSourceNode->mTransformation;
-	cd::Matrix4x4 transformation(sourceMatrix.a1, sourceMatrix.b1, sourceMatrix.c1, sourceMatrix.d1,
-                                 sourceMatrix.a2, sourceMatrix.b2, sourceMatrix.c2, sourceMatrix.d2,
-                                 sourceMatrix.a3, sourceMatrix.b3, sourceMatrix.c3, sourceMatrix.d3,
-                                 sourceMatrix.a4, sourceMatrix.b4, sourceMatrix.c4, sourceMatrix.d4);
+	cd::Matrix4x4 transformation = ConvertAssimpMatrix(pSourceNode->mTransformation);
 	sceneNode.SetTransform(cd::Transform(transformation.GetTranslation(), cd::Quaternion::FromMatrix(transformation.GetRotation()), transformation.GetScale()));
 
 	// Cache it for searching parent node id.
@@ -391,7 +416,7 @@ cd::NodeID GenericProducerImpl::AddNode(cd::SceneDatabase* pSceneDatabase, const
 		sceneNode.SetParentID(itParentNodeID->second);
 	}
 
-	printf("\t[Node %u] ParentID : %u, Name : %s\n", nodeID, sceneNode.GetParentID().Data(), pSourceNode->mName.C_Str());
+	//printf("\t[InitNode %u] ParentID : %u, Name : %s\n", nodeID, sceneNode.GetParentID().Data(), sceneNode.GetName().c_str());
 
 	// Add meshes from node.
 	for (uint32_t meshIndex = 0; meshIndex < pSourceNode->mNumMeshes; ++meshIndex)
@@ -409,6 +434,7 @@ cd::NodeID GenericProducerImpl::AddNode(cd::SceneDatabase* pSceneDatabase, const
 		childNodeIDs.push_back(childNodeID);
 	}
 
+	m_nodeIDToNodeIndexLookup[sceneNodeID.Data()] = pSceneDatabase->GetNodeCount();
 	pSceneDatabase->AddNode(cd::MoveTemp(sceneNode));
 
 	for (uint32_t childIndex = 0U; childIndex < pSourceNode->mNumChildren; ++childIndex)
@@ -416,8 +442,6 @@ cd::NodeID GenericProducerImpl::AddNode(cd::SceneDatabase* pSceneDatabase, const
 		uint32_t childNodeID = childNodeIDs[childIndex];
 		AddNode(pSceneDatabase, pSourceScene, pSourceNode->mChildren[childIndex], childNodeID);
 	}
-
-	return sceneNodeID;
 }
 
 void GenericProducerImpl::SetSceneDatabaseIDs(uint32_t nodeID, uint32_t meshID, uint32_t materialID, uint32_t textureID, uint32_t lightID)
@@ -428,7 +452,7 @@ void GenericProducerImpl::SetSceneDatabaseIDs(uint32_t nodeID, uint32_t meshID, 
 	m_textureIDGenerator.SetCurrentID(textureID);
 	m_lightIDGenerator.SetCurrentID(lightID);
 
-	// As previous aiNode has been destroyed, clear the lookup table.
+	m_nodeIDToNodeIndexLookup.clear();
 	m_aiNodeToNodeIDLookup.clear();
 }
 
@@ -437,8 +461,21 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	std::filesystem::path fileFolderPath = m_filePath;
 	m_folderPath = fileFolderPath.parent_path().generic_string();
 
-	printf("ImportStaticMesh : %s\n", m_filePath.c_str());
-	const aiScene* pScene = aiImportFile(m_filePath.c_str(), GetImportFlags());
+	printf("ImportSceneFile : %s\n", m_filePath.c_str());
+
+	aiPropertyStore* pImportProperties = aiCreatePropertyStore();
+	assert(pImportProperties);
+
+	// Assimp will generate extra nodes as a chain for bone hierarchy if every bone includes data except basic Translation/Rotation/Scale.
+	// In the first version, we want to make animation not so complex.
+	// If you meet the case that needs more data, report this issue to us. Thanks!
+	aiSetImportPropertyInteger(pImportProperties, AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, 0);
+
+	const aiScene* pScene = aiImportFileExWithProperties(m_filePath.c_str(), GetImportFlags(), nullptr, pImportProperties);
+
+	aiReleasePropertyStore(pImportProperties);
+	pImportProperties = nullptr;
+
 	if (!pScene || !pScene->HasMeshes())
 	{
 		printf(aiGetErrorString());
@@ -475,6 +512,46 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	}
 	pSceneDatabase->SetAABB(cd::MoveTemp(sceneAABB));
 
+	// Post-process bones.
+	std::vector<uint32_t> removeNodeIndexes;
+	for (auto& bone : pSceneDatabase->GetBones())
+	{
+		// Find node which has the same name with bone.
+		// In assimp implementation, it reuses Node as Bone hierarchy which is not expected to us.
+		const cd::Node* pBoneNode = pSceneDatabase->GetNodeByName(bone.GetName());
+		if (!pBoneNode)
+		{
+			continue;
+		}
+
+		if (pBoneNode->GetParentID().IsValid())
+		{
+			const cd::Node& parentNode = pSceneDatabase->GetNode(m_nodeIDToNodeIndexLookup[pBoneNode->GetParentID().Data()]);
+			if (const cd::Bone* pParentBone = pSceneDatabase->GetBoneByName(parentNode.GetName()))
+			{
+				bone.SetParentID(pParentBone->GetID().Data());
+			}
+		}
+		
+		for (const cd::NodeID& childNodeID : pBoneNode->GetChildIDs())
+		{
+			const cd::Node& childNode = pSceneDatabase->GetNode(m_nodeIDToNodeIndexLookup[childNodeID.Data()]);
+			if (const cd::Bone* pChildBone = pSceneDatabase->GetBoneByName(childNode.GetName()))
+			{
+				bone.AddChildID(pChildBone->GetID().Data());
+			}
+		}
+
+		removeNodeIndexes.push_back(m_nodeIDToNodeIndexLookup[pBoneNode->GetID().Data()]);
+	}
+
+	std::sort(removeNodeIndexes.begin(), removeNodeIndexes.end(), [](uint32_t lhs, uint32_t rhs) { return lhs > rhs; });
+	for (uint32_t nodeIndex : removeNodeIndexes)
+	{
+		auto& sceneNodes = pSceneDatabase->GetNodes();
+		sceneNodes.erase(sceneNodes.begin() + nodeIndex);
+	}
+
 	// Process all materials and used textures.
 	uint32_t actualMaterialCount = optUsedMaterialIndexes.has_value() ? static_cast<uint32_t>(optUsedMaterialIndexes.value().size()) : pScene->mNumMaterials;
 	pSceneDatabase->SetMaterialCount(actualMaterialCount);
@@ -490,9 +567,7 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		AddMaterial(pSceneDatabase, pScene->mMaterials[materialIndex]);
 	}
 
-	printf("Scene mesh number : %d\n", pSceneDatabase->GetMeshCount());
-	printf("Scene material number : %d\n", pSceneDatabase->GetMaterialCount());
-	printf("Scene texture number : %d\n", pSceneDatabase->GetTextureCount());
+	DumpSceneDatabase(*pSceneDatabase);
 
 	aiReleaseImport(pScene);
 	pScene = nullptr;

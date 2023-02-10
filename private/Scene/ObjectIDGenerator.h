@@ -41,16 +41,22 @@ public:
 	}
 
 	// Pass hash value is used to keep allocating unique ObjectID.
-	Oty AllocateID(Vty hashValue, bool& isReused)
+	Oty AllocateID(Vty hashValue, bool* pIsReused = nullptr)
 	{
 		const auto itID = m_objectIDLUT.find(hashValue);
 		if(itID != m_objectIDLUT.end())
 		{
-			isReused = true;
+			if (pIsReused)
+			{
+				*pIsReused = true;
+			}
 			return itID->second;
 		}
 
-		isReused = false;
+		if (pIsReused)
+		{
+			*pIsReused = false;
+		}
 		Vty newID = m_currentID++;
 		assert(newID >= m_minID && newID <= m_maxID && "The allocated id is out of range.");
 		m_objectIDLUT[hashValue] = Oty(newID);

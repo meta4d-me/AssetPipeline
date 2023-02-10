@@ -144,9 +144,8 @@ void TerrainProducerImpl::GenerateAllSectors(cd::SceneDatabase* pSceneDatabase)
 Mesh TerrainProducerImpl::GenerateSectorAt(uint32_t sector_x, uint32_t sector_z, const std::vector<int32_t>& elevationMap)
 {
 	const std::string terrainMeshName = string_format("TerrainSector({}, {})", sector_x, sector_z);
-	bool isUsed = false;
 	const MeshID::ValueType meshHash = StringHash<MeshID::ValueType>(terrainMeshName);
-	const MeshID terrainMeshID = m_meshIDGenerator.AllocateID(meshHash, isUsed);
+	const MeshID terrainMeshID = m_meshIDGenerator.AllocateID(meshHash);
 	Mesh terrain(terrainMeshID, terrainMeshName.c_str(), m_verticesPerSector, m_trianglesPerSector);
 
 	uint32_t current_vertex_id = 0;
@@ -216,24 +215,21 @@ Mesh TerrainProducerImpl::GenerateSectorAt(uint32_t sector_x, uint32_t sector_z,
 void TerrainProducerImpl::GenerateMaterialAndTextures(cd::SceneDatabase* pSceneDatabase, uint32_t sector_x, uint32_t sector_z, std::vector<int32_t>& elevationMap)
 {
 	const std::string materialName = string_format("TerrainMaterial({}, {})", sector_x, sector_z);
-	bool isUsed = false;
 	MaterialID::ValueType materialHash = StringHash<MaterialID::ValueType>(materialName);
-	MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, isUsed);
+	MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash);
 	Material terrainSectorMaterial(materialID, materialName.c_str());
 
 	// Base color texture
-	isUsed = false;
 	std::string textureName = "TerrainDirtTexture";
 	TextureID::ValueType textureHash = StringHash<TextureID::ValueType>(textureName);
-	TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
+	TextureID textureID = m_textureIDGenerator.AllocateID(textureHash);
 	terrainSectorMaterial.SetTextureID(MaterialTextureType::BaseColor, textureID);
 	pSceneDatabase->AddTexture(Texture(textureID, MaterialTextureType::BaseColor, textureName.c_str()));
 
 	// ElevationMap texture
-	isUsed = false;
 	textureName = string_format("TerrainElevationMap({}, {})", sector_x, sector_z);
 	textureHash = StringHash<TextureID::ValueType>(textureName);
-	textureID = m_textureIDGenerator.AllocateID(textureHash, isUsed);
+	textureID = m_textureIDGenerator.AllocateID(textureHash);
 	terrainSectorMaterial.SetTextureID(MaterialTextureType::Roughness, textureID);
 	Texture elevationTexture = Texture(textureID, MaterialTextureType::Roughness, textureName.c_str());
 	elevationTexture.SetRawTexture(elevationMap, TextureFormat::R32I);

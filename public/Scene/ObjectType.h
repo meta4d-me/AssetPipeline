@@ -12,7 +12,8 @@ enum class ObjectType
 	Texture,
 	Light,
 	Node,
-	Camera
+	Camera,
+	Bone
 };
 
 }

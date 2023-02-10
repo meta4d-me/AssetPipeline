@@ -14,9 +14,9 @@ Node::Node(InputArchiveSwapBytes& inputArchive)
     m_pNodeImpl = new NodeImpl(inputArchive);
 }
 
-Node::Node(NodeID nodeID)
+Node::Node(NodeID nodeID, std::string name)
 {
-    m_pNodeImpl = new NodeImpl(nodeID);
+    m_pNodeImpl = new NodeImpl(nodeID, cd::MoveTemp(name));
 }
 
 Node::Node(Node&& rhs)
@@ -39,14 +39,29 @@ Node::~Node()
     }
 }
 
-void Node::Init(NodeID nodeID)
+void Node::Init(NodeID nodeID, std::string name)
 {
-    m_pNodeImpl->Init(nodeID);
+    m_pNodeImpl->Init(nodeID, cd::MoveTemp(name));
 }
 
 const NodeID& Node::GetID() const
 {
     return m_pNodeImpl->GetID();
+}
+
+void Node::SetName(std::string name)
+{
+    return m_pNodeImpl->SetName(cd::MoveTemp(name));
+}
+
+std::string& Node::GetName()
+{
+    return m_pNodeImpl->GetName();
+}
+
+const std::string& Node::GetName() const
+{
+    return m_pNodeImpl->GetName();
 }
 
 void Node::SetParentID(uint32_t parentID)

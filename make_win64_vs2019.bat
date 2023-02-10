@@ -9,7 +9,7 @@ cd build
 echo [ ASSIMP ] Start making project...
 if not exist assimp\. mkdir assimp
 cd assimp
-%CMAKE_EXE% ../../external/assimp -G "Visual Studio 16 2019" -A x64
+%CMAKE_EXE% ../../external/assimp -G "Visual Studio 16 2019" -A x64  -DASSIMP_BUILD_ZLIB=ON
 cd ..
 echo\
 

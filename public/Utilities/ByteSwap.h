@@ -11,7 +11,7 @@ struct swap_bytes
 {
 	inline T operator()(T val)
 	{
-		throw std::out_of_range("T data size");
+		static_assert("Invalid data size.");
 	}
 };
 
