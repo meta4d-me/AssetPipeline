@@ -45,7 +45,7 @@ static constexpr AttributeValueType GetAttributeValueType()
 	}
 	else if constexpr (std::is_same<T, uint16_t>())
 	{
-		return AttributeValueType::Uint16;
+		return AttributeValueType::Int16;
 	}
 	else if constexpr (std::is_same<T, float>())
 	{
