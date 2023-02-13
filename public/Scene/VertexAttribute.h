@@ -33,7 +33,7 @@ enum class AttributeValueType : uint8_t
 {
 	Uint8,
 	Float,
-	Uint16,
+	Int16,
 };
 
 template<typename T>
