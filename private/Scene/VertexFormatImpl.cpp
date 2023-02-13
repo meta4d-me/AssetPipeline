@@ -46,9 +46,9 @@ uint32_t VertexFormatImpl::GetStride() const
 		{
 			valueTypeSize = sizeof(uint8_t);
 		}
-		else if (AttributeValueType::Uint16 == vertexLayout.attributeValueType)
+		else if (AttributeValueType::Int16 == vertexLayout.attributeValueType)
 		{
-			valueTypeSize = sizeof(uint16_t);
+			valueTypeSize = sizeof(int16_t);
 		}
 		else if (AttributeValueType::Float == vertexLayout.attributeValueType)
 		{

@@ -352,6 +352,9 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 	if(pSourceMesh->HasBones())
 	{
 		AddMeshBones(pSceneDatabase, pSourceMesh, mesh);
+
+		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneIndex, cd::AttributeValueType::Int16, cd::MaxBoneInfluenceCount);
+		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneWeight, cd::AttributeValueType::Float, cd::MaxBoneInfluenceCount);
 	}
 
 	mesh.SetVertexFormat(cd::MoveTemp(meshVertexFormat));
