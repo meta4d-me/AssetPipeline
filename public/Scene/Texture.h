@@ -29,15 +29,17 @@ public:
 
 	void Init(TextureID textureID, MaterialTextureType textureType, const char* pTexturePath);
 
-	void SetRawTexture(const std::vector<int32_t>& inputData, const cd::TextureFormat format);
-
+	void SetRawTexture(const std::vector<int32_t>& inputData, const cd::TextureFormat format, uint32_t width, uint32_t height);
 	void ClearRawTexture();
+	bool HasRawTexture() const;
 
 	const TextureID& GetID() const;
 	cd::MaterialTextureType GetType() const;
 	const char* GetPath() const;
 	const cd::TextureFormat GetTextureFormat() const;
 	const std::vector<std::byte>& GetRawTexture() const;
+	uint32_t GetWidth() const;
+	uint32_t GetHeight() const;
 
 	Texture& operator<<(InputArchive& inputArchive);
 	Texture& operator<<(InputArchiveSwapBytes& inputArchive);

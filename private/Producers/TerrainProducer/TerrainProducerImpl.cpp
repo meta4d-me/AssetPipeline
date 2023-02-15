@@ -103,14 +103,12 @@ void TerrainProducerImpl::Execute(SceneDatabase* pSceneDatabase)
 
 void TerrainProducerImpl::GenerateElevationMap(std::vector<int32_t>& outElevationMap, uint32_t sector_x, uint32_t sector_z) const
 {
-	const uint32_t numVerticesInX = m_sectorMetadata.numQuadsInX * m_sectorMetadata.quadLenInX;
-	const uint32_t numVerticesInZ = m_sectorMetadata.numQuadsInZ * m_sectorMetadata.quadLenInZ;
-	const uint32_t numVertices = numVerticesInX * numVerticesInZ;
+	const uint32_t numVertices = (m_sectorLenInX + 1) * (m_sectorLenInZ + 1);
 	outElevationMap.clear();
 	outElevationMap.reserve(numVertices);
-	for (uint32_t row = 0; row < numVerticesInZ; ++row)
+	for (uint32_t row = 0; row <= m_sectorLenInZ; ++row)
 	{
-		for (uint32_t col = 0; col < numVerticesInX; ++col)
+		for (uint32_t col = 0; col <= m_sectorLenInX; ++col)
 		{
 			const uint32_t x = (sector_x * m_sectorLenInX) + col;
 			const uint32_t z = (sector_z * m_sectorLenInZ) + row;
@@ -135,18 +133,21 @@ void TerrainProducerImpl::GenerateAllSectors(cd::SceneDatabase* pSceneDatabase)
 		for (uint32_t sector_col = 0; sector_col < m_terrainMetadata.numSectorsInX; ++sector_col)
 		{
 			GenerateElevationMap(elevationMap, sector_col, sector_row);
-			pSceneDatabase->AddMesh(std::move(GenerateSectorAt(sector_col, sector_row, elevationMap)));
-			GenerateMaterialAndTextures(pSceneDatabase, sector_col, sector_row, elevationMap);
+			Mesh generatedTerrain = GenerateSectorAt(sector_col, sector_row, elevationMap);
+			MaterialID meshMaterialID = GenerateMaterialAndTextures(pSceneDatabase, sector_col, sector_row, elevationMap);
+			generatedTerrain.SetMaterialID(meshMaterialID.Data());
+			pSceneDatabase->AddMesh(std::move(generatedTerrain));
 		}
 	}
 }
 
 Mesh TerrainProducerImpl::GenerateSectorAt(uint32_t sector_x, uint32_t sector_z, const std::vector<int32_t>& elevationMap)
 {
-	const std::string terrainMeshName = string_format("TerrainSector({}, {})", sector_x, sector_z);
+	const std::string terrainMeshName = string_format("TerrainSector(%d, %d)", sector_x, sector_z);
 	const MeshID::ValueType meshHash = StringHash<MeshID::ValueType>(terrainMeshName);
 	const MeshID terrainMeshID = m_meshIDGenerator.AllocateID(meshHash);
 	Mesh terrain(terrainMeshID, terrainMeshName.c_str(), m_verticesPerSector, m_trianglesPerSector);
+	terrain.SetVertexUVSetCount(1);
 
 	uint32_t current_vertex_id = 0;
 	uint32_t current_polygon_id = 0;
@@ -212,30 +213,32 @@ Mesh TerrainProducerImpl::GenerateSectorAt(uint32_t sector_x, uint32_t sector_z,
 	return terrain;
 }
 
-void TerrainProducerImpl::GenerateMaterialAndTextures(cd::SceneDatabase* pSceneDatabase, uint32_t sector_x, uint32_t sector_z, std::vector<int32_t>& elevationMap)
+MaterialID TerrainProducerImpl::GenerateMaterialAndTextures(cd::SceneDatabase* pSceneDatabase, uint32_t sector_x, uint32_t sector_z, std::vector<int32_t>& elevationMap)
 {
-	const std::string materialName = string_format("TerrainMaterial({}, {})", sector_x, sector_z);
+	const std::string materialName = string_format("TerrainMaterial(%d, %d)", sector_x, sector_z);
 	MaterialID::ValueType materialHash = StringHash<MaterialID::ValueType>(materialName);
 	MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash);
 	Material terrainSectorMaterial(materialID, materialName.c_str(), MaterialType::BasePBR);
 
 	// Base color texture
-	std::string textureName = "TerrainDirtTexture";
+	std::string textureName = "Terrain_baseColor";
 	TextureID::ValueType textureHash = StringHash<TextureID::ValueType>(textureName);
 	TextureID textureID = m_textureIDGenerator.AllocateID(textureHash);
 	terrainSectorMaterial.AddTextureID(MaterialTextureType::BaseColor, textureID);
 	pSceneDatabase->AddTexture(Texture(textureID, MaterialTextureType::BaseColor, textureName.c_str()));
 
 	// ElevationMap texture
-	textureName = string_format("TerrainElevationMap({}, {})", sector_x, sector_z);
+	textureName = string_format("TerrainElevationMap(%d, %d)", sector_x, sector_z);
 	textureHash = StringHash<TextureID::ValueType>(textureName);
 	textureID = m_textureIDGenerator.AllocateID(textureHash);
 	terrainSectorMaterial.AddTextureID(MaterialTextureType::Roughness, textureID);
 	Texture elevationTexture = Texture(textureID, MaterialTextureType::Roughness, textureName.c_str());
-	elevationTexture.SetRawTexture(elevationMap, TextureFormat::R32I);
+	elevationTexture.SetRawTexture(elevationMap, TextureFormat::R32I, m_sectorLenInX + 1, m_sectorLenInZ + 1);
 	pSceneDatabase->AddTexture(MoveTemp(elevationTexture));
 	
 	pSceneDatabase->AddMaterial(MoveTemp(terrainSectorMaterial));
+
+	return materialID;
 }
 
 }	// namespace cdtools

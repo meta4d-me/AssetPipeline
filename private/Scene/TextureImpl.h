@@ -32,20 +32,25 @@ public:
 	void Init(TextureID textureID, MaterialTextureType textureType, std::string texturePath);
 
 	template <typename T>
-	void SetRawTexture(const std::vector<T>& inputData, const cd::TextureFormat format) {
+	void SetRawTexture(const std::vector<T>& inputData, const cd::TextureFormat format, const uint32_t width, const uint32_t height) {
 		const size_t sizeRatio = sizeof(T) / sizeof(std::byte);
 		const size_t sizeInBytes = inputData.size() * sizeRatio;
 		m_rawTexture.resize(sizeInBytes);
 		std::memcpy(m_rawTexture.data(), inputData.data(), sizeInBytes);
 		m_textureFormat = format;
+		m_textureWidth = width;
+		m_textureHeight = height;
 	}
 	void ClearRawTexture();
+	bool HasRawTexture() const { return !m_rawTexture.empty(); }
 
 	const TextureID& GetID() const { return m_id; }
 	cd::MaterialTextureType GetType() const { return m_textureType; }
 	const std::string& GetPath() const { return m_path; }
 	const cd::TextureFormat GetTextureFormat() const { return m_textureFormat; }
 	const std::vector<std::byte>& GetRawTexture() const { return m_rawTexture; }
+	uint32_t GetWidth() const { return m_textureWidth; }
+	uint32_t GetHeight() const { return m_textureHeight; }
 
 	template<bool SwapBytesOrder>
 	TextureImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
@@ -90,6 +95,8 @@ private:
 	cd::MaterialTextureType m_textureType;
 	std::string m_path;
 	cd::TextureFormat m_textureFormat;
+	uint32_t m_textureWidth;
+	uint32_t m_textureHeight;
 	std::vector<std::byte> m_rawTexture;
 };
 

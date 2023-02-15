@@ -82,7 +82,7 @@ private:
 	void GenerateElevationMap(std::vector<int32_t>& outElevationMap, uint32_t sector_x, uint32_t sector_z) const;
 	void GenerateAllSectors(cd::SceneDatabase* pSceneDatabase);
 	cd::Mesh GenerateSectorAt(uint32_t sector_x, uint32_t sector_z, const std::vector<int32_t>& elevationMap);
-	void GenerateMaterialAndTextures(cd::SceneDatabase* pSceneDatabase, uint32_t sector_x, uint32_t sector_z, std::vector<int32_t>& elevationMap);
+	cd::MaterialID GenerateMaterialAndTextures(cd::SceneDatabase* pSceneDatabase, uint32_t sector_x, uint32_t sector_z, std::vector<int32_t>& elevationMap);
 };
 
 }	// namespace cdtools
