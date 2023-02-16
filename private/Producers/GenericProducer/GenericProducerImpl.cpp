@@ -197,11 +197,11 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 	cd::Material material(materialID, finalMaterialName.c_str());
 
 	// Process all textures
-	for (const auto& [textureType, materialPropretyGroup] : materialTextureMapping)
+	for (const auto& [textureType, materialTextureType] : materialTextureMapping)
 	{
 		// Multiple assimp texture types will map to the same texture to increase the successful rate.
 		// Setup means one assimp texture type already added. Just skip remain assimp texture types.
-		if (material.IsTextureTypeSetup(materialPropretyGroup))
+		if (material.IsTextureTypeSetup(materialTextureType))
 		{
 			continue;
 		}
@@ -241,12 +241,12 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			std::filesystem::path textureAbsolutePath = m_folderPath;
 			textureAbsolutePath.append(ai_path.C_Str());
 
-			material.SetTextureID(materialPropretyGroup, textureID);
+			material.SetTextureID(materialTextureType, textureID);
 
 			// Reused textures don't need to add to SceneDatabase again.
 			if (!isTextureReused)
 			{
-				pSceneDatabase->AddTexture(cd::Texture(textureID, materialPropretyGroup, textureAbsolutePath.generic_string().c_str()));
+				pSceneDatabase->AddTexture(cd::Texture(textureID, materialTextureType, textureAbsolutePath.generic_string().c_str()));
 			}
 		}
 	}
