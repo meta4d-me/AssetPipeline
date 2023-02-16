@@ -3,6 +3,7 @@
 #include "Base/Template.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
+#include "PropertyMap/PropertyMap.hpp"
 #include "Scene/MaterialTextureType.h"
 #include "Scene/ObjectID.h"
 #include "Math/Vector.hpp"
@@ -16,9 +17,6 @@ namespace cd
 
 class MaterialImpl final
 {
-public:
-	using TextureIDMap = std::map<MaterialTextureType, TextureID>;
-
 public:
 	MaterialImpl() = delete;
 	template<bool SwapBytesOrder>
@@ -34,30 +32,49 @@ public:
 	~MaterialImpl() = default;
 
 	void Init(MaterialID materialID, std::string materialName);
+	void SetPropertyDefaultValue();
 
 	const MaterialID& GetID() const { return m_id; }
 	const std::string& GetName() const { return m_name; }
-	void SetTextureID(MaterialTextureType textureType, TextureID textureID);
-	std::optional<TextureID> GetTextureID(MaterialTextureType textureType) const;
-	const TextureIDMap& GetTextureIDMap() const { return m_textureIDs; }
-	bool IsTextureTypeSetup(MaterialTextureType textureType) const { return m_textureIDs.find(textureType) != m_textureIDs.end(); }
+
+	void SetTextureID(MaterialPropretyGroup propretyGroup, TextureID textureID);
+	std::optional<TextureID> GetTextureID(MaterialPropretyGroup propretyGroup) const;
+	const PropertyMap &GetMaterialType() const { return m_basePBRMaterialType; }
+	bool IsTextureTypeSetup(MaterialPropretyGroup propretyGroup) const;
 
 	template<bool SwapBytesOrder>
 	MaterialImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
-		std::string materialName;
 		uint32_t materialID;
-		size_t materialTextureCount;
-		inputArchive >> materialName >> materialID >> materialTextureCount;
-
+		std::string materialName;
+		inputArchive >> materialID >> materialName;
 		Init(MaterialID(materialID), MoveTemp(materialName));
 
-		for (uint32_t textureIndex = 0; textureIndex < materialTextureCount; ++textureIndex)
+		uint64_t stringCount, byte4Count, byte8Count;
+		inputArchive >> stringCount >> byte4Count >> byte8Count;
+
+		for (uint64_t index = 0; index < stringCount; ++index)
 		{
-			size_t textureType;
-			uint32_t materialTextureID;
-			inputArchive >> textureType >> materialTextureID;
-			SetTextureID(static_cast<MaterialTextureType>(textureType), TextureID(materialTextureID));
+			PropertyMapKeyType key;
+			std::string value;
+			inputArchive >> key >> value;
+			m_basePBRMaterialType.Add(key, value);
+		}
+
+		for (uint64_t index = 0; index < byte4Count; ++index)
+		{
+			PropertyMapKeyType key;
+			uint32_t value;
+			inputArchive >> key >> value;
+			m_basePBRMaterialType.Add(key, value);
+		}
+
+		for (uint64_t index = 0; index < byte8Count; ++index)
+		{
+			PropertyMapKeyType key;
+			uint64_t value;
+			inputArchive >> key >> value;
+			m_basePBRMaterialType.Add(key, value);
 		}
 
 		return *this;
@@ -66,12 +83,29 @@ public:
 	template<bool SwapBytesOrder>
 	const MaterialImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		const TextureIDMap& textureIDMap = GetTextureIDMap();
-		outputArchive << GetName() << GetID().Data() << textureIDMap.size();
+		outputArchive << GetID().Data() << GetName();
 
-		for (const auto& [materialTextureType, textureID] : textureIDMap)
+		const PropertyMap &materailType = GetMaterialType();
+		const auto stringProperty       = materailType.GetStringProperty();
+		const auto byte4Property        = materailType.GetByte4Property();
+		const auto byte8Property        = materailType.GetByte8Property();
+
+		outputArchive << 
+			static_cast<uint64_t>(stringProperty.size()) <<
+			static_cast<uint64_t>(byte4Property.size()) <<
+			static_cast<uint64_t>(byte8Property.size());
+		
+		for (const auto &[key, value] : stringProperty)
 		{
-			outputArchive << static_cast<size_t>(materialTextureType) << textureID.Data();
+			outputArchive << key << value;
+		}
+		for (const auto &[key, value] : byte4Property)
+		{
+			outputArchive << key << value;
+		}
+		for (const auto &[key, value] : byte8Property)
+		{
+			outputArchive << key << value;
 		}
 
 		return *this;
@@ -81,7 +115,7 @@ private:
 	MaterialID m_id;
 	std::string m_name;
 
-	TextureIDMap m_textureIDs;
+	PropertyMap m_basePBRMaterialType;
 };
 
 }

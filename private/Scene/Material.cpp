@@ -64,9 +64,8 @@ std::optional<TextureID> Material::GetTextureID(MaterialTextureType textureType)
 	return m_pMaterialImpl->GetTextureID(textureType);
 }
 
-const Material::TextureIDMap& Material::GetTextureIDMap() const
-{
-	return m_pMaterialImpl->GetTextureIDMap();
+const PropertyMap& Material::GetMaterialType() const {
+	return m_pMaterialImpl->GetMaterialType();
 }
 
 bool Material::IsTextureTypeSetup(MaterialTextureType textureType) const
