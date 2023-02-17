@@ -30,31 +30,27 @@ void MaterialImpl::Init(MaterialID materialID, std::string materialName, Materia
 
 void MaterialImpl::InitBasePBR()
 {
-	PropertyMap basePBR;
-
-	basePBR.Add("BaseColor_Color", Vec3f(1.0f, 1.0f, 1.0f));
+	AddProperty(MaterialPropertyGroup::BaseColor, MaterialProperty::Color, Vec3f(1.0f, 1.0f, 1.0f));
 	// Factor for blending Color and Texture.
 	// Or if there is no Texture, then this simply scales the Color value.
-	basePBR.Add("BaseColor_Factor", 0.0f);
-	basePBR.Add("BaseColor_UseTexture", true);
+	AddProperty(MaterialPropertyGroup::BaseColor, MaterialProperty::Factor, 0.0f);
+	AddProperty(MaterialPropertyGroup::BaseColor, MaterialProperty::UseTexture, true);
 
-	basePBR.Add("Occlusion_Factor", 0.0f);
-	basePBR.Add("Occlusion_UseTexture", true);
+	AddProperty(MaterialPropertyGroup::Occlusion, MaterialProperty::Factor, 0.0f);
+	AddProperty(MaterialPropertyGroup::Occlusion, MaterialProperty::UseTexture, true);
 
-	basePBR.Add("Roughness_Factor", 0.9f);
-	basePBR.Add("Roughness_UseTexture", true);
+	AddProperty(MaterialPropertyGroup::Roughness, MaterialProperty::Factor, 0.9f);
+	AddProperty(MaterialPropertyGroup::Roughness, MaterialProperty::UseTexture, true);
 
-	basePBR.Add("Metallic_Factor", 0.1f);
-	basePBR.Add("Metallic_UseTexture", true);
+	AddProperty(MaterialPropertyGroup::Metallic, MaterialProperty::Factor, 0.1f);
+	AddProperty(MaterialPropertyGroup::Metallic, MaterialProperty::UseTexture, true);
 
-	basePBR.Add("Normal_UseTexture", true);
+	AddProperty(MaterialPropertyGroup::Normal, MaterialProperty::UseTexture, true);
 
-	basePBR.Add("General_EnableDirectionalLights", true);
-	basePBR.Add("General_EnablePunctualLights", true);
-	basePBR.Add("General_EnableAreaLights", false);
-	basePBR.Add("General_EnableIBL", true);
-
-	m_propertyGroups = std::move(basePBR);
+	AddProperty(MaterialPropertyGroup::General, MaterialProperty::EnableDirectionalLights, true);
+	AddProperty(MaterialPropertyGroup::General, MaterialProperty::EnablePunctualLights, true);
+	AddProperty(MaterialPropertyGroup::General, MaterialProperty::EnableAreaLights, false);
+	AddProperty(MaterialPropertyGroup::General, MaterialProperty::EnableIBL, true);
 }
 
 void MaterialImpl::AddTextureID(MaterialPropertyGroup propertyGroup, TextureID textureID)
