@@ -217,20 +217,20 @@ void TerrainProducerImpl::GenerateMaterialAndTextures(cd::SceneDatabase* pSceneD
 	const std::string materialName = string_format("TerrainMaterial({}, {})", sector_x, sector_z);
 	MaterialID::ValueType materialHash = StringHash<MaterialID::ValueType>(materialName);
 	MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash);
-	Material terrainSectorMaterial(materialID, materialName.c_str());
+	Material terrainSectorMaterial(materialID, materialName.c_str(), MaterialType::BasePBR);
 
 	// Base color texture
 	std::string textureName = "TerrainDirtTexture";
 	TextureID::ValueType textureHash = StringHash<TextureID::ValueType>(textureName);
 	TextureID textureID = m_textureIDGenerator.AllocateID(textureHash);
-	terrainSectorMaterial.SetTextureID(MaterialTextureType::BaseColor, textureID);
+	terrainSectorMaterial.AddTextureID(MaterialTextureType::BaseColor, textureID);
 	pSceneDatabase->AddTexture(Texture(textureID, MaterialTextureType::BaseColor, textureName.c_str()));
 
 	// ElevationMap texture
 	textureName = string_format("TerrainElevationMap({}, {})", sector_x, sector_z);
 	textureHash = StringHash<TextureID::ValueType>(textureName);
 	textureID = m_textureIDGenerator.AllocateID(textureHash);
-	terrainSectorMaterial.SetTextureID(MaterialTextureType::Roughness, textureID);
+	terrainSectorMaterial.AddTextureID(MaterialTextureType::Roughness, textureID);
 	Texture elevationTexture = Texture(textureID, MaterialTextureType::Roughness, textureName.c_str());
 	elevationTexture.SetRawTexture(elevationMap, TextureFormat::R32I);
 	pSceneDatabase->AddTexture(MoveTemp(elevationTexture));

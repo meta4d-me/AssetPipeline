@@ -43,6 +43,20 @@ public:
 	}
 
 	template<typename T>
+	void Set(const PropertyMapKeyType &key, const T &value)
+	{
+		CheckType<T>();
+		if (Exist(key))
+		{
+			SetValue(key, value);
+		}
+		else
+		{
+			printf("PropertyMap key does not exists!\n");
+		}
+	}
+
+	template<typename T>
 	const std::optional<T> Get(const PropertyMapKeyType &key) const
 	{
 		CheckType<T>();
@@ -68,20 +82,6 @@ public:
 		else
 		{
 			return std::nullopt;
-		}
-	}
-
-	template<typename T>
-	void Set(const PropertyMapKeyType &key, const T &value)
-	{
-		CheckType<T>();
-		if (Exist(key))
-		{
-			SetValue(key, value);
-		}
-		else
-		{
-			printf("PropertyMap key does not exists!\n");
 		}
 	}
 

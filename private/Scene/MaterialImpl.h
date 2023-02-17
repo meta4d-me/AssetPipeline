@@ -24,84 +24,106 @@ public:
 	{
 		*this << inputArchive;
 	}
-	explicit MaterialImpl(MaterialID materialID, std::string materialName);
+	explicit MaterialImpl(MaterialID materialID, std::string materialName, MaterialType materialType);
 	MaterialImpl(const MaterialImpl&) = default;
 	MaterialImpl& operator=(const MaterialImpl&) = default;
 	MaterialImpl(MaterialImpl&&) = default;
 	MaterialImpl& operator=(MaterialImpl&&) = default;
 	~MaterialImpl() = default;
 
-	void Init(MaterialID materialID, std::string materialName);
-	void SetPropertyDefaultValue();
+	void Init(MaterialID materialID, std::string materialName, MaterialType materialType);
+	void InitBasePBR();
 
 	const MaterialID& GetID() const { return m_id; }
 	const std::string& GetName() const { return m_name; }
 
-	void SetTextureID(MaterialPropretyGroup propretyGroup, TextureID textureID);
-	std::optional<TextureID> GetTextureID(MaterialPropretyGroup propretyGroup) const;
-	const PropertyMap &GetMaterialType() const { return m_basePBRMaterialType; }
-	bool IsTextureTypeSetup(MaterialPropretyGroup propretyGroup) const;
+	const MaterialType &GetType() const { return m_type; }
+	const PropertyMap &GetPropertyGroups() const{ return m_propertyGroups; }
+
+	void AddTextureID(MaterialPropertyGroup propertyGroup, TextureID textureID);
+	std::optional<TextureID> GetTextureID(MaterialPropertyGroup propertyGroup) const;
+	bool IsTextureSetup(MaterialPropertyGroup propertyGroup) const;
+
+	template<typename T>
+	void AddProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, T value)
+	{
+		m_propertyGroups.Add(GetMaterialPropertyKey(propertyGroup, property), value);
+	}
+	template<typename T>
+	void SetProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, T value)
+	{
+		m_propertyGroups.Set(GetMaterialPropertyKey(propertyGroup, property), value);
+	}
+	template<typename T>
+	std::optional<T> GetProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
+	{
+		return m_propertyGroups.Get<T>(GetMaterialPropertyKey(propertyGroup, property));
+	}
+	bool ExtstProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
+	{
+		return m_propertyGroups.Exist(GetMaterialPropertyKey(propertyGroup, property));
+	}
 
 	template<bool SwapBytesOrder>
 	MaterialImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
 		uint32_t materialID;
 		std::string materialName;
-		inputArchive >> materialID >> materialName;
-		Init(MaterialID(materialID), MoveTemp(materialName));
+		uint8_t materialType;
+		inputArchive >> materialID >> materialName >> materialType;
+		Init(MaterialID(materialID), MoveTemp(materialName), MaterialType(materialType));
 
 		uint64_t stringCount, byte4Count, byte8Count, byte12Count;
 		inputArchive >> stringCount >> byte4Count >> byte8Count >> byte12Count;
-
 		for (uint64_t index = 0; index < stringCount; ++index)
 		{
 			PropertyMapKeyType key;
 			std::string value;
 			inputArchive >> key >> value;
-			m_basePBRMaterialType.Add(key, value);
+			m_propertyGroups.Add(key, value);
 		}
 		for (uint64_t index = 0; index < byte4Count; ++index)
 		{
 			PropertyMapKeyType key;
 			uint32_t value;
 			inputArchive >> key >> value;
-			m_basePBRMaterialType.Add(key, value);
+			m_propertyGroups.Add(key, value);
 		}
 		for (uint64_t index = 0; index < byte8Count; ++index)
 		{
 			PropertyMapKeyType key;
 			uint64_t value;
 			inputArchive >> key >> value;
-			m_basePBRMaterialType.Add(key, value);
+			m_propertyGroups.Add(key, value);
 		}
 		for (uint64_t index = 0; index < byte12Count; ++index)
 		{
 			PropertyMapKeyType key;
 			cd::Vec3f value;
 			inputArchive >> key >> value;
-			m_basePBRMaterialType.Add(key, value);
+			m_propertyGroups.Add(key, value);
 		}
 
 		return *this;
 	}
 
 	template<bool SwapBytesOrder>
-	const MaterialImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
+	const MaterialImpl &operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetID().Data() << GetName();
+		outputArchive << GetID().Data() << GetName() << static_cast<uint8_t>(GetType());
 
-		const PropertyMap &materailType = GetMaterialType();
-		const auto stringProperty       = materailType.GetStringProperty();
-		const auto byte4Property        = materailType.GetByte4Property();
-		const auto byte8Property        = materailType.GetByte8Property();
-		const auto byte12Property       = materailType.GetByte12Property();
+		const auto &groups         = GetPropertyGroups();
+		const auto &stringProperty = groups.GetStringProperty();
+		const auto &byte4Property  = groups.GetByte4Property();
+		const auto &byte8Property  = groups.GetByte8Property();
+		const auto &byte12Property = groups.GetByte12Property();
 
 		outputArchive <<
 			static_cast<uint64_t>(stringProperty.size()) <<
 			static_cast<uint64_t>(byte4Property.size()) <<
 			static_cast<uint64_t>(byte8Property.size()) <<
 			static_cast<uint64_t>(byte12Property.size());
-		
+
 		for (const auto &[key, value] : stringProperty)
 		{
 			outputArchive << key << value;
@@ -126,7 +148,8 @@ private:
 	MaterialID m_id;
 	std::string m_name;
 
-	PropertyMap m_basePBRMaterialType;
+	MaterialType m_type;
+	PropertyMap m_propertyGroups;
 };
 
 }

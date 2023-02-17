@@ -22,21 +22,21 @@ public:
 	Material() = delete;
 	explicit Material(InputArchive& inputArchive);
 	explicit Material(InputArchiveSwapBytes& inputArchive);
-	explicit Material(MaterialID materialID, const char* pMaterialName);
+	explicit Material(MaterialID materialID, const char* pMaterialName, MaterialType type);
 	Material(const Material&) = delete;
 	Material& operator=(const Material&) = delete;
 	Material(Material&&);
 	Material& operator=(Material&&);
 	~Material();
 
-	void Init(MaterialID materialID, const char* pMaterialName);
+	void Init(MaterialID materialID, const char* pMaterialName, MaterialType type);
 
 	const MaterialID& GetID() const;
 	const char* GetName() const;
-	void SetTextureID(MaterialPropretyGroup textureType, TextureID textureID);
-	std::optional<TextureID> GetTextureID(MaterialPropretyGroup textureType) const;
-	const PropertyMap& GetMaterialType() const;
-	bool IsTextureTypeSetup(MaterialPropretyGroup textureType) const;
+	void AddTextureID(MaterialPropertyGroup textureType, TextureID textureID);
+	std::optional<TextureID> GetTextureID(MaterialPropertyGroup textureType) const;
+	const PropertyMap &GetPropertyGroups() const;
+	bool IsTextureSetup(MaterialPropertyGroup textureType) const;
 
 	Material& operator<<(InputArchive& inputArchive);
 	Material& operator<<(InputArchiveSwapBytes& inputArchive);

@@ -14,9 +14,9 @@ Material::Material(InputArchiveSwapBytes& inputArchive)
 	m_pMaterialImpl = new MaterialImpl(inputArchive);
 }
 
-Material::Material(MaterialID materialID, const char* pMaterialName)
+Material::Material(MaterialID materialID, const char* pMaterialName, MaterialType type)
 {
-	m_pMaterialImpl = new MaterialImpl(materialID, pMaterialName);
+	m_pMaterialImpl = new MaterialImpl(materialID, pMaterialName, type);
 }
 
 Material::Material(Material&& rhs)
@@ -39,9 +39,9 @@ Material::~Material()
 	}
 }
 
-void Material::Init(MaterialID materialID, const char* pMaterialName)
+void Material::Init(MaterialID materialID, const char* pMaterialName, MaterialType type)
 {
-	m_pMaterialImpl->Init(materialID, pMaterialName);
+	m_pMaterialImpl->Init(materialID, pMaterialName, type);
 }
 
 const MaterialID& Material::GetID() const
@@ -54,9 +54,9 @@ const char* Material::GetName() const
 	return m_pMaterialImpl->GetName().c_str();
 }
 
-void Material::SetTextureID(MaterialTextureType textureType, TextureID textureID)
+void Material::AddTextureID(MaterialTextureType textureType, TextureID textureID)
 {
-	m_pMaterialImpl->SetTextureID(textureType, textureID);
+	m_pMaterialImpl->AddTextureID(textureType, textureID);
 }
 
 std::optional<TextureID> Material::GetTextureID(MaterialTextureType textureType) const
@@ -64,13 +64,13 @@ std::optional<TextureID> Material::GetTextureID(MaterialTextureType textureType)
 	return m_pMaterialImpl->GetTextureID(textureType);
 }
 
-const PropertyMap& Material::GetMaterialType() const {
-	return m_pMaterialImpl->GetMaterialType();
+const PropertyMap& Material::GetPropertyGroups() const {
+	return m_pMaterialImpl->GetPropertyGroups();
 }
 
-bool Material::IsTextureTypeSetup(MaterialTextureType textureType) const
+bool Material::IsTextureSetup(MaterialTextureType textureType) const
 {
-	return m_pMaterialImpl->IsTextureTypeSetup(textureType);
+	return m_pMaterialImpl->IsTextureSetup(textureType);
 }
 
 Material& Material::operator<<(InputArchive& inputArchive)

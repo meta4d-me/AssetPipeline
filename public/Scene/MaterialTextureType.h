@@ -6,7 +6,27 @@
 namespace cd
 {
 
-enum class MaterialPropretyGroup
+enum class MaterialType : uint8_t
+{
+	BasePBR = 0,
+	
+	Count,
+};
+
+constexpr const char *MaterialTypeName[] =
+{
+	"BasePBR",
+};
+
+static_assert(static_cast<int>(MaterialType::Count) == sizeof(MaterialTypeName) / sizeof(char *),
+	"Material type and names mismatch.");
+
+inline const char *GetMaterialTypeName(MaterialType materialType)
+{
+	return MaterialTypeName[static_cast<size_t>(materialType)];
+}
+
+enum class MaterialPropertyGroup
 {
 	BaseColor = 0,
 	Occlusion,
@@ -15,12 +35,16 @@ enum class MaterialPropretyGroup
 	Normal,
 	Emissive,
 	General,
+
 	Count,
 };
 
-using MaterialTextureType = MaterialPropretyGroup;
+// As each MaterialPropertyGroup just has one texture,
+// it's fine to consider MaterialPropertyGroup as MaterialTextureType
+// from the perspective of texture.
+using MaterialTextureType = MaterialPropertyGroup;
 
-constexpr const char *MaterialPropretyGroupName[] =
+constexpr const char *MaterialPropertyGroupName[] =
 {
 	"BaseColor",
 	"Occlusion",
@@ -31,24 +55,24 @@ constexpr const char *MaterialPropretyGroupName[] =
 	"General",
 };
 
-static_assert(static_cast<int>(MaterialPropretyGroup::Count) == sizeof(MaterialPropretyGroupName) / sizeof(char *),
-	"Material proprety group and names mismatch.");
+static_assert(static_cast<int>(MaterialPropertyGroup::Count) == sizeof(MaterialPropertyGroupName) / sizeof(char *),
+	"Material property group and names mismatch.");
 
-inline const char *GetMaterialPropretyGroupName(MaterialPropretyGroup propretyGroup) {
-	return MaterialPropretyGroupName[static_cast<size_t>(propretyGroup)];
+inline const char *GetMaterialPropertyGroupName(MaterialPropertyGroup propertyGroup) {
+	return MaterialPropertyGroupName[static_cast<size_t>(propertyGroup)];
 }
 
 enum class MaterialProperty
 {
 	Name = 0,
+
+	// For BaseColor, Occlusion, Roughness, Metallic and Normal
 	Factor,
 	Texture,
 	UseTexture,
 
 	// Just for BaseColor
-	Color_R,
-	Color_G,
-	Color_B,
+	Color,
 
 	// Just for General Settings
 	EnableDirectionalLights,
@@ -59,39 +83,37 @@ enum class MaterialProperty
 	Count,
 };
 
-constexpr const char *MaterialPropretyName[] =
+constexpr const char *MaterialPropertyName[] =
 {
 	"Name",
 	"Factor",
 	"Texture",
 	"UseTexture",
-	"Color_R",
-	"Color_G",
-	"Color_B",
+	"Color",
 	"EnableDirectionalLights",
 	"EnablePunctualLights",
 	"EnableAreaLights",
 	"EnableIBL",
 };
 
-static_assert(static_cast<int>(MaterialProperty::Count) == sizeof(MaterialPropretyName) / sizeof(char *),
-	"Material proprety and names mismatch.");
+static_assert(static_cast<int>(MaterialProperty::Count) == sizeof(MaterialPropertyName) / sizeof(char *),
+	"Material property and names mismatch.");
 
-inline const char *GetMaterialPropretyName(MaterialProperty proprety) {
-	return MaterialPropretyName[static_cast<size_t>(proprety)];
+inline const char *GetMaterialPropertyName(MaterialProperty property) {
+	return MaterialPropertyName[static_cast<size_t>(property)];
 }
 
-inline std::string GetMaterialPropretyKey(MaterialPropretyGroup propretyGroup, MaterialProperty property)
+inline std::string GetMaterialPropertyKey(MaterialPropertyGroup propertyGroup, MaterialProperty property)
 {
 	std::stringstream ss;
-	ss << GetMaterialPropretyGroupName(propretyGroup) << "_" << GetMaterialPropretyName(property);
+	ss << GetMaterialPropertyGroupName(propertyGroup) << "_" << GetMaterialPropertyName(property);
 
 	return ss.str();
 }
 
-inline std::string GetMaterialPropretyTextureKey(MaterialPropretyGroup propretyGroup)
+inline std::string GetMaterialPropertyTextureKey(MaterialPropertyGroup propertyGroup)
 {
-	return GetMaterialPropretyKey(propretyGroup, MaterialProperty::Texture);
+	return GetMaterialPropertyKey(propertyGroup, MaterialProperty::Texture);
 }
 
 }

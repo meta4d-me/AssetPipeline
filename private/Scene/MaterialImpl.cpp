@@ -5,52 +5,57 @@
 namespace cd
 {
 
-MaterialImpl::MaterialImpl(MaterialID materialID, std::string materialName)
+MaterialImpl::MaterialImpl(MaterialID materialID, std::string materialName, MaterialType materialType)
 {
-	Init(materialID, MoveTemp(materialName));
-	SetPropertyDefaultValue();
+	Init(materialID, MoveTemp(materialName), materialType);
 }
 
-void MaterialImpl::Init(MaterialID materialID, std::string materialName)
+void MaterialImpl::Init(MaterialID materialID, std::string materialName, MaterialType materialType)
 {
 	m_id = materialID;
 	m_name = MoveTemp(materialName);
+	m_type = materialType;
 }
 
-void MaterialImpl::SetPropertyDefaultValue()
+void MaterialImpl::InitBasePBR()
 {
-	m_basePBRMaterialType.Add("Name", std::string("BasePBR"));
+	PropertyMap basePBR;
 
-	m_basePBRMaterialType.Add("BaseColor_Color", Vec3f(1.0f, 1.0f, 1.0f));
-	m_basePBRMaterialType.Add("BaseColor_Factor", 0.0f);
-	m_basePBRMaterialType.Add("BaseColor_UseTexture", true);
+	basePBR.Add("BaseColor_Color", Vec3f(1.0f, 1.0f, 1.0f));
+	// Factor for blending Color and Texture.
+	// Or if there is no Texture, then this simply scales the Color value.
+	basePBR.Add("BaseColor_Factor", 0.0f);
+	basePBR.Add("BaseColor_UseTexture", true);
 
-	m_basePBRMaterialType.Add("Occlusion_Factor", 0.0f);
-	m_basePBRMaterialType.Add("Occlusion_UseTexture", true);
+	basePBR.Add("Occlusion_Factor", 0.0f);
+	basePBR.Add("Occlusion_UseTexture", true);
 
-	m_basePBRMaterialType.Add("Roughness_Factor", 0.9f);
-	m_basePBRMaterialType.Add("Roughness_UseTexture", true);
+	basePBR.Add("Roughness_Factor", 0.9f);
+	basePBR.Add("Roughness_UseTexture", true);
 
-	m_basePBRMaterialType.Add("Metallic_Factor", 0.1f);
-	m_basePBRMaterialType.Add("Metallic_UseTexture", true);
+	basePBR.Add("Metallic_Factor", 0.1f);
+	basePBR.Add("Metallic_UseTexture", true);
 
-	m_basePBRMaterialType.Add("Normal_UseTexture", true);
+	basePBR.Add("Normal_UseTexture", true);
 
-	m_basePBRMaterialType.Add("General_EnableDirectionalLights", true);
-	m_basePBRMaterialType.Add("General_EnablePunctualLights", true);
-	m_basePBRMaterialType.Add("General_EnableAreaLights", false);
-	m_basePBRMaterialType.Add("General_EnableIBL", true);
+	basePBR.Add("General_EnableDirectionalLights", true);
+	basePBR.Add("General_EnablePunctualLights", true);
+	basePBR.Add("General_EnableAreaLights", false);
+	basePBR.Add("General_EnableIBL", true);
+
+	m_propertyGroups = std::move(basePBR);
 }
 
-void MaterialImpl::SetTextureID(MaterialPropretyGroup propretyGroup, TextureID textureID)
-{
-	m_basePBRMaterialType.Add(GetMaterialPropretyTextureKey(propretyGroup), textureID.Data());
-}
-
-std::optional<TextureID> MaterialImpl::GetTextureID(MaterialPropretyGroup propretyGroup) const
+void MaterialImpl::AddTextureID(MaterialPropertyGroup propertyGroup, TextureID textureID)
 {
 	static_assert(sizeof(TextureID) == sizeof(uint32_t));
-	const auto textureID = m_basePBRMaterialType.Get<uint32_t>(GetMaterialPropretyTextureKey(propretyGroup));
+	AddProperty(propertyGroup, MaterialProperty::Texture, textureID.Data());
+}
+
+std::optional<TextureID> MaterialImpl::GetTextureID(MaterialPropertyGroup propertyGroup) const
+{
+	static_assert(sizeof(TextureID) == sizeof(uint32_t));
+	auto textureID = GetProperty<uint32_t>(propertyGroup, MaterialProperty::Texture);
 	if (textureID.has_value())
 	{
 		return TextureID(textureID.value());
@@ -61,9 +66,9 @@ std::optional<TextureID> MaterialImpl::GetTextureID(MaterialPropretyGroup propre
 	}
 }
 
-bool MaterialImpl::IsTextureTypeSetup(MaterialPropretyGroup propretyGroup) const
+bool MaterialImpl::IsTextureSetup(MaterialPropertyGroup propertyGroup) const
 {
-	return m_basePBRMaterialType.Exist(GetMaterialPropretyTextureKey(propretyGroup));
+	return ExtstProperty(propertyGroup, MaterialProperty::Texture);
 }
 
 }

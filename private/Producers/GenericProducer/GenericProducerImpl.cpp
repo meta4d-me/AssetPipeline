@@ -85,15 +85,15 @@ void DumpSceneDatabase(const cd::SceneDatabase& sceneDatabase)
 
 		for (const auto &textureType : textureTypes)
 		{
-			std::string textureKey = cd::GetMaterialPropretyTextureKey(textureType);
-			const auto &map = material.GetMaterialType();
-			const auto textureID = map.Get<uint32_t>(textureKey);
+			std::string textureKey = cd::GetMaterialPropertyTextureKey(textureType);
+			const auto &groups = material.GetPropertyGroups();
+			const auto textureID = groups.Get<uint32_t>(textureKey);
 			
 			if (textureID.has_value())
 			{
 				const auto &texture = sceneDatabase.GetTexture(textureID.value());
 				printf("\t[TextureID %u] %s - %s\n", textureID.value(),
-					cd::GetMaterialPropretyGroupName(textureType), texture.GetPath());
+					cd::GetMaterialPropertyGroupName(textureType), texture.GetPath());
 			}
 			else
 			{
@@ -194,14 +194,16 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 	}
 
 	//printf("\t[MaterialID %u] %s\n", materialID.Data(), finalMaterialName.c_str());
-	cd::Material material(materialID, finalMaterialName.c_str());
+	
+	// Create a base PBR material type by default.
+	cd::Material material(materialID, finalMaterialName.c_str(), cd::MaterialType::BasePBR);
 
 	// Process all textures
 	for (const auto& [textureType, materialTextureType] : materialTextureMapping)
 	{
 		// Multiple assimp texture types will map to the same texture to increase the successful rate.
 		// Setup means one assimp texture type already added. Just skip remain assimp texture types.
-		if (material.IsTextureTypeSetup(materialTextureType))
+		if (material.IsTextureSetup(materialTextureType))
 		{
 			continue;
 		}
@@ -241,7 +243,7 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			std::filesystem::path textureAbsolutePath = m_folderPath;
 			textureAbsolutePath.append(ai_path.C_Str());
 
-			material.SetTextureID(materialTextureType, textureID);
+			material.AddTextureID(materialTextureType, textureID);
 
 			// Reused textures don't need to add to SceneDatabase again.
 			if (!isTextureReused)
