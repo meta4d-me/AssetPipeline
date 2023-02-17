@@ -21,9 +21,7 @@ void MaterialImpl::SetPropertyDefaultValue()
 {
 	m_basePBRMaterialType.Add("Name", std::string("BasePBR"));
 
-	m_basePBRMaterialType.Add("BaseColor_Color_R", 1.0f);
-	m_basePBRMaterialType.Add("BaseColor_Color_G", 1.0f);
-	m_basePBRMaterialType.Add("BaseColor_Color_B", 1.0f);
+	m_basePBRMaterialType.Add("BaseColor_Color", Vec3f(1.0f, 1.0f, 1.0f));
 	m_basePBRMaterialType.Add("BaseColor_Factor", 0.0f);
 	m_basePBRMaterialType.Add("BaseColor_UseTexture", true);
 

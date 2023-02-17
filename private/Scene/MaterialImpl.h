@@ -50,8 +50,8 @@ public:
 		inputArchive >> materialID >> materialName;
 		Init(MaterialID(materialID), MoveTemp(materialName));
 
-		uint64_t stringCount, byte4Count, byte8Count;
-		inputArchive >> stringCount >> byte4Count >> byte8Count;
+		uint64_t stringCount, byte4Count, byte8Count, byte12Count;
+		inputArchive >> stringCount >> byte4Count >> byte8Count >> byte12Count;
 
 		for (uint64_t index = 0; index < stringCount; ++index)
 		{
@@ -60,7 +60,6 @@ public:
 			inputArchive >> key >> value;
 			m_basePBRMaterialType.Add(key, value);
 		}
-
 		for (uint64_t index = 0; index < byte4Count; ++index)
 		{
 			PropertyMapKeyType key;
@@ -68,11 +67,17 @@ public:
 			inputArchive >> key >> value;
 			m_basePBRMaterialType.Add(key, value);
 		}
-
 		for (uint64_t index = 0; index < byte8Count; ++index)
 		{
 			PropertyMapKeyType key;
 			uint64_t value;
+			inputArchive >> key >> value;
+			m_basePBRMaterialType.Add(key, value);
+		}
+		for (uint64_t index = 0; index < byte12Count; ++index)
+		{
+			PropertyMapKeyType key;
+			cd::Vec3f value;
 			inputArchive >> key >> value;
 			m_basePBRMaterialType.Add(key, value);
 		}
@@ -89,11 +94,13 @@ public:
 		const auto stringProperty       = materailType.GetStringProperty();
 		const auto byte4Property        = materailType.GetByte4Property();
 		const auto byte8Property        = materailType.GetByte8Property();
+		const auto byte12Property       = materailType.GetByte12Property();
 
-		outputArchive << 
+		outputArchive <<
 			static_cast<uint64_t>(stringProperty.size()) <<
 			static_cast<uint64_t>(byte4Property.size()) <<
-			static_cast<uint64_t>(byte8Property.size());
+			static_cast<uint64_t>(byte8Property.size()) <<
+			static_cast<uint64_t>(byte12Property.size());
 		
 		for (const auto &[key, value] : stringProperty)
 		{
@@ -104,6 +111,10 @@ public:
 			outputArchive << key << value;
 		}
 		for (const auto &[key, value] : byte8Property)
+		{
+			outputArchive << key << value;
+		}
+		for (const auto &[key, value] : byte12Property)
 		{
 			outputArchive << key << value;
 		}

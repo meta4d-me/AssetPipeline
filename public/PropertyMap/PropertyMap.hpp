@@ -11,11 +11,9 @@
 #include <set>
 #include <vector>
 
-namespace cd
-{
+namespace cd {
 
-namespace
-{
+namespace {
 using PropertyMapKeyType = std::string;
 }
 
@@ -62,6 +60,10 @@ public:
 			{
 				return reinterpret_cast<const T &>(m_byte8Property.at(key));
 			}
+			else if constexpr (std::is_same_v<T, cd::Vec3f>)
+			{
+				return m_byte12Property.at(key);
+			}
 		}
 		else
 		{
@@ -96,6 +98,7 @@ public:
 			m_stringProperty.erase(key);
 			m_byte4Property.erase(key);
 			m_byte8Property.erase(key);
+			m_byte12Property.erase(key);
 		}
 		else
 		{
@@ -109,12 +112,14 @@ public:
 		m_stringProperty.clear();
 		m_byte4Property.clear();
 		m_byte8Property.clear();
+		m_byte12Property.clear();
 	}
 
 	const std::map<PropertyMapKeyType, std::string> &GetStringProperty() const { return m_stringProperty; }
-	const std::map<PropertyMapKeyType, uint32_t>    &GetByte4Property() const { return m_byte4Property; }
-	const std::map<PropertyMapKeyType, uint64_t>    &GetByte8Property() const { return m_byte8Property; }
-	const std::set<PropertyMapKeyType>              &GetKeySetProperty() const { return m_keySet; }
+	const std::map<PropertyMapKeyType, uint32_t> &GetByte4Property() const { return m_byte4Property; }
+	const std::map<PropertyMapKeyType, uint64_t> &GetByte8Property() const { return m_byte8Property; }
+	const std::map<PropertyMapKeyType, cd::Vec3f> &GetByte12Property() const { return m_byte12Property; }
+	const std::set<PropertyMapKeyType> &GetKeySetProperty() const { return m_keySet; }
 
 private:
 	template<typename T>
@@ -132,6 +137,10 @@ private:
 		{
 			m_byte8Property[key] = reinterpret_cast<const uint64_t &>(value);
 		}
+		else if constexpr (std::is_same_v<T, cd::Vec3f>)
+		{
+			m_byte12Property[key] = value;
+		}
 	}
 
 	template<typename T>
@@ -146,14 +155,16 @@ private:
 			std::is_same_v<T, double> ||
 			std::is_same_v<T, uint64_t> ||
 			std::is_same_v<T, double> ||
-			std::is_same_v<T, cd::Vec2f>) &&
+			std::is_same_v<T, cd::Vec2f> ||
+			std::is_same_v<T, cd::Vec3f>) &&
 			"PropertyMap unsupport type!"
-		);
+			);
 	}
 
 	std::map<PropertyMapKeyType, std::string> m_stringProperty;
 	std::map<PropertyMapKeyType, uint32_t>    m_byte4Property;
 	std::map<PropertyMapKeyType, uint64_t>    m_byte8Property;
+	std::map<PropertyMapKeyType, cd::Vec3f>   m_byte12Property;
 
 	std::set<PropertyMapKeyType> m_keySet;
 };

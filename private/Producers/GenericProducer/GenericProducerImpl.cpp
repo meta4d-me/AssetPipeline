@@ -97,7 +97,7 @@ void DumpSceneDatabase(const cd::SceneDatabase& sceneDatabase)
 			}
 			else
 			{
-				printf("\t[warnning] Can not find texture id by textureKey %s\n", textureKey.c_str());
+				// printf("\t[warnning] Can not find texture id by textureKey %s\n", textureKey.c_str());
 			}
 		}
 	}
