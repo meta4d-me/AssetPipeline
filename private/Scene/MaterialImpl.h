@@ -59,7 +59,7 @@ public:
 	{
 		return m_propertyGroups.Get<T>(GetMaterialPropertyKey(propertyGroup, property));
 	}
-	bool ExtstProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
+	bool ExistProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
 	{
 		return m_propertyGroups.Exist(GetMaterialPropertyKey(propertyGroup, property));
 	}

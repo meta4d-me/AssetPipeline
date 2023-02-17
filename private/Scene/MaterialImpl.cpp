@@ -79,7 +79,7 @@ std::optional<TextureID> MaterialImpl::GetTextureID(MaterialPropertyGroup proper
 
 bool MaterialImpl::IsTextureSetup(MaterialPropertyGroup propertyGroup) const
 {
-	return ExtstProperty(propertyGroup, MaterialProperty::Texture);
+	return ExistProperty(propertyGroup, MaterialProperty::Texture);
 }
 
 }
