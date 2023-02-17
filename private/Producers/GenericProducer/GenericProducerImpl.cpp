@@ -83,17 +83,14 @@ void DumpSceneDatabase(const cd::SceneDatabase& sceneDatabase)
 	{
 		printf("[MaterialID %u] %s\n", material.GetID().Data(), material.GetName());
 
-		for (const auto &textureType : textureTypes)
+		for (const auto &type : textureTypes)
 		{
-			std::string textureKey = cd::GetMaterialPropertyTextureKey(textureType);
-			const auto &groups = material.GetPropertyGroups();
-			const auto textureID = groups.Get<uint32_t>(textureKey);
-			
-			if (textureID.has_value())
+			if (material.IsTextureSetup(type))
 			{
-				const auto &texture = sceneDatabase.GetTexture(textureID.value());
+				const auto &textureID = material.GetTextureID(type);
+				const auto &texture = sceneDatabase.GetTexture(textureID.value().Data());
 				printf("\t[TextureID %u] %s - %s\n", textureID.value(),
-					cd::GetMaterialPropertyGroupName(textureType), texture.GetPath());
+					cd::GetMaterialPropertyGroupName(type), texture.GetPath());
 			}
 			else
 			{

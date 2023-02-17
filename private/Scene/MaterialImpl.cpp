@@ -8,6 +8,17 @@ namespace cd
 MaterialImpl::MaterialImpl(MaterialID materialID, std::string materialName, MaterialType materialType)
 {
 	Init(materialID, MoveTemp(materialName), materialType);
+
+	switch (materialType)
+	{
+		case MaterialType::BasePBR:
+			InitBasePBR();
+			break;
+
+		default:
+			printf("Unknow material type!\n");
+			break;
+	}
 }
 
 void MaterialImpl::Init(MaterialID materialID, std::string materialName, MaterialType materialType)

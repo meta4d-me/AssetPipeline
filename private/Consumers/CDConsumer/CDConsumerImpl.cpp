@@ -152,17 +152,13 @@ void CDConsumerImpl::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase)
 			cd::MaterialTextureType::Normal,
 		};
 
-		for (const auto &textureType : textureTypes)
+		for (const auto &type : textureTypes)
 		{
-			std::string textureKey = GetMaterialPropertyTextureKey(textureType);
-			const auto &groups = material.GetPropertyGroups();
-			const std::optional<uint32_t> textureID = groups.Get<uint32_t>(textureKey);
-
-			if (textureID.has_value())
+			if (material.IsTextureSetup(type))
 			{
 				std::stringstream ss;
-				ss << textureID.value();
-				XmlNode* pTextureNode = WriteNode(GetMaterialPropertyGroupName(textureType), ss.str().c_str());
+				ss << material.GetTextureID(type).value().Data();
+				XmlNode *pTextureNode = WriteNode(GetMaterialPropertyGroupName(type), ss.str().c_str());
 				pTextureListNode->append_node(pTextureNode);
 			}
 		}
