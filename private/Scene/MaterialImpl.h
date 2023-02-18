@@ -3,6 +3,7 @@
 #include "Base/Template.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
+#include "PropertyMap/PropertyMap.hpp"
 #include "Scene/MaterialTextureType.h"
 #include "Scene/ObjectID.h"
 #include "Math/Vector.hpp"
@@ -17,61 +18,127 @@ namespace cd
 class MaterialImpl final
 {
 public:
-	using TextureIDMap = std::map<MaterialTextureType, TextureID>;
-
-public:
 	MaterialImpl() = delete;
 	template<bool SwapBytesOrder>
 	explicit MaterialImpl(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
 		*this << inputArchive;
 	}
-	explicit MaterialImpl(MaterialID materialID, std::string materialName);
+	explicit MaterialImpl(MaterialID materialID, std::string materialName, MaterialType materialType);
 	MaterialImpl(const MaterialImpl&) = default;
 	MaterialImpl& operator=(const MaterialImpl&) = default;
 	MaterialImpl(MaterialImpl&&) = default;
 	MaterialImpl& operator=(MaterialImpl&&) = default;
 	~MaterialImpl() = default;
 
-	void Init(MaterialID materialID, std::string materialName);
+	void Init(MaterialID materialID, std::string materialName, MaterialType materialType);
+	void InitBasePBR();
 
 	const MaterialID& GetID() const { return m_id; }
 	const std::string& GetName() const { return m_name; }
-	void SetTextureID(MaterialTextureType textureType, TextureID textureID);
-	std::optional<TextureID> GetTextureID(MaterialTextureType textureType) const;
-	const TextureIDMap& GetTextureIDMap() const { return m_textureIDs; }
-	bool IsTextureTypeSetup(MaterialTextureType textureType) const { return m_textureIDs.find(textureType) != m_textureIDs.end(); }
+
+	const MaterialType &GetType() const { return m_type; }
+	const PropertyMap &GetPropertyGroups() const{ return m_propertyGroups; }
+
+	void AddTextureID(MaterialPropertyGroup propertyGroup, TextureID textureID);
+	std::optional<TextureID> GetTextureID(MaterialPropertyGroup propertyGroup) const;
+	bool IsTextureSetup(MaterialPropertyGroup propertyGroup) const;
+
+	template<typename T>
+	void AddProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, const T &value)
+	{
+		m_propertyGroups.Add(GetMaterialPropertyKey(propertyGroup, property), value);
+	}
+	template<typename T>
+	void SetProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, const T &value)
+	{
+		m_propertyGroups.Set(GetMaterialPropertyKey(propertyGroup, property), value);
+	}
+	template<typename T>
+	std::optional<T> GetProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
+	{
+		return m_propertyGroups.Get<T>(GetMaterialPropertyKey(propertyGroup, property));
+	}
+	bool ExistProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
+	{
+		return m_propertyGroups.Exist(GetMaterialPropertyKey(propertyGroup, property));
+	}
 
 	template<bool SwapBytesOrder>
 	MaterialImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
-		std::string materialName;
 		uint32_t materialID;
-		size_t materialTextureCount;
-		inputArchive >> materialName >> materialID >> materialTextureCount;
+		std::string materialName;
+		uint8_t materialType;
+		inputArchive >> materialID >> materialName >> materialType;
+		Init(MaterialID(materialID), MoveTemp(materialName), MaterialType(materialType));
 
-		Init(MaterialID(materialID), MoveTemp(materialName));
-
-		for (uint32_t textureIndex = 0; textureIndex < materialTextureCount; ++textureIndex)
+		uint64_t stringCount, byte4Count, byte8Count, byte12Count;
+		inputArchive >> stringCount >> byte4Count >> byte8Count >> byte12Count;
+		for (uint64_t index = 0; index < stringCount; ++index)
 		{
-			size_t textureType;
-			uint32_t materialTextureID;
-			inputArchive >> textureType >> materialTextureID;
-			SetTextureID(static_cast<MaterialTextureType>(textureType), TextureID(materialTextureID));
+			PropertyMapKeyType key;
+			std::string value;
+			inputArchive >> key >> value;
+			m_propertyGroups.Add(key, value);
+		}
+		for (uint64_t index = 0; index < byte4Count; ++index)
+		{
+			PropertyMapKeyType key;
+			uint32_t value;
+			inputArchive >> key >> value;
+			m_propertyGroups.Add(key, value);
+		}
+		for (uint64_t index = 0; index < byte8Count; ++index)
+		{
+			PropertyMapKeyType key;
+			uint64_t value;
+			inputArchive >> key >> value;
+			m_propertyGroups.Add(key, value);
+		}
+		for (uint64_t index = 0; index < byte12Count; ++index)
+		{
+			PropertyMapKeyType key;
+			cd::Vec3f value;
+			inputArchive >> key >> value;
+			m_propertyGroups.Add(key, value);
 		}
 
 		return *this;
 	}
 
 	template<bool SwapBytesOrder>
-	const MaterialImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
+	const MaterialImpl &operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		const TextureIDMap& textureIDMap = GetTextureIDMap();
-		outputArchive << GetName() << GetID().Data() << textureIDMap.size();
+		outputArchive << GetID().Data() << GetName() << static_cast<uint8_t>(GetType());
 
-		for (const auto& [materialTextureType, textureID] : textureIDMap)
+		const auto &groups         = GetPropertyGroups();
+		const auto &stringProperty = groups.GetStringProperty();
+		const auto &byte4Property  = groups.GetByte4Property();
+		const auto &byte8Property  = groups.GetByte8Property();
+		const auto &byte12Property = groups.GetByte12Property();
+
+		outputArchive <<
+			static_cast<uint64_t>(stringProperty.size()) <<
+			static_cast<uint64_t>(byte4Property.size()) <<
+			static_cast<uint64_t>(byte8Property.size()) <<
+			static_cast<uint64_t>(byte12Property.size());
+
+		for (const auto &[key, value] : stringProperty)
 		{
-			outputArchive << static_cast<size_t>(materialTextureType) << textureID.Data();
+			outputArchive << key << value;
+		}
+		for (const auto &[key, value] : byte4Property)
+		{
+			outputArchive << key << value;
+		}
+		for (const auto &[key, value] : byte8Property)
+		{
+			outputArchive << key << value;
+		}
+		for (const auto &[key, value] : byte12Property)
+		{
+			outputArchive << key << value;
 		}
 
 		return *this;
@@ -81,7 +148,8 @@ private:
 	MaterialID m_id;
 	std::string m_name;
 
-	TextureIDMap m_textureIDs;
+	MaterialType m_type;
+	PropertyMap m_propertyGroups;
 };
 
 }

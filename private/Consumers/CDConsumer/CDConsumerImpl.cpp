@@ -141,13 +141,26 @@ void CDConsumerImpl::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase)
 		WriteNodeStringAttribute(pMaterialNode, "Name", material.GetName());
 
 		XmlNode* pMaterialDataNode = WriteNode("Data");
-		WriteNodeU32Attribute(pMaterialDataNode, "TextureCount", static_cast<uint32_t>(material.GetTextureIDMap().size()));
+		XmlNode *pTextureListNode = WriteNode("TextureList");
 
-		XmlNode* pTextureListNode = WriteNode("TextureList");
-		for (const auto& [materialTextureType, textureID] : material.GetTextureIDMap())
+		std::vector<cd::MaterialTextureType> textureTypes = {
+			cd::MaterialTextureType::BaseColor,
+			cd::MaterialTextureType::Occlusion,
+			cd::MaterialTextureType::Roughness,
+			cd::MaterialTextureType::Metallic,
+			cd::MaterialTextureType::Emissive,
+			cd::MaterialTextureType::Normal,
+		};
+
+		for (const auto &type : textureTypes)
 		{
-			XmlNode* pTextureNode = WriteNode(GetMaterialTextureTypeName(materialTextureType), std::to_string(textureID.Data()).c_str());
-			pTextureListNode->append_node(pTextureNode);
+			if (material.IsTextureSetup(type))
+			{
+				std::stringstream ss;
+				ss << material.GetTextureID(type).value().Data();
+				XmlNode *pTextureNode = WriteNode(GetMaterialPropertyGroupName(type), ss.str().c_str());
+				pTextureListNode->append_node(pTextureNode);
+			}
 		}
 
 		pMaterialNode->append_node(pMaterialDataNode);

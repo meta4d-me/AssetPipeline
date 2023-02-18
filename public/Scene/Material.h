@@ -5,6 +5,7 @@
 #include "IO/OutputArchive.hpp"
 #include "MaterialTextureType.h"
 #include "Math/Vector.hpp"
+#include "PropertyMap/PropertyMap.hpp"
 #include "Scene/ObjectID.h"
 
 #include <map>
@@ -18,27 +19,24 @@ class MaterialImpl;
 class CORE_API Material final
 {
 public:
-	using TextureIDMap = std::map<MaterialTextureType, TextureID>;
-
-public:
 	Material() = delete;
 	explicit Material(InputArchive& inputArchive);
 	explicit Material(InputArchiveSwapBytes& inputArchive);
-	explicit Material(MaterialID materialID, const char* pMaterialName);
+	explicit Material(MaterialID materialID, const char* pMaterialName, MaterialType type);
 	Material(const Material&) = delete;
 	Material& operator=(const Material&) = delete;
 	Material(Material&&);
 	Material& operator=(Material&&);
 	~Material();
 
-	void Init(MaterialID materialID, const char* pMaterialName);
+	void Init(MaterialID materialID, const char* pMaterialName, MaterialType type);
 
 	const MaterialID& GetID() const;
 	const char* GetName() const;
-	void SetTextureID(MaterialTextureType textureType, TextureID textureID);
-	std::optional<TextureID> GetTextureID(MaterialTextureType textureType) const;
-	const TextureIDMap& GetTextureIDMap() const;
-	bool IsTextureTypeSetup(MaterialTextureType textureType) const;
+	void AddTextureID(MaterialPropertyGroup textureType, TextureID textureID);
+	std::optional<TextureID> GetTextureID(MaterialPropertyGroup textureType) const;
+	const PropertyMap &GetPropertyGroups() const;
+	bool IsTextureSetup(MaterialPropertyGroup textureType) const;
 
 	Material& operator<<(InputArchive& inputArchive);
 	Material& operator<<(InputArchiveSwapBytes& inputArchive);

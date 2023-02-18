@@ -70,15 +70,32 @@ void DumpSceneDatabase(const cd::SceneDatabase& sceneDatabase)
 		}
 	}
 
+	std::vector<cd::MaterialTextureType> textureTypes = {
+		cd::MaterialTextureType::BaseColor,
+		cd::MaterialTextureType::Occlusion,
+		cd::MaterialTextureType::Roughness,
+		cd::MaterialTextureType::Metallic,
+		cd::MaterialTextureType::Emissive,
+		cd::MaterialTextureType::Normal,
+	};
+
 	for (const auto& material : sceneDatabase.GetMaterials())
 	{
 		printf("[MaterialID %u] %s\n", material.GetID().Data(), material.GetName());
 
-		for (const auto& [materialTextureType, textureID] : material.GetTextureIDMap())
+		for (const auto &type : textureTypes)
 		{
-			const auto& texture = sceneDatabase.GetTexture(textureID.Data());
-			printf("\t[TextureID %u] %s - %s\n", textureID.Data(),
-				GetMaterialTextureTypeName(materialTextureType), texture.GetPath());
+			if (material.IsTextureSetup(type))
+			{
+				const auto &textureID = material.GetTextureID(type);
+				const auto &texture = sceneDatabase.GetTexture(textureID.value().Data());
+				printf("\t[TextureID %u] %s - %s\n", textureID.value(),
+					cd::GetMaterialPropertyGroupName(type), texture.GetPath());
+			}
+			else
+			{
+				// printf("\t[warnning] Can not find texture id by textureKey %s\n", textureKey.c_str());
+			}
 		}
 	}
 
@@ -139,10 +156,10 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 		materialTextureMapping[aiTextureType_NORMAL_CAMERA] = cd::MaterialTextureType::Normal;
 		materialTextureMapping[aiTextureType_EMISSIVE] = cd::MaterialTextureType::Emissive;
 		materialTextureMapping[aiTextureType_EMISSION_COLOR] = cd::MaterialTextureType::Emissive;
-		materialTextureMapping[aiTextureType_METALNESS] = cd::MaterialTextureType::Metalness;
+		materialTextureMapping[aiTextureType_METALNESS] = cd::MaterialTextureType::Metallic;
 		materialTextureMapping[aiTextureType_DIFFUSE_ROUGHNESS] = cd::MaterialTextureType::Roughness;
-		materialTextureMapping[aiTextureType_AMBIENT_OCCLUSION] = cd::MaterialTextureType::AO;
-		materialTextureMapping[aiTextureType_LIGHTMAP] = cd::MaterialTextureType::AO;
+		materialTextureMapping[aiTextureType_AMBIENT_OCCLUSION] = cd::MaterialTextureType::Occlusion;
+		materialTextureMapping[aiTextureType_LIGHTMAP] = cd::MaterialTextureType::Occlusion;
 	}
 
 	aiString materialName;
@@ -174,14 +191,16 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 	}
 
 	//printf("\t[MaterialID %u] %s\n", materialID.Data(), finalMaterialName.c_str());
-	cd::Material material(materialID, finalMaterialName.c_str());
+	
+	// Create a base PBR material type by default.
+	cd::Material material(materialID, finalMaterialName.c_str(), cd::MaterialType::BasePBR);
 
 	// Process all textures
 	for (const auto& [textureType, materialTextureType] : materialTextureMapping)
 	{
 		// Multiple assimp texture types will map to the same texture to increase the successful rate.
 		// Setup means one assimp texture type already added. Just skip remain assimp texture types.
-		if (material.IsTextureTypeSetup(materialTextureType))
+		if (material.IsTextureSetup(materialTextureType))
 		{
 			continue;
 		}
@@ -221,7 +240,7 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			std::filesystem::path textureAbsolutePath = m_folderPath;
 			textureAbsolutePath.append(ai_path.C_Str());
 
-			material.SetTextureID(materialTextureType, textureID);
+			material.AddTextureID(materialTextureType, textureID);
 
 			// Reused textures don't need to add to SceneDatabase again.
 			if (!isTextureReused)
