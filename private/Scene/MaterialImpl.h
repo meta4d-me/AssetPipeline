@@ -45,12 +45,12 @@ public:
 	bool IsTextureSetup(MaterialPropertyGroup propertyGroup) const;
 
 	template<typename T>
-	void AddProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, T value)
+	void AddProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, const T &value)
 	{
 		m_propertyGroups.Add(GetMaterialPropertyKey(propertyGroup, property), value);
 	}
 	template<typename T>
-	void SetProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, T value)
+	void SetProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, const T &value)
 	{
 		m_propertyGroups.Set(GetMaterialPropertyKey(propertyGroup, property), value);
 	}

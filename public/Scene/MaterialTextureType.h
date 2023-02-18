@@ -21,7 +21,7 @@ constexpr const char *MaterialTypeName[] =
 static_assert(static_cast<int>(MaterialType::Count) == sizeof(MaterialTypeName) / sizeof(char *),
 	"Material type and names mismatch.");
 
-inline const char *GetMaterialTypeName(MaterialType materialType)
+CD_FORCEINLINE const char *GetMaterialTypeName(MaterialType materialType)
 {
 	return MaterialTypeName[static_cast<size_t>(materialType)];
 }
@@ -58,7 +58,7 @@ constexpr const char *MaterialPropertyGroupName[] =
 static_assert(static_cast<int>(MaterialPropertyGroup::Count) == sizeof(MaterialPropertyGroupName) / sizeof(char *),
 	"Material property group and names mismatch.");
 
-inline const char *GetMaterialPropertyGroupName(MaterialPropertyGroup propertyGroup) {
+CD_FORCEINLINE const char *GetMaterialPropertyGroupName(MaterialPropertyGroup propertyGroup) {
 	return MaterialPropertyGroupName[static_cast<size_t>(propertyGroup)];
 }
 
@@ -99,11 +99,11 @@ constexpr const char *MaterialPropertyName[] =
 static_assert(static_cast<int>(MaterialProperty::Count) == sizeof(MaterialPropertyName) / sizeof(char *),
 	"Material property and names mismatch.");
 
-inline const char *GetMaterialPropertyName(MaterialProperty property) {
+CD_FORCEINLINE const char *GetMaterialPropertyName(MaterialProperty property) {
 	return MaterialPropertyName[static_cast<size_t>(property)];
 }
 
-inline std::string GetMaterialPropertyKey(MaterialPropertyGroup propertyGroup, MaterialProperty property)
+CD_FORCEINLINE std::string GetMaterialPropertyKey(MaterialPropertyGroup propertyGroup, MaterialProperty property)
 {
 	std::stringstream ss;
 	ss << GetMaterialPropertyGroupName(propertyGroup) << "_" << GetMaterialPropertyName(property);
@@ -111,7 +111,7 @@ inline std::string GetMaterialPropertyKey(MaterialPropertyGroup propertyGroup, M
 	return ss.str();
 }
 
-inline std::string GetMaterialPropertyTextureKey(MaterialPropertyGroup propertyGroup)
+CD_FORCEINLINE std::string GetMaterialPropertyTextureKey(MaterialPropertyGroup propertyGroup)
 {
 	return GetMaterialPropertyKey(propertyGroup, MaterialProperty::Texture);
 }
