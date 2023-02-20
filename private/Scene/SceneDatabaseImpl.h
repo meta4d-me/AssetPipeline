@@ -61,6 +61,14 @@ public:
 	const Mesh& GetMesh(uint32_t index) const { return m_meshes[index];  }
 	uint32_t GetMeshCount() const { return static_cast<uint32_t>(m_meshes.size()); }
 
+	// Texture
+	void AddTexture(Texture texture);
+	std::vector<Texture> &GetTextures() { return m_textures; }
+	const std::vector<Texture> &GetTextures() const { return m_textures; }
+	void SetTextureCount(uint32_t textureCount);
+	const Texture &GetTexture(uint32_t index) const { return m_textures[index]; }
+	uint32_t GetTextureCount() const { return static_cast<uint32_t>(m_textures.size()); }
+
 	// Material
 	void AddMaterial(Material material);
 	std::vector<Material>& GetMaterials() { return m_materials; }
@@ -68,14 +76,6 @@ public:
 	void SetMaterialCount(uint32_t materialCount);
 	const Material& GetMaterial(uint32_t index) const { return m_materials[index]; }
 	uint32_t GetMaterialCount() const { return static_cast<uint32_t>(m_materials.size()); }
-
-	// Texture
-	void AddTexture(Texture texture);
-	std::vector<Texture>& GetTextures() { return m_textures; }
-	const std::vector<Texture>& GetTextures() const { return m_textures; }
-	void SetTextureCount(uint32_t textureCount);
-	const Texture& GetTexture(uint32_t index) const { return m_textures[index]; }
-	uint32_t GetTextureCount() const { return static_cast<uint32_t>(m_textures.size()); }
 
 	// Light
 	void AddLight(Light light);
@@ -99,15 +99,15 @@ public:
 		uint32_t nodeCount = 0;
 		uint32_t boneCount = 0;
 		uint32_t meshCount = 0;
-		uint32_t materialCount = 0;
 		uint32_t textureCount = 0;
+		uint32_t materialCount = 0;
 		uint32_t lightCount = 0;
-		inputArchive >> nodeCount >> boneCount >> meshCount >> materialCount >> textureCount >> lightCount;
+		inputArchive >> nodeCount >> boneCount >> meshCount >> textureCount >> materialCount >> lightCount;
 		SetNodeCount(nodeCount);
 		SetBoneCount(boneCount);
 		SetMeshCount(meshCount);
-		SetMaterialCount(materialCount);
 		SetTextureCount(textureCount);
+		SetMaterialCount(materialCount);
 		SetLightCount(lightCount);
 
 		for (uint32_t nodeIndex = 0; nodeIndex < nodeCount; ++nodeIndex)
@@ -118,11 +118,6 @@ public:
 		for (uint32_t boneIndex = 0; boneIndex < boneCount; ++boneIndex)
 		{
 			AddBone(Bone(inputArchive));
-		}
-
-		for (uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex)
-		{
-			AddMesh(Mesh(inputArchive));
 		}
 
 		for (uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex)
@@ -154,7 +149,7 @@ public:
 		outputArchive << GetName();
 		GetAABB() >> outputArchive;
 
-		outputArchive << GetNodeCount() << GetBoneCount() << GetMeshCount() << GetMaterialCount() << GetTextureCount() << GetLightCount();
+		outputArchive << GetNodeCount() << GetBoneCount() << GetMeshCount() << GetTextureCount() << GetMaterialCount() << GetLightCount();
 
 		for (uint32_t nodeIndex = 0; nodeIndex < GetNodeCount(); ++nodeIndex)
 		{
@@ -202,8 +197,8 @@ private:
 	std::vector<Node> m_nodes;
 	std::vector<Bone> m_bones;
 	std::vector<Mesh> m_meshes;
-	std::vector<Material> m_materials;
 	std::vector<Texture> m_textures;
+	std::vector<Material> m_materials;
 	std::vector<Light> m_lights;
 };
 
