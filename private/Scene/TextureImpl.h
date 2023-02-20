@@ -75,7 +75,7 @@ public:
 	template<bool SwapBytesOrder>
 	const TextureImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetID().Data() << static_cast<uint8_t>(GetType()) << GetPath() << m_rawTexture.empty();
+		outputArchive << GetID().Data() << static_cast<uint8_t>(GetType()) << GetPath() << !m_rawTexture.empty();
 		if (!m_rawTexture.empty())
 		{
 			outputArchive << static_cast<uint32_t>(m_textureFormat) << m_rawTexture.size();
