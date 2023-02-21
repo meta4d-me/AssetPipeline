@@ -21,7 +21,7 @@ public:
 	{
 		std::chrono::steady_clock::time_point endTimePoint = std::chrono::steady_clock::now();
 		std::chrono::duration<double> elapsedTime = endTimePoint - m_startTimePoint;
-		printf("%s costs %f seconds\n", m_tag.c_str(), elapsedTime.count());
+		printf("\n%s costs %f seconds\n", m_tag.c_str(), elapsedTime.count());
 	}
 
 private:

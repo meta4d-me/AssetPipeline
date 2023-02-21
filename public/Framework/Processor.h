@@ -29,6 +29,12 @@ public:
 	Processor& operator=(Processor&&) = delete;
 	~Processor();
 
+	void SetValidateSceneDatabaseEnable(bool enable);
+	bool IsValidateSceneDatabaseEnabled() const;
+
+	void SetDumpSceneDatabaseEnable(bool enable);
+	bool IsDumpSceneDatabaseEnabled() const;
+
 	const cd::SceneDatabase* GetSceneDatabase() const;
 	void Run();
 
