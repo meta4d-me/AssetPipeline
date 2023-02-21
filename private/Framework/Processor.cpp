@@ -18,6 +18,26 @@ Processor::~Processor()
 	}
 }
 
+void Processor::SetValidateSceneDatabaseEnable(bool enable)
+{
+	m_pProcessorImpl->SetValidateSceneDatabaseEnable(enable);
+}
+
+bool Processor::IsValidateSceneDatabaseEnabled() const
+{
+	return m_pProcessorImpl->IsValidateSceneDatabaseEnabled();
+}
+
+void Processor::SetDumpSceneDatabaseEnable(bool enable)
+{
+	m_pProcessorImpl->SetDumpSceneDatabaseEnable(enable);
+}
+
+bool Processor::IsDumpSceneDatabaseEnabled() const
+{
+	return m_pProcessorImpl->IsDumpSceneDatabaseEnabled();
+}
+
 const cd::SceneDatabase* Processor::GetSceneDatabase() const
 {
 	return m_pProcessorImpl->GetSceneDatabase();

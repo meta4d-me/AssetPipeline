@@ -49,62 +49,6 @@ cd::Matrix4x4 ConvertAssimpMatrix(const aiMatrix4x4& matrix)
 		matrix.a4, matrix.b4, matrix.c4, matrix.d4);
 }
 
-void DumpSceneDatabase(const cd::SceneDatabase& sceneDatabase)
-{
-	printf("Node count : %d\n", sceneDatabase.GetNodeCount());
-	printf("Bone count : %d\n", sceneDatabase.GetBoneCount());
-	printf("Mesh count : %d\n", sceneDatabase.GetMeshCount());
-	printf("Material count : %d\n", sceneDatabase.GetMaterialCount());
-	printf("Texture count : %d\n", sceneDatabase.GetTextureCount());
-	printf("\n");
-
-	for (const auto& node : sceneDatabase.GetNodes())
-	{
-		printf("[Node %u] ParentID : %u, Name : %s\n", node.GetID().Data(), node.GetParentID().Data(), node.GetName().c_str());
-
-		for (cd::MeshID meshID : node.GetMeshIDs())
-		{
-			const auto& mesh = sceneDatabase.GetMesh(meshID.Data());
-			printf("\t[MeshID %u] name : %s, face number : %u, vertex number : %u, materialID : %u\n", meshID.Data(), mesh.GetName(),
-				mesh.GetPolygonCount(), mesh.GetVertexCount(), mesh.GetMaterialID().Data());
-		}
-	}
-
-	std::vector<cd::MaterialTextureType> textureTypes = {
-		cd::MaterialTextureType::BaseColor,
-		cd::MaterialTextureType::Occlusion,
-		cd::MaterialTextureType::Roughness,
-		cd::MaterialTextureType::Metallic,
-		cd::MaterialTextureType::Emissive,
-		cd::MaterialTextureType::Normal,
-	};
-
-	for (const auto& material : sceneDatabase.GetMaterials())
-	{
-		printf("[MaterialID %u] %s\n", material.GetID().Data(), material.GetName());
-
-		for (const auto &type : textureTypes)
-		{
-			if (material.IsTextureSetup(type))
-			{
-				const auto &textureID = material.GetTextureID(type);
-				const auto &texture = sceneDatabase.GetTexture(textureID.value().Data());
-				printf("\t[TextureID %u] %s - %s\n", textureID.value(),
-					cd::GetMaterialPropertyGroupName(type), texture.GetPath());
-			}
-			else
-			{
-				// printf("\t[warnning] Can not find texture id by textureKey %s\n", textureKey.c_str());
-			}
-		}
-	}
-
-	for (auto& bone : sceneDatabase.GetBones())
-	{
-		printf("[Bone %u] ParentID : %u, Name : %s\n", bone.GetID().Data(), bone.GetParentID().Data(), bone.GetName().c_str());
-	}
-}
-
 }
 
 namespace cdtools
@@ -588,8 +532,6 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 
 		AddMaterial(pSceneDatabase, pScene->mMaterials[materialIndex]);
 	}
-
-	DumpSceneDatabase(*pSceneDatabase);
 
 	aiReleaseImport(pScene);
 	pScene = nullptr;
