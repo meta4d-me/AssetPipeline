@@ -25,6 +25,9 @@ int main(int argc, char** argv)
 	producer.ActivateTangentsSpaceService();
 	FbxConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);
+	processor.SetDumpSceneDatabaseEnable(true);
+	processor.SetValidateSceneDatabaseEnable(true);
 	processor.Run();
+
 	return 0;
 }

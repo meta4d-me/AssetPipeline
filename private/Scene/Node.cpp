@@ -44,6 +44,11 @@ void Node::Init(NodeID nodeID, std::string name)
     m_pNodeImpl->Init(nodeID, cd::MoveTemp(name));
 }
 
+void Node::SetID(NodeID nodeID)
+{
+    m_pNodeImpl->SetID(nodeID);
+}
+
 const NodeID& Node::GetID() const
 {
     return m_pNodeImpl->GetID();

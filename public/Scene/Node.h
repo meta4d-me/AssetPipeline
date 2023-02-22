@@ -29,6 +29,7 @@ public:
 	
 	void Init(NodeID nodeID, std::string name);
 
+	void SetID(NodeID nodeID);
 	const NodeID& GetID() const;
 
 	void SetName(std::string name);

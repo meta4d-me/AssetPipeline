@@ -511,11 +511,23 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		removeNodeIndexes.push_back(m_nodeIDToNodeIndexLookup[pBoneNode->GetID().Data()]);
 	}
 
-	std::sort(removeNodeIndexes.begin(), removeNodeIndexes.end(), [](uint32_t lhs, uint32_t rhs) { return lhs > rhs; });
-	for (uint32_t nodeIndex : removeNodeIndexes)
+	// Remove bone nodes
+	if (!removeNodeIndexes.empty())
 	{
+		std::sort(removeNodeIndexes.begin(), removeNodeIndexes.end(), [](uint32_t lhs, uint32_t rhs) { return lhs > rhs; });
 		auto& sceneNodes = pSceneDatabase->GetNodes();
-		sceneNodes.erase(sceneNodes.begin() + nodeIndex);
+		for (uint32_t nodeIndex : removeNodeIndexes)
+		{
+			sceneNodes.erase(sceneNodes.begin() + nodeIndex);
+		}
+
+		assert(pSceneDatabase->GetNodeCount() == sceneNodes.size());
+		uint32_t nodeIndex = 0U;
+		for(auto& sceneNode : sceneNodes)
+		{
+			sceneNode.SetID(cd::NodeID(nodeIndex));
+			++nodeIndex;
+		}
 	}
 
 	// Process all materials and used textures.
