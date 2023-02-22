@@ -37,6 +37,8 @@ public:
 	void Execute(cd::SceneDatabase* pSceneDatabase);
 
 	void Init();
+
+private:
 	void TraverseNode(fbxsdk::FbxNode* pSDKNode, cd::SceneDatabase* pSceneDatabase);
 	bool TraverseMeshNode(fbxsdk::FbxNode* pMeshNode, cd::SceneDatabase* pSceneDatabase);
 	bool TraverseTransformNode(fbxsdk::FbxNode* pTransformNode, cd::SceneDatabase* pSceneDatabase);

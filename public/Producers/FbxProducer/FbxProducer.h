@@ -29,12 +29,6 @@ public:
 	virtual void Execute(cd::SceneDatabase* pSceneDatabase) override;
 
 private:
-	void Init();
-	void TraverseNode(fbxsdk::FbxNode* pSDKNode, cd::SceneDatabase* pSceneDatabase);
-	bool TraverseMeshNode(fbxsdk::FbxNode* pMeshNode, cd::SceneDatabase* pSceneDatabase);
-	bool TraverseTransformNode(fbxsdk::FbxNode* pTransformNode, cd::SceneDatabase* pSceneDatabase);
-
-private:
 	FbxProducerImpl* m_pFbxProducerImpl;
 };
 

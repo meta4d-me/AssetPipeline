@@ -512,21 +512,55 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	}
 
 	// Remove bone nodes
+	auto& sceneNodes = pSceneDatabase->GetNodes();
 	if (!removeNodeIndexes.empty())
 	{
 		std::sort(removeNodeIndexes.begin(), removeNodeIndexes.end(), [](uint32_t lhs, uint32_t rhs) { return lhs > rhs; });
-		auto& sceneNodes = pSceneDatabase->GetNodes();
 		for (uint32_t nodeIndex : removeNodeIndexes)
 		{
 			sceneNodes.erase(sceneNodes.begin() + nodeIndex);
 		}
+	}
 
-		assert(pSceneDatabase->GetNodeCount() == sceneNodes.size());
-		uint32_t nodeIndex = 0U;
-		for(auto& sceneNode : sceneNodes)
+	// Reorder ids
+	assert(pSceneDatabase->GetNodeCount() == sceneNodes.size());
+	std::map<uint32_t, uint32_t> oldToNewNodeID;
+	uint32_t nodeIndex = 0U;
+	for (auto& sceneNode : sceneNodes)
+	{
+		if (nodeIndex != sceneNode.GetID().Data())
 		{
+			auto itNode = oldToNewNodeID.find(sceneNode.GetID().Data());
+			assert(itNode == oldToNewNodeID.end());
+			oldToNewNodeID[sceneNode.GetID().Data()] = nodeIndex;
 			sceneNode.SetID(cd::NodeID(nodeIndex));
-			++nodeIndex;
+		}
+
+		++nodeIndex;
+	}
+
+	// Update every node's parent id and child ids. If there are other places which also store NodeID, it also should update.
+	if (!oldToNewNodeID.empty())
+	{
+		for (auto& sceneNode : sceneNodes)
+		{
+			uint32_t parentID = sceneNode.GetParentID().Data();
+			auto itModifiedIDNode = oldToNewNodeID.find(parentID);
+			if (itModifiedIDNode != oldToNewNodeID.end())
+			{
+				sceneNode.SetParentID(itModifiedIDNode->second);
+			}
+
+			auto& childIDs = sceneNode.GetChildIDs();
+			for (uint32_t childIndex = 0U, childCount = sceneNode.GetChildCount(); childIndex < childCount; ++childIndex)
+			{
+				uint32_t childNodeID = childIDs[childIndex].Data();
+				auto itModifiedIDNode = oldToNewNodeID.find(childNodeID);
+				if (itModifiedIDNode != oldToNewNodeID.end())
+				{
+					childIDs[childIndex] = cd::NodeID(itModifiedIDNode->second);
+				}
+			}
 		}
 	}
 
