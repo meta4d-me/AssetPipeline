@@ -54,35 +54,25 @@ void ProcessorImpl::DumpSceneDatabase()
 		}
 	}
 
-	std::vector<cd::MaterialTextureType> textureTypes = {
-		cd::MaterialTextureType::BaseColor,
-		cd::MaterialTextureType::Occlusion,
-		cd::MaterialTextureType::Roughness,
-		cd::MaterialTextureType::Metallic,
-		cd::MaterialTextureType::Emissive,
-		cd::MaterialTextureType::Normal,
-	};
-
+	printf("\n");
 	for (const auto& material : m_pCurrentSceneDatabase->GetMaterials())
 	{
 		printf("[MaterialID %u] %s\n", material.GetID().Data(), material.GetName());
 
-		for (const auto& type : textureTypes)
+		for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
 		{
-			if (material.IsTextureSetup(type))
+			cd::MaterialTextureType textureType = static_cast<cd::MaterialTextureType>(textureTypeValue);
+			if (material.IsTextureSetup(textureType))
 			{
-				const auto& textureID = material.GetTextureID(type);
-				const auto& texture = m_pCurrentSceneDatabase->GetTexture(textureID.value().Data());
-				printf("\t[TextureID %u] %s - %s\n", textureID.value().Data(),
-					cd::GetMaterialPropertyGroupName(type), texture.GetPath());
-			}
-			else
-			{
-				// printf("\t[warnning] Can not find texture id by textureKey %s\n", textureKey.c_str());
+				const auto& textureID = material.GetTextureID(textureType);
+					const auto& texture = m_pCurrentSceneDatabase->GetTexture(textureID.value().Data());
+					printf("\t[TextureID %u] %s - %s\n", textureID.value().Data(),
+						cd::GetMaterialPropertyGroupName(textureType), texture.GetPath());
 			}
 		}
 	}
 
+	printf("\n");
 	for (auto& bone : m_pCurrentSceneDatabase->GetBones())
 	{
 		printf("[Bone %u] ParentID : %u, Name : %s\n", bone.GetID().Data(), bone.GetParentID().Data(), bone.GetName().c_str());
@@ -91,8 +81,18 @@ void ProcessorImpl::DumpSceneDatabase()
 
 void ProcessorImpl::ValidateSceneDatabase()
 {
-	// TODO : For hierarchy data structs, they are hard to maintain index is same to its ID now.
-	// So it needs to keep id and index same. Or consider to use another solution in the future.
+	for (uint32_t nodeIndex = 0U; nodeIndex < m_pCurrentSceneDatabase->GetNodeCount(); ++nodeIndex)
+	{
+		const cd::Node& node = m_pCurrentSceneDatabase->GetNode(nodeIndex);
+		assert(nodeIndex == node.GetID().Data());
+	}
+
+	for (uint32_t boneIndex = 0U; boneIndex < m_pCurrentSceneDatabase->GetBoneCount(); ++boneIndex)
+	{
+		const cd::Bone& bone = m_pCurrentSceneDatabase->GetBone(boneIndex);
+		assert(boneIndex == bone.GetID().Data());
+	}
+
 	for (uint32_t meshIndex = 0U; meshIndex < m_pCurrentSceneDatabase->GetMeshCount(); ++meshIndex)
 	{
 		const cd::Mesh& mesh = m_pCurrentSceneDatabase->GetMesh(meshIndex);
