@@ -22,6 +22,9 @@ int main(int argc, char** argv)
 	CDProducer producer(pInputFilePath);
 	FbxConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);
+	processor.SetDumpSceneDatabaseEnable(true);
+	processor.SetValidateSceneDatabaseEnable(true);
 	processor.Run();
+
 	return 0;
 }

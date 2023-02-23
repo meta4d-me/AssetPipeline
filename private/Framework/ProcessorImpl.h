@@ -46,8 +46,8 @@ private:
 	cd::SceneDatabase* m_pCurrentSceneDatabase;
 	std::unique_ptr<cd::SceneDatabase> m_pLocalSceneDatabase;
 
-	bool m_enableDumpSceneDatabase = false;
-	bool m_enableValidateSceneDatabase = false;
+	bool m_enableDumpSceneDatabase = true;
+	bool m_enableValidateSceneDatabase = true;
 };
 
 }

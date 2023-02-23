@@ -40,59 +40,103 @@ void ProcessorImpl::DumpSceneDatabase()
 	printf("\tMesh count : %d\n", m_pCurrentSceneDatabase->GetMeshCount());
 	printf("\tMaterial count : %d\n", m_pCurrentSceneDatabase->GetMaterialCount());
 	printf("\tTexture count : %d\n", m_pCurrentSceneDatabase->GetTextureCount());
-	printf("\n");
 
-	for (const auto& node : m_pCurrentSceneDatabase->GetNodes())
+	if (m_pCurrentSceneDatabase->GetNodeCount() > 0U)
 	{
-		printf("[Node %u] ParentID : %u, Name : %s\n", node.GetID().Data(), node.GetParentID().Data(), node.GetName().c_str());
-
-		for (cd::MeshID meshID : node.GetMeshIDs())
+		printf("\n");
+		for (const auto& node : m_pCurrentSceneDatabase->GetNodes())
 		{
-			const auto& mesh = m_pCurrentSceneDatabase->GetMesh(meshID.Data());
-			printf("\t[MeshID %u] name : %s, face number : %u, vertex number : %u, materialID : %u\n", meshID.Data(), mesh.GetName(),
-				mesh.GetPolygonCount(), mesh.GetVertexCount(), mesh.GetMaterialID().Data());
-		}
-	}
+			printf("[Node %u] ParentID : %u, Name : %s\n", node.GetID().Data(), node.GetParentID().Data(), node.GetName().c_str());
 
-	std::vector<cd::MaterialTextureType> textureTypes = {
-		cd::MaterialTextureType::BaseColor,
-		cd::MaterialTextureType::Occlusion,
-		cd::MaterialTextureType::Roughness,
-		cd::MaterialTextureType::Metallic,
-		cd::MaterialTextureType::Emissive,
-		cd::MaterialTextureType::Normal,
-	};
-
-	for (const auto& material : m_pCurrentSceneDatabase->GetMaterials())
-	{
-		printf("[MaterialID %u] %s\n", material.GetID().Data(), material.GetName());
-
-		for (const auto& type : textureTypes)
-		{
-			if (material.IsTextureSetup(type))
+			for (cd::MeshID meshID : node.GetMeshIDs())
 			{
-				const auto& textureID = material.GetTextureID(type);
-				const auto& texture = m_pCurrentSceneDatabase->GetTexture(textureID.value().Data());
-				printf("\t[TextureID %u] %s - %s\n", textureID.value().Data(),
-					cd::GetMaterialPropertyGroupName(type), texture.GetPath());
-			}
-			else
-			{
-				// printf("\t[warnning] Can not find texture id by textureKey %s\n", textureKey.c_str());
+				printf("\t[Associated Mesh %u]\n", meshID.Data());
 			}
 		}
 	}
 
-	for (auto& bone : m_pCurrentSceneDatabase->GetBones())
+	std::map<uint32_t, std::vector<uint32_t>> materialDrawMeshIDs;
+	if (m_pCurrentSceneDatabase->GetMeshCount() > 0U)
 	{
-		printf("[Bone %u] ParentID : %u, Name : %s\n", bone.GetID().Data(), bone.GetParentID().Data(), bone.GetName().c_str());
+		printf("\n");
+		for (const auto& mesh : m_pCurrentSceneDatabase->GetMeshes())
+		{
+			printf("[Mesh %u] Name : %s\n", mesh.GetID().Data(), mesh.GetName());
+			printf("\tVertexCount : %u, TriangleCount : %u\n", mesh.GetVertexCount(), mesh.GetPolygonCount());
+			if (mesh.GetMaterialID().IsValid())
+			{
+				printf("\t[Associated Material %u]\n", mesh.GetMaterialID().Data());
+
+				materialDrawMeshIDs[mesh.GetMaterialID().Data()].push_back(mesh.GetID().Data());
+			}
+		}
+	}
+
+	if (m_pCurrentSceneDatabase->GetTextureCount() > 0U)
+	{
+		printf("\n");
+		for (const auto& texture : m_pCurrentSceneDatabase->GetTextures())
+		{
+			printf("[Texture %u]\n", texture.GetID().Data());
+			printf("\tPath = %s\n", texture.GetPath());
+		}
+	}
+
+	if (m_pCurrentSceneDatabase->GetMaterialCount() > 0U)
+	{
+		printf("\n");
+		for (const auto& material : m_pCurrentSceneDatabase->GetMaterials())
+		{
+			printf("[MaterialID %u] %s\n", material.GetID().Data(), material.GetName());
+
+			for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
+			{
+				cd::MaterialTextureType textureType = static_cast<cd::MaterialTextureType>(textureTypeValue);
+				if (material.IsTextureSetup(textureType))
+				{
+					const auto& textureID = material.GetTextureID(textureType);
+					const auto& texture = m_pCurrentSceneDatabase->GetTexture(textureID.value().Data());
+					printf("\t[Associated Texture %u] %s - %s\n", textureID.value().Data(),
+						cd::GetMaterialPropertyGroupName(textureType), texture.GetPath());
+				}
+			}
+
+			if (auto itDrawMeshes = materialDrawMeshIDs.find(material.GetID().Data());
+				itDrawMeshes != materialDrawMeshIDs.end())
+			{
+				for (uint32_t drawMeshID : itDrawMeshes->second)
+				{
+					const auto& mesh = m_pCurrentSceneDatabase->GetMesh(drawMeshID);
+					printf("\t[Associated Mesh %u] %s \n", drawMeshID, mesh.GetName());
+				}
+			}
+		}
+	}
+
+	if (m_pCurrentSceneDatabase->GetBoneCount() > 0U)
+	{
+		printf("\n");
+		for (const auto& bone : m_pCurrentSceneDatabase->GetBones())
+		{
+			printf("[Bone %u] Name : %s, ParentID : %u\n", bone.GetID().Data(), bone.GetName().c_str(), bone.GetParentID().Data());
+		}
 	}
 }
 
 void ProcessorImpl::ValidateSceneDatabase()
 {
-	// TODO : For hierarchy data structs, they are hard to maintain index is same to its ID now.
-	// So it needs to keep id and index same. Or consider to use another solution in the future.
+	for (uint32_t nodeIndex = 0U; nodeIndex < m_pCurrentSceneDatabase->GetNodeCount(); ++nodeIndex)
+	{
+		const cd::Node& node = m_pCurrentSceneDatabase->GetNode(nodeIndex);
+		assert(nodeIndex == node.GetID().Data());
+	}
+
+	for (uint32_t boneIndex = 0U; boneIndex < m_pCurrentSceneDatabase->GetBoneCount(); ++boneIndex)
+	{
+		const cd::Bone& bone = m_pCurrentSceneDatabase->GetBone(boneIndex);
+		assert(boneIndex == bone.GetID().Data());
+	}
+
 	for (uint32_t meshIndex = 0U; meshIndex < m_pCurrentSceneDatabase->GetMeshCount(); ++meshIndex)
 	{
 		const cd::Mesh& mesh = m_pCurrentSceneDatabase->GetMesh(meshIndex);

@@ -30,6 +30,7 @@ public:
 
 	void Init(NodeID nodeID, std::string name);
 
+	void SetID(NodeID nodeID) { m_id = nodeID; }
 	const NodeID& GetID() const { return m_id; }
 
 	void SetName(std::string name) { m_name = cd::MoveTemp(name); }

@@ -193,9 +193,12 @@ bool FbxProducerImpl::TraverseMeshNode(fbxsdk::FbxNode* pMeshNode, cd::SceneData
 					bool unmappedUV;
 					fbxsdk::FbxVector2 uv;
 					pFbxMesh->GetPolygonVertexUV(polygonIndex, vertexIndex, pUVSet->GetName(), uv, unmappedUV);
+
+					// D3D - LeftHandSystem.
+					// TODO : should be a FilpV option.
 					uv[1] = 1.0f - uv[1];
 
-					mesh.SetVertexUV(uvSetIndex, vertexIndex, cd::UV(uv[0], uv[1]));
+					mesh.SetVertexUV(uvSetIndex, vertexID, cd::UV(uv[0], uv[1]));
 				}
 			}
 
@@ -245,7 +248,7 @@ bool FbxProducerImpl::TraverseMeshNode(fbxsdk::FbxNode* pMeshNode, cd::SceneData
 					color = pVertexColorSet->GetDirectArray().GetAt(colorIndex);
 				}
 
-				mesh.SetVertexColor(colorSetIndex, vertexIndex, cd::Color(color.mRed, color.mGreen, color.mBlue, color.mAlpha));
+				mesh.SetVertexColor(colorSetIndex, vertexID, cd::Color(color.mRed, color.mGreen, color.mBlue, color.mAlpha));
 			}
 
 			++vertexID;
