@@ -35,6 +35,9 @@ public:
 	void SetDumpSceneDatabaseEnable(bool enable);
 	bool IsDumpSceneDatabaseEnabled() const;
 
+	void SetCalculateAABBForSceneDatabaseEnable(bool enable);
+	bool IsCalculateAABBForSceneDatabaseEnabled() const;
+
 	const cd::SceneDatabase* GetSceneDatabase() const;
 	void Run();
 

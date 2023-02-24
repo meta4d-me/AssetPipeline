@@ -7,6 +7,7 @@
 #include <map>
 #include <string>
 
+struct aiAnimation;
 struct aiMaterial;
 struct aiMesh;
 struct aiNode;
@@ -38,12 +39,6 @@ public:
 
 	void Execute(cd::SceneDatabase* pSceneDatabase);
 
-	uint32_t GetImportFlags() const;
-	cd::MaterialID AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial);
-	cd::MeshID AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh);
-	void AddMeshBones(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh, cd::Mesh& mesh);
-	void AddNode(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t nodeID);
-
 	void ActivateBoundingBoxService() { m_bWantBoundingBox = true; }
 	bool IsBoundingBoxServiceActive() const { return m_bWantBoundingBox; }
 
@@ -58,6 +53,22 @@ public:
 
 	void ActivateCleanUnusedService() { m_bWantCleanUnused = true; }
 	bool IsCleanUnusedServiceActive() const { return m_bWantCleanUnused; }
+
+private:
+	uint32_t GetImportFlags() const;
+
+	// Import different type of objects in the SceneGraph.
+	void AddScene(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene);
+	void AddNodeRecursively(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t nodeID);
+	void AddMaterials(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene);
+	cd::MaterialID AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial);
+	cd::MeshID AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh);
+	void AddMeshBones(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh, cd::Mesh& mesh);
+	void AddAnimation(cd::SceneDatabase* pSceneDatabase, const aiAnimation* pSourceAnimation);
+
+	// Post process stages.
+	void RemoveBoneReferenceNodes(cd::SceneDatabase* pSceneDatabase);
+	void KeepNodeIDAndIndexSame(cd::SceneDatabase* pSceneDatabase);
 
 private:
 	std::string m_filePath;

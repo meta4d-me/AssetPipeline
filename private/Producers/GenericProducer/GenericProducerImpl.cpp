@@ -89,6 +89,18 @@ uint32_t GenericProducerImpl::GetImportFlags() const
 	return importFlags;
 }
 
+void GenericProducerImpl::SetSceneDatabaseIDs(uint32_t nodeID, uint32_t meshID, uint32_t materialID, uint32_t textureID, uint32_t lightID)
+{
+	m_nodeIDGenerator.SetCurrentID(nodeID);
+	m_meshIDGenerator.SetCurrentID(meshID);
+	m_materialIDGenerator.SetCurrentID(materialID);
+	m_textureIDGenerator.SetCurrentID(textureID);
+	m_lightIDGenerator.SetCurrentID(lightID);
+
+	m_nodeIDToNodeIndexLookup.clear();
+	m_aiNodeToNodeIDLookup.clear();
+}
+
 cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial)
 {
 	static std::unordered_map<aiTextureType, cd::MaterialTextureType> materialTextureMapping;
@@ -364,7 +376,7 @@ void GenericProducerImpl::AddMeshBones(cd::SceneDatabase* pSceneDatabase, const 
 	}
 }
 
-void GenericProducerImpl::AddNode(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t nodeID)
+void GenericProducerImpl::AddNodeRecursively(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t nodeID)
 {
 	cd::NodeID sceneNodeID(nodeID);
 	cd::Node sceneNode(sceneNodeID, pSourceNode->mName.C_Str());
@@ -406,20 +418,58 @@ void GenericProducerImpl::AddNode(cd::SceneDatabase* pSceneDatabase, const aiSce
 	for (uint32_t childIndex = 0U; childIndex < pSourceNode->mNumChildren; ++childIndex)
 	{
 		uint32_t childNodeID = childNodeIDs[childIndex];
-		AddNode(pSceneDatabase, pSourceScene, pSourceNode->mChildren[childIndex], childNodeID);
+		AddNodeRecursively(pSceneDatabase, pSourceScene, pSourceNode->mChildren[childIndex], childNodeID);
 	}
 }
 
-void GenericProducerImpl::SetSceneDatabaseIDs(uint32_t nodeID, uint32_t meshID, uint32_t materialID, uint32_t textureID, uint32_t lightID)
+void GenericProducerImpl::AddMaterials(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene)
 {
-	m_nodeIDGenerator.SetCurrentID(nodeID);
-	m_meshIDGenerator.SetCurrentID(meshID);
-	m_materialIDGenerator.SetCurrentID(materialID);
-	m_textureIDGenerator.SetCurrentID(textureID);
-	m_lightIDGenerator.SetCurrentID(lightID);
+	std::optional<std::set<uint32_t>> optUsedMaterialIndexes = std::nullopt;
+	if (IsCleanUnusedServiceActive())
+	{
+		optUsedMaterialIndexes = std::set<uint32_t>();
+	}
 
-	m_nodeIDToNodeIndexLookup.clear();
-	m_aiNodeToNodeIDLookup.clear();
+	// As we parsed meshes at first, so we can analyze how many materials are actually used.
+	for (const auto& mesh : pSceneDatabase->GetMeshes())
+	{
+		// Query mesh used material indexes.
+		if (optUsedMaterialIndexes.has_value())
+		{
+			optUsedMaterialIndexes.value().insert(mesh.GetMaterialID().Data());
+		}
+	}
+
+	// Add materials and associated textures(a simple filepath or raw pixel data) to SceneDatabase.
+	uint32_t actualMaterialCount = optUsedMaterialIndexes.has_value() ? static_cast<uint32_t>(optUsedMaterialIndexes.value().size()) : pSourceScene->mNumMaterials;
+	pSceneDatabase->SetMaterialCount(actualMaterialCount);
+	for (uint32_t materialIndex = 0; materialIndex < pSourceScene->mNumMaterials; ++materialIndex)
+	{
+		if (optUsedMaterialIndexes.has_value() &&
+			!optUsedMaterialIndexes.value().contains(materialIndex))
+		{
+			// Skip parsing unused materials.
+			continue;
+		}
+
+		AddMaterial(pSceneDatabase, pSourceScene->mMaterials[materialIndex]);
+	}
+}
+
+void GenericProducerImpl::AddScene(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene)
+{
+	// TODO : it is not ideal as we will import many scenes to the SceneDatabase.
+	// Multiple SceneDatabase vs Multiple Scenes in one SceneDatabase.
+	pSceneDatabase->SetName(m_filePath.c_str());
+
+	pSceneDatabase->SetNodeCount(GetSceneNodesCount(pSourceScene->mRootNode));
+	pSceneDatabase->SetMeshCount(pSourceScene->mNumMeshes);
+
+	// Add nodes and associated meshes(also bones for SkinMesh) to SceneDatabase.
+	AddNodeRecursively(pSceneDatabase, pSourceScene, pSourceScene->mRootNode, m_nodeIDGenerator.AllocateID());
+
+	// Prepare to add materials.
+	AddMaterials(pSceneDatabase, pSourceScene);
 }
 
 void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
@@ -434,9 +484,7 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 
 	// Assimp will generate extra nodes as a chain for bone hierarchy if every bone includes data except basic Translation/Rotation/Scale.
 	// In the first version, we want to make animation not so complex.
-	// If you meet the case that needs more data, report this issue to us. Thanks!
 	aiSetImportPropertyInteger(pImportProperties, AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, 0);
-
 	const aiScene* pScene = aiImportFileExWithProperties(m_filePath.c_str(), GetImportFlags(), nullptr, pImportProperties);
 
 	aiReleasePropertyStore(pImportProperties);
@@ -449,36 +497,22 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	}
 	assert(pScene->mNumTextures == 0 && "[Unsupported] parse embedded textures.");
 
-	pSceneDatabase->SetName(m_filePath.c_str());
-
-	// Process all nodes.
-	aiNode* pSceneRootNode = pScene->mRootNode;
-	pSceneDatabase->SetNodeCount(GetSceneNodesCount(pSceneRootNode));
-	pSceneDatabase->SetMeshCount(pScene->mNumMeshes);
-	AddNode(pSceneDatabase, pScene, pSceneRootNode, m_nodeIDGenerator.AllocateID());
-
-	// Post-process meshes.
-	cd::AABB sceneAABB(0.0f, 0.0f);
-	std::optional<std::set<uint32_t>> optUsedMaterialIndexes = std::nullopt;
-	if (IsCleanUnusedServiceActive())
-	{
-		optUsedMaterialIndexes = std::set<uint32_t>();
-	}
-	
-	for (const auto& mesh : pSceneDatabase->GetMeshes())
-	{
-		// Merge a total AABB for all meshes in the scene.
-		sceneAABB.Merge(mesh.GetAABB());
-
-		// Query mesh used material indexes.
-		if (optUsedMaterialIndexes.has_value())
-		{
-			optUsedMaterialIndexes.value().insert(mesh.GetMaterialID().Data());
-		}
-	}
-	pSceneDatabase->SetAABB(cd::MoveTemp(sceneAABB));
+	// Add scene.
+	AddScene(pSceneDatabase, pScene);
 
 	// Post-process bones.
+	RemoveBoneReferenceNodes(pSceneDatabase);
+	KeepNodeIDAndIndexSame(pSceneDatabase);
+
+	// Collect garbages in the end.
+	aiReleaseImport(pScene);
+	pScene = nullptr;
+}
+
+// It is a specific behavior from assimp implementation which will import bones as nodes because their data structure is similiar to reuse.
+// But we don't want to mess up these different two objects.
+void GenericProducerImpl::RemoveBoneReferenceNodes(cd::SceneDatabase* pSceneDatabase)
+{
 	std::vector<uint32_t> removeNodeIndexes;
 	for (auto& bone : pSceneDatabase->GetBones())
 	{
@@ -498,7 +532,7 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 				bone.SetParentID(pParentBone->GetID().Data());
 			}
 		}
-		
+
 		for (const cd::NodeID& childNodeID : pBoneNode->GetChildIDs())
 		{
 			const cd::Node& childNode = pSceneDatabase->GetNode(m_nodeIDToNodeIndexLookup[childNodeID.Data()]);
@@ -521,7 +555,13 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 			sceneNodes.erase(sceneNodes.begin() + nodeIndex);
 		}
 	}
+}
 
+// By adding/removing bone as nodes, the node indexes and ids will be not same.
+// This stage helps to loop the whole node hierarchy to reassign ids.
+void GenericProducerImpl::KeepNodeIDAndIndexSame(cd::SceneDatabase* pSceneDatabase)
+{
+	auto& sceneNodes = pSceneDatabase->GetNodes();
 	// Reorder ids
 	assert(pSceneDatabase->GetNodeCount() == sceneNodes.size());
 	std::map<uint32_t, uint32_t> oldToNewNodeID;
@@ -563,24 +603,6 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 			}
 		}
 	}
-
-	// Process all materials and used textures.
-	uint32_t actualMaterialCount = optUsedMaterialIndexes.has_value() ? static_cast<uint32_t>(optUsedMaterialIndexes.value().size()) : pScene->mNumMaterials;
-	pSceneDatabase->SetMaterialCount(actualMaterialCount);
-	
-	for (uint32_t materialIndex = 0; materialIndex < pScene->mNumMaterials; ++materialIndex)
-	{
-		// Skip parsing unused materials.
-		if (optUsedMaterialIndexes.has_value() && !optUsedMaterialIndexes.value().contains(materialIndex))
-		{
-			continue;
-		}
-
-		AddMaterial(pSceneDatabase, pScene->mMaterials[materialIndex]);
-	}
-
-	aiReleaseImport(pScene);
-	pScene = nullptr;
 }
 
 }

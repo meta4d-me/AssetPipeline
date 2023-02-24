@@ -33,8 +33,7 @@ public:
 	const NodeID& GetID() const;
 
 	void SetName(std::string name);
-	std::string& GetName();
-	const std::string& GetName() const;
+	const char* GetName() const;
 
 	void SetParentID(uint32_t parentID);
 	const NodeID& GetParentID() const;

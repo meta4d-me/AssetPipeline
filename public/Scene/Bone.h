@@ -31,8 +31,7 @@ public:
 	const BoneID& GetID() const;
 
 	void SetName(std::string name);
-	std::string& GetName();
-	const std::string& GetName() const;
+	const char* GetName() const;
 
 	void SetParentID(uint32_t parentID);
 	const BoneID& GetParentID() const;

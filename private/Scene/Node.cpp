@@ -59,14 +59,9 @@ void Node::SetName(std::string name)
     return m_pNodeImpl->SetName(cd::MoveTemp(name));
 }
 
-std::string& Node::GetName()
+const char* Node::GetName() const
 {
-    return m_pNodeImpl->GetName();
-}
-
-const std::string& Node::GetName() const
-{
-    return m_pNodeImpl->GetName();
+    return m_pNodeImpl->GetName().c_str();
 }
 
 void Node::SetParentID(uint32_t parentID)

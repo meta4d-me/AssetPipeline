@@ -221,7 +221,7 @@ private:
 	std::vector<UV>				m_vertexUVSets[MaxUVSetCount];
 	std::vector<Color>			m_vertexColorSets[MaxColorSetCount];
 
-	// vertex animation data
+	// vertex skin data
 	std::vector<BoneID>			m_vertexBoneIDs[MaxBoneInfluenceCount];
 	std::vector<VertexWeight>	m_vertexWeights[MaxBoneInfluenceCount];
 
