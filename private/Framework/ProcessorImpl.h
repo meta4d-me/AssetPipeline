@@ -35,9 +35,13 @@ public:
 	void SetDumpSceneDatabaseEnable(bool enable) { m_enableDumpSceneDatabase = enable; }
 	bool IsDumpSceneDatabaseEnabled() const { return m_enableDumpSceneDatabase; }
 
+	void SetCalculateAABBForSceneDatabaseEnable(bool enable) { m_enableCalculateAABBForSceneDatabase = enable; }
+	bool IsCalculateAABBForSceneDatabaseEnabled() const { return m_enableCalculateAABBForSceneDatabase; }
+
 private:
 	void DumpSceneDatabase();
 	void ValidateSceneDatabase();
+	void CalculateAABBForSceneDatabase();
 
 private:
 	IProducer* m_pProducer = nullptr;
@@ -48,6 +52,7 @@ private:
 
 	bool m_enableDumpSceneDatabase = true;
 	bool m_enableValidateSceneDatabase = true;
+	bool m_enableCalculateAABBForSceneDatabase = true;
 };
 
 }

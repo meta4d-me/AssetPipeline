@@ -13,7 +13,8 @@ enum class ObjectType
 	Light,
 	Node,
 	Camera,
-	Bone
+	Bone,
+	Animation
 };
 
 }

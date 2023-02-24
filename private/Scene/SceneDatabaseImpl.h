@@ -2,6 +2,7 @@
 
 #include "Base/Template.h"
 #include "Math/Box.hpp"
+#include "Scene/Animation.h"
 #include "Scene/Bone.h"
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
@@ -36,52 +37,60 @@ public:
 	const AABB& GetAABB() const { return m_aabb; }
 
 	// Node
-	void AddNode(Node node);
+	void AddNode(Node node) { m_nodes.emplace_back(MoveTemp(node)); }
 	std::vector<Node>& GetNodes() { return m_nodes; }
 	const std::vector<Node>& GetNodes() const { return m_nodes; }
-	void SetNodeCount(uint32_t nodeCount);
+	void SetNodeCount(uint32_t count) { m_nodes.reserve(count); }
 	const Node& GetNode(uint32_t index) const { return m_nodes[index]; }
 	const Node* GetNodeByName(const std::string& name) const;
 	uint32_t GetNodeCount() const { return static_cast<uint32_t>(m_nodes.size()); }
 
 	// Bone
-	void AddBone(Bone bone);
+	void AddBone(Bone bone) { m_bones.emplace_back(MoveTemp(bone)); }
 	std::vector<Bone>& GetBones() { return m_bones; }
 	const std::vector<Bone>& GetBones() const { return m_bones; }
-	void SetBoneCount(uint32_t boneCount);
+	void SetBoneCount(uint32_t count) { m_bones.reserve(count); }
 	const Bone& GetBone(uint32_t index) const { return m_bones[index]; }
 	const Bone* GetBoneByName(const std::string& name) const;
 	uint32_t GetBoneCount() const { return static_cast<uint32_t>(m_bones.size()); }
 
 	// Mesh
-	void AddMesh(Mesh mesh);
+	void AddMesh(Mesh mesh) { m_meshes.emplace_back(MoveTemp(mesh)); }
 	std::vector<Mesh>& GetMeshes() { return m_meshes; }
 	const std::vector<Mesh>& GetMeshes() const { return m_meshes; }
-	void SetMeshCount(uint32_t meshCount);
+	void SetMeshCount(uint32_t count) { m_meshes.reserve(count); }
 	const Mesh& GetMesh(uint32_t index) const { return m_meshes[index];  }
 	uint32_t GetMeshCount() const { return static_cast<uint32_t>(m_meshes.size()); }
 
+	// Animation
+	void AddAnimation(Animation animation) { m_animations.emplace_back(MoveTemp(animation)); }
+	std::vector<Animation>& GetAnimations() { return m_animations; }
+	const std::vector<Animation>& GetAnimations() const { return m_animations; }
+	void SetAnimationCount(uint32_t count) { m_animations.reserve(count); }
+	const Animation& GetAnimation(uint32_t index) const { return m_animations[index]; }
+	uint32_t GetAnimationCount() const { return static_cast<uint32_t>(m_animations.size()); }
+
 	// Texture
-	void AddTexture(Texture texture);
+	void AddTexture(Texture texture) { m_textures.emplace_back(MoveTemp(texture)); }
 	std::vector<Texture> &GetTextures() { return m_textures; }
 	const std::vector<Texture> &GetTextures() const { return m_textures; }
-	void SetTextureCount(uint32_t textureCount);
+	void SetTextureCount(uint32_t count) { m_textures.reserve(count); }
 	const Texture &GetTexture(uint32_t index) const { return m_textures[index]; }
 	uint32_t GetTextureCount() const { return static_cast<uint32_t>(m_textures.size()); }
 
 	// Material
-	void AddMaterial(Material material);
+	void AddMaterial(Material material) { m_materials.emplace_back(MoveTemp(material)); }
 	std::vector<Material>& GetMaterials() { return m_materials; }
 	const std::vector<Material>& GetMaterials() const { return m_materials; }
-	void SetMaterialCount(uint32_t materialCount);
+	void SetMaterialCount(uint32_t count) { m_materials.reserve(count); }
 	const Material& GetMaterial(uint32_t index) const { return m_materials[index]; }
 	uint32_t GetMaterialCount() const { return static_cast<uint32_t>(m_materials.size()); }
 
 	// Light
-	void AddLight(Light light);
+	void AddLight(Light light) { m_lights.emplace_back(MoveTemp(light)); }
 	std::vector<Light>& GetLights() { return m_lights; }
 	const std::vector<Light>& GetLights() const { return m_lights; }
-	void SetLightCount(uint32_t lightCount);
+	void SetLightCount(uint32_t count) { m_lights.reserve(count); }
 	const Light& GetLight(uint32_t index) const { return m_lights[index]; }
 	uint32_t GetLightCount() const { return static_cast<uint32_t>(m_lights.size()); }
 
@@ -99,43 +108,50 @@ public:
 		uint32_t nodeCount = 0;
 		uint32_t boneCount = 0;
 		uint32_t meshCount = 0;
+		uint32_t animationCount = 0;
 		uint32_t textureCount = 0;
 		uint32_t materialCount = 0;
 		uint32_t lightCount = 0;
-		inputArchive >> nodeCount >> boneCount >> meshCount >> textureCount >> materialCount >> lightCount;
+		inputArchive >> nodeCount >> boneCount >> meshCount >> animationCount >> textureCount >> materialCount >> lightCount;
 		SetNodeCount(nodeCount);
 		SetBoneCount(boneCount);
 		SetMeshCount(meshCount);
+		SetMeshCount(animationCount);
 		SetTextureCount(textureCount);
 		SetMaterialCount(materialCount);
 		SetLightCount(lightCount);
 
-		for (uint32_t nodeIndex = 0; nodeIndex < nodeCount; ++nodeIndex)
+		for (uint32_t nodeIndex = 0U; nodeIndex < nodeCount; ++nodeIndex)
 		{
 			AddNode(Node(inputArchive));
 		}
 
-		for (uint32_t boneIndex = 0; boneIndex < boneCount; ++boneIndex)
+		for (uint32_t boneIndex = 0U; boneIndex < boneCount; ++boneIndex)
 		{
 			AddBone(Bone(inputArchive));
 		}
 
-		for (uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex)
+		for (uint32_t meshIndex = 0U; meshIndex < meshCount; ++meshIndex)
 		{
 			AddMesh(Mesh(inputArchive));
 		}
 
-		for (uint32_t textureIndex = 0; textureIndex < textureCount; ++textureIndex)
+		for (uint32_t animationIndex = 0U; animationIndex < animationCount; ++animationIndex)
+		{
+			AddAnimation(Animation(inputArchive));
+		}
+
+		for (uint32_t textureIndex = 0U; textureIndex < textureCount; ++textureIndex)
 		{
 			AddTexture(Texture(inputArchive));
 		}
 
-		for (uint32_t materialIndex = 0; materialIndex < materialCount; ++materialIndex)
+		for (uint32_t materialIndex = 0U; materialIndex < materialCount; ++materialIndex)
 		{
 			AddMaterial(Material(inputArchive));
 		}
 
-		for (uint32_t lightIndex = 0; lightIndex < lightCount; ++lightIndex)
+		for (uint32_t lightIndex = 0U; lightIndex < lightCount; ++lightIndex)
 		{
 			AddLight(Light(inputArchive));
 		}
@@ -151,37 +167,43 @@ public:
 
 		outputArchive << GetNodeCount() << GetBoneCount() << GetMeshCount() << GetTextureCount() << GetMaterialCount() << GetLightCount();
 
-		for (uint32_t nodeIndex = 0; nodeIndex < GetNodeCount(); ++nodeIndex)
+		for (uint32_t nodeIndex = 0U; nodeIndex < GetNodeCount(); ++nodeIndex)
 		{
 			const Node& node = GetNode(nodeIndex);
 			node >> outputArchive;
 		}
 
-		for (uint32_t boneIndex = 0; boneIndex < GetBoneCount(); ++boneIndex)
+		for (uint32_t boneIndex = 0U; boneIndex < GetBoneCount(); ++boneIndex)
 		{
 			const Bone& bone = GetBone(boneIndex);
 			bone >> outputArchive;
 		}
 
-		for (uint32_t meshIndex = 0; meshIndex < GetMeshCount(); ++meshIndex)
+		for (uint32_t meshIndex = 0U; meshIndex < GetMeshCount(); ++meshIndex)
 		{
 			const Mesh& mesh = GetMesh(meshIndex);
 			mesh >> outputArchive;
 		}
 
-		for (uint32_t textureIndex = 0; textureIndex < GetTextureCount(); ++textureIndex)
+		for (uint32_t animationIndex = 0U; animationIndex < GetAnimationCount(); ++animationIndex)
+		{
+			const Animation& animation = GetAnimation(animationIndex);
+			animation >> outputArchive;
+		}
+
+		for (uint32_t textureIndex = 0U; textureIndex < GetTextureCount(); ++textureIndex)
 		{
 			const Texture& texture = GetTexture(textureIndex);
 			texture >> outputArchive;
 		}
 
-		for (uint32_t materialIndex = 0; materialIndex < GetMaterialCount(); ++materialIndex)
+		for (uint32_t materialIndex = 0U; materialIndex < GetMaterialCount(); ++materialIndex)
 		{
 			const Material& material = GetMaterial(materialIndex);
 			material >> outputArchive;
 		}
 
-		for (uint32_t ligthIndex = 0; ligthIndex < GetLightCount(); ++ligthIndex)
+		for (uint32_t ligthIndex = 0U; ligthIndex < GetLightCount(); ++ligthIndex)
 		{
 			const Light& light = GetLight(ligthIndex);
 			light >> outputArchive;
@@ -194,11 +216,21 @@ private:
 	std::string m_name;
 	AABB m_aabb;
 
+	// Hierarchy data to present relationships between meshes.
 	std::vector<Node> m_nodes;
+
+	// Mesh data both for StatciMesh and SkinMesh.
 	std::vector<Bone> m_bones;
 	std::vector<Mesh> m_meshes;
+
+	// Animation data.
+	std::vector<Animation> m_animations;
+
+	// Material and texture data.
 	std::vector<Texture> m_textures;
 	std::vector<Material> m_materials;
+
+	// Scene objects
 	std::vector<Light> m_lights;
 };
 

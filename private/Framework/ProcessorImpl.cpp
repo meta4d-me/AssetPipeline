@@ -35,6 +35,7 @@ ProcessorImpl::~ProcessorImpl()
 
 void ProcessorImpl::DumpSceneDatabase()
 {
+	printf("\nSceneDatabase : %s\n", m_pCurrentSceneDatabase->GetName());
 	printf("\tNode count : %d\n", m_pCurrentSceneDatabase->GetNodeCount());
 	printf("\tBone count : %d\n", m_pCurrentSceneDatabase->GetBoneCount());
 	printf("\tMesh count : %d\n", m_pCurrentSceneDatabase->GetMeshCount());
@@ -46,7 +47,7 @@ void ProcessorImpl::DumpSceneDatabase()
 		printf("\n");
 		for (const auto& node : m_pCurrentSceneDatabase->GetNodes())
 		{
-			printf("[Node %u] ParentID : %u, Name : %s\n", node.GetID().Data(), node.GetParentID().Data(), node.GetName().c_str());
+			printf("[Node %u] ParentID : %u, Name : %s\n", node.GetID().Data(), node.GetParentID().Data(), node.GetName());
 
 			for (cd::MeshID meshID : node.GetMeshIDs())
 			{
@@ -118,7 +119,7 @@ void ProcessorImpl::DumpSceneDatabase()
 		printf("\n");
 		for (const auto& bone : m_pCurrentSceneDatabase->GetBones())
 		{
-			printf("[Bone %u] Name : %s, ParentID : %u\n", bone.GetID().Data(), bone.GetName().c_str(), bone.GetParentID().Data());
+			printf("[Bone %u] Name : %s, ParentID : %u\n", bone.GetID().Data(), bone.GetName(), bone.GetParentID().Data());
 		}
 	}
 }
@@ -156,19 +157,33 @@ void ProcessorImpl::ValidateSceneDatabase()
 	}
 }
 
+void ProcessorImpl::CalculateAABBForSceneDatabase()
+{
+	cd::AABB sceneAABB(0.0f, 0.0f);
+	for (const auto& mesh : m_pCurrentSceneDatabase->GetMeshes())
+	{
+		sceneAABB.Merge(mesh.GetAABB());
+	}
+	m_pCurrentSceneDatabase->SetAABB(cd::MoveTemp(sceneAABB));
+}
+
 void ProcessorImpl::Run()
 {
 	m_pProducer->Execute(m_pCurrentSceneDatabase);
 
 	if (IsDumpSceneDatabaseEnabled())
 	{
-		printf("\nSceneDatabase : %s\n", m_pCurrentSceneDatabase->GetName());
 		DumpSceneDatabase();
 	}
 
 	if (IsValidateSceneDatabaseEnabled())
 	{
 		ValidateSceneDatabase();
+	}
+
+	if (IsCalculateAABBForSceneDatabaseEnabled())
+	{
+		CalculateAABBForSceneDatabase();
 	}
 
 	m_pConsumer->Execute(m_pCurrentSceneDatabase);

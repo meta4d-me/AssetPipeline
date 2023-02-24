@@ -29,6 +29,7 @@ public:
 
 	void Init(BoneID id, std::string name);
 
+	void SetID(uint32_t id) { m_id = BoneID(id); }
 	const BoneID& GetID() const { return m_id; }
 
 	void SetName(std::string name) { m_name = cd::MoveTemp(name); }
@@ -36,6 +37,7 @@ public:
 	const std::string& GetName() const { return m_name; }
 
 	void SetParentID(uint32_t parentID) { m_parentID.Set(parentID); }
+	BoneID& GetParentID() { return m_parentID; }
 	const BoneID& GetParentID() const { return m_parentID; }
 
 	void AddChildID(uint32_t childID) { m_childIDs.push_back(BoneID(childID)); }
@@ -47,11 +49,15 @@ public:
 	BoneImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
 		uint32_t boneID;
+		uint32_t boneParentID;
 		std::string boneName;
 
-		inputArchive >> boneID >> boneName;
+		inputArchive >> boneID >> boneName >> boneParentID;
 
 		Init(BoneID(boneID), cd::MoveTemp(boneName));
+
+		SetParentID(boneParentID);
+		inputArchive.ImportBuffer(GetChildIDs().data());
 
 		return *this;
 	}
@@ -60,6 +66,8 @@ public:
 	const BoneImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
 		outputArchive << GetID().Data() << GetName();
+		outputArchive.ExportBuffer(GetChildIDs().data(), GetChildIDs().size());
+
 		return *this;
 	}
 

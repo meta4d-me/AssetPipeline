@@ -54,14 +54,9 @@ void Bone::SetName(std::string name)
     return m_pBoneImpl->SetName(cd::MoveTemp(name));
 }
 
-std::string& Bone::GetName()
+const char* Bone::GetName() const
 {
-    return m_pBoneImpl->GetName();
-}
-
-const std::string& Bone::GetName() const
-{
-    return m_pBoneImpl->GetName();
+    return m_pBoneImpl->GetName().c_str();
 }
 
 void Bone::SetParentID(uint32_t parentID)
