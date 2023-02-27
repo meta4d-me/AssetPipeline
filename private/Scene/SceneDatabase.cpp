@@ -95,44 +95,6 @@ uint32_t SceneDatabase::GetNodeCount() const
 }
 
 ///////////////////////////////////////////////////////////////////
-// Bone
-///////////////////////////////////////////////////////////////////
-void SceneDatabase::AddBone(Bone bone)
-{
-	return m_pSceneDatabaseImpl->AddBone(cd::MoveTemp(bone));
-}
-
-std::vector<Bone>& SceneDatabase::GetBones()
-{
-	return m_pSceneDatabaseImpl->GetBones();
-}
-
-const std::vector<Bone>& SceneDatabase::GetBones() const
-{
-	return m_pSceneDatabaseImpl->GetBones();
-}
-
-void SceneDatabase::SetBoneCount(uint32_t boneCount)
-{
-	return m_pSceneDatabaseImpl->SetBoneCount(boneCount);
-}
-
-const Bone& SceneDatabase::GetBone(uint32_t index) const
-{
-	return m_pSceneDatabaseImpl->GetBone(index);
-}
-
-const Bone* SceneDatabase::GetBoneByName(const std::string& name) const
-{
-	return m_pSceneDatabaseImpl->GetBoneByName(name);
-}
-
-uint32_t SceneDatabase::GetBoneCount() const
-{
-	return m_pSceneDatabaseImpl->GetBoneCount();
-}
-
-///////////////////////////////////////////////////////////////////
 // Mesh
 ///////////////////////////////////////////////////////////////////
 void SceneDatabase::AddMesh(Mesh mesh)
@@ -262,6 +224,110 @@ const Light& SceneDatabase::GetLight(uint32_t index) const
 uint32_t SceneDatabase::GetLightCount() const
 {
 	return m_pSceneDatabaseImpl->GetLightCount();
+}
+
+///////////////////////////////////////////////////////////////////
+// Bone
+///////////////////////////////////////////////////////////////////
+void SceneDatabase::AddBone(Bone bone)
+{
+	return m_pSceneDatabaseImpl->AddBone(cd::MoveTemp(bone));
+}
+
+std::vector<Bone>& SceneDatabase::GetBones()
+{
+	return m_pSceneDatabaseImpl->GetBones();
+}
+
+const std::vector<Bone>& SceneDatabase::GetBones() const
+{
+	return m_pSceneDatabaseImpl->GetBones();
+}
+
+void SceneDatabase::SetBoneCount(uint32_t boneCount)
+{
+	return m_pSceneDatabaseImpl->SetBoneCount(boneCount);
+}
+
+const Bone& SceneDatabase::GetBone(uint32_t index) const
+{
+	return m_pSceneDatabaseImpl->GetBone(index);
+}
+
+const Bone* SceneDatabase::GetBoneByName(const std::string& name) const
+{
+	return m_pSceneDatabaseImpl->GetBoneByName(name);
+}
+
+uint32_t SceneDatabase::GetBoneCount() const
+{
+	return m_pSceneDatabaseImpl->GetBoneCount();
+}
+
+///////////////////////////////////////////////////////////////////
+// Animation
+///////////////////////////////////////////////////////////////////
+void SceneDatabase::AddAnimation(Animation animation)
+{
+	return m_pSceneDatabaseImpl->AddAnimation(cd::MoveTemp(animation));
+}
+
+std::vector<Animation>& SceneDatabase::GetAnimations()
+{
+	return m_pSceneDatabaseImpl->GetAnimations();
+}
+
+const std::vector<Animation>& SceneDatabase::GetAnimations() const
+{
+	return m_pSceneDatabaseImpl->GetAnimations();
+}
+
+void SceneDatabase::SetAnimationCount(uint32_t animationCount)
+{
+	return m_pSceneDatabaseImpl->SetAnimationCount(animationCount);
+}
+
+const Animation& SceneDatabase::GetAnimation(uint32_t index) const
+{
+	return m_pSceneDatabaseImpl->GetAnimation(index);
+}
+
+uint32_t SceneDatabase::GetAnimationCount() const
+{
+	return m_pSceneDatabaseImpl->GetAnimationCount();
+}
+
+///////////////////////////////////////////////////////////////////
+// Track
+///////////////////////////////////////////////////////////////////
+void SceneDatabase::AddTrack(Track track)
+{
+	return m_pSceneDatabaseImpl->AddTrack(cd::MoveTemp(track));
+}
+
+std::vector<Track>& SceneDatabase::GetTracks()
+{
+	return m_pSceneDatabaseImpl->GetTracks();
+}
+
+const std::vector<Track>& SceneDatabase::GetTracks() const
+{
+	return m_pSceneDatabaseImpl->GetTracks();
+}
+
+void SceneDatabase::SetTrackCount(uint32_t animationCount)
+{
+	return m_pSceneDatabaseImpl->SetTrackCount(animationCount);
+}
+
+const Track& SceneDatabase::GetTrack(uint32_t index) const
+{
+	return m_pSceneDatabaseImpl->GetTrack(index);
+}
+
+uint32_t SceneDatabase::GetTrackCount() const
+{
+	return m_pSceneDatabaseImpl->GetTrackCount();
 }
 
 ///////////////////////////////////////////////////////////////////

@@ -41,6 +41,10 @@ public:
 	std::vector<BoneID>& GetChildIDs();
 	const std::vector<BoneID>& GetChildIDs() const;
 
+	void SetTransform(Transform transform);
+	Transform& GetTransform();
+	const Transform& GetTransform() const;
+
 	Bone& operator<<(InputArchive& inputArchive);
 	Bone& operator<<(InputArchiveSwapBytes& inputArchive);
 	const Bone& operator>>(OutputArchive& outputArchive) const;

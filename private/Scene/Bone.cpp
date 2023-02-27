@@ -89,6 +89,21 @@ const std::vector<BoneID>& Bone::GetChildIDs() const
     return m_pBoneImpl->GetChildIDs();
 }
 
+void Bone::SetTransform(Transform transform)
+{
+    return m_pBoneImpl->SetTransform(cd::MoveTemp(transform));
+}
+
+Transform& Bone::GetTransform()
+{
+    return m_pBoneImpl->GetTransform();
+}
+
+const Transform& Bone::GetTransform() const
+{
+    return m_pBoneImpl->GetTransform();
+}
+
 Bone& Bone::operator<<(InputArchive& inputArchive)
 {
     *m_pBoneImpl << inputArchive;

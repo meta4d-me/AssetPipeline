@@ -59,6 +59,36 @@ const char* Animation::GetName() const
     return m_pAnimationImpl->GetName().c_str();
 }
 
+void Animation::SetDuration(float duration)
+{
+    m_pAnimationImpl->SetDuration(duration);
+}
+
+float Animation::GetDuration() const
+{
+    return m_pAnimationImpl->GetDuration();
+}
+
+void Animation::AddBoneTrackID(uint32_t trackID)
+{
+    m_pAnimationImpl->AddBoneTrackID(trackID);
+}
+
+uint32_t Animation::GetBoneTrackCount() const
+{
+    return m_pAnimationImpl->GetBoneTrackCount();
+}
+
+std::vector<TrackID>& Animation::GetBoneTrackIDs()
+{
+    return m_pAnimationImpl->GetBoneTrackIDs();
+}
+
+const std::vector<TrackID>& Animation::GetBoneTrackIDs() const
+{
+    return m_pAnimationImpl->GetBoneTrackIDs();
+}
+
 Animation& Animation::operator<<(InputArchive& inputArchive)
 {
     *m_pAnimationImpl << inputArchive;

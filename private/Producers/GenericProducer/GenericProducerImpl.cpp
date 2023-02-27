@@ -340,9 +340,7 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 void GenericProducerImpl::AddMeshBones(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh, cd::Mesh& mesh)
 {
 	std::map<uint32_t, uint32_t> mapVertexIndexToCurrentBoneCount;
-
-	uint32_t boneCount = pSourceMesh->mNumBones;
-	for (uint32_t boneIndex = 0U; boneIndex < boneCount; ++boneIndex)
+	for (uint32_t boneIndex = 0U; boneIndex < pSourceMesh->mNumBones; ++boneIndex)
 	{
 		const aiBone* pSourceBone = pSourceMesh->mBones[boneIndex];
 		bool isBoneReused = false;
@@ -351,9 +349,11 @@ void GenericProducerImpl::AddMeshBones(cd::SceneDatabase* pSceneDatabase, const 
 		cd::BoneID boneID = m_boneIDGenerator.AllocateID(boneHash, &isBoneReused);
 		if (!isBoneReused)
 		{
-			//printf("\t[InitBone %u] Name : %s\n", boneID.Data(), boneName.c_str());
-			// Other hierarchy data will be added in the post-process stage.
 			cd::Bone bone(boneID, cd::MoveTemp(boneName));
+
+			cd::Matrix4x4 transformation = ConvertAssimpMatrix(pSourceBone->mOffsetMatrix);
+			bone.SetTransform(cd::Transform(transformation.GetTranslation(), cd::Quaternion::FromMatrix(transformation.GetRotation()), transformation.GetScale()));
+
 			pSceneDatabase->AddBone(cd::MoveTemp(bone));
 		}
 		
@@ -376,6 +376,65 @@ void GenericProducerImpl::AddMeshBones(cd::SceneDatabase* pSceneDatabase, const 
 	}
 }
 
+void GenericProducerImpl::AddAnimation(cd::SceneDatabase* pSceneDatabase, const aiAnimation* pSourceAnimation)
+{
+	const char* pAnimationName = pSourceAnimation->mName.C_Str();
+	cd::AnimationID::ValueType animationHash = cd::StringHash<cd::AnimationID::ValueType>(pAnimationName);
+	cd::AnimationID animationID = m_animationIDGenerator.AllocateID(animationHash);
+
+	cd::Animation animation(animationID, pAnimationName);
+	animation.SetDuration(static_cast<float>(pSourceAnimation->mDuration));
+
+	for (uint32_t channelIndex = 0U; channelIndex < pSourceAnimation->mNumChannels; ++channelIndex)
+	{
+		const aiNodeAnim* pBoneTrack = pSourceAnimation->mChannels[channelIndex];
+
+		const char* pTrackName = pBoneTrack->mNodeName.C_Str();
+		cd::TrackID::ValueType trackHash = cd::StringHash<cd::TrackID::ValueType>(pTrackName);
+		cd::TrackID trackID = m_trackIDGenerator.AllocateID(trackHash);
+
+		cd::Track boneTrack(trackID, pTrackName);
+		boneTrack.SetTranslationKeyCount(pBoneTrack->mNumPositionKeys);
+		boneTrack.SetRotationKeyCount(pBoneTrack->mNumRotationKeys);
+		boneTrack.SetScaleKeyCount(pBoneTrack->mNumScalingKeys);
+
+		for (uint32_t translationKeyIndex = 0U; translationKeyIndex < boneTrack.GetTranslationKeyCount(); ++translationKeyIndex)
+		{
+			const aiVectorKey& sourcePositionKey = pBoneTrack->mPositionKeys[translationKeyIndex];
+			const aiVector3D& rotationValue = sourcePositionKey.mValue;
+
+			auto& translationKey = boneTrack.GetTranslationKeys()[translationKeyIndex];
+			translationKey.SetTime(static_cast<float>(sourcePositionKey.mTime));
+			translationKey.SetValue(cd::Vec3f(rotationValue.x, rotationValue.y, rotationValue.z));
+		}
+
+		for (uint32_t rotationKeyIndex = 0U; rotationKeyIndex < boneTrack.GetRotationKeyCount(); ++rotationKeyIndex)
+		{
+			const aiQuatKey& sourceRotationKey = pBoneTrack->mRotationKeys[rotationKeyIndex];
+			const aiQuaternion& rotationValue = sourceRotationKey.mValue;
+
+			auto& rotationKey = boneTrack.GetRotationKeys()[rotationKeyIndex];
+			rotationKey.SetTime(static_cast<float>(sourceRotationKey.mTime));
+			rotationKey.SetValue(cd::Quaternion(rotationValue.w, rotationValue.x, rotationValue.y, rotationValue.z));
+		}
+
+		for (uint32_t scaleKeyIndex = 0U; scaleKeyIndex < boneTrack.GetScaleKeyCount(); ++scaleKeyIndex)
+		{
+			const aiVectorKey& sourceScaleKey = pBoneTrack->mScalingKeys[scaleKeyIndex];
+			const aiVector3D& scaleValue = sourceScaleKey.mValue;
+
+			auto& scaleKey = boneTrack.GetScaleKeys()[scaleKeyIndex];
+			scaleKey.SetTime(static_cast<float>(sourceScaleKey.mTime));
+			scaleKey.SetValue(cd::Vec3f(scaleValue.x, scaleValue.y, scaleValue.z));
+		}
+
+		animation.AddBoneTrackID(trackID.Data());
+		pSceneDatabase->AddTrack(cd::MoveTemp(boneTrack));
+	}
+
+	pSceneDatabase->AddAnimation(cd::MoveTemp(animation));
+}
+
 void GenericProducerImpl::AddNodeRecursively(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t nodeID)
 {
 	cd::NodeID sceneNodeID(nodeID);
@@ -393,8 +452,6 @@ void GenericProducerImpl::AddNodeRecursively(cd::SceneDatabase* pSceneDatabase, 
 		assert(itParentNodeID != m_aiNodeToNodeIDLookup.end() && "Failed to query parent node ID in scene database.");
 		sceneNode.SetParentID(itParentNodeID->second);
 	}
-
-	//printf("\t[InitNode %u] ParentID : %u, Name : %s\n", nodeID, sceneNode.GetParentID().Data(), sceneNode.GetName().c_str());
 
 	// Add meshes from node.
 	for (uint32_t meshIndex = 0; meshIndex < pSourceNode->mNumMeshes; ++meshIndex)
@@ -462,14 +519,30 @@ void GenericProducerImpl::AddScene(cd::SceneDatabase* pSceneDatabase, const aiSc
 	// Multiple SceneDatabase vs Multiple Scenes in one SceneDatabase.
 	pSceneDatabase->SetName(m_filePath.c_str());
 
-	pSceneDatabase->SetNodeCount(GetSceneNodesCount(pSourceScene->mRootNode));
-	pSceneDatabase->SetMeshCount(pSourceScene->mNumMeshes);
+	if (pSourceScene->HasMeshes())
+	{
+		pSceneDatabase->SetNodeCount(GetSceneNodesCount(pSourceScene->mRootNode));
+		pSceneDatabase->SetMeshCount(pSourceScene->mNumMeshes);
 
-	// Add nodes and associated meshes(also bones for SkinMesh) to SceneDatabase.
-	AddNodeRecursively(pSceneDatabase, pSourceScene, pSourceScene->mRootNode, m_nodeIDGenerator.AllocateID());
+		// Add nodes and associated meshes(also bones for SkinMesh) to SceneDatabase.
+		AddNodeRecursively(pSceneDatabase, pSourceScene, pSourceScene->mRootNode, m_nodeIDGenerator.AllocateID());
+	}
 
 	// Prepare to add materials.
-	AddMaterials(pSceneDatabase, pSourceScene);
+	if (pSourceScene->HasMaterials())
+	{
+		AddMaterials(pSceneDatabase, pSourceScene);
+	}
+
+	// Add animations.
+	if (pSourceScene->HasAnimations())
+	{
+		pSceneDatabase->SetAnimationCount(pSourceScene->mNumAnimations);
+		for (uint32_t animationIndex = 0U; animationIndex < pSourceScene->mNumAnimations; ++animationIndex)
+		{
+			AddAnimation(pSceneDatabase, pSourceScene->mAnimations[animationIndex]);
+		}
+	}
 }
 
 void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)

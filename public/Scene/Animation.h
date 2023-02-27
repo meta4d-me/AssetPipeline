@@ -3,6 +3,7 @@
 #include "Base/Export.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
+#include "Scene/KeyFrame.hpp"
 #include "Scene/ObjectID.h"
 
 #include <vector>
@@ -32,6 +33,14 @@ public:
 
 	void SetName(std::string name);
 	const char* GetName() const;
+
+	void SetDuration(float duration);
+	float GetDuration() const;
+
+	void AddBoneTrackID(uint32_t trackID);
+	uint32_t GetBoneTrackCount() const;
+	std::vector<TrackID>& GetBoneTrackIDs();
+	const std::vector<TrackID>& GetBoneTrackIDs() const;
 
 	Animation& operator<<(InputArchive& inputArchive);
 	Animation& operator<<(InputArchiveSwapBytes& inputArchive);
