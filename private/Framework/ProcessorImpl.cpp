@@ -37,10 +37,12 @@ void ProcessorImpl::DumpSceneDatabase()
 {
 	printf("\nSceneDatabase : %s\n", m_pCurrentSceneDatabase->GetName());
 	printf("\tNode count : %d\n", m_pCurrentSceneDatabase->GetNodeCount());
-	printf("\tBone count : %d\n", m_pCurrentSceneDatabase->GetBoneCount());
 	printf("\tMesh count : %d\n", m_pCurrentSceneDatabase->GetMeshCount());
 	printf("\tMaterial count : %d\n", m_pCurrentSceneDatabase->GetMaterialCount());
 	printf("\tTexture count : %d\n", m_pCurrentSceneDatabase->GetTextureCount());
+	printf("\tBone count : %d\n", m_pCurrentSceneDatabase->GetBoneCount());
+	printf("\tAnimation count : %d\n", m_pCurrentSceneDatabase->GetAnimationCount());
+	printf("\tTrack count : %d\n", m_pCurrentSceneDatabase->GetTrackCount());
 
 	if (m_pCurrentSceneDatabase->GetNodeCount() > 0U)
 	{
@@ -120,6 +122,26 @@ void ProcessorImpl::DumpSceneDatabase()
 		for (const auto& bone : m_pCurrentSceneDatabase->GetBones())
 		{
 			printf("[Bone %u] Name : %s, ParentID : %u\n", bone.GetID().Data(), bone.GetName(), bone.GetParentID().Data());
+		}
+	}
+
+	if (m_pCurrentSceneDatabase->GetAnimationCount() > 0U)
+	{
+		printf("\n");
+		for (const auto& animation : m_pCurrentSceneDatabase->GetAnimations())
+		{
+			printf("[Animation %u] Name : %s, Duration : %f\n", animation.GetID().Data(), animation.GetName(), animation.GetDuration());
+		}
+	}
+
+	if (m_pCurrentSceneDatabase->GetTrackCount() > 0U)
+	{
+		printf("\n");
+		for (const auto& track : m_pCurrentSceneDatabase->GetTracks())
+		{
+			printf("[Track %u] Name : %s\n", track.GetID().Data(), track.GetName());
+			printf("\tTranslationKeyCount : %u, RotationKeyCount : %u, ScaleKeyCount : %u\n",
+				track.GetTranslationKeyCount(), track.GetRotationKeyCount(), track.GetScaleKeyCount());
 		}
 	}
 }

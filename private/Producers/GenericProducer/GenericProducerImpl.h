@@ -83,11 +83,13 @@ private:
 
 	// Generate IDs for different objects
 	cd::ObjectIDGenerator<cd::NodeID> m_nodeIDGenerator;
-	cd::ObjectIDGenerator<cd::BoneID> m_boneIDGenerator;
 	cd::ObjectIDGenerator<cd::MeshID> m_meshIDGenerator;
 	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
 	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
 	cd::ObjectIDGenerator<cd::LightID> m_lightIDGenerator;
+	cd::ObjectIDGenerator<cd::BoneID> m_boneIDGenerator;
+	cd::ObjectIDGenerator<cd::AnimationID> m_animationIDGenerator;
+	cd::ObjectIDGenerator<cd::TrackID> m_trackIDGenerator;
 
 	std::map<uint32_t, uint32_t> m_nodeIDToNodeIndexLookup;
 	std::map<const aiNode*, uint32_t> m_aiNodeToNodeIDLookup;

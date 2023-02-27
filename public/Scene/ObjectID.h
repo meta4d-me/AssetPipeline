@@ -50,6 +50,7 @@ using NodeID = ObjectID<uint32_t, ObjectType::Node>;
 using CameraID = ObjectID<uint32_t, ObjectType::Camera>;
 using BoneID = ObjectID<uint32_t, ObjectType::Bone>;
 using AnimationID = ObjectID<uint32_t, ObjectType::Animation>;
+using TrackID = ObjectID<uint32_t, ObjectType::Track>;
 
 static_assert(sizeof(VertexID) == sizeof(uint32_t));
 

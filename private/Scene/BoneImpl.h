@@ -45,6 +45,10 @@ public:
 	std::vector<BoneID>& GetChildIDs() { return m_childIDs; }
 	const std::vector<BoneID>& GetChildIDs() const { return m_childIDs; }
 
+	void SetTransform(Transform transform) { m_transform = cd::MoveTemp(transform); }
+	Transform& GetTransform() { return m_transform; }
+	const Transform& GetTransform() const { return m_transform; }
+
 	template<bool SwapBytesOrder>
 	BoneImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
@@ -74,8 +78,9 @@ public:
 private:
 	BoneID m_id;
 	BoneID m_parentID;
-	std::vector<BoneID> m_childIDs;
+	Transform m_transform;
 
+	std::vector<BoneID> m_childIDs;
 	std::string m_name;
 };
 

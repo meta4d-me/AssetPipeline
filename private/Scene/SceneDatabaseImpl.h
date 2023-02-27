@@ -4,11 +4,12 @@
 #include "Math/Box.hpp"
 #include "Scene/Animation.h"
 #include "Scene/Bone.h"
+#include "Scene/Light.h"
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
 #include "Scene/Node.h"
 #include "Scene/Texture.h"
-#include "Scene/Light.h"
+#include "Scene/Track.h"
 
 #include <optional>
 #include <unordered_map>
@@ -45,15 +46,6 @@ public:
 	const Node* GetNodeByName(const std::string& name) const;
 	uint32_t GetNodeCount() const { return static_cast<uint32_t>(m_nodes.size()); }
 
-	// Bone
-	void AddBone(Bone bone) { m_bones.emplace_back(MoveTemp(bone)); }
-	std::vector<Bone>& GetBones() { return m_bones; }
-	const std::vector<Bone>& GetBones() const { return m_bones; }
-	void SetBoneCount(uint32_t count) { m_bones.reserve(count); }
-	const Bone& GetBone(uint32_t index) const { return m_bones[index]; }
-	const Bone* GetBoneByName(const std::string& name) const;
-	uint32_t GetBoneCount() const { return static_cast<uint32_t>(m_bones.size()); }
-
 	// Mesh
 	void AddMesh(Mesh mesh) { m_meshes.emplace_back(MoveTemp(mesh)); }
 	std::vector<Mesh>& GetMeshes() { return m_meshes; }
@@ -61,14 +53,6 @@ public:
 	void SetMeshCount(uint32_t count) { m_meshes.reserve(count); }
 	const Mesh& GetMesh(uint32_t index) const { return m_meshes[index];  }
 	uint32_t GetMeshCount() const { return static_cast<uint32_t>(m_meshes.size()); }
-
-	// Animation
-	void AddAnimation(Animation animation) { m_animations.emplace_back(MoveTemp(animation)); }
-	std::vector<Animation>& GetAnimations() { return m_animations; }
-	const std::vector<Animation>& GetAnimations() const { return m_animations; }
-	void SetAnimationCount(uint32_t count) { m_animations.reserve(count); }
-	const Animation& GetAnimation(uint32_t index) const { return m_animations[index]; }
-	uint32_t GetAnimationCount() const { return static_cast<uint32_t>(m_animations.size()); }
 
 	// Texture
 	void AddTexture(Texture texture) { m_textures.emplace_back(MoveTemp(texture)); }
@@ -94,6 +78,31 @@ public:
 	const Light& GetLight(uint32_t index) const { return m_lights[index]; }
 	uint32_t GetLightCount() const { return static_cast<uint32_t>(m_lights.size()); }
 
+	// Bone
+	void AddBone(Bone bone) { m_bones.emplace_back(MoveTemp(bone)); }
+	std::vector<Bone>& GetBones() { return m_bones; }
+	const std::vector<Bone>& GetBones() const { return m_bones; }
+	void SetBoneCount(uint32_t count) { m_bones.reserve(count); }
+	const Bone& GetBone(uint32_t index) const { return m_bones[index]; }
+	const Bone* GetBoneByName(const std::string& name) const;
+	uint32_t GetBoneCount() const { return static_cast<uint32_t>(m_bones.size()); }
+
+	// Animation
+	void AddAnimation(Animation animation) { m_animations.emplace_back(MoveTemp(animation)); }
+	std::vector<Animation>& GetAnimations() { return m_animations; }
+	const std::vector<Animation>& GetAnimations() const { return m_animations; }
+	void SetAnimationCount(uint32_t count) { m_animations.reserve(count); }
+	const Animation& GetAnimation(uint32_t index) const { return m_animations[index]; }
+	uint32_t GetAnimationCount() const { return static_cast<uint32_t>(m_animations.size()); }
+
+	// Track
+	void AddTrack(Track Track) { m_tracks.emplace_back(MoveTemp(Track)); }
+	std::vector<Track>& GetTracks() { return m_tracks; }
+	const std::vector<Track>& GetTracks() const { return m_tracks; }
+	void SetTrackCount(uint32_t count) { m_tracks.reserve(count); }
+	const Track& GetTrack(uint32_t index) const { return m_tracks[index]; }
+	uint32_t GetTrackCount() const { return static_cast<uint32_t>(m_tracks.size()); }
+
 	template<bool SwapBytesOrder>
 	SceneDatabaseImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
@@ -105,40 +114,36 @@ public:
 		sceneAABB << inputArchive;
 		SetAABB(MoveTemp(sceneAABB));
 
-		uint32_t nodeCount = 0;
-		uint32_t boneCount = 0;
-		uint32_t meshCount = 0;
-		uint32_t animationCount = 0;
-		uint32_t textureCount = 0;
-		uint32_t materialCount = 0;
-		uint32_t lightCount = 0;
-		inputArchive >> nodeCount >> boneCount >> meshCount >> animationCount >> textureCount >> materialCount >> lightCount;
+		uint32_t nodeCount;
+		uint32_t meshCount;
+		uint32_t textureCount;
+		uint32_t materialCount;
+		uint32_t lightCount;
+		uint32_t boneCount;
+		uint32_t animationCount;
+		uint32_t trackCount;
+
+		inputArchive >> nodeCount >> meshCount
+			>> textureCount >> materialCount >> lightCount
+			>> boneCount >> animationCount >> trackCount;
+
 		SetNodeCount(nodeCount);
-		SetBoneCount(boneCount);
 		SetMeshCount(meshCount);
-		SetMeshCount(animationCount);
 		SetTextureCount(textureCount);
 		SetMaterialCount(materialCount);
 		SetLightCount(lightCount);
+		SetBoneCount(boneCount);
+		SetAnimationCount(animationCount);
+		SetTrackCount(trackCount);
 
 		for (uint32_t nodeIndex = 0U; nodeIndex < nodeCount; ++nodeIndex)
 		{
 			AddNode(Node(inputArchive));
 		}
 
-		for (uint32_t boneIndex = 0U; boneIndex < boneCount; ++boneIndex)
-		{
-			AddBone(Bone(inputArchive));
-		}
-
 		for (uint32_t meshIndex = 0U; meshIndex < meshCount; ++meshIndex)
 		{
 			AddMesh(Mesh(inputArchive));
-		}
-
-		for (uint32_t animationIndex = 0U; animationIndex < animationCount; ++animationIndex)
-		{
-			AddAnimation(Animation(inputArchive));
 		}
 
 		for (uint32_t textureIndex = 0U; textureIndex < textureCount; ++textureIndex)
@@ -154,6 +159,21 @@ public:
 		for (uint32_t lightIndex = 0U; lightIndex < lightCount; ++lightIndex)
 		{
 			AddLight(Light(inputArchive));
+		}
+
+		for (uint32_t boneIndex = 0U; boneIndex < boneCount; ++boneIndex)
+		{
+			AddBone(Bone(inputArchive));
+		}
+
+		for (uint32_t animationIndex = 0U; animationIndex < animationCount; ++animationIndex)
+		{
+			AddAnimation(Animation(inputArchive));
+		}
+
+		for (uint32_t trackIndex = 0U; trackIndex < trackCount; ++trackIndex)
+		{
+			AddTrack(Track(inputArchive));
 		}
 
 		return *this;
@@ -173,22 +193,10 @@ public:
 			node >> outputArchive;
 		}
 
-		for (uint32_t boneIndex = 0U; boneIndex < GetBoneCount(); ++boneIndex)
-		{
-			const Bone& bone = GetBone(boneIndex);
-			bone >> outputArchive;
-		}
-
 		for (uint32_t meshIndex = 0U; meshIndex < GetMeshCount(); ++meshIndex)
 		{
 			const Mesh& mesh = GetMesh(meshIndex);
 			mesh >> outputArchive;
-		}
-
-		for (uint32_t animationIndex = 0U; animationIndex < GetAnimationCount(); ++animationIndex)
-		{
-			const Animation& animation = GetAnimation(animationIndex);
-			animation >> outputArchive;
 		}
 
 		for (uint32_t textureIndex = 0U; textureIndex < GetTextureCount(); ++textureIndex)
@@ -209,6 +217,24 @@ public:
 			light >> outputArchive;
 		}
 
+		for (uint32_t boneIndex = 0U; boneIndex < GetBoneCount(); ++boneIndex)
+		{
+			const Bone& bone = GetBone(boneIndex);
+			bone >> outputArchive;
+		}
+
+		for (uint32_t animationIndex = 0U; animationIndex < GetAnimationCount(); ++animationIndex)
+		{
+			const Animation& animation = GetAnimation(animationIndex);
+			animation >> outputArchive;
+		}
+
+		for (uint32_t trackIndex = 0U; trackIndex < GetTrackCount(); ++trackIndex)
+		{
+			const Track& track = GetTrack(trackIndex);
+			track >> outputArchive;
+		}
+
 		return *this;
 	}
 
@@ -220,11 +246,12 @@ private:
 	std::vector<Node> m_nodes;
 
 	// Mesh data both for StatciMesh and SkinMesh.
-	std::vector<Bone> m_bones;
 	std::vector<Mesh> m_meshes;
 
 	// Animation data.
+	std::vector<Bone> m_bones;
 	std::vector<Animation> m_animations;
+	std::vector<Track> m_tracks;
 
 	// Material and texture data.
 	std::vector<Texture> m_textures;

@@ -14,7 +14,8 @@ enum class ObjectType
 	Node,
 	Camera,
 	Bone,
-	Animation
+	Animation,
+	Track
 };
 
 }
