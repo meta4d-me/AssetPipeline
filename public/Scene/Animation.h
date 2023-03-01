@@ -37,6 +37,9 @@ public:
 	void SetDuration(float duration);
 	float GetDuration() const;
 
+	void SetTicksPerSecond(float ticksPerSecond);
+	float GetTicksPerSecnod() const;
+
 	void AddBoneTrackID(uint32_t trackID);
 	uint32_t GetBoneTrackCount() const;
 	std::vector<TrackID>& GetBoneTrackIDs();
