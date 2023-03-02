@@ -84,9 +84,9 @@ const Node& SceneDatabase::GetNode(uint32_t index) const
 	return m_pSceneDatabaseImpl->GetNode(index);
 }
 
-const Node* SceneDatabase::GetNodeByName(const std::string& name) const
+const Node* SceneDatabase::GetNodeByName(const char* pName) const
 {
-	return m_pSceneDatabaseImpl->GetNodeByName(name);
+	return m_pSceneDatabaseImpl->GetNodeByName(pName);
 }
 
 uint32_t SceneDatabase::GetNodeCount() const
@@ -254,9 +254,9 @@ const Bone& SceneDatabase::GetBone(uint32_t index) const
 	return m_pSceneDatabaseImpl->GetBone(index);
 }
 
-const Bone* SceneDatabase::GetBoneByName(const std::string& name) const
+const Bone* SceneDatabase::GetBoneByName(const char* pName) const
 {
-	return m_pSceneDatabaseImpl->GetBoneByName(name);
+	return m_pSceneDatabaseImpl->GetBoneByName(pName);
 }
 
 uint32_t SceneDatabase::GetBoneCount() const
