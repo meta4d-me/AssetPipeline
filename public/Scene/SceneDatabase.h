@@ -45,7 +45,7 @@ public:
 	const std::vector<Node>& GetNodes() const;
 	void SetNodeCount(uint32_t nodeCount);
 	const Node& GetNode(uint32_t index) const;
-	const Node* GetNodeByName(const std::string& name) const;
+	const Node* GetNodeByName(const char* pName) const;
 	uint32_t GetNodeCount() const;
 
 	// Mesh
@@ -86,7 +86,7 @@ public:
 	const std::vector<Bone>& GetBones() const;
 	void SetBoneCount(uint32_t boneCount);
 	const Bone& GetBone(uint32_t index) const;
-	const Bone* GetBoneByName(const std::string& name) const;
+	const Bone* GetBoneByName(const char* pName) const;
 	uint32_t GetBoneCount() const;
 
 	// Animation

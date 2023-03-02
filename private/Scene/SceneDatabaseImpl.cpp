@@ -15,11 +15,11 @@ SceneDatabaseImpl::SceneDatabaseImpl()
 ///////////////////////////////////////////////////////////////////
 // Node
 ///////////////////////////////////////////////////////////////////
-const Node* SceneDatabaseImpl::GetNodeByName(const std::string& name) const
+const Node* SceneDatabaseImpl::GetNodeByName(const char* pName) const
 {
 	for (const auto& node : m_nodes)
 	{
-		if (name == node.GetName())
+		if (0 == strcmp(pName, node.GetName()))
 		{
 			return &node;
 		}
@@ -31,11 +31,11 @@ const Node* SceneDatabaseImpl::GetNodeByName(const std::string& name) const
 ///////////////////////////////////////////////////////////////////
 // Bone
 ///////////////////////////////////////////////////////////////////
-const Bone* SceneDatabaseImpl::GetBoneByName(const std::string& name) const
+const Bone* SceneDatabaseImpl::GetBoneByName(const char* pName) const
 {
 	for (const auto& bone : m_bones)
 	{
-		if (name == bone.GetName())
+		if (0 == strcmp(pName, bone.GetName()))
 		{
 			return &bone;
 		}

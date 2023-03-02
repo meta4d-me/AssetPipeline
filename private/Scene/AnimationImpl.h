@@ -39,6 +39,9 @@ public:
 	void SetDuration(float duration) { m_duration = duration; }
 	float GetDuration() const { return m_duration; }
 
+	void SetTicksPerSecond(float ticksPerSecond) { m_ticksPerSecond = ticksPerSecond; }
+	float GetTicksPerSecnod() const { return m_ticksPerSecond; }
+
 	void AddBoneTrackID(uint32_t trackID) { m_boneTrackIDs.push_back(TrackID(trackID)); }
 	uint32_t GetBoneTrackCount() const { return static_cast<uint32_t>(m_boneTrackIDs.size()); }
 	std::vector<TrackID>& GetBoneTrackIDs() { return m_boneTrackIDs; }
@@ -75,6 +78,8 @@ public:
 private:
 	AnimationID m_id;
 	float m_duration;
+	float m_ticksPerSecond;
+
 	std::string m_name;
 	std::vector<TrackID> m_boneTrackIDs;
 };

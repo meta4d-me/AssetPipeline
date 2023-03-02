@@ -69,6 +69,16 @@ float Animation::GetDuration() const
     return m_pAnimationImpl->GetDuration();
 }
 
+void Animation::SetTicksPerSecond(float ticksPerSecond)
+{
+    m_pAnimationImpl->SetTicksPerSecond(ticksPerSecond);
+}
+
+float Animation::GetTicksPerSecnod() const
+{
+    return m_pAnimationImpl->GetTicksPerSecnod();
+}
+
 void Animation::AddBoneTrackID(uint32_t trackID)
 {
     m_pAnimationImpl->AddBoneTrackID(trackID);

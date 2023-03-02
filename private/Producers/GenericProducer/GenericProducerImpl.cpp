@@ -384,6 +384,7 @@ void GenericProducerImpl::AddAnimation(cd::SceneDatabase* pSceneDatabase, const 
 
 	cd::Animation animation(animationID, pAnimationName);
 	animation.SetDuration(static_cast<float>(pSourceAnimation->mDuration));
+	animation.SetTicksPerSecond(static_cast<float>(pSourceAnimation->mTicksPerSecond));
 
 	for (uint32_t channelIndex = 0U; channelIndex < pSourceAnimation->mNumChannels; ++channelIndex)
 	{

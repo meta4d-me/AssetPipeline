@@ -80,7 +80,7 @@ void ProcessorImpl::DumpSceneDatabase()
 		printf("\n");
 		for (const auto& texture : m_pCurrentSceneDatabase->GetTextures())
 		{
-			printf("[Texture %u]\n", texture.GetID().Data());
+			printf("[Texture %u] %s\n", texture.GetID().Data(), cd::GetMaterialPropertyGroupName(texture.GetType()));
 			printf("\tPath = %s\n", texture.GetPath());
 		}
 	}
@@ -99,8 +99,8 @@ void ProcessorImpl::DumpSceneDatabase()
 				{
 					const auto& textureID = material.GetTextureID(textureType);
 					const auto& texture = m_pCurrentSceneDatabase->GetTexture(textureID.value().Data());
-					printf("\t[Associated Texture %u] %s - %s\n", textureID.value().Data(),
-						cd::GetMaterialPropertyGroupName(textureType), texture.GetPath());
+					printf("\t[Associated Texture %u] %s\n", textureID.value().Data(), cd::GetMaterialPropertyGroupName(textureType));
+					printf("\t\tPath = %s\n", texture.GetPath());
 				}
 			}
 
@@ -130,7 +130,8 @@ void ProcessorImpl::DumpSceneDatabase()
 		printf("\n");
 		for (const auto& animation : m_pCurrentSceneDatabase->GetAnimations())
 		{
-			printf("[Animation %u] Name : %s, Duration : %f\n", animation.GetID().Data(), animation.GetName(), animation.GetDuration());
+			printf("[Animation %u] Name : %s\n", animation.GetID().Data(), animation.GetName());
+			printf("\tDuration : %f, TicksPerSecond : %f\n", animation.GetDuration(), animation.GetTicksPerSecnod());
 		}
 	}
 
@@ -154,12 +155,6 @@ void ProcessorImpl::ValidateSceneDatabase()
 		assert(nodeIndex == node.GetID().Data());
 	}
 
-	for (uint32_t boneIndex = 0U; boneIndex < m_pCurrentSceneDatabase->GetBoneCount(); ++boneIndex)
-	{
-		const cd::Bone& bone = m_pCurrentSceneDatabase->GetBone(boneIndex);
-		assert(boneIndex == bone.GetID().Data());
-	}
-
 	for (uint32_t meshIndex = 0U; meshIndex < m_pCurrentSceneDatabase->GetMeshCount(); ++meshIndex)
 	{
 		const cd::Mesh& mesh = m_pCurrentSceneDatabase->GetMesh(meshIndex);
@@ -176,6 +171,25 @@ void ProcessorImpl::ValidateSceneDatabase()
 	{
 		const cd::Texture& texture = m_pCurrentSceneDatabase->GetTexture(textureIndex);
 		assert(textureIndex == texture.GetID().Data());
+	}
+
+	for (uint32_t boneIndex = 0U; boneIndex < m_pCurrentSceneDatabase->GetBoneCount(); ++boneIndex)
+	{
+		const cd::Bone& bone = m_pCurrentSceneDatabase->GetBone(boneIndex);
+		assert(boneIndex == bone.GetID().Data());
+	}
+
+	for (uint32_t animationIndex = 0U; animationIndex < m_pCurrentSceneDatabase->GetAnimationCount(); ++animationIndex)
+	{
+		const cd::Animation& animation = m_pCurrentSceneDatabase->GetAnimation(animationIndex);
+		assert(animationIndex == animation.GetID().Data());
+	}
+
+	for (uint32_t trackIndex = 0U; trackIndex < m_pCurrentSceneDatabase->GetTrackCount(); ++trackIndex)
+	{
+		const cd::Track& track = m_pCurrentSceneDatabase->GetTrack(trackIndex);
+		assert(trackIndex == track.GetID().Data());
+		assert(m_pCurrentSceneDatabase->GetBoneByName(track.GetName()));
 	}
 }
 
