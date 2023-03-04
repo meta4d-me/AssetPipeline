@@ -194,6 +194,39 @@ uint32_t SceneDatabase::GetTextureCount() const
 }
 
 ///////////////////////////////////////////////////////////////////
+// Camera
+///////////////////////////////////////////////////////////////////
+void SceneDatabase::AddCamera(Camera camera)
+{
+	return m_pSceneDatabaseImpl->AddCamera(cd::MoveTemp(camera));
+}
+
+std::vector<Camera>& SceneDatabase::GetCameras()
+{
+	return m_pSceneDatabaseImpl->GetCameras();
+}
+
+const std::vector<Camera>& SceneDatabase::GetCameras() const
+{
+	return m_pSceneDatabaseImpl->GetCameras();
+}
+
+void SceneDatabase::SetCameraCount(uint32_t cameraCount)
+{
+	return m_pSceneDatabaseImpl->SetCameraCount(cameraCount);
+}
+
+const Camera& SceneDatabase::GetCamera(uint32_t index) const
+{
+	return m_pSceneDatabaseImpl->GetCamera(index);
+}
+
+uint32_t SceneDatabase::GetCameraCount() const
+{
+	return m_pSceneDatabaseImpl->GetCameraCount();
+}
+
+///////////////////////////////////////////////////////////////////
 // Light
 ///////////////////////////////////////////////////////////////////
 void SceneDatabase::AddLight(Light light)
