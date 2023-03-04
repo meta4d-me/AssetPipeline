@@ -233,7 +233,7 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 	for (uint32_t faceIndex = 0; faceIndex < pSourceMesh->mNumFaces; ++faceIndex)
 	{
 		const aiFace& face = pSourceMesh->mFaces[faceIndex];
-		assert(face.mNumIndices == 3 && "tjj : Do you forget to open importer's triangulate flag?");
+		assert(face.mNumIndices == 3 && "Do you forget to open importer's triangulate flag?");
 
 		uint32_t originIndex0 = face.mIndices[0];
 		uint32_t originIndex1 = face.mIndices[1];
@@ -349,11 +349,9 @@ void GenericProducerImpl::AddMeshBones(cd::SceneDatabase* pSceneDatabase, const 
 		cd::BoneID boneID = m_boneIDGenerator.AllocateID(boneHash, &isBoneReused);
 		if (!isBoneReused)
 		{
+			// Other bone data will be initialized from aiNode which has the same name with aiBone.
 			cd::Bone bone(boneID, cd::MoveTemp(boneName));
-
-			cd::Matrix4x4 transformation = ConvertAssimpMatrix(pSourceBone->mOffsetMatrix);
-			bone.SetTransform(cd::Transform(transformation.GetTranslation(), cd::Quaternion::FromMatrix(transformation.GetRotation()), transformation.GetScale()));
-
+			bone.SetOffset(ConvertAssimpMatrix(pSourceBone->mOffsetMatrix));
 			pSceneDatabase->AddBone(cd::MoveTemp(bone));
 		}
 		
@@ -402,11 +400,11 @@ void GenericProducerImpl::AddAnimation(cd::SceneDatabase* pSceneDatabase, const 
 		for (uint32_t translationKeyIndex = 0U; translationKeyIndex < boneTrack.GetTranslationKeyCount(); ++translationKeyIndex)
 		{
 			const aiVectorKey& sourcePositionKey = pBoneTrack->mPositionKeys[translationKeyIndex];
-			const aiVector3D& rotationValue = sourcePositionKey.mValue;
+			const aiVector3D& translationValue = sourcePositionKey.mValue;
 
 			auto& translationKey = boneTrack.GetTranslationKeys()[translationKeyIndex];
 			translationKey.SetTime(static_cast<float>(sourcePositionKey.mTime));
-			translationKey.SetValue(cd::Vec3f(rotationValue.x, rotationValue.y, rotationValue.z));
+			translationKey.SetValue(cd::Vec3f(translationValue.x, translationValue.y, translationValue.z));
 		}
 
 		for (uint32_t rotationKeyIndex = 0U; rotationKeyIndex < boneTrack.GetRotationKeyCount(); ++rotationKeyIndex)
@@ -525,7 +523,8 @@ void GenericProducerImpl::AddScene(cd::SceneDatabase* pSceneDatabase, const aiSc
 		pSceneDatabase->SetNodeCount(GetSceneNodesCount(pSourceScene->mRootNode));
 		pSceneDatabase->SetMeshCount(pSourceScene->mNumMeshes);
 
-		// Add nodes and associated meshes(also bones for SkinMesh) to SceneDatabase.
+		// Add nodes and associated meshes to SceneDatabase.
+		// For assimp, bones are also treated as nodes.
 		AddNodeRecursively(pSceneDatabase, pSourceScene, pSourceScene->mRootNode, m_nodeIDGenerator.AllocateID());
 	}
 
@@ -569,7 +568,7 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		printf(aiGetErrorString());
 		return;
 	}
-	assert(pScene->mNumTextures == 0 && "[Unsupported] parse embedded textures.");
+	//assert(pScene->mNumTextures == 0 && "[Unsupported] parse embedded textures.");
 
 	// Add scene.
 	AddScene(pSceneDatabase, pScene);
@@ -597,6 +596,8 @@ void GenericProducerImpl::RemoveBoneReferenceNodes(cd::SceneDatabase* pSceneData
 		{
 			continue;
 		}
+
+		bone.SetTransform(pBoneNode->GetTransform());
 
 		if (pBoneNode->GetParentID().IsValid())
 		{
