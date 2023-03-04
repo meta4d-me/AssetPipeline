@@ -28,10 +28,25 @@ public:
 		return TQuaternion<T>(std::cos(halfAngle), axis.x() * sinHalfAngle, axis.y() * sinHalfAngle, axis.z() * sinHalfAngle);
 	}
 
-	//static TQuaternion<T> SphericalLerp(const TQuaternion<T>& a, const TQuaternion<T>& b, T s)
-	//{
-	//
-	//}
+	static TQuaternion<T> Lerp(const TQuaternion<T>& a, const TQuaternion<T>& b, T t)
+	{
+		constexpr T zero = static_cast<T>(0);
+
+		TQuaternion<T> result;
+		if (a.Dot(b) < zero)
+		{
+			TQuaternion<T> tmp = -b;
+			result.SetVector(a.GetVector() - (a.GetVector() - tmp.GetVector()) * t);
+			result.SetScalar(a.GetScalar() - (a.GetScalar() - tmp.GetScalar()) * t);
+		}
+		else
+		{
+			result.SetVector(a.GetVector() - (a.GetVector() - b.GetVector()) * t);
+			result.SetScalar(a.GetScalar() - (a.GetScalar() - b.GetScalar()) * t);
+		}
+
+		return result;
+	}
 
 	// "Quaternion Calculus and Fast Animation" Ken Shoemake, 1987 SIGGRAPH.
 	// intel report https://www.intel.com/content/dam/develop/external/us/en/documents/293748-142817.pdf.
@@ -102,7 +117,7 @@ public:
 	CD_FORCEINLINE T Data(int index) const { return *(Begin() + index); }
 	CD_FORCEINLINE T GetScalar() const { return m_scalar; }
 	CD_FORCEINLINE void SetScalar(T s) { m_scalar = s; }
-	CD_FORCEINLINE const T& GetVector() const { return m_vector; }
+	CD_FORCEINLINE const TVector<T, 3>& GetVector() const { return m_vector; }
 	CD_FORCEINLINE void SetVector(TVector<T, 3> v) { m_vector = cd::MoveTemp(v); }
 	CD_FORCEINLINE T x() const { return m_vector.x(); }
 	CD_FORCEINLINE T y() const { return m_vector.y(); }
@@ -217,7 +232,7 @@ public:
 	// Calculations
 	CD_FORCEINLINE TQuaternion<T> Inverse() const { return TQuaternion<T>(m_scalar, -m_vector); }
 	CD_FORCEINLINE T Dot(const TQuaternion& rhs) const { return m_scalar * rhs.m_scalar + m_vector.x() * rhs.m_vector.x() + m_vector.y() * rhs.m_vector.y() + m_vector.z() * rhs.m_vector.z(); }
-	CD_FORCEINLINE T LengthSqure() const { return m_scalar * m_scalar + m_vector.x() * m_vector.x() + m_vector.y() * m_vector.y() + m_vector.z() * m_vector.z();  }
+	CD_FORCEINLINE T LengthSqure() const { return Dot(*this);  }
 	CD_FORCEINLINE T Length() const { return std::sqrt(LengthSqure());  }
 	TQuaternion<T>& Normalize()
 	{
@@ -231,6 +246,7 @@ public:
 	CD_FORCEINLINE TQuaternion<T> operator+(const TQuaternion<T>& rhs) const { return TQuaternion<T>(m_scalar + rhs.m_scalar, m_vector + rhs.m_vector); }
 	CD_FORCEINLINE TQuaternion<T>& operator+=(const TQuaternion<T>& rhs) { m_scalar += rhs.m_scalar; m_vector += rhs.m_vector; return *this; }
 	
+	CD_FORCEINLINE TQuaternion<T> operator-() const { return TQuaternion<T>(-m_scalar, -m_vector.x(), -m_vector.y(), -m_vector.z()); }
 	CD_FORCEINLINE TQuaternion<T> operator-(const TQuaternion<T>& rhs) const { return TQuaternion<T>(m_scalar - rhs.m_scalar, m_vector - rhs.m_vector); }
 	CD_FORCEINLINE TQuaternion<T>& operator-=(const TQuaternion<T>& rhs) { m_scalar -= rhs.m_scalar; m_vector -= rhs.m_vector; return *this; }
 

@@ -32,7 +32,7 @@ public:
 	void SetID(uint32_t id) { m_id = BoneID(id); }
 	const BoneID& GetID() const { return m_id; }
 
-	void SetName(std::string name) { m_name = cd::MoveTemp(name); }
+	void SetName(std::string name) { m_name = MoveTemp(name); }
 	std::string& GetName() { return m_name; }
 	const std::string& GetName() const { return m_name; }
 
@@ -45,7 +45,11 @@ public:
 	std::vector<BoneID>& GetChildIDs() { return m_childIDs; }
 	const std::vector<BoneID>& GetChildIDs() const { return m_childIDs; }
 
-	void SetTransform(Transform transform) { m_transform = cd::MoveTemp(transform); }
+	void SetOffset(Matrix4x4 offset) { m_offset = MoveTemp(offset); }
+	Matrix4x4& GetOffset() { return m_offset; }
+	const Matrix4x4& GetOffset() const { return m_offset; }
+
+	void SetTransform(Transform transform) { m_transform = MoveTemp(transform); }
 	Transform& GetTransform() { return m_transform; }
 	const Transform& GetTransform() const { return m_transform; }
 
@@ -53,15 +57,20 @@ public:
 	BoneImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
 		uint32_t boneID;
-		uint32_t boneParentID;
 		std::string boneName;
+		uint32_t boneParentID;
+		uint32_t boneChildIDCount;
 
-		inputArchive >> boneID >> boneName >> boneParentID;
+		inputArchive >> boneID >> boneName
+			>> boneParentID >> boneChildIDCount;
 
 		Init(BoneID(boneID), cd::MoveTemp(boneName));
-
 		SetParentID(boneParentID);
+
+		m_childIDs.resize(boneChildIDCount);
 		inputArchive.ImportBuffer(GetChildIDs().data());
+
+		inputArchive >> GetOffset() >> GetTransform();
 
 		return *this;
 	}
@@ -69,8 +78,9 @@ public:
 	template<bool SwapBytesOrder>
 	const BoneImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetID().Data() << GetName();
+		outputArchive << GetID().Data() << GetName() << GetParentID().Data() << GetChildCount();
 		outputArchive.ExportBuffer(GetChildIDs().data(), GetChildIDs().size());
+		outputArchive << GetOffset() << GetTransform();
 
 		return *this;
 	}
@@ -78,8 +88,8 @@ public:
 private:
 	BoneID m_id;
 	BoneID m_parentID;
+	Matrix4x4 m_offset;
 	Transform m_transform;
-
 	std::vector<BoneID> m_childIDs;
 	std::string m_name;
 };
