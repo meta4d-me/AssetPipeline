@@ -164,6 +164,13 @@ void ProcessorImpl::DumpSceneDatabase()
 			printf("[Track %u] Name : %s\n", track.GetID().Data(), track.GetName());
 			printf("\tTranslationKeyCount : %u, RotationKeyCount : %u, ScaleKeyCount : %u\n",
 				track.GetTranslationKeyCount(), track.GetRotationKeyCount(), track.GetScaleKeyCount());
+
+			const auto& translationKeyValue = track.GetTranslationKeys()[0].GetValue();
+			printf("\tFirstTranslationKey : (x = %f, y = %f, z = %f)\n", translationKeyValue.x(), translationKeyValue.y(), translationKeyValue.z());
+			const auto& rotationKeyValue = track.GetRotationKeys()[0].GetValue();
+			printf("\tFirstRotationKey    : (w = %f, x = %f, y = %f, z = %f)\n", rotationKeyValue.w(), rotationKeyValue.x(), rotationKeyValue.y(), rotationKeyValue.z());
+			const auto& scaleKeyValue = track.GetScaleKeys()[0].GetValue();
+			printf("\tFirstScaleKey       : (x = %f, y = %f, z = %f)\n", scaleKeyValue.x(), scaleKeyValue.y(), scaleKeyValue.z());
 		}
 	}
 }
@@ -206,38 +213,42 @@ void ProcessorImpl::ValidateSceneDatabase()
 		assert(animationIndex == animation.GetID().Data());
 	}
 
+	auto CheckKeyFramesTimeOrder = [](const cd::Track& track)
+	{
+		// Make sure keyframes are sorted by time LessNotEqual.
+		float keyFrameTime = -FLT_MIN;
+		for (const auto& key : track.GetTranslationKeys())
+		{
+			float keyTime = key.GetTime();
+			assert(keyFrameTime < keyTime);
+			keyFrameTime = keyTime;
+		}
+
+		keyFrameTime = -FLT_MIN;
+		for (const auto& key : track.GetRotationKeys())
+		{
+			float keyTime = key.GetTime();
+			assert(keyFrameTime < keyTime);
+			keyFrameTime = keyTime;
+		}
+
+		keyFrameTime = -FLT_MIN;
+		for (const auto& key : track.GetScaleKeys())
+		{
+			float keyTime = key.GetTime();
+			assert(keyFrameTime < keyTime);
+			keyFrameTime = keyTime;
+		}
+	};
+
 	for (uint32_t trackIndex = 0U; trackIndex < m_pCurrentSceneDatabase->GetTrackCount(); ++trackIndex)
 	{
 		const cd::Track& track = m_pCurrentSceneDatabase->GetTrack(trackIndex);
 		assert(trackIndex == track.GetID().Data());
+		assert(track.GetTranslationKeyCount() > 0 || track.GetRotationKeyCount() > 0 || track.GetScaleKeyCount() > 0);
+
 		assert(m_pCurrentSceneDatabase->GetBoneByName(track.GetName()));
-
-		{
-			// Make sure keyframes are sorted by time.
-			float keyFrameTime = -FLT_MIN;
-			for (const auto& key : track.GetTranslationKeys())
-			{
-				float keyTime = key.GetTime();
-				assert(keyFrameTime < keyTime);
-				keyFrameTime = keyTime;
-			}
-
-			keyFrameTime = -FLT_MIN;
-			for (const auto& key : track.GetRotationKeys())
-			{
-				float keyTime = key.GetTime();
-				assert(keyFrameTime < keyTime);
-				keyFrameTime = keyTime;
-			}
-
-			keyFrameTime = -FLT_MIN;
-			for (const auto& key : track.GetScaleKeys())
-			{
-				float keyTime = key.GetTime();
-				assert(keyFrameTime < keyTime);
-				keyFrameTime = keyTime;
-			}
-		}
+		CheckKeyFramesTimeOrder(track);
 	}
 }
 

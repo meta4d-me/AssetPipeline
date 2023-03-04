@@ -41,6 +41,10 @@ public:
 	std::vector<BoneID>& GetChildIDs();
 	const std::vector<BoneID>& GetChildIDs() const;
 
+	void SetOffset(Matrix4x4 offset);
+	Matrix4x4& GetOffset();
+	const Matrix4x4& GetOffset() const;
+
 	void SetTransform(Transform transform);
 	Transform& GetTransform();
 	const Transform& GetTransform() const;
