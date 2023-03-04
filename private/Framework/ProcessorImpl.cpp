@@ -5,6 +5,7 @@
 #include "Scene/SceneDatabase.h"
 
 #include <cassert>
+#include <cfloat>
 
 namespace cdtools
 {
@@ -210,6 +211,33 @@ void ProcessorImpl::ValidateSceneDatabase()
 		const cd::Track& track = m_pCurrentSceneDatabase->GetTrack(trackIndex);
 		assert(trackIndex == track.GetID().Data());
 		assert(m_pCurrentSceneDatabase->GetBoneByName(track.GetName()));
+
+		{
+			// Make sure keyframes are sorted by time.
+			float keyFrameTime = -FLT_MIN;
+			for (const auto& key : track.GetTranslationKeys())
+			{
+				float keyTime = key.GetTime();
+				assert(keyFrameTime < keyTime);
+				keyFrameTime = keyTime;
+			}
+
+			keyFrameTime = -FLT_MIN;
+			for (const auto& key : track.GetRotationKeys())
+			{
+				float keyTime = key.GetTime();
+				assert(keyFrameTime < keyTime);
+				keyFrameTime = keyTime;
+			}
+
+			keyFrameTime = -FLT_MIN;
+			for (const auto& key : track.GetScaleKeys())
+			{
+				float keyTime = key.GetTime();
+				assert(keyFrameTime < keyTime);
+				keyFrameTime = keyTime;
+			}
+		}
 	}
 }
 

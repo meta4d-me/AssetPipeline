@@ -110,6 +110,7 @@ public:
 	const std::vector<Track>& GetTracks() const { return m_tracks; }
 	void SetTrackCount(uint32_t count) { m_tracks.reserve(count); }
 	const Track& GetTrack(uint32_t index) const { return m_tracks[index]; }
+	const Track* GetTrackByName(const char* pName) const;
 	uint32_t GetTrackCount() const { return static_cast<uint32_t>(m_tracks.size()); }
 
 	template<bool SwapBytesOrder>
