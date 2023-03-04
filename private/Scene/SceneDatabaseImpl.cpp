@@ -44,4 +44,20 @@ const Bone* SceneDatabaseImpl::GetBoneByName(const char* pName) const
 	return nullptr;
 }
 
+///////////////////////////////////////////////////////////////////
+// Track
+///////////////////////////////////////////////////////////////////
+const Track* SceneDatabaseImpl::GetTrackByName(const char* pName) const
+{
+	for (const auto& track : m_tracks)
+	{
+		if (0 == strcmp(pName, track.GetName()))
+		{
+			return &track;
+		}
+	}
+
+	return nullptr;
+}
+
 }

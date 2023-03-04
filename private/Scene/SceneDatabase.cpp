@@ -325,6 +325,11 @@ const Track& SceneDatabase::GetTrack(uint32_t index) const
 	return m_pSceneDatabaseImpl->GetTrack(index);
 }
 
+const Track* SceneDatabase::GetTrackByName(const char* pName) const
+{
+	return m_pSceneDatabaseImpl->GetTrackByName(pName);
+}
+
 uint32_t SceneDatabase::GetTrackCount() const
 {
 	return m_pSceneDatabaseImpl->GetTrackCount();

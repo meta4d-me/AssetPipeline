@@ -53,9 +53,10 @@ public:
 		uint32_t animationID;
 		std::string animationName;
 		float duration;
+		float ticksPerSecond;
 		uint32_t boneTrackCount;
 
-		inputArchive >> animationID >> animationName >> duration >> boneTrackCount;
+		inputArchive >> animationID >> animationName >> duration >> ticksPerSecond >> boneTrackCount;
 
 		Init(AnimationID(animationID), cd::MoveTemp(animationName));
 		SetDuration(duration);
@@ -69,7 +70,7 @@ public:
 	template<bool SwapBytesOrder>
 	const AnimationImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetID().Data() << GetName() << GetDuration();
+		outputArchive << GetID().Data() << GetName() << GetDuration() << GetTicksPerSecnod();
 		outputArchive.ExportBuffer(GetBoneTrackIDs().data(), GetBoneTrackIDs().size());
 
 		return *this;

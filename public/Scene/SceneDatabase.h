@@ -103,6 +103,7 @@ public:
 	const std::vector<Track>& GetTracks() const;
 	void SetTrackCount(uint32_t TrackCount);
 	const Track& GetTrack(uint32_t index) const;
+	const Track* GetTrackByName(const char* pName) const;
 	uint32_t GetTrackCount() const;
 
 	// Serialization

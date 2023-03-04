@@ -27,6 +27,11 @@ public:
 	static VectorType Zero() { return VectorType(static_cast<T>(0)); }
 	static VectorType One() { return VectorType(static_cast<T>(1)); }
 
+	static VectorType Lerp(const VectorType& a, const VectorType& b, float factor)
+	{
+		return a + (b - a) * factor;
+	}
+
 public:
 	// Default uninitialized.
 	constexpr TVector() = default;
