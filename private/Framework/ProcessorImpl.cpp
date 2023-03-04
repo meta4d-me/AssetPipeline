@@ -5,6 +5,7 @@
 #include "Scene/SceneDatabase.h"
 
 #include <cassert>
+#include <cfloat>
 
 namespace cdtools
 {
@@ -40,6 +41,8 @@ void ProcessorImpl::DumpSceneDatabase()
 	printf("\tMesh count : %d\n", m_pCurrentSceneDatabase->GetMeshCount());
 	printf("\tMaterial count : %d\n", m_pCurrentSceneDatabase->GetMaterialCount());
 	printf("\tTexture count : %d\n", m_pCurrentSceneDatabase->GetTextureCount());
+	printf("\tCamera count : %d\n", m_pCurrentSceneDatabase->GetCameraCount());
+	printf("\tLight count : %d\n", m_pCurrentSceneDatabase->GetLightCount());
 	printf("\tBone count : %d\n", m_pCurrentSceneDatabase->GetBoneCount());
 	printf("\tAnimation count : %d\n", m_pCurrentSceneDatabase->GetAnimationCount());
 	printf("\tTrack count : %d\n", m_pCurrentSceneDatabase->GetTrackCount());
@@ -75,16 +78,6 @@ void ProcessorImpl::DumpSceneDatabase()
 		}
 	}
 
-	if (m_pCurrentSceneDatabase->GetTextureCount() > 0U)
-	{
-		printf("\n");
-		for (const auto& texture : m_pCurrentSceneDatabase->GetTextures())
-		{
-			printf("[Texture %u] %s\n", texture.GetID().Data(), cd::GetMaterialPropertyGroupName(texture.GetType()));
-			printf("\tPath = %s\n", texture.GetPath());
-		}
-	}
-
 	if (m_pCurrentSceneDatabase->GetMaterialCount() > 0U)
 	{
 		printf("\n");
@@ -113,6 +106,34 @@ void ProcessorImpl::DumpSceneDatabase()
 					printf("\t[Associated Mesh %u] %s \n", drawMeshID, mesh.GetName());
 				}
 			}
+		}
+	}
+
+	if (m_pCurrentSceneDatabase->GetTextureCount() > 0U)
+	{
+		printf("\n");
+		for (const auto& texture : m_pCurrentSceneDatabase->GetTextures())
+		{
+			printf("[Texture %u] %s\n", texture.GetID().Data(), cd::GetMaterialPropertyGroupName(texture.GetType()));
+			printf("\tPath = %s\n", texture.GetPath());
+		}
+	}
+
+	if (m_pCurrentSceneDatabase->GetCameraCount() > 0U)
+	{
+		printf("\n");
+		for (const auto& camera : m_pCurrentSceneDatabase->GetCameras())
+		{
+			printf("[Camera %u] %s\n", camera.GetID().Data(), camera.GetName());
+		}
+	}
+
+	if (m_pCurrentSceneDatabase->GetLightCount() > 0U)
+	{
+		printf("\n");
+		for (const auto& light : m_pCurrentSceneDatabase->GetLights())
+		{
+			printf("[Light %u]\n", light.GetID().Data());
 		}
 	}
 
