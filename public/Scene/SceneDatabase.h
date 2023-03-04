@@ -6,6 +6,7 @@
 #include "Math/Box.hpp"
 #include "Scene/Animation.h"
 #include "Scene/Bone.h"
+#include "Scene/Camera.h"
 #include "Scene/Light.h"
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
@@ -71,6 +72,14 @@ public:
 	void SetTextureCount(uint32_t textureCount);
 	const Texture& GetTexture(uint32_t index) const;
 	uint32_t GetTextureCount() const;
+
+	// Camera
+	void AddCamera(Camera camera);
+	std::vector<Camera>& GetCameras();
+	const std::vector<Camera>& GetCameras() const;
+	void SetCameraCount(uint32_t cameraCount);
+	const Camera& GetCamera(uint32_t index) const;
+	uint32_t GetCameraCount() const;
 
 	// Light
 	void AddLight(Light light);
