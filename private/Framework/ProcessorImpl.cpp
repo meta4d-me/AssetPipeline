@@ -53,6 +53,13 @@ void ProcessorImpl::DumpSceneDatabase()
 		for (const auto& node : m_pCurrentSceneDatabase->GetNodes())
 		{
 			printf("[Node %u] ParentID : %u, Name : %s\n", node.GetID().Data(), node.GetParentID().Data(), node.GetName());
+			const auto& nodeTransform = node.GetTransform();
+			const auto& translation = nodeTransform.GetTranslation();
+			printf("\tTranslation : (x = %f, y = %f, z = %f)\n", translation.x(), translation.y(), translation.z());
+			const auto& rotation = nodeTransform.GetRotation();
+			printf("\tRotation    : (w = %f, x = %f, y = %f, z = %f)\n", rotation.w(), rotation.x(), rotation.y(), rotation.z());
+			const auto& scale = nodeTransform.GetScale();
+			printf("\tScale       : (x = %f, y = %f, z = %f)\n", scale.x(), scale.y(), scale.z());
 
 			for (cd::MeshID meshID : node.GetMeshIDs())
 			{
@@ -143,6 +150,13 @@ void ProcessorImpl::DumpSceneDatabase()
 		for (const auto& bone : m_pCurrentSceneDatabase->GetBones())
 		{
 			printf("[Bone %u] Name : %s, ParentID : %u\n", bone.GetID().Data(), bone.GetName(), bone.GetParentID().Data());
+			const auto& boneTransform = bone.GetTransform();
+			const auto& translation = boneTransform.GetTranslation();
+			printf("\tTranslation : (x = %f, y = %f, z = %f)\n", translation.x(), translation.y(), translation.z());
+			const auto& rotation = boneTransform.GetRotation();
+			printf("\tRotation    : (w = %f, x = %f, y = %f, z = %f)\n", rotation.w(), rotation.x(), rotation.y(), rotation.z());
+			const auto& scale = boneTransform.GetScale();
+			printf("\tScale       : (x = %f, y = %f, z = %f)\n", scale.x(), scale.y(), scale.z());
 		}
 	}
 
