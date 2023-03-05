@@ -254,7 +254,7 @@ public:
 	CD_FORCEINLINE TQuaternion<T> operator*(const TQuaternion<T>& rhs) const
 	{
 		return TQuaternion<T>(m_scalar * rhs.m_scalar - m_vector.Dot(rhs.m_vector),
-			m_scalar * rhs.m_vector + rhs.m_scalar * m_vector + m_vector.Cross(rhs.m_vector));
+				rhs.m_vector * m_scalar + m_vector * rhs.m_scalar + m_vector.Cross(rhs.m_vector));
 	}
 	CD_FORCEINLINE TVector<T, 3> operator*(const TVector<T, 3>& v) const
 	{

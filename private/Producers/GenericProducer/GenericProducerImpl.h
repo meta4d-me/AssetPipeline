@@ -54,6 +54,9 @@ public:
 	void ActivateCleanUnusedService() { m_bWantCleanUnused = true; }
 	bool IsCleanUnusedServiceActive() const { return m_bWantCleanUnused; }
 
+	void ActivateSimpleAnimationService() { m_bWantSimpleAnimation = true; }
+	bool IsSimpleAnimationActive() const { return m_bWantSimpleAnimation; }
+
 private:
 	uint32_t GetImportFlags() const;
 
@@ -80,6 +83,7 @@ private:
 	bool m_bWantTriangulate = false;
 	bool m_bWantTangentsSpace = false;
 	bool m_bWantCleanUnused = false;
+	bool m_bWantSimpleAnimation = false;
 
 	// Generate IDs for different objects
 	cd::ObjectIDGenerator<cd::NodeID> m_nodeIDGenerator;
