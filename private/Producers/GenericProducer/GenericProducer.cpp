@@ -78,4 +78,14 @@ bool GenericProducer::IsCleanUnusedServiceActive() const
 	return m_pGenericProducerImpl->IsFlattenHierarchyServiceActive();
 }
 
+void GenericProducer::ActivateSimpleAnimationService()
+{
+	m_pGenericProducerImpl->ActivateSimpleAnimationService();
+}
+
+bool GenericProducer::IsSimpleAnimationActive() const
+{
+	return m_pGenericProducerImpl->IsSimpleAnimationActive();
+}
+
 }
