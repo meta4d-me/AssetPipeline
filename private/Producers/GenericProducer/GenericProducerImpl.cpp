@@ -589,39 +589,32 @@ void GenericProducerImpl::RemoveBoneReferenceNodes(cd::SceneDatabase* pSceneData
 	std::vector<uint32_t> removeNodeIndexes;
 	for (auto& bone : pSceneDatabase->GetBones())
 	{
-		// Find node which has the same name with bone.
 		// In assimp implementation, it reuses Node as Bone hierarchy which is not expected to us.
+		// So we will convert cd::Node to cd::Bone here.
+		std::vector<const cd::Node*> queriedNodes;
 		std::string boneNodeName = bone.GetName();
-		const cd::Node* pBoneNode = nullptr;
 		if (IsSimpleAnimationActive())
 		{
-			if (pBoneNode = pSceneDatabase->GetNodeByName(boneNodeName.c_str()))
+			if (const cd::Node* pNode = pSceneDatabase->GetNodeByName(boneNodeName.c_str()))
 			{
-				bone.SetTransform(pBoneNode->GetTransform());
-				removeNodeIndexes.push_back(m_nodeIDToNodeIndexLookup[pBoneNode->GetID().Data()]);
+				bone.SetTransform(pNode->GetTransform());
+				queriedNodes.push_back(pNode);
+				removeNodeIndexes.push_back(m_nodeIDToNodeIndexLookup[pNode->GetID().Data()]);
 			}
 		}
 		else
 		{
 			if (const cd::Node* pNode = pSceneDatabase->GetNodeByName(boneNodeName.c_str()))
 			{
-				if (nullptr == pBoneNode)
-				{
-					// TODO : More accurate to find the final parent node.
-					pBoneNode = pNode;
-				}
+				queriedNodes.push_back(pNode);
 				removeNodeIndexes.push_back(m_nodeIDToNodeIndexLookup[pNode->GetID().Data()]);
 			}
 
 			cd::Transform boneTransform = cd::Transform::Identity();
 			if (const cd::Node* pNode = pSceneDatabase->GetNodeByName(std::string(boneNodeName + "_$AssimpFbx$_Translation").c_str()))
 			{
-				if (nullptr == pBoneNode)
-				{
-					// TODO : More accurate to find the final parent node.
-					pBoneNode = pNode;
-				}
 				boneTransform.SetTranslation(pNode->GetTransform().GetTranslation());
+				queriedNodes.push_back(pNode);
 				removeNodeIndexes.push_back(m_nodeIDToNodeIndexLookup[pNode->GetID().Data()]);
 			}
 
@@ -630,18 +623,21 @@ void GenericProducerImpl::RemoveBoneReferenceNodes(cd::SceneDatabase* pSceneData
 			if (const cd::Node* pNode = pSceneDatabase->GetNodeByName(std::string(boneNodeName + "_$AssimpFbx$_PreRotation").c_str()))
 			{
 				rotation = rotation * pNode->GetTransform().GetRotation();
+				queriedNodes.push_back(pNode);
 				removeNodeIndexes.push_back(m_nodeIDToNodeIndexLookup[pNode->GetID().Data()]);
 			}
 
 			if (const cd::Node* pNode = pSceneDatabase->GetNodeByName(std::string(boneNodeName + "_$AssimpFbx$_Rotation").c_str()))
 			{
 				rotation = rotation * pNode->GetTransform().GetRotation();
+				queriedNodes.push_back(pNode);
 				removeNodeIndexes.push_back(m_nodeIDToNodeIndexLookup[pNode->GetID().Data()]);
 			}
 
 			if (const cd::Node* pNode = pSceneDatabase->GetNodeByName(std::string(boneNodeName + "_$AssimpFbx$_PostRotation").c_str()))
 			{
 				rotation = rotation * pNode->GetTransform().GetRotation();
+				queriedNodes.push_back(pNode);
 				removeNodeIndexes.push_back(m_nodeIDToNodeIndexLookup[pNode->GetID().Data()]);
 			}
 			boneTransform.SetRotation(cd::MoveTemp(rotation));
@@ -649,30 +645,58 @@ void GenericProducerImpl::RemoveBoneReferenceNodes(cd::SceneDatabase* pSceneData
 			if (const cd::Node* pNode = pSceneDatabase->GetNodeByName(std::string(boneNodeName + "_$AssimpFbx$_Scale").c_str()))
 			{
 				boneTransform.SetScale(pNode->GetTransform().GetScale());
+				queriedNodes.push_back(pNode);
 				removeNodeIndexes.push_back(m_nodeIDToNodeIndexLookup[pNode->GetID().Data()]);
 			}
 
 			bone.SetTransform(cd::MoveTemp(boneTransform));
 		}
 
-		if (pBoneNode)
+		assert(!queriedNodes.empty());
+
+		// BeginNode is the Node which will pass ParentID to cd::Bone.
+		// EndNode is the Node which will pass ChildIDs to cd::Bone.
+		const cd::Node* pBeginNode = queriedNodes[0];
+		for (const cd::Node* pFirstNode : queriedNodes)
 		{
-			if (pBoneNode->GetParentID().IsValid())
+			bool isFirstChild = false;
+			for (const cd::Node* pSecondNode : queriedNodes)
 			{
-				const cd::Node& parentNode = pSceneDatabase->GetNode(m_nodeIDToNodeIndexLookup[pBoneNode->GetParentID().Data()]);
-				if (const cd::Bone* pParentBone = pSceneDatabase->GetBoneByName(parentNode.GetName()))
+				if (pFirstNode == pSecondNode)
 				{
-					bone.SetParentID(pParentBone->GetID().Data());
+					continue;
+				}
+
+				if (!isFirstChild && pFirstNode->GetParentID() == pSecondNode->GetID())
+				{
+					isFirstChild = true;
+					break;
 				}
 			}
 
-			for (const cd::NodeID& childNodeID : pBoneNode->GetChildIDs())
+			if (!isFirstChild)
 			{
-				const cd::Node& childNode = pSceneDatabase->GetNode(m_nodeIDToNodeIndexLookup[childNodeID.Data()]);
-				if (const cd::Bone* pChildBone = pSceneDatabase->GetBoneByName(childNode.GetName()))
-				{
-					bone.AddChildID(pChildBone->GetID().Data());
-				}
+				pBeginNode = pFirstNode;
+			}
+		}
+
+		if (pBeginNode && pBeginNode->GetParentID().IsValid())
+		{
+			const cd::Node& parentNode = pSceneDatabase->GetNode(m_nodeIDToNodeIndexLookup[pBeginNode->GetParentID().Data()]);
+			std::string parentBoneName = parentNode.GetName();
+			std::string parentBoneShortName;
+			if (size_t index = parentBoneName.find("_$AssimpFbx$_"); index != std::string::npos)
+			{
+				parentBoneShortName = std::string(parentBoneName.begin(), parentBoneName.begin() + index);
+			}
+			else
+			{
+				parentBoneShortName = parentBoneName;
+			}
+			if (cd::Bone* pParentBone = const_cast<cd::Bone*>(pSceneDatabase->GetBoneByName(parentBoneShortName.c_str())))
+			{
+				bone.SetParentID(pParentBone->GetID().Data());
+				pParentBone->AddChildID(bone.GetID().Data());
 			}
 		}
 	}

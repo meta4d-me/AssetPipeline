@@ -157,6 +157,11 @@ void ProcessorImpl::DumpSceneDatabase()
 			printf("\tRotation    : (w = %f, x = %f, y = %f, z = %f)\n", rotation.w(), rotation.x(), rotation.y(), rotation.z());
 			const auto& scale = boneTransform.GetScale();
 			printf("\tScale       : (x = %f, y = %f, z = %f)\n", scale.x(), scale.y(), scale.z());
+
+			for (const cd::BoneID childNodeID : bone.GetChildIDs())
+			{
+				printf("\t[ChildBone %u]\n", childNodeID.Data());
+			}
 		}
 	}
 
