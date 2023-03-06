@@ -58,6 +58,12 @@ public:
 	void ActivateCleanUnusedService();
 	bool IsCleanUnusedServiceActive() const;
 
+	/// <summary>
+	/// Only use simple animation key types(Translation/Rotation/Scale).
+	/// </summary>
+	void ActivateSimpleAnimationService();
+	bool IsSimpleAnimationActive() const;
+
 private:
 	GenericProducerImpl* m_pGenericProducerImpl;
 };
