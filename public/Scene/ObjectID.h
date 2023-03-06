@@ -31,10 +31,10 @@ public:
 
 	ObjectID& operator=(T id) { m_id = id; return *this; } 
 	bool IsValid() const { return m_id != InvalidID; }
-	bool operator==(const ObjectID& other) { return m_id == other.m_id; }
-	bool operator==(T id) { return m_id == id; }
-	bool operator!=(const ObjectID& other) { return m_id != other.m_id; }
-	bool operator!=(T id) { return m_id != id; }
+	bool operator==(const ObjectID& other) const { return m_id == other.m_id; }
+	bool operator==(T id) const { return m_id == id; }
+	bool operator!=(const ObjectID& other) const { return m_id != other.m_id; }
+	bool operator!=(T id) const { return m_id != id; }
 
 private:
 	T m_id = InvalidID;
