@@ -44,14 +44,18 @@ void Texture::Init(TextureID textureID, MaterialTextureType textureType, const c
     m_pTextureImpl->Init(textureID, textureType, pTexturePath);
 }
 
-void Texture::SetRawTexture(const std::vector<int32_t>& inputData, const cd::TextureFormat format)
+void Texture::SetRawTexture(const std::vector<int32_t>& inputData, const cd::TextureFormat format, uint32_t width, uint32_t height)
 {
-    m_pTextureImpl->SetRawTexture(inputData, format);
+    m_pTextureImpl->SetRawTexture(inputData, format, width, height);
 }
 
 void Texture::ClearRawTexture()
 {
     m_pTextureImpl->ClearRawTexture();
+}
+
+bool Texture::HasRawTexture() const {
+    return m_pTextureImpl->HasRawTexture();
 }
 
 const TextureID& Texture::GetID() const
@@ -77,6 +81,14 @@ const cd::TextureFormat Texture::GetTextureFormat() const
 const std::vector<std::byte>& Texture::GetRawTexture() const
 {
     return m_pTextureImpl->GetRawTexture();
+}
+
+uint32_t Texture::GetWidth() const {
+    return m_pTextureImpl->GetWidth();
+}
+
+uint32_t Texture::GetHeight() const {
+    return m_pTextureImpl->GetHeight();
 }
 
 Texture& Texture::operator<<(InputArchive& inputArchive)
