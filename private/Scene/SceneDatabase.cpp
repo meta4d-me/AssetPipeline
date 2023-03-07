@@ -84,9 +84,9 @@ const Node& SceneDatabase::GetNode(uint32_t index) const
 	return m_pSceneDatabaseImpl->GetNode(index);
 }
 
-const Node* SceneDatabase::GetNodeByName(const std::string& name) const
+const Node* SceneDatabase::GetNodeByName(const char* pName) const
 {
-	return m_pSceneDatabaseImpl->GetNodeByName(name);
+	return m_pSceneDatabaseImpl->GetNodeByName(pName);
 }
 
 uint32_t SceneDatabase::GetNodeCount() const
@@ -194,6 +194,39 @@ uint32_t SceneDatabase::GetTextureCount() const
 }
 
 ///////////////////////////////////////////////////////////////////
+// Camera
+///////////////////////////////////////////////////////////////////
+void SceneDatabase::AddCamera(Camera camera)
+{
+	return m_pSceneDatabaseImpl->AddCamera(cd::MoveTemp(camera));
+}
+
+std::vector<Camera>& SceneDatabase::GetCameras()
+{
+	return m_pSceneDatabaseImpl->GetCameras();
+}
+
+const std::vector<Camera>& SceneDatabase::GetCameras() const
+{
+	return m_pSceneDatabaseImpl->GetCameras();
+}
+
+void SceneDatabase::SetCameraCount(uint32_t cameraCount)
+{
+	return m_pSceneDatabaseImpl->SetCameraCount(cameraCount);
+}
+
+const Camera& SceneDatabase::GetCamera(uint32_t index) const
+{
+	return m_pSceneDatabaseImpl->GetCamera(index);
+}
+
+uint32_t SceneDatabase::GetCameraCount() const
+{
+	return m_pSceneDatabaseImpl->GetCameraCount();
+}
+
+///////////////////////////////////////////////////////////////////
 // Light
 ///////////////////////////////////////////////////////////////////
 void SceneDatabase::AddLight(Light light)
@@ -254,9 +287,9 @@ const Bone& SceneDatabase::GetBone(uint32_t index) const
 	return m_pSceneDatabaseImpl->GetBone(index);
 }
 
-const Bone* SceneDatabase::GetBoneByName(const std::string& name) const
+const Bone* SceneDatabase::GetBoneByName(const char* pName) const
 {
-	return m_pSceneDatabaseImpl->GetBoneByName(name);
+	return m_pSceneDatabaseImpl->GetBoneByName(pName);
 }
 
 uint32_t SceneDatabase::GetBoneCount() const
@@ -323,6 +356,11 @@ void SceneDatabase::SetTrackCount(uint32_t animationCount)
 const Track& SceneDatabase::GetTrack(uint32_t index) const
 {
 	return m_pSceneDatabaseImpl->GetTrack(index);
+}
+
+const Track* SceneDatabase::GetTrackByName(const char* pName) const
+{
+	return m_pSceneDatabaseImpl->GetTrackByName(pName);
 }
 
 uint32_t SceneDatabase::GetTrackCount() const

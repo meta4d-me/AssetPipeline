@@ -41,7 +41,7 @@ Bone::~Bone()
 
 void Bone::Init(BoneID id, std::string name)
 {
-    m_pBoneImpl->Init(id, cd::MoveTemp(name));
+    m_pBoneImpl->Init(id, MoveTemp(name));
 }
 
 const BoneID& Bone::GetID() const
@@ -51,7 +51,7 @@ const BoneID& Bone::GetID() const
 
 void Bone::SetName(std::string name)
 {
-    return m_pBoneImpl->SetName(cd::MoveTemp(name));
+    return m_pBoneImpl->SetName(MoveTemp(name));
 }
 
 const char* Bone::GetName() const
@@ -89,9 +89,24 @@ const std::vector<BoneID>& Bone::GetChildIDs() const
     return m_pBoneImpl->GetChildIDs();
 }
 
+void Bone::SetOffset(Matrix4x4 offset)
+{
+    m_pBoneImpl->SetOffset(MoveTemp(offset));
+}
+
+Matrix4x4& Bone::GetOffset()
+{
+    return m_pBoneImpl->GetOffset();
+}
+
+const Matrix4x4& Bone::GetOffset() const
+{
+    return m_pBoneImpl->GetOffset();
+}
+
 void Bone::SetTransform(Transform transform)
 {
-    return m_pBoneImpl->SetTransform(cd::MoveTemp(transform));
+    return m_pBoneImpl->SetTransform(MoveTemp(transform));
 }
 
 Transform& Bone::GetTransform()

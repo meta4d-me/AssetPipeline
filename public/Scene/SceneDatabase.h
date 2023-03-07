@@ -6,6 +6,7 @@
 #include "Math/Box.hpp"
 #include "Scene/Animation.h"
 #include "Scene/Bone.h"
+#include "Scene/Camera.h"
 #include "Scene/Light.h"
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
@@ -45,7 +46,7 @@ public:
 	const std::vector<Node>& GetNodes() const;
 	void SetNodeCount(uint32_t nodeCount);
 	const Node& GetNode(uint32_t index) const;
-	const Node* GetNodeByName(const std::string& name) const;
+	const Node* GetNodeByName(const char* pName) const;
 	uint32_t GetNodeCount() const;
 
 	// Mesh
@@ -72,6 +73,14 @@ public:
 	const Texture& GetTexture(uint32_t index) const;
 	uint32_t GetTextureCount() const;
 
+	// Camera
+	void AddCamera(Camera camera);
+	std::vector<Camera>& GetCameras();
+	const std::vector<Camera>& GetCameras() const;
+	void SetCameraCount(uint32_t cameraCount);
+	const Camera& GetCamera(uint32_t index) const;
+	uint32_t GetCameraCount() const;
+
 	// Light
 	void AddLight(Light light);
 	std::vector<Light>& GetLights();
@@ -86,7 +95,7 @@ public:
 	const std::vector<Bone>& GetBones() const;
 	void SetBoneCount(uint32_t boneCount);
 	const Bone& GetBone(uint32_t index) const;
-	const Bone* GetBoneByName(const std::string& name) const;
+	const Bone* GetBoneByName(const char* pName) const;
 	uint32_t GetBoneCount() const;
 
 	// Animation
@@ -103,6 +112,7 @@ public:
 	const std::vector<Track>& GetTracks() const;
 	void SetTrackCount(uint32_t TrackCount);
 	const Track& GetTrack(uint32_t index) const;
+	const Track* GetTrackByName(const char* pName) const;
 	uint32_t GetTrackCount() const;
 
 	// Serialization

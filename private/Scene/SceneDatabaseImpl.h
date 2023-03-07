@@ -4,6 +4,7 @@
 #include "Math/Box.hpp"
 #include "Scene/Animation.h"
 #include "Scene/Bone.h"
+#include "Scene/Camera.h"
 #include "Scene/Light.h"
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
@@ -43,7 +44,7 @@ public:
 	const std::vector<Node>& GetNodes() const { return m_nodes; }
 	void SetNodeCount(uint32_t count) { m_nodes.reserve(count); }
 	const Node& GetNode(uint32_t index) const { return m_nodes[index]; }
-	const Node* GetNodeByName(const std::string& name) const;
+	const Node* GetNodeByName(const char* pName) const;
 	uint32_t GetNodeCount() const { return static_cast<uint32_t>(m_nodes.size()); }
 
 	// Mesh
@@ -70,6 +71,14 @@ public:
 	const Material& GetMaterial(uint32_t index) const { return m_materials[index]; }
 	uint32_t GetMaterialCount() const { return static_cast<uint32_t>(m_materials.size()); }
 
+	// Camera
+	void AddCamera(Camera camera) { m_cameras.emplace_back(MoveTemp(camera)); }
+	std::vector<Camera>& GetCameras() { return m_cameras; }
+	const std::vector<Camera>& GetCameras() const { return m_cameras; }
+	void SetCameraCount(uint32_t count) { m_cameras.reserve(count); }
+	const Camera& GetCamera(uint32_t index) const { return m_cameras[index]; }
+	uint32_t GetCameraCount() const { return static_cast<uint32_t>(m_cameras.size()); }
+
 	// Light
 	void AddLight(Light light) { m_lights.emplace_back(MoveTemp(light)); }
 	std::vector<Light>& GetLights() { return m_lights; }
@@ -84,7 +93,7 @@ public:
 	const std::vector<Bone>& GetBones() const { return m_bones; }
 	void SetBoneCount(uint32_t count) { m_bones.reserve(count); }
 	const Bone& GetBone(uint32_t index) const { return m_bones[index]; }
-	const Bone* GetBoneByName(const std::string& name) const;
+	const Bone* GetBoneByName(const char* pName) const;
 	uint32_t GetBoneCount() const { return static_cast<uint32_t>(m_bones.size()); }
 
 	// Animation
@@ -101,6 +110,7 @@ public:
 	const std::vector<Track>& GetTracks() const { return m_tracks; }
 	void SetTrackCount(uint32_t count) { m_tracks.reserve(count); }
 	const Track& GetTrack(uint32_t index) const { return m_tracks[index]; }
+	const Track* GetTrackByName(const char* pName) const;
 	uint32_t GetTrackCount() const { return static_cast<uint32_t>(m_tracks.size()); }
 
 	template<bool SwapBytesOrder>
@@ -118,19 +128,22 @@ public:
 		uint32_t meshCount;
 		uint32_t textureCount;
 		uint32_t materialCount;
+		uint32_t cameraCount;
 		uint32_t lightCount;
 		uint32_t boneCount;
 		uint32_t animationCount;
 		uint32_t trackCount;
 
 		inputArchive >> nodeCount >> meshCount
-			>> textureCount >> materialCount >> lightCount
+			>> materialCount >> textureCount
+			>> cameraCount >> lightCount
 			>> boneCount >> animationCount >> trackCount;
 
 		SetNodeCount(nodeCount);
 		SetMeshCount(meshCount);
-		SetTextureCount(textureCount);
 		SetMaterialCount(materialCount);
+		SetTextureCount(textureCount);
+		SetCameraCount(cameraCount);
 		SetLightCount(lightCount);
 		SetBoneCount(boneCount);
 		SetAnimationCount(animationCount);
@@ -146,14 +159,19 @@ public:
 			AddMesh(Mesh(inputArchive));
 		}
 
+		for (uint32_t materialIndex = 0U; materialIndex < materialCount; ++materialIndex)
+		{
+			AddMaterial(Material(inputArchive));
+		}
+
 		for (uint32_t textureIndex = 0U; textureIndex < textureCount; ++textureIndex)
 		{
 			AddTexture(Texture(inputArchive));
 		}
 
-		for (uint32_t materialIndex = 0U; materialIndex < materialCount; ++materialIndex)
+		for (uint32_t cameraIndex = 0U; cameraIndex < cameraCount; ++cameraIndex)
 		{
-			AddMaterial(Material(inputArchive));
+			AddCamera(Camera(inputArchive));
 		}
 
 		for (uint32_t lightIndex = 0U; lightIndex < lightCount; ++lightIndex)
@@ -185,7 +203,10 @@ public:
 		outputArchive << GetName();
 		GetAABB() >> outputArchive;
 
-		outputArchive << GetNodeCount() << GetBoneCount() << GetMeshCount() << GetTextureCount() << GetMaterialCount() << GetLightCount();
+		outputArchive << GetNodeCount() << GetMeshCount()
+			<< GetMaterialCount() << GetTextureCount()
+			<< GetCameraCount() << GetLightCount()
+			<< GetBoneCount() << GetAnimationCount() << GetTrackCount();
 
 		for (uint32_t nodeIndex = 0U; nodeIndex < GetNodeCount(); ++nodeIndex)
 		{
@@ -199,16 +220,22 @@ public:
 			mesh >> outputArchive;
 		}
 
+		for (uint32_t materialIndex = 0U; materialIndex < GetMaterialCount(); ++materialIndex)
+		{
+			const Material& material = GetMaterial(materialIndex);
+			material >> outputArchive;
+		}
+
 		for (uint32_t textureIndex = 0U; textureIndex < GetTextureCount(); ++textureIndex)
 		{
 			const Texture& texture = GetTexture(textureIndex);
 			texture >> outputArchive;
 		}
 
-		for (uint32_t materialIndex = 0U; materialIndex < GetMaterialCount(); ++materialIndex)
+		for (uint32_t cameraIndex = 0U; cameraIndex < GetCameraCount(); ++cameraIndex)
 		{
-			const Material& material = GetMaterial(materialIndex);
-			material >> outputArchive;
+			const Camera& camera = GetCamera(cameraIndex);
+			camera >> outputArchive;
 		}
 
 		for (uint32_t ligthIndex = 0U; ligthIndex < GetLightCount(); ++ligthIndex)
@@ -248,17 +275,18 @@ private:
 	// Mesh data both for StatciMesh and SkinMesh.
 	std::vector<Mesh> m_meshes;
 
+	// Texturing data.
+	std::vector<Material> m_materials;
+	std::vector<Texture> m_textures;
+
+	// Scene objects.
+	std::vector<Camera> m_cameras;
+	std::vector<Light> m_lights;
+
 	// Animation data.
 	std::vector<Bone> m_bones;
 	std::vector<Animation> m_animations;
 	std::vector<Track> m_tracks;
-
-	// Material and texture data.
-	std::vector<Texture> m_textures;
-	std::vector<Material> m_materials;
-
-	// Scene objects
-	std::vector<Light> m_lights;
 };
 
 }
