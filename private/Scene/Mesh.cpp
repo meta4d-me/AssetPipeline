@@ -181,17 +181,17 @@ std::vector<Direction>& Mesh::GetVertexTangents()
 
 Direction& Mesh::GetVertexTangent(uint32_t vertexIndex)
 {
-	return m_pMeshImpl->GetVertexBiTangent(vertexIndex);
+	return m_pMeshImpl->GetVertexTangent(vertexIndex);
 }
 
 const Direction& Mesh::GetVertexTangent(uint32_t vertexIndex) const
 {
-	return m_pMeshImpl->GetVertexBiTangent(vertexIndex);
+	return m_pMeshImpl->GetVertexTangent(vertexIndex);
 }
 
 const std::vector<Direction>& Mesh::GetVertexTangents() const
 {
-	return m_pMeshImpl->GetVertexBiTangents();
+	return m_pMeshImpl->GetVertexTangents();
 }
 
 void Mesh::SetVertexBiTangent(uint32_t vertexIndex, const Direction& biTangent)
