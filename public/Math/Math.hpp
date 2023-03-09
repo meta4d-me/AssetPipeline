@@ -151,5 +151,12 @@ public:
 	{
 		return newMin + (oldValue - oldMin) * (newMax - newMin) / (oldMax - oldMin);
 	}
+
+	// To save costs on if-branching in math calculations.
+	template<typename T>
+	static constexpr T FloatSelect(T comparand, T a, T b)
+	{
+		return comparand >= static_cast<T>(0) ? a : b;
+	}
 };
 }
