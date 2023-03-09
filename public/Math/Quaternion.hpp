@@ -31,21 +31,61 @@ public:
 	static TQuaternion<T> Lerp(const TQuaternion<T>& a, const TQuaternion<T>& b, T t)
 	{
 		constexpr T zero = static_cast<T>(0);
+		constexpr T one = static_cast<T>(1);
+		return b * t + a * Math::FloatSelect(a.Dot(b), one, -one) * (one - t);
+	}
 
-		TQuaternion<T> result;
-		if (a.Dot(b) < zero)
+	static TQuaternion<T> LerpNormalized(const TQuaternion<T>& a, const TQuaternion<T>& b, T t)
+	{
+		return Lerp(a, b, t).Normalize();
+	}
+
+	static TQuaternion<T> BiLerp(const TQuaternion<T>& x0y0, const TQuaternion<T>& x1y0, const TQuaternion<T>& x0y1, const TQuaternion<T>& x1y1, T x, T y)
+	{
+		return Lerp(Lerp(x0y0, x1y0, x), Lerp(x0y1, x1y1, x), y);
+	}
+
+	static TQuaternion<T> BiLerpNormalized(const TQuaternion<T>& x0y0, const TQuaternion<T>& x1y0, const TQuaternion<T>& x0y1, const TQuaternion<T>& x1y1, T x, T y)
+	{
+		return BiLerp(x0y0, x1y0, x0y1, x1y1, x, y).Normalize();
+	}
+
+	// https://tiborstanko.sk/lerp-vs-slerp.html
+	static TQuaternion<T> SLerp(const TQuaternion<T>& a, const TQuaternion<T>& b, T t)
+	{
+		constexpr T one = static_cast<T>(1);
+
+		T rawCosAngle = a.x() * b.x() + a.y() * b.y() + a.z() * b.z() + a.w() * b.w();
+		T cosAngle = Math::FloatSelect(rawCosAngle, rawCosAngle, -rawCosAngle);
+
+		T scale0;
+		T scale1;
+
+		if (Math::IsSmallThanOne(cosAngle))
 		{
-			TQuaternion<T> tmp = -b;
-			result.SetVector(a.GetVector() - (a.GetVector() - tmp.GetVector()) * t);
-			result.SetScalar(a.GetScalar() - (a.GetScalar() - tmp.GetScalar()) * t);
+			T omega = std::acos(cosAngle);
+			T inverseSin = one / std::sin(omega);
+			scale0 = std::sin((one - t) * omega) * inverseSin;
+			scale1 = std::sin(t * omega) * inverseSin;
 		}
 		else
 		{
-			result.SetVector(a.GetVector() - (a.GetVector() - b.GetVector()) * t);
-			result.SetScalar(a.GetScalar() - (a.GetScalar() - b.GetScalar()) * t);
+			// Linear interpolation.
+			scale0 = one - t;
+			scale1 = t;
 		}
 
-		return result;
+		scale1 = Math::FloatSelect(rawCosAngle, scale1, -scale1);
+		return TQuaternion<T>(
+			scale0 * a.w() + scale1 * b.w(),
+			scale0 * a.x() + scale1 * b.x(),
+			scale0 * a.y() + scale1 * b.y(),
+			scale0 * a.z() + scale1 * b.z());
+	}
+
+	static TQuaternion<T> SLerpNormalized(const TQuaternion<T>& a, const TQuaternion<T>& b, T t)
+	{
+		return SLerp(a, b, t).Normalize();
 	}
 
 	// "Quaternion Calculus and Fast Animation" Ken Shoemake, 1987 SIGGRAPH.
