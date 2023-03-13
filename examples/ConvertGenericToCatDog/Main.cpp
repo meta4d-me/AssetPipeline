@@ -24,6 +24,7 @@ int main(int argc, char** argv)
 	producer.ActivateTriangulateService();
 	producer.ActivateTangentsSpaceService();
 	producer.ActivateCleanUnusedService();
+	producer.ActivateSimpleAnimationService();
 
 	CDConsumer consumer(pOutputFilePath);
 	consumer.SetExportMode(ExportMode::PureBinary);

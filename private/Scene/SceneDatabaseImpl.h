@@ -113,6 +113,8 @@ public:
 	const Track* GetTrackByName(const char* pName) const;
 	uint32_t GetTrackCount() const { return static_cast<uint32_t>(m_tracks.size()); }
 
+	void UpdateAABB();
+
 	template<bool SwapBytesOrder>
 	SceneDatabaseImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{

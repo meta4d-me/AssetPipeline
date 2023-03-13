@@ -62,7 +62,13 @@ public:
 	/// Only use simple animation key types(Translation/Rotation/Scale).
 	/// </summary>
 	void ActivateSimpleAnimationService();
-	bool IsSimpleAnimationActive() const;
+	bool IsSimpleAnimationServiceActive() const;
+
+	/// <summary>
+	/// Improve GPU Vertex/Index Buffer Cache Hit Rate(ACMR).
+	/// </summary>
+	void ActivateImproveACMRService();
+	bool IsImproveACMRServiceActive() const;
 
 private:
 	GenericProducerImpl* m_pGenericProducerImpl;

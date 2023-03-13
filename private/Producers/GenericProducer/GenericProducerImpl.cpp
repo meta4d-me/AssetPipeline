@@ -59,7 +59,6 @@ uint32_t GenericProducerImpl::GetImportFlags() const
 	constexpr uint32_t BasicImportModelFlags[] =
 	{
 		aiProcess_ConvertToLeftHanded,
-		aiProcess_ImproveCacheLocality,		// Improve GPU vertex data cache miss rate. That is, ACMR.
 	};
 
 	// Speed first. Only open flags which are necessary.
@@ -84,6 +83,11 @@ uint32_t GenericProducerImpl::GetImportFlags() const
 	if (IsTangentsSpaceServiceActive())
 	{
 		importFlags += aiProcess_CalcTangentSpace;
+	}
+
+	if (IsImproveACMRServiceActive())
+	{
+		importFlags += aiProcess_ImproveCacheLocality;
 	}
 
 	return importFlags;
@@ -217,7 +221,9 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 	uint32_t numVertices = pSourceMesh->mNumVertices;
 	assert(pSourceMesh->mVertices && numVertices > 0 && "No vertex data.");
 
-	cd::MeshID::ValueType meshHash = cd::StringHash<cd::MeshID::ValueType>(pSourceMesh->mName.C_Str());
+	std::stringstream meshHashString;
+	meshHashString << pSourceMesh->mName.C_Str() << "_" << pSourceMesh->mVertices << "_" << pSourceMesh->mFaces;
+	cd::MeshID::ValueType meshHash = cd::StringHash<cd::MeshID::ValueType>(meshHashString.str());
 	cd::MeshID meshID = m_meshIDGenerator.AllocateID(meshHash);
 	cd::Mesh mesh(meshID, pSourceMesh->mName.C_Str(), numVertices, pSourceMesh->mNumFaces);
 	mesh.SetMaterialID(m_materialIDGenerator.GetCurrentID() + pSourceMesh->mMaterialIndex);
@@ -557,7 +563,7 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 
 	// Assimp will generate extra nodes as a chain for bone hierarchy if every bone includes data except basic Translation/Rotation/Scale.
 	// In the first version, we want to make animation not so complex.
-	aiSetImportPropertyInteger(pImportProperties, AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, static_cast<int>(!IsSimpleAnimationActive()));
+	aiSetImportPropertyInteger(pImportProperties, AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, static_cast<int>(!IsSimpleAnimationServiceActive()));
 	const aiScene* pScene = aiImportFileExWithProperties(m_filePath.c_str(), GetImportFlags(), nullptr, pImportProperties);
 
 	aiReleasePropertyStore(pImportProperties);
@@ -593,7 +599,7 @@ void GenericProducerImpl::RemoveBoneReferenceNodes(cd::SceneDatabase* pSceneData
 		// So we will convert cd::Node to cd::Bone here.
 		std::vector<const cd::Node*> queriedNodes;
 		std::string boneNodeName = bone.GetName();
-		if (IsSimpleAnimationActive())
+		if (IsSimpleAnimationServiceActive())
 		{
 			if (const cd::Node* pNode = pSceneDatabase->GetNodeByName(boneNodeName.c_str()))
 			{

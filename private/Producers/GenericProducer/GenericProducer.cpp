@@ -83,9 +83,19 @@ void GenericProducer::ActivateSimpleAnimationService()
 	m_pGenericProducerImpl->ActivateSimpleAnimationService();
 }
 
-bool GenericProducer::IsSimpleAnimationActive() const
+bool GenericProducer::IsSimpleAnimationServiceActive() const
 {
-	return m_pGenericProducerImpl->IsSimpleAnimationActive();
+	return m_pGenericProducerImpl->IsSimpleAnimationServiceActive();
+}
+
+void GenericProducer::ActivateImproveACMRService()
+{
+	m_pGenericProducerImpl->ActivateImproveACMRService();
+}
+
+bool GenericProducer::IsImproveACMRServiceActive() const
+{
+	return m_pGenericProducerImpl->IsImproveACMRServiceActive();
 }
 
 }

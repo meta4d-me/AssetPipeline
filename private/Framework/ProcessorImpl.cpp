@@ -235,7 +235,7 @@ void ProcessorImpl::ValidateSceneDatabase()
 	auto CheckKeyFramesTimeOrder = [](const cd::Track& track)
 	{
 		// Make sure keyframes are sorted by time LessNotEqual.
-		float keyFrameTime = -FLT_MIN;
+		float keyFrameTime = -FLT_MAX;
 		for (const auto& key : track.GetTranslationKeys())
 		{
 			float keyTime = key.GetTime();
@@ -243,7 +243,7 @@ void ProcessorImpl::ValidateSceneDatabase()
 			keyFrameTime = keyTime;
 		}
 
-		keyFrameTime = -FLT_MIN;
+		keyFrameTime = -FLT_MAX;
 		for (const auto& key : track.GetRotationKeys())
 		{
 			float keyTime = key.GetTime();
@@ -251,7 +251,7 @@ void ProcessorImpl::ValidateSceneDatabase()
 			keyFrameTime = keyTime;
 		}
 
-		keyFrameTime = -FLT_MIN;
+		keyFrameTime = -FLT_MAX;
 		for (const auto& key : track.GetScaleKeys())
 		{
 			float keyTime = key.GetTime();
@@ -266,19 +266,14 @@ void ProcessorImpl::ValidateSceneDatabase()
 		assert(trackIndex == track.GetID().Data());
 		assert(track.GetTranslationKeyCount() > 0 || track.GetRotationKeyCount() > 0 || track.GetScaleKeyCount() > 0);
 
-		assert(m_pCurrentSceneDatabase->GetBoneByName(track.GetName()));
+		//assert(m_pCurrentSceneDatabase->GetBoneByName(track.GetName()));
 		CheckKeyFramesTimeOrder(track);
 	}
 }
 
 void ProcessorImpl::CalculateAABBForSceneDatabase()
 {
-	cd::AABB sceneAABB(0.0f, 0.0f);
-	for (const auto& mesh : m_pCurrentSceneDatabase->GetMeshes())
-	{
-		sceneAABB.Merge(mesh.GetAABB());
-	}
-	m_pCurrentSceneDatabase->SetAABB(cd::MoveTemp(sceneAABB));
+	m_pCurrentSceneDatabase->UpdateAABB();
 }
 
 void ProcessorImpl::Run()

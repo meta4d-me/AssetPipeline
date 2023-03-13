@@ -60,4 +60,16 @@ const Track* SceneDatabaseImpl::GetTrackByName(const char* pName) const
 	return nullptr;
 }
 
+///////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
+void SceneDatabaseImpl::UpdateAABB()
+{
+	cd::AABB sceneAABB(0.0f, 0.0f);
+	for (const auto& mesh : GetMeshes())
+	{
+		sceneAABB.Merge(mesh.GetAABB());
+	}
+	SetAABB(cd::MoveTemp(sceneAABB));
+}
+
 }

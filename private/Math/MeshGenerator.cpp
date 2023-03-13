@@ -127,6 +127,7 @@ std::optional<Mesh> MeshGenerator::Generate(const Box& box, const VertexFormat& 
 	}
 
 	mesh.SetVertexFormat(MoveTemp(meshVertexFormat));
+	mesh.SetAABB(AABB(min, max));
 
 	return mesh;
 }
