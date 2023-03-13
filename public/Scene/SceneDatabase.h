@@ -115,6 +115,8 @@ public:
 	const Track* GetTrackByName(const char* pName) const;
 	uint32_t GetTrackCount() const;
 
+	void UpdateAABB();
+
 	// Serialization
 	SceneDatabase& operator<<(InputArchive& inputArchive);
 	SceneDatabase& operator<<(InputArchiveSwapBytes& inputArchive);
