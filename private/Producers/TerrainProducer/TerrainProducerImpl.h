@@ -77,7 +77,6 @@ private:
 	cd::ObjectIDGenerator<cd::NodeID> m_nodeIDGenerator;
 	cd::ObjectIDGenerator<cd::MeshID> m_meshIDGenerator;
 	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
-	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
 
 	void GenerateElevationMap(std::vector<int32_t>& outElevationMap, uint32_t sector_x, uint32_t sector_z) const;
 	void GenerateAllSectors(cd::SceneDatabase* pSceneDatabase);
