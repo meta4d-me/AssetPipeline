@@ -43,6 +43,8 @@ float GetNoiseAt(
 	return height;
 }
 
+uint32_t kNextTextureId;
+
 }
 
 namespace cdtools
@@ -70,7 +72,7 @@ void TerrainProducerImpl::SetSceneDatabaseIDs(const SceneDatabase* pSceneDatabas
 	m_nodeIDGenerator.SetCurrentID(pSceneDatabase->GetNodeCount());
 	m_meshIDGenerator.SetCurrentID(pSceneDatabase->GetMeshCount());
 	m_materialIDGenerator.SetCurrentID(pSceneDatabase->GetMaterialCount());
-	m_textureIDGenerator.SetCurrentID(pSceneDatabase->GetTextureCount());
+	kNextTextureId = pSceneDatabase->GetTextureCount();
 }
 
 void TerrainProducerImpl::SetTerrainMetadata(const TerrainMetadata& metadata)
@@ -93,6 +95,7 @@ void TerrainProducerImpl::Initialize()
 	m_quadsPerSector = m_sectorMetadata.numQuadsInX * m_sectorMetadata.numQuadsInZ;
 	m_verticesPerSector = m_quadsPerSector * 4;
 	m_trianglesPerSector = m_quadsPerSector * 2;
+	kNextTextureId = 0;
 }
 
 void TerrainProducerImpl::Execute(SceneDatabase* pSceneDatabase)
@@ -223,14 +226,14 @@ MaterialID TerrainProducerImpl::GenerateMaterialAndTextures(cd::SceneDatabase* p
 	// Base color texture
 	std::string textureName = "Terrain_baseColor";
 	TextureID::ValueType textureHash = StringHash<TextureID::ValueType>(textureName);
-	TextureID textureID = m_textureIDGenerator.AllocateID(textureHash);
+	TextureID textureID = TextureID(kNextTextureId++);
 	terrainSectorMaterial.AddTextureID(MaterialTextureType::BaseColor, textureID);
 	pSceneDatabase->AddTexture(Texture(textureID, MaterialTextureType::BaseColor, textureName.c_str()));
 
 	// ElevationMap texture
 	textureName = string_format("TerrainElevationMap(%d, %d)", sector_x, sector_z);
 	textureHash = StringHash<TextureID::ValueType>(textureName);
-	textureID = m_textureIDGenerator.AllocateID(textureHash);
+	textureID = TextureID(kNextTextureId++);
 	terrainSectorMaterial.AddTextureID(MaterialTextureType::Roughness, textureID);
 	Texture elevationTexture = Texture(textureID, MaterialTextureType::Roughness, textureName.c_str());
 	elevationTexture.SetRawTexture(elevationMap, TextureFormat::R32I, m_sectorLenInX + 1, m_sectorLenInZ + 1);
