@@ -29,6 +29,7 @@ public:
 
 	void Init(TextureID textureID, MaterialTextureType textureType, const char* pTexturePath);
 
+	void SetRawTexture(const std::vector<uint32_t>& inputData, const cd::TextureFormat format, uint32_t width, uint32_t height);
 	void SetRawTexture(const std::vector<int32_t>& inputData, const cd::TextureFormat format, uint32_t width, uint32_t height);
 	void ClearRawTexture();
 	bool HasRawTexture() const;

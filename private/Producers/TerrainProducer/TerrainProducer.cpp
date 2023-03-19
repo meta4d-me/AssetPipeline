@@ -36,6 +36,16 @@ void TerrainProducer::SetSectorMetadata(const TerrainSectorMetadata& metadata)
 	m_pTerrainProducerImpl->SetSectorMetadata(metadata);
 }
 
+void TerrainProducer::SetAlphaMapTextureName(cdtools::AlphaMapChannel channel, const std::string_view textureName)
+{
+	m_pTerrainProducerImpl->SetAlphaMapTextureName(channel, textureName);
+}
+
+void TerrainProducer::RemoveAlphaMapGeneration()
+{
+	m_pTerrainProducerImpl->RemoveAlphaMapGeneration();
+}
+
 void TerrainProducer::Initialize()
 {
 	m_pTerrainProducerImpl->Initialize();
@@ -74,6 +84,24 @@ uint32_t TerrainProducer::GetQuadsPerSector() const
 uint32_t TerrainProducer::GetVertsPerSector() const
 {
 	return m_pTerrainProducerImpl->GetVertsPerSector();
+}
+
+const std::string_view TerrainProducer::GetAlphaMapTextureName(cdtools::AlphaMapChannel channel) const
+{
+	return m_pTerrainProducerImpl->GetAlphaMapTextureName(channel);
+}
+
+void TerrainProducer::GenerateAlphaMapWithElevation(
+	const AlphaMapBlendRegion<int32_t>& redGreenRegion,
+	const AlphaMapBlendRegion<int32_t>& greenBlueRegion,
+	const AlphaMapBlendRegion<int32_t>& blueAlphaRegion,
+	const AlphaMapBlendFunction& blendFunction)
+{
+	m_pTerrainProducerImpl->GenerateAlphaMapWithElevation(
+		redGreenRegion, 
+		greenBlueRegion, 
+		blueAlphaRegion, 
+		blendFunction);
 }
 
 void TerrainProducer::Execute(cd::SceneDatabase* pSceneDatabase)
