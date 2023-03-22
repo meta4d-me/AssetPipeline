@@ -28,6 +28,28 @@ public:
 		return TQuaternion<T>(std::cos(halfAngle), axis.x() * sinHalfAngle, axis.y() * sinHalfAngle, axis.z() * sinHalfAngle);
 	}
 
+	static TQuaternion<T> FromRollPitchYaw(T roll, T pitch, T yaw)
+	{
+		constexpr T Round = static_cast<T>(360);
+		const T rollNoWinding = std::fmod(roll, Round);
+
+		const T pitchNoWinding = std::fmod(pitch, Round);
+		const T yawNoWinding = std::fmod(yaw, Round);
+
+		T sinRoll = std::sin(Math::DegreeToRadian<T>(rollNoWinding) * 0.5f);
+		T cosRoll = std::cos(Math::DegreeToRadian<T>(rollNoWinding) * 0.5f);
+		T sinPitch = std::sin(Math::DegreeToRadian<T>(pitchNoWinding) * 0.5f);
+		T cosPitch = std::cos(Math::DegreeToRadian<T>(pitchNoWinding) * 0.5f);
+		T sinYaw = std::sin(Math::DegreeToRadian<T>(yawNoWinding) * 0.5f);
+		T cosYaw = std::cos(Math::DegreeToRadian<T>(yawNoWinding) * 0.5f);
+
+		return TQuaternion<T>(
+			cosRoll * cosPitch * cosYaw + sinRoll * sinPitch * sinYaw,
+			cosRoll * sinPitch * sinYaw - sinRoll * cosPitch * cosYaw,
+			-cosRoll * sinPitch * cosYaw - sinRoll * cosPitch * sinYaw,
+			cosRoll * cosPitch * sinYaw - sinRoll * sinPitch * cosYaw);
+	}
+
 	static TQuaternion<T> Lerp(const TQuaternion<T>& a, const TQuaternion<T>& b, T t)
 	{
 		constexpr T zero = static_cast<T>(0);
@@ -169,7 +191,7 @@ public:
 	CD_FORCEINLINE T& w() { return m_scalar; }
 
 	// Validations
-	CD_FORCEINLINE bool isNaN() const { return std::isnan(m_scalar) || std::isnan(m_vector.x()) || std::isnan(m_vector.y()) || std::isnan(m_vector.z()); }
+	CD_FORCEINLINE bool IsNaN() const { return std::isnan(m_scalar) || std::isnan(m_vector.x()) || std::isnan(m_vector.y()) || std::isnan(m_vector.z()); }
 
 	// Conversions
 	TMatrix<T, 3, 3> ToMatrix3x3() const

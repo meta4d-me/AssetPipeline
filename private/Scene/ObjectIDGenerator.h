@@ -35,9 +35,9 @@ public:
 	void SetRange(Vty min, Vty max) { m_minID = min; m_maxID = max; }
 
 	// Allocate new id without hash value to keep unique.
-	Vty AllocateID()
+	Oty AllocateID()
 	{
-		return m_currentID++;
+		return Oty(m_currentID++);
 	}
 
 	// Pass hash value is used to keep allocating unique ObjectID.
