@@ -4,31 +4,10 @@
 #include <cmath>
 #include <type_traits>
 
+#include "AxisSystem.hpp"
+
 namespace cd
 {
-
-// We are using Left hand system now and +y is up.
-enum class Handedness
-{
-	Left,
-	Right
-};
-
-// We are using column major matrx now.
-enum class MatrixMajor
-{
-	Column,
-	Row
-};
-
-// It depends on current choosen graphics API.
-// DirectX : ZeroToOne
-// OpenGL : MinusOneToOne
-enum class NDCDepth
-{
-	ZeroToOne, // [0, 1]
-	MinusOneToOne // [-1, 1]
-};
 
 class Math final
 {

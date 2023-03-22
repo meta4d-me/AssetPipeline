@@ -469,9 +469,9 @@ void GenericProducerImpl::AddNodeRecursively(cd::SceneDatabase* pSceneDatabase, 
 	std::vector<uint32_t> childNodeIDs;
 	for (uint32_t childIndex = 0U; childIndex < pSourceNode->mNumChildren; ++childIndex)
 	{
-		uint32_t childNodeID = m_nodeIDGenerator.AllocateID();
-		sceneNode.AddChildID(childNodeID);
-		childNodeIDs.push_back(childNodeID);
+		cd::NodeID childNodeID = m_nodeIDGenerator.AllocateID();
+		sceneNode.AddChildID(childNodeID.Data());
+		childNodeIDs.push_back(childNodeID.Data());
 	}
 
 	m_nodeIDToNodeIndexLookup[sceneNodeID.Data()] = pSceneDatabase->GetNodeCount();
@@ -531,7 +531,7 @@ void GenericProducerImpl::AddScene(cd::SceneDatabase* pSceneDatabase, const aiSc
 
 		// Add nodes and associated meshes to SceneDatabase.
 		// For assimp, bones are also treated as nodes.
-		AddNodeRecursively(pSceneDatabase, pSourceScene, pSourceScene->mRootNode, m_nodeIDGenerator.AllocateID());
+		AddNodeRecursively(pSceneDatabase, pSourceScene, pSourceScene->mRootNode, m_nodeIDGenerator.AllocateID().Data());
 	}
 
 	// Prepare to add materials.

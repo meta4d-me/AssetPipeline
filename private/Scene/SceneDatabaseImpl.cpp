@@ -10,6 +10,11 @@ namespace cd
 SceneDatabaseImpl::SceneDatabaseImpl()
 {
 	m_aabb.Clear();
+
+	// By default, it will be CDEngine for conveniences.
+	// If you are outside user in other platforms, you can set it by yourself.
+	// TODO : add a update method to change axis system for SceneDatabase dynamicly.
+	m_axisSystem = AxisSystem::CDEngine();
 }
 
 ///////////////////////////////////////////////////////////////////

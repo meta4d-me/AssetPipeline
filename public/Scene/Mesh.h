@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Base/Export.h"
+#include "IO/InputArchive.hpp"
+#include "IO/OutputArchive.hpp"
 #include "Math/Box.hpp"
 #include "Scene/VertexAttribute.h"
 
