@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Base/Template.h"
+#include "Math/AxisSystem.hpp"
 #include "Math/Math.hpp"
 
 #include <cstring> // std::memset
@@ -30,6 +31,62 @@ public:
 	static VectorType Lerp(const VectorType& a, const VectorType& b, float factor)
 	{
 		return a + (b - a) * factor;
+	}
+
+	static TVector<T, 3> GetUpAxis(const AxisSystem& axisSystem)
+	{
+		UpVector up = axisSystem.GetUpVector();
+		if (UpVector::XAxis == up)
+		{
+			return TVector<T, 3>(1.0f, 0.0f, 0.0f);
+		}
+		else if (UpVector::YAxis == up)
+		{
+			return TVector<T, 3>(0.0f, 1.0f, 0.0f);
+		}
+		else
+		{
+			return TVector<T, 3>(0.0f, 0.0f, 1.0f);
+		}
+	}
+
+	static TVector<T, 3> GetFrontAxis(const AxisSystem& axisSystem)
+	{
+		UpVector up = axisSystem.GetUpVector();
+		FrontVector front = axisSystem.GetFrontVector();
+		if (UpVector::XAxis == up)
+		{
+			if (FrontVector::ParityEven == front)
+			{
+				return TVector<T, 3>(0.0f, 1.0f, 0.0f);
+			}
+			else
+			{
+				return TVector<T, 3>(0.0f, 0.0f, 1.0f);
+			}
+		}
+		else if (UpVector::YAxis == up)
+		{
+			if (FrontVector::ParityEven == front)
+			{
+				return TVector<T, 3>(1.0f, 0.0f, 0.0f);
+			}
+			else
+			{
+				return TVector<T, 3>(0.0f, 0.0f, 1.0f);
+			}
+		}
+		else
+		{
+			if (FrontVector::ParityEven == front)
+			{
+				return TVector<T, 3>(1.0f, 0.0f, 0.0f);
+			}
+			else
+			{
+				return TVector<T, 3>(0.0f, 1.0f, 0.0f);
+			}
+		}
 	}
 
 public:

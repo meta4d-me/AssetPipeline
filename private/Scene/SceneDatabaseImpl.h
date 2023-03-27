@@ -31,12 +31,19 @@ public:
 	SceneDatabaseImpl& operator=(SceneDatabaseImpl&&) = default;
 	~SceneDatabaseImpl() = default;
 
+	// Identity
 	void SetName(std::string sceneName) { m_name = MoveTemp(sceneName); }
 	const std::string& GetName() const { return m_name; }
 	
+	// Volumn
 	void SetAABB(AABB aabb) { m_aabb = MoveTemp(aabb); }
 	AABB& GetAABB() { return m_aabb; }
 	const AABB& GetAABB() const { return m_aabb; }
+
+	// UpVector
+	void SetAxisSystem(AxisSystem axis) { m_axisSystem = MoveTemp(axis); }
+	AxisSystem& GetAxisSystem() { return m_axisSystem; }
+	const AxisSystem& GetAxisSystem() const { return m_axisSystem; }
 
 	// Node
 	void AddNode(Node node) { m_nodes.emplace_back(MoveTemp(node)); }
@@ -123,8 +130,12 @@ public:
 		SetName(MoveTemp(sceneName));
 
 		AABB sceneAABB;
-		sceneAABB << inputArchive;
+		inputArchive >> sceneAABB;
 		SetAABB(MoveTemp(sceneAABB));
+
+		AxisSystem axisSystem;
+		inputArchive >> axisSystem;
+		SetAxisSystem(MoveTemp(axisSystem));
 
 		uint32_t nodeCount;
 		uint32_t meshCount;
@@ -202,10 +213,8 @@ public:
 	template<bool SwapBytesOrder>
 	const SceneDatabaseImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetName();
-		GetAABB() >> outputArchive;
-
-		outputArchive << GetNodeCount() << GetMeshCount()
+		outputArchive << GetName() << GetAABB() << GetAxisSystem()
+			<< GetNodeCount() << GetMeshCount()
 			<< GetMaterialCount() << GetTextureCount()
 			<< GetCameraCount() << GetLightCount()
 			<< GetBoneCount() << GetAnimationCount() << GetTrackCount();
@@ -270,6 +279,7 @@ public:
 private:
 	std::string m_name;
 	AABB m_aabb;
+	AxisSystem m_axisSystem;
 
 	// Hierarchy data to present relationships between meshes.
 	std::vector<Node> m_nodes;

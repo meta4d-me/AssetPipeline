@@ -56,6 +56,21 @@ const AABB& SceneDatabase::GetAABB() const
 	return m_pSceneDatabaseImpl->GetAABB();
 }
 
+void SceneDatabase::SetAxisSystem(AxisSystem axis)
+{
+	m_pSceneDatabaseImpl->SetAxisSystem(cd::MoveTemp(axis));
+}
+
+AxisSystem& SceneDatabase::GetAxisSystem()
+{
+	return m_pSceneDatabaseImpl->GetAxisSystem();
+}
+
+const AxisSystem& SceneDatabase::GetAxisSystem() const
+{
+	return m_pSceneDatabaseImpl->GetAxisSystem();
+}
+
 ///////////////////////////////////////////////////////////////////
 // Node
 ///////////////////////////////////////////////////////////////////

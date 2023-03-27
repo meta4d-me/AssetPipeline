@@ -7,6 +7,28 @@
 #include <cassert>
 #include <cfloat>
 
+namespace details
+{
+
+void Dump(const char* label, cd::Quaternion quaternion)
+{
+	printf("%s : (w = %f, x = %f, y = %f, z = %f)\n", label, quaternion.w(), quaternion.x(), quaternion.y(), quaternion.z());
+}
+
+void Dump(const char* label, cd::Vec3f vector)
+{
+	printf("%s : (x = %f, y = %f, z = %f)\n", label, vector.x(), vector.y(), vector.z());
+}
+
+void Dump(const cd::Transform& transform)
+{
+	details::Dump("\tTranslation", transform.GetTranslation());
+	details::Dump("\tRotation", transform.GetRotation());
+	details::Dump("\tScale", transform.GetScale());
+}
+
+}
+
 namespace cdtools
 {
 
@@ -36,7 +58,16 @@ ProcessorImpl::~ProcessorImpl()
 
 void ProcessorImpl::DumpSceneDatabase()
 {
-	printf("\nSceneDatabase : %s\n", m_pCurrentSceneDatabase->GetName());
+	printf("\nSceneDatabase : \n");
+	printf("\tName : %s\n", m_pCurrentSceneDatabase->GetName());
+	printf("\tAABB :\n");
+	details::Dump("\t\tMin", m_pCurrentSceneDatabase->GetAABB().Min());
+	details::Dump("\t\tMax", m_pCurrentSceneDatabase->GetAABB().Max());
+	printf("\tAxisSystem : \n");
+	printf("\t\tHandedness : %s\n", cd::Handedness::Left == m_pCurrentSceneDatabase->GetAxisSystem().GetHandedness() ? "LeftHandSystem" : "RightHandSystem");
+	details::Dump("\t\tUpAxis", cd::Vec3f::GetUpAxis(m_pCurrentSceneDatabase->GetAxisSystem()));
+	details::Dump("\t\tFrontAxis", cd::Vec3f::GetFrontAxis(m_pCurrentSceneDatabase->GetAxisSystem()));
+
 	printf("\tNode count : %d\n", m_pCurrentSceneDatabase->GetNodeCount());
 	printf("\tMesh count : %d\n", m_pCurrentSceneDatabase->GetMeshCount());
 	printf("\tMaterial count : %d\n", m_pCurrentSceneDatabase->GetMaterialCount());
@@ -46,20 +77,13 @@ void ProcessorImpl::DumpSceneDatabase()
 	printf("\tBone count : %d\n", m_pCurrentSceneDatabase->GetBoneCount());
 	printf("\tAnimation count : %d\n", m_pCurrentSceneDatabase->GetAnimationCount());
 	printf("\tTrack count : %d\n", m_pCurrentSceneDatabase->GetTrackCount());
-
 	if (m_pCurrentSceneDatabase->GetNodeCount() > 0U)
 	{
 		printf("\n");
 		for (const auto& node : m_pCurrentSceneDatabase->GetNodes())
 		{
 			printf("[Node %u] ParentID : %u, Name : %s\n", node.GetID().Data(), node.GetParentID().Data(), node.GetName());
-			const auto& nodeTransform = node.GetTransform();
-			const auto& translation = nodeTransform.GetTranslation();
-			printf("\tTranslation : (x = %f, y = %f, z = %f)\n", translation.x(), translation.y(), translation.z());
-			const auto& rotation = nodeTransform.GetRotation();
-			printf("\tRotation    : (w = %f, x = %f, y = %f, z = %f)\n", rotation.w(), rotation.x(), rotation.y(), rotation.z());
-			const auto& scale = nodeTransform.GetScale();
-			printf("\tScale       : (x = %f, y = %f, z = %f)\n", scale.x(), scale.y(), scale.z());
+			details::Dump(node.GetTransform());
 
 			for (cd::MeshID meshID : node.GetMeshIDs())
 			{
@@ -150,13 +174,7 @@ void ProcessorImpl::DumpSceneDatabase()
 		for (const auto& bone : m_pCurrentSceneDatabase->GetBones())
 		{
 			printf("[Bone %u] Name : %s, ParentID : %u\n", bone.GetID().Data(), bone.GetName(), bone.GetParentID().Data());
-			const auto& boneTransform = bone.GetTransform();
-			const auto& translation = boneTransform.GetTranslation();
-			printf("\tTranslation : (x = %f, y = %f, z = %f)\n", translation.x(), translation.y(), translation.z());
-			const auto& rotation = boneTransform.GetRotation();
-			printf("\tRotation    : (w = %f, x = %f, y = %f, z = %f)\n", rotation.w(), rotation.x(), rotation.y(), rotation.z());
-			const auto& scale = boneTransform.GetScale();
-			printf("\tScale       : (x = %f, y = %f, z = %f)\n", scale.x(), scale.y(), scale.z());
+			details::Dump(bone.GetTransform());
 
 			for (const cd::BoneID childNodeID : bone.GetChildIDs())
 			{
@@ -184,12 +202,9 @@ void ProcessorImpl::DumpSceneDatabase()
 			printf("\tTranslationKeyCount : %u, RotationKeyCount : %u, ScaleKeyCount : %u\n",
 				track.GetTranslationKeyCount(), track.GetRotationKeyCount(), track.GetScaleKeyCount());
 
-			const auto& translationKeyValue = track.GetTranslationKeys()[0].GetValue();
-			printf("\tFirstTranslationKey : (x = %f, y = %f, z = %f)\n", translationKeyValue.x(), translationKeyValue.y(), translationKeyValue.z());
-			const auto& rotationKeyValue = track.GetRotationKeys()[0].GetValue();
-			printf("\tFirstRotationKey    : (w = %f, x = %f, y = %f, z = %f)\n", rotationKeyValue.w(), rotationKeyValue.x(), rotationKeyValue.y(), rotationKeyValue.z());
-			const auto& scaleKeyValue = track.GetScaleKeys()[0].GetValue();
-			printf("\tFirstScaleKey       : (x = %f, y = %f, z = %f)\n", scaleKeyValue.x(), scaleKeyValue.y(), scaleKeyValue.z());
+			details::Dump("\tFirstTranslationKey", track.GetTranslationKeys()[0].GetValue());
+			details::Dump("\tFirstRotationKey", track.GetRotationKeys()[0].GetValue());
+			details::Dump("\tFirstScaleKey", track.GetScaleKeys()[0].GetValue());
 		}
 	}
 }

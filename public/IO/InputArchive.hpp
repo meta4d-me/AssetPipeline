@@ -1,10 +1,12 @@
 #pragma once
 
-#include <istream>
-
+#include "Math/AxisSystem.hpp"
+#include "Math/Box.hpp"
 #include "Math/Matrix.hpp"
 #include "Math/Transform.hpp"
 #include "Utilities/ByteSwap.h"
+
+#include <istream>
 
 namespace cd
 {
@@ -44,6 +46,18 @@ public:
 	TInputArchive& operator>>(Matrix3x3& data) { return ImportBuffer(data.Begin()); }
 	TInputArchive& operator>>(Matrix4x4& data) { return ImportBuffer(data.Begin()); }
 	TInputArchive& operator>>(Transform& data) { return ImportBuffer(data.Begin()); }
+	TInputArchive& operator>>(AABB& data) { ImportBuffer(data.Min().Begin()); ImportBuffer(data.Max().Begin()); return *this; }
+	TInputArchive& operator>>(AxisSystem& data)
+	{
+		uint8_t handedness, up, front;
+		Import(handedness);
+		Import(up);
+		Import(front);
+		data.SetHandedness(static_cast<Handedness>(handedness));
+		data.SetUpVector(static_cast<UpVector>(up));
+		data.SetFrontVector(static_cast<FrontVector>(front));
+		return *this;
+	}
 
 	template<typename T>
 	TInputArchive& ImportBuffer(T data)

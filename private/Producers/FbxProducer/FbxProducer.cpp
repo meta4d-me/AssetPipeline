@@ -23,4 +23,49 @@ void FbxProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 	m_pFbxProducerImpl->Execute(pSceneDatabase);
 }
 
+void FbxProducer::AddTextureSearchFolderPath(const char* pTextureFolderPath)
+{
+	m_pFbxProducerImpl->AddTextureSearchFolderPath(pTextureFolderPath);
+}
+
+void FbxProducer::SetWantImportMaterial(bool flag)
+{
+	m_pFbxProducerImpl->SetWantImportMaterial(flag);
+}
+
+bool FbxProducer::WantImportMaterial() const
+{
+	return m_pFbxProducerImpl->WantImportMaterial();
+}
+
+void FbxProducer::SetWantImportTexture(bool flag)
+{
+	m_pFbxProducerImpl->SetWantImportTexture(flag);
+}
+
+bool FbxProducer::WantImportTexture() const
+{
+	return m_pFbxProducerImpl->WantImportTexture();
+}
+
+void FbxProducer::SetWantImportSkinMesh(bool flag)
+{
+	m_pFbxProducerImpl->SetWantImportSkinMesh(flag);
+}
+
+bool FbxProducer::WantImportSkinMesh() const
+{
+	return m_pFbxProducerImpl->WantImportSkinMesh();
+}
+
+void FbxProducer::SetWantImportAnimation(bool flag)
+{
+	m_pFbxProducerImpl->SetWantImportAnimation(flag);
+}
+
+bool FbxProducer::WantImportAnimation() const
+{
+	return m_pFbxProducerImpl->WantImportAnimation();
+}
+
 }

@@ -40,6 +40,11 @@ public:
 	AABB& GetAABB();
 	const AABB& GetAABB() const;
 
+	// AxisSystem
+	void SetAxisSystem(AxisSystem axis);
+	AxisSystem& GetAxisSystem();
+	const AxisSystem& GetAxisSystem() const;
+
 	// Node
 	void AddNode(Node node);
 	std::vector<Node>& GetNodes();
