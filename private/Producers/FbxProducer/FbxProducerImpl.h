@@ -12,9 +12,9 @@ namespace fbxsdk
 {
 
 class FbxManager;
-class FbxSurfaceMaterial;
 class FbxNode;
 class FbxScene;
+class FbxSurfaceMaterial;
 
 }
 

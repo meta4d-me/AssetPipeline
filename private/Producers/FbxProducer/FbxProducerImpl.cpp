@@ -158,6 +158,10 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		}
 	}
 
+	// Query file axis system and unit system.
+	fbxsdk::FbxAxisSystem fileAxisSystem = pSDKScene->GetGlobalSettings().GetAxisSystem();
+	fbxsdk::FbxSystemUnit fileUnitSystem = pSDKScene->GetGlobalSettings().GetSystemUnit();
+
 	// Convert fbx materials to cd materials.
 	if (WantImportMaterial())
 	{

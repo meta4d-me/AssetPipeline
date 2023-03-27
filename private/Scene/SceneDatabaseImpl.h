@@ -40,7 +40,7 @@ public:
 	AABB& GetAABB() { return m_aabb; }
 	const AABB& GetAABB() const { return m_aabb; }
 
-	// Axis
+	// UpVector
 	void SetAxisSystem(AxisSystem axis) { m_axisSystem = MoveTemp(axis); }
 	AxisSystem& GetAxisSystem() { return m_axisSystem; }
 	const AxisSystem& GetAxisSystem() const { return m_axisSystem; }
@@ -133,10 +133,9 @@ public:
 		inputArchive >> sceneAABB;
 		SetAABB(MoveTemp(sceneAABB));
 
-		uint8_t handedness;
-		uint8_t upAxis;
-		inputArchive >> handedness >> upAxis;
-		SetAxisSystem(AxisSystem(static_cast<Handedness>(handedness), static_cast<Axis>(upAxis)));
+		AxisSystem axisSystem;
+		inputArchive >> axisSystem;
+		SetAxisSystem(MoveTemp(axisSystem));
 
 		uint32_t nodeCount;
 		uint32_t meshCount;
@@ -214,8 +213,7 @@ public:
 	template<bool SwapBytesOrder>
 	const SceneDatabaseImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetName() << GetAABB()
-			<< static_cast<uint8_t>(GetAxisSystem().GetHandedness()) << static_cast<uint8_t>(GetAxisSystem().GetUpAxis())
+		outputArchive << GetName() << GetAABB() << GetAxisSystem()
 			<< GetNodeCount() << GetMeshCount()
 			<< GetMaterialCount() << GetTextureCount()
 			<< GetCameraCount() << GetLightCount()
