@@ -1,8 +1,6 @@
 #pragma once
 
 #include "Base/Template.h"
-#include "IO/InputArchive.hpp"
-#include "IO/OutputArchive.hpp"
 #include "Math/Matrix.hpp"
 #include "Math/Ray.hpp"
 
@@ -134,24 +132,6 @@ public:
 
 		t = tmin;
 		return true;
-	}
-
-	template<bool SwapBytesOrder>
-	TBox& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
-	{
-		inputArchive.ImportBuffer(m_min.Begin());
-		inputArchive.ImportBuffer(m_max.Begin());
-
-		return *this;
-	}
-
-	template<bool SwapBytesOrder>
-	const TBox& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
-	{
-		outputArchive.ExportBuffer(m_min.Begin(), m_min.Size);
-		outputArchive.ExportBuffer(m_max.Begin(), m_max.Size);
-
-		return *this;
 	}
 
 private:

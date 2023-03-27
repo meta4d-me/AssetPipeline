@@ -5,6 +5,21 @@
 namespace cd
 {
 
+enum class MatrixMajor
+{
+	Column,
+	Row
+};
+
+// It depends on current choosen graphics API.
+// DirectX : ZeroToOne
+// OpenGL : MinusOneToOne
+enum class NDCDepth
+{
+	ZeroToOne, // [0, 1]
+	MinusOneToOne // [-1, 1]
+};
+
 // TMatrix is column-major order.
 template<typename T, std::size_t Rows, std::size_t Cols>
 class TMatrix

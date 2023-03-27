@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Math/Box.hpp"
 #include "Math/Matrix.hpp"
 #include "Math/Transform.hpp"
 #include "Utilities/ByteSwap.h"
@@ -44,6 +45,7 @@ public:
 	TOutputArchive& operator<<(const Matrix3x3& data) { return ExportBuffer(data.Begin(), data.Size); }
 	TOutputArchive& operator<<(const Matrix4x4& data) { return ExportBuffer(data.Begin(), data.Size); }
 	TOutputArchive& operator<<(const Transform& data) { return ExportBuffer(data.Begin(), data.Size); }
+	TOutputArchive& operator<<(const AABB& data) { ExportBuffer(data.Min().Begin(), data.Min().Size); ExportBuffer(data.Max().Begin(), data.Max().Size); return *this; }
 
 	template<typename T>
 	TOutputArchive& ExportBuffer(T data, std::size_t size)

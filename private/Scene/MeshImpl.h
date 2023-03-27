@@ -133,7 +133,7 @@ public:
 		SetVertexColorSetCount(vertexColorSetCount);
 		SetVertexInfluenceCount(vertexInfluenceCount);
 
-		GetAABB() << inputArchive;
+		inputArchive >> GetAABB();
 		GetVertexFormat() << inputArchive;
 		inputArchive.ImportBuffer(GetVertexPositions().data());
 		inputArchive.ImportBuffer(GetVertexNormals().data());
@@ -170,7 +170,7 @@ public:
 			<< GetVertexInfluenceCount()
 			<< GetPolygonCount();
 
-		GetAABB() >> outputArchive;
+		outputArchive << GetAABB();
 		GetVertexFormat() >> outputArchive;
 		outputArchive.ExportBuffer(GetVertexPositions().data(), GetVertexPositions().size());
 		outputArchive.ExportBuffer(GetVertexNormals().data(), GetVertexNormals().size());

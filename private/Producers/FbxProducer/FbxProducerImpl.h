@@ -63,7 +63,7 @@ private:
 	void TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase);
 
 	int GetSceneBoneCount(const fbxsdk::FbxNode* pSceneNode);
-	void TraverseBoneRecursively(fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxScene* pSDKScene, cd::Bone* pParentNode, cd::SceneDatabase* pSceneDatabase);
+	//void TraverseBoneRecursively(fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxScene* pSDKScene, cd::Bone* pParentNode, cd::SceneDatabase* pSceneDatabase);
 
 	void AddMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial);
 	void AddMaterialTexture(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pTextureName, cd::MaterialTextureType textureType, cd::Material* pMaterial, cd::SceneDatabase* pSceneDatabase);

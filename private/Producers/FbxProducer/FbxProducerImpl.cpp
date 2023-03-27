@@ -21,9 +21,40 @@ cd::Transform ConvertFbxNodeTransform(fbxsdk::FbxNode* pNode)
 	fbxsdk::FbxDouble3 scaling = pNode->LclScaling.EvaluateValue(FBXSDK_TIME_ZERO);
 	return cd::Transform(
 		cd::Vec3f(static_cast<float>(translation[0]), static_cast<float>(translation[1]), static_cast<float>(translation[2])),
-		cd::Quaternion::FromRollPitchYaw(static_cast<float>(rotation[0]), static_cast<float>(-rotation[1]), static_cast<float>(-rotation[2])),
+		cd::Quaternion::FromRollPitchYaw(static_cast<float>(rotation[0]), static_cast<float>(rotation[1]), static_cast<float>(rotation[2])),
 		cd::Vec3f(static_cast<float>(scaling[0]), static_cast<float>(scaling[1]), static_cast<float>(scaling[2])));
 }
+
+void UnrollRotationCurves(fbxsdk::FbxNode* pNode, fbxsdk::FbxAnimLayer* pAnimationLayer, fbxsdk::FbxAnimCurveFilterUnroll* pUnrollFilter)
+{
+	if (!pNode)
+	{
+		return;
+	}
+
+	if (fbxsdk::FbxAnimCurveNode* pCurveNode = pNode->LclRotation.GetCurveNode(pAnimationLayer))
+	{
+		if (uint32_t channelCount = pCurveNode->GetChannelsCount(); channelCount > 0U)
+		{
+			std::vector<fbxsdk::FbxAnimCurve*> rotationCurves;
+			rotationCurves.reserve(channelCount);
+			for (uint32_t channelIndex = 0U; channelIndex < channelCount; ++channelIndex)
+			{
+				rotationCurves.push_back(pCurveNode->GetCurve(channelIndex));
+			}
+
+			fbxsdk::FbxEuler::EOrder rotationOrder = eEulerXYZ;
+			pNode->GetRotationOrder(FbxNode::eSourcePivot, rotationOrder);
+			pUnrollFilter->SetRotationOrder(rotationOrder);
+			pUnrollFilter->Apply(rotationCurves.data(), static_cast<int32_t>(rotationCurves.size()));
+		}
+	}
+
+	for (int32_t nodeIndex = 0; nodeIndex < pNode->GetChildCount(); ++nodeIndex)
+	{
+		UnrollRotationCurves(pNode->GetChild(nodeIndex), pAnimationLayer, pUnrollFilter);
+	}
+};
 
 }
 
@@ -103,6 +134,30 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	std::filesystem::path fbxFilePath(m_filePath.c_str());
 	m_textureSearchFolders.push_back(fbxFilePath.parent_path().string());
 
+	// Bake animation layers to the base layer and destroy other layers.
+	uint32_t animationStackCount = pSDKScene->GetSrcObjectCount<fbxsdk::FbxAnimStack>();
+	for (uint32_t stackIndex = 0U; stackIndex < animationStackCount; ++stackIndex)
+	{
+		fbxsdk::FbxAnimStack* pAnimationStack = pSDKScene->GetSrcObject<fbxsdk::FbxAnimStack>(stackIndex);
+		if (pAnimationStack->GetMemberCount() > 1)
+		{
+			// TODO : will check all layers to decide final sample rate.
+			constexpr int sampleRate = 30;
+
+			fbxsdk::FbxTime framePeriod;
+			framePeriod.SetSecondDouble(1.0 / sampleRate);
+
+			fbxsdk::FbxTimeSpan timeSpan = pAnimationStack->GetLocalTimeSpan();
+			pAnimationStack->BakeLayers(pSDKScene->GetAnimationEvaluator(), timeSpan.GetStart(), timeSpan.GetStop(), framePeriod);
+
+			fbxsdk::FbxAnimLayer* pAnimationBaseLayer = pAnimationStack->GetMember<fbxsdk::FbxAnimLayer>(0);
+			fbxsdk::FbxAnimCurveFilterUnroll unrollFilter;
+			unrollFilter.Reset();
+
+			details::UnrollRotationCurves(pSDKScene->GetRootNode(), pAnimationBaseLayer, &unrollFilter);
+		}
+	}
+
 	// Convert fbx materials to cd materials.
 	if (WantImportMaterial())
 	{
@@ -127,17 +182,39 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	}
 
 	// Convert fbx bone/joint to cd scene bone/joint.
-	if (WantImportSkinMesh() && WantImportAnimation())
+	//if (WantImportSkinMesh())
+	//{
+	//	uint32_t sceneBoneCount = static_cast<uint32_t>(GetSceneBoneCount(pSDKScene->GetRootNode()));
+	//	if (sceneBoneCount > 0U)
+	//	{
+	//		uint32_t oldBoneCount = pSceneDatabase->GetBoneCount();
+	//		m_boneIDGenerator.SetCurrentID(oldBoneCount);
+	//		pSceneDatabase->SetNodeCount(oldBoneCount + sceneBoneCount);
+	//		TraverseBoneRecursively(pSDKScene->GetRootNode(), nullptr, pSceneDatabase);
+	//	}
+	//}
+}
+
+int FbxProducerImpl::GetSceneNodeCount(const fbxsdk::FbxNode* pSceneNode)
+{
+	if (0 == pSceneNode->GetChildCount())
 	{
-		uint32_t sceneBoneCount = static_cast<uint32_t>(GetSceneBoneCount(pSDKScene->GetRootNode()));
-		if (sceneBoneCount > 0U)
+		return 1;
+	}
+
+	int totalCount = 0;
+	for (int childIndex = 0; childIndex < pSceneNode->GetChildCount(); ++childIndex)
+	{
+		const fbxsdk::FbxNode* pChildNode = pSceneNode->GetChild(childIndex);
+		const fbxsdk::FbxNodeAttribute* pNodeAttribute = pSceneNode->GetNodeAttribute();
+		if (nullptr == pNodeAttribute ||
+			fbxsdk::FbxNodeAttribute::eNull == pNodeAttribute->GetAttributeType())
 		{
-			uint32_t oldBoneCount = pSceneDatabase->GetBoneCount();
-			m_boneIDGenerator.SetCurrentID(oldBoneCount);
-			pSceneDatabase->SetNodeCount(oldBoneCount + sceneBoneCount);
-			TraverseBoneRecursively(pSDKScene->GetRootNode(), pSDKScene, nullptr, pSceneDatabase);
+			totalCount += GetSceneNodeCount(pChildNode);
 		}
 	}
+
+	return totalCount;
 }
 
 void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase)
@@ -162,165 +239,6 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 	}
 }
 
-cd::AnimationID FbxProducerImpl::AddAnimation(fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxScene* pSDKScene, cd::SceneDatabase* pSceneDatabase)
-{
-	uint32_t animationCount = pSDKScene->GetSrcObjectCount<fbxsdk::FbxAnimStack>();
-	if (0U == animationCount)
-	{
-		return cd::AnimationID(cd::AnimationID::InvalidID);
-	}
-
-	double frameRate = fbxsdk::FbxTime::GetFrameRate(pSDKScene->GetGlobalSettings().GetTimeMode());
-	fbxsdk::FbxTime startTime = FBXSDK_TIME_INFINITE;
-	fbxsdk::FbxTime endTime = FBXSDK_TIME_MINUS_INFINITE;
-	uint32_t totalKeyCount = 0U;
-	auto ConvertAnimationTransformCurve = [&pSDKNode, &startTime, &endTime, &totalKeyCount](fbxsdk::FbxAnimLayer* pAnimationLayer, const fbxsdk::FbxPropertyT<FbxDouble3>& curveProperty, const char* pChannel)
-	{
-		fbxsdk::FbxAnimCurve* pAnimationTransformCurve = pSDKNode->LclTranslation.GetCurve(pAnimationLayer, pChannel, false);
-		uint32_t keyCount = pAnimationTransformCurve->KeyGetCount();
-		totalKeyCount = std::max(totalKeyCount, keyCount);
-		
-		if (1U == totalKeyCount)
-		{
-			fbxsdk::FbxAnimCurveKey keyValue = pAnimationTransformCurve->KeyGet(0);
-			fbxsdk::FbxTime keyTime = keyValue.GetTime();
-
-			startTime = startTime > keyTime ? keyTime : startTime;
-			endTime = endTime < keyTime ? keyTime : endTime;
-		}
-		else if (totalKeyCount > 1U)
-		{
-			fbxsdk::FbxTimeSpan localAnimatedTimeSpan(FBXSDK_TIME_INFINITE, FBXSDK_TIME_MINUS_INFINITE);
-			pAnimationTransformCurve->GetTimeInterval(localAnimatedTimeSpan);
-
-			fbxsdk::FbxTime localStartTime = localAnimatedTimeSpan.GetStart();
-			fbxsdk::FbxTime localEndTime = localAnimatedTimeSpan.GetStop();
-
-			startTime = startTime > localStartTime ? localStartTime : startTime;
-			endTime = endTime < localEndTime ? localEndTime : endTime;
-		}
-	};
-
-	for (uint32_t animationIndex = 0U; animationIndex < animationCount; ++animationIndex)
-	{
-		fbxsdk::FbxAnimStack* pAnimationStack = pSDKScene->GetSrcObject<fbxsdk::FbxAnimStack>(animationIndex);
-		uint32_t animationLayerCount = pAnimationStack->GetMemberCount();
-		for (uint32_t layerIndex = 0U; layerIndex < animationLayerCount; ++layerIndex)
-		{
-			fbxsdk::FbxAnimLayer* pAnimationLayer = static_cast<fbxsdk::FbxAnimLayer*>(pAnimationStack->GetMember(layerIndex));
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclTranslation, FBXSDK_CURVENODE_COMPONENT_X);
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclTranslation, FBXSDK_CURVENODE_COMPONENT_Y);
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclTranslation, FBXSDK_CURVENODE_COMPONENT_Z);
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclRotation, FBXSDK_CURVENODE_COMPONENT_X);
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclRotation, FBXSDK_CURVENODE_COMPONENT_Y);
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclRotation, FBXSDK_CURVENODE_COMPONENT_Z);
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclScaling, FBXSDK_CURVENODE_COMPONENT_Z);
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclScaling, FBXSDK_CURVENODE_COMPONENT_Z);
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclScaling, FBXSDK_CURVENODE_COMPONENT_Z);
-		}
-	}
-
-	return cd::AnimationID(cd::AnimationID::InvalidID);
-}
-
-void FbxProducerImpl::TraverseBoneRecursively(fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxScene* pSDKScene, cd::Bone* pParentBone, cd::SceneDatabase* pSceneDatabase)
-{
-	const fbxsdk::FbxNodeAttribute* pNodeAttribute = pSDKNode->GetNodeAttribute();
-
-	cd::Bone* pBone = nullptr;
-	switch (pNodeAttribute->GetAttributeType())
-	{
-		case fbxsdk::FbxNodeAttribute::eNull:
-		case fbxsdk::FbxNodeAttribute::eSkeleton:
-		{
-			cd::BoneID boneID = AddBone(pSDKNode, pBone, pSceneDatabase);
-			pBone = &pSceneDatabase->GetBones()[boneID.Data()];
-
-			AddAnimation(const_cast<fbxsdk::FbxNode*>(pSDKNode), pSDKScene, pSceneDatabase);
-			break;
-		}
-		default:
-			break;
-	}
-
-	for (int childIndex = 0; childIndex < pSDKNode->GetChildCount(); ++childIndex)
-	{
-		TraverseBoneRecursively(pSDKNode->GetChild(childIndex), pSDKScene, pBone, pSceneDatabase);
-	}
-}
-
-void FbxProducerImpl::AddMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial)
-{
-	// TODO
-	pSDKMaterial;
-	pPropertyName;
-	pMaterial;
-}
-
-void FbxProducerImpl::AddMaterialTexture(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pTextureName,
-	cd::MaterialTextureType textureType, cd::Material* pMaterial, cd::SceneDatabase* pSceneDatabase)
-{
-	if (pMaterial->IsTextureSetup(textureType))
-	{
-		return;
-	}
-
-	fbxsdk::FbxProperty textureProperty = pSDKMaterial->FindProperty(pTextureName);
-	if (textureProperty.GetSrcObjectCount<fbxsdk::FbxTexture>() <= 0)
-	{
-		return;
-	}
-
-	fbxsdk::FbxTexture* pSDKTexture = fbxsdk::FbxCast<fbxsdk::FbxTexture>(textureProperty.GetSrcObject<fbxsdk::FbxTexture>(0));
-	for (const std::string& textureSearchFolder : m_textureSearchFolders)
-	{
-		std::filesystem::path textureFilePath(textureSearchFolder);
-		textureFilePath.append(pSDKTexture->GetName());
-
-		if (std::filesystem::exists(textureFilePath))
-		{
-			// TODO : Need a better way to process things about std::filesystem::path and std::string_view
-			std::string filePath = textureFilePath.string();
-			uint32_t textureHash = cd::StringHash<cd::TextureID::ValueType>(filePath);
-			cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash);
-			cd::Texture texture(textureID, textureType, filePath.c_str());
-			pMaterial->AddTextureID(textureType, textureID);
-			pSceneDatabase->AddTexture(cd::MoveTemp(texture));
-			break;
-		}
-	}
-}
-
-cd::MaterialID FbxProducerImpl::AddMaterial(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, cd::SceneDatabase* pSceneDatabase)
-{
-	uint32_t materialHash = cd::StringHash<cd::MaterialID::ValueType>(pSDKMaterial->GetName());
-	cd::MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash);
-	cd::Material material(materialID, pSDKMaterial->GetName(), cd::MaterialType::BasePBR);
-	
-	if (WantImportTexture())
-	{
-		AddMaterialTexture(pSDKMaterial, "baseColor", cd::MaterialTextureType::BaseColor, &material, pSceneDatabase);
-		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sDiffuse, cd::MaterialTextureType::BaseColor, &material, pSceneDatabase);
-		
-		AddMaterialTexture(pSDKMaterial, "normalCamera", cd::MaterialTextureType::Normal, &material, pSceneDatabase);
-		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sBump, cd::MaterialTextureType::Normal, &material, pSceneDatabase);
-		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sNormalMap, cd::MaterialTextureType::Normal, &material, pSceneDatabase);
-
-		AddMaterialTexture(pSDKMaterial, "specularRoughness", cd::MaterialTextureType::Roughness, &material, pSceneDatabase);
-		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sSpecularFactor, cd::MaterialTextureType::Roughness, &material, pSceneDatabase);
-
-		AddMaterialTexture(pSDKMaterial, "metalness", cd::MaterialTextureType::Metallic, &material, pSceneDatabase);
-		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sShininess, cd::MaterialTextureType::Metallic, &material, pSceneDatabase);
-		
-		AddMaterialTexture(pSDKMaterial, "emissionColor", cd::MaterialTextureType::Emissive, &material, pSceneDatabase);
-		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sEmissive, cd::MaterialTextureType::Emissive, &material, pSceneDatabase);
-	}
-
-	pSceneDatabase->AddMaterial(cd::MoveTemp(material));
-
-	return materialID;
-}
-
 cd::NodeID FbxProducerImpl::AddNode(const fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase)
 {
 	cd::NodeID nodeID = m_nodeIDGenerator.AllocateID();
@@ -334,21 +252,6 @@ cd::NodeID FbxProducerImpl::AddNode(const fbxsdk::FbxNode* pSDKNode, cd::Node* p
 	pSceneDatabase->AddNode(cd::MoveTemp(node));
 
 	return nodeID;
-}
-
-cd::BoneID FbxProducerImpl::AddBone(const fbxsdk::FbxNode* pSDKNode, cd::Bone* pParentBone, cd::SceneDatabase* pSceneDatabase)
-{
-	cd::BoneID boneID = m_boneIDGenerator.AllocateID();
-	cd::Bone bone(boneID, pSDKNode->GetName());
-	bone.SetTransform(details::ConvertFbxNodeTransform(const_cast<fbxsdk::FbxNode*>(pSDKNode)));
-	if (pParentBone)
-	{
-		pParentBone->AddChildID(boneID.Data());
-		bone.SetParentID(pParentBone->GetID().Data());
-	}
-	pSceneDatabase->AddBone(cd::MoveTemp(bone));
-
-	return boneID;
 }
 
 cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase)
@@ -531,26 +434,76 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxNode* pSDKNode, cd::Node* p
 	return meshID;
 }
 
-int FbxProducerImpl::GetSceneNodeCount(const fbxsdk::FbxNode* pSceneNode)
+void FbxProducerImpl::AddMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial)
 {
-	if (0 == pSceneNode->GetChildCount())
+	// TODO
+	pSDKMaterial;
+	pPropertyName;
+	pMaterial;
+}
+
+void FbxProducerImpl::AddMaterialTexture(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pTextureName,
+	cd::MaterialTextureType textureType, cd::Material* pMaterial, cd::SceneDatabase* pSceneDatabase)
+{
+	if (pMaterial->IsTextureSetup(textureType))
 	{
-		return 1;
+		return;
 	}
 
-	int totalCount = 0;
-	for (int childIndex = 0; childIndex < pSceneNode->GetChildCount(); ++childIndex)
+	fbxsdk::FbxProperty textureProperty = pSDKMaterial->FindProperty(pTextureName);
+	if (textureProperty.GetSrcObjectCount<fbxsdk::FbxTexture>() <= 0)
 	{
-		const fbxsdk::FbxNode* pChildNode = pSceneNode->GetChild(childIndex);
-		const fbxsdk::FbxNodeAttribute* pNodeAttribute = pSceneNode->GetNodeAttribute();
-		if (nullptr == pNodeAttribute ||
-			fbxsdk::FbxNodeAttribute::eNull == pNodeAttribute->GetAttributeType())
+		return;
+	}
+
+	fbxsdk::FbxTexture* pSDKTexture = fbxsdk::FbxCast<fbxsdk::FbxTexture>(textureProperty.GetSrcObject<fbxsdk::FbxTexture>(0));
+	for (const std::string& textureSearchFolder : m_textureSearchFolders)
+	{
+		std::filesystem::path textureFilePath(textureSearchFolder);
+		textureFilePath.append(pSDKTexture->GetName());
+
+		if (std::filesystem::exists(textureFilePath))
 		{
-			totalCount += GetSceneNodeCount(pChildNode);
+			// TODO : Need a better way to process things about std::filesystem::path and std::string_view
+			std::string filePath = textureFilePath.string();
+			uint32_t textureHash = cd::StringHash<cd::TextureID::ValueType>(filePath);
+			cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash);
+			cd::Texture texture(textureID, textureType, filePath.c_str());
+			pMaterial->AddTextureID(textureType, textureID);
+			pSceneDatabase->AddTexture(cd::MoveTemp(texture));
+			break;
 		}
 	}
+}
 
-	return totalCount;
+cd::MaterialID FbxProducerImpl::AddMaterial(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, cd::SceneDatabase* pSceneDatabase)
+{
+	uint32_t materialHash = cd::StringHash<cd::MaterialID::ValueType>(pSDKMaterial->GetName());
+	cd::MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash);
+	cd::Material material(materialID, pSDKMaterial->GetName(), cd::MaterialType::BasePBR);
+
+	if (WantImportTexture())
+	{
+		AddMaterialTexture(pSDKMaterial, "baseColor", cd::MaterialTextureType::BaseColor, &material, pSceneDatabase);
+		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sDiffuse, cd::MaterialTextureType::BaseColor, &material, pSceneDatabase);
+
+		AddMaterialTexture(pSDKMaterial, "normalCamera", cd::MaterialTextureType::Normal, &material, pSceneDatabase);
+		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sBump, cd::MaterialTextureType::Normal, &material, pSceneDatabase);
+		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sNormalMap, cd::MaterialTextureType::Normal, &material, pSceneDatabase);
+
+		AddMaterialTexture(pSDKMaterial, "specularRoughness", cd::MaterialTextureType::Roughness, &material, pSceneDatabase);
+		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sSpecularFactor, cd::MaterialTextureType::Roughness, &material, pSceneDatabase);
+
+		AddMaterialTexture(pSDKMaterial, "metalness", cd::MaterialTextureType::Metallic, &material, pSceneDatabase);
+		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sShininess, cd::MaterialTextureType::Metallic, &material, pSceneDatabase);
+
+		AddMaterialTexture(pSDKMaterial, "emissionColor", cd::MaterialTextureType::Emissive, &material, pSceneDatabase);
+		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sEmissive, cd::MaterialTextureType::Emissive, &material, pSceneDatabase);
+	}
+
+	pSceneDatabase->AddMaterial(cd::MoveTemp(material));
+
+	return materialID;
 }
 
 int FbxProducerImpl::GetSceneBoneCount(const fbxsdk::FbxNode* pSceneNode)
@@ -572,6 +525,99 @@ int FbxProducerImpl::GetSceneBoneCount(const fbxsdk::FbxNode* pSceneNode)
 	}
 
 	return totalCount;
+}
+
+//void FbxProducerImpl::TraverseBoneRecursively(fbxsdk::FbxNode* pSDKNode, cd::Bone* pParentBone, cd::SceneDatabase* pSceneDatabase)
+//{
+//	const fbxsdk::FbxNodeAttribute* pNodeAttribute = pSDKNode->GetNodeAttribute();
+//
+//	cd::Bone* pBone = nullptr;
+//	if (fbxsdk::FbxNodeAttribute::eSkeleton == pNodeAttribute->GetAttributeType())
+//	{
+//		cd::BoneID boneID = AddBone(pSDKNode, pBone, pSceneDatabase);
+//		pBone = &pSceneDatabase->GetBones()[boneID.Data()];
+//	}
+//
+//	for (int childIndex = 0; childIndex < pSDKNode->GetChildCount(); ++childIndex)
+//	{
+//		TraverseBoneRecursively(pSDKNode->GetChild(childIndex), pBone, pSceneDatabase);
+//	}
+//}
+
+cd::BoneID FbxProducerImpl::AddBone(const fbxsdk::FbxNode* pSDKNode, cd::Bone* pParentBone, cd::SceneDatabase* pSceneDatabase)
+{
+	cd::BoneID boneID = m_boneIDGenerator.AllocateID();
+	cd::Bone bone(boneID, pSDKNode->GetName());
+	bone.SetTransform(details::ConvertFbxNodeTransform(const_cast<fbxsdk::FbxNode*>(pSDKNode)));
+	if (pParentBone)
+	{
+		pParentBone->AddChildID(boneID.Data());
+		bone.SetParentID(pParentBone->GetID().Data());
+	}
+	pSceneDatabase->AddBone(cd::MoveTemp(bone));
+
+	return boneID;
+}
+
+cd::AnimationID FbxProducerImpl::AddAnimation(fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxScene* pSDKScene, cd::SceneDatabase* pSceneDatabase)
+{
+	uint32_t animationCount = pSDKScene->GetSrcObjectCount<fbxsdk::FbxAnimStack>();
+	if (0U == animationCount)
+	{
+		return cd::AnimationID(cd::AnimationID::InvalidID);
+	}
+
+	double frameRate = fbxsdk::FbxTime::GetFrameRate(pSDKScene->GetGlobalSettings().GetTimeMode());
+	fbxsdk::FbxTime startTime = FBXSDK_TIME_INFINITE;
+	fbxsdk::FbxTime endTime = FBXSDK_TIME_MINUS_INFINITE;
+	uint32_t totalKeyCount = 0U;
+	auto ConvertAnimationTransformCurve = [&pSDKNode, &startTime, &endTime, &totalKeyCount](fbxsdk::FbxAnimLayer* pAnimationLayer, const fbxsdk::FbxPropertyT<FbxDouble3>& curveProperty, const char* pChannel)
+	{
+		fbxsdk::FbxAnimCurve* pAnimationTransformCurve = pSDKNode->LclTranslation.GetCurve(pAnimationLayer, pChannel, false);
+		uint32_t keyCount = pAnimationTransformCurve->KeyGetCount();
+		totalKeyCount = std::max(totalKeyCount, keyCount);
+
+		if (1U == totalKeyCount)
+		{
+			fbxsdk::FbxAnimCurveKey keyValue = pAnimationTransformCurve->KeyGet(0);
+			fbxsdk::FbxTime keyTime = keyValue.GetTime();
+
+			startTime = startTime > keyTime ? keyTime : startTime;
+			endTime = endTime < keyTime ? keyTime : endTime;
+		}
+		else if (totalKeyCount > 1U)
+		{
+			fbxsdk::FbxTimeSpan localAnimatedTimeSpan(FBXSDK_TIME_INFINITE, FBXSDK_TIME_MINUS_INFINITE);
+			pAnimationTransformCurve->GetTimeInterval(localAnimatedTimeSpan);
+
+			fbxsdk::FbxTime localStartTime = localAnimatedTimeSpan.GetStart();
+			fbxsdk::FbxTime localEndTime = localAnimatedTimeSpan.GetStop();
+
+			startTime = startTime > localStartTime ? localStartTime : startTime;
+			endTime = endTime < localEndTime ? localEndTime : endTime;
+		}
+	};
+
+	for (uint32_t animationIndex = 0U; animationIndex < animationCount; ++animationIndex)
+	{
+		fbxsdk::FbxAnimStack* pAnimationStack = pSDKScene->GetSrcObject<fbxsdk::FbxAnimStack>(animationIndex);
+		uint32_t animationLayerCount = pAnimationStack->GetMemberCount();
+		for (uint32_t layerIndex = 0U; layerIndex < animationLayerCount; ++layerIndex)
+		{
+			fbxsdk::FbxAnimLayer* pAnimationLayer = static_cast<fbxsdk::FbxAnimLayer*>(pAnimationStack->GetMember(layerIndex));
+			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclTranslation, FBXSDK_CURVENODE_COMPONENT_X);
+			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclTranslation, FBXSDK_CURVENODE_COMPONENT_Y);
+			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclTranslation, FBXSDK_CURVENODE_COMPONENT_Z);
+			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclRotation, FBXSDK_CURVENODE_COMPONENT_X);
+			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclRotation, FBXSDK_CURVENODE_COMPONENT_Y);
+			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclRotation, FBXSDK_CURVENODE_COMPONENT_Z);
+			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclScaling, FBXSDK_CURVENODE_COMPONENT_Z);
+			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclScaling, FBXSDK_CURVENODE_COMPONENT_Z);
+			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclScaling, FBXSDK_CURVENODE_COMPONENT_Z);
+		}
+	}
+
+	return cd::AnimationID(cd::AnimationID::InvalidID);
 }
 
 }
