@@ -13,12 +13,12 @@ LightImpl::LightImpl(InputArchiveSwapBytes& inputArchive)
 	*this << inputArchive;
 }
 
-LightImpl::LightImpl(LightID lightID, const float type)
+LightImpl::LightImpl(LightID lightID, const LightType type)
 {
 	Init(lightID, type);
 }
 
-void LightImpl::Init(LightID lightID, const float type)
+void LightImpl::Init(LightID lightID, const LightType type)
 {
 	m_id = lightID;
 	m_type = type;

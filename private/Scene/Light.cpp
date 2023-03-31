@@ -14,7 +14,7 @@ Light::Light(InputArchiveSwapBytes& inputArchive)
 	m_pLightImpl = new LightImpl(inputArchive);
 }
 
-Light::Light(LightID lightID, const float type)
+Light::Light(LightID lightID, const LightType type)
 {
 	m_pLightImpl = new LightImpl(lightID, type);
 }
@@ -39,7 +39,7 @@ Light::~Light()
 	}
 }
 
-void Light::Init(LightID lightID, const float type)
+void Light::Init(LightID lightID, const LightType type)
 {
 	m_pLightImpl->Init(lightID, type);
 }
@@ -54,7 +54,7 @@ const LightID& Light::GetID() const
 	return m_pLightImpl->GetID();
 }
 
-const float& Light::GetType() const
+const LightType& Light::GetType() const
 {
 	return m_pLightImpl->GetType();
 }

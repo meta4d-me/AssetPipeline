@@ -4,6 +4,7 @@
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
 #include "Math/Vector.hpp"
+#include "Scene/LightType.h"
 #include "Scene/ObjectID.h"
 
 namespace cd
@@ -17,16 +18,16 @@ public:
 	Light() = delete;
 	explicit Light(InputArchive& inputArchive);
 	explicit Light(InputArchiveSwapBytes & inputArchive);
-	explicit Light(LightID lightID, const float type);
+	explicit Light(LightID lightID, const LightType type);
 	Light(const Light&) = delete;
 	Light& operator=(const Light&) = delete;
 	Light(Light&&);
 	Light& operator=(Light&&);
 	~Light();
 
-	void Init(LightID lightID, const float type);
+	void Init(LightID lightID, const LightType type);
 	const LightID& GetID() const;
-	const float& GetType() const;
+	const LightType& GetType() const;
 
 	void SetIntensity(const float intensity);
 	float& GetIntensity();

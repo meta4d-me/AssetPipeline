@@ -4,6 +4,7 @@
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
 #include "Math/Vector.hpp"
+#include "Scene/LightType.h"
 #include "Scene/ObjectID.h"
 
 #include <string>
@@ -17,16 +18,16 @@ public:
 	LightImpl() = delete;
 	explicit LightImpl(InputArchive& inputArchive);
 	explicit LightImpl(InputArchiveSwapBytes & inputArchive);
-	explicit LightImpl(LightID lightID, const float type);
+	explicit LightImpl(LightID lightID, const LightType type);
 	LightImpl(const LightImpl&) = default;
 	LightImpl& operator=(const LightImpl&) = default;
 	LightImpl(LightImpl&&) = default;
 	LightImpl& operator=(LightImpl&&) = default;
 	~LightImpl() = default;
 
-	void Init(LightID lightID, const float type);
+	void Init(LightID lightID, const LightType type);
 	const LightID& GetID() const { return m_id; }
-	const float& GetType() const { return m_type; }
+	const LightType& GetType() const { return m_type; }
 
 	void SetIntensity(const float intensity) { m_intensity = intensity; }
 	float& GetIntensity() { return m_intensity; }
@@ -78,13 +79,15 @@ public:
 	LightImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
 		uint32_t lightID;
-		float lightType, lightIntensity, lightRange, lightRadius,
+		uint8_t lightType;
+
+		float lightIntensity, lightRange, lightRadius,
 			lightWidth, lightHeight, lightAngleScale, lightAngleOffeset;
 
 		inputArchive >> lightID >> lightType >> lightIntensity >> lightRange >>
 			lightRadius >> lightWidth >> lightHeight >> lightAngleScale >> lightAngleOffeset;
 
-		Init(LightID(lightID), lightType);
+		Init(LightID(lightID), static_cast<LightType>(lightType));
 		SetIntensity(lightIntensity);
 		SetRange(lightRange);
 		SetRadius(lightRadius);
@@ -104,7 +107,7 @@ public:
 	template<bool SwapBytesOrder>
 	const LightImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetID().Data() << GetType() << GetIntensity() << GetRange() <<
+		outputArchive << GetID().Data() << static_cast<uint8_t>(GetType()) << GetIntensity() << GetRange() <<
 			GetRadius() << GetWidth() << GetHeight() << GetAngleScale() << GetAngleOffeset();
 
 		outputArchive.ExportBuffer(&GetPosition(), 1);
@@ -117,7 +120,7 @@ public:
 
 private:
 	LightID m_id;
-	float m_type;
+	LightType m_type;
 	float m_intensity;
 	float m_range;
 	float m_radius;
