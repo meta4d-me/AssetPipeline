@@ -21,6 +21,12 @@ class TSphere;
 
 class VertexFormat;
 
+enum class CullFace
+{
+	ClockWise,
+	CounterClockWise
+};
+
 // MeshGenerator helps to generate vertex buffer and index buffer from an implicit math class.
 // Default : Left hand axis and counter clock wise
 class CORE_API MeshGenerator final
@@ -34,7 +40,7 @@ public:
 	MeshGenerator& operator=(MeshGenerator&&) = delete;
 	~MeshGenerator() = delete;
 
-	static std::optional<Mesh> Generate(const TBox<float, 3>& box, const VertexFormat& vertexFormat);
+	static std::optional<Mesh> Generate(const TBox<float, 3>& box, const VertexFormat& vertexFormat, bool useCounterWiseForFrontFace = true);
 	static std::optional<Mesh> Generate(const TPlane<float>& plane, float width, float height, const VertexFormat& vertexFormat);
 	static std::optional<Mesh> Generate(const TSphere<float>& sphere, const VertexFormat& vertexFormat);
 };
