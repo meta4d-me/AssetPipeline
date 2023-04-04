@@ -38,10 +38,14 @@ public:
 	void SetCalculateAABBForSceneDatabaseEnable(bool enable) { m_enableCalculateAABBForSceneDatabase = enable; }
 	bool IsCalculateAABBForSceneDatabaseEnabled() const { return m_enableCalculateAABBForSceneDatabase; }
 
+	void SetFlattenSceneDatabaseEnable(bool enable) { m_enableFlattenSceneDatabase = enable; }
+	bool IsFlattenSceneDatabaseEnabled() const { return m_enableFlattenSceneDatabase; }
+
 private:
 	void DumpSceneDatabase();
 	void ValidateSceneDatabase();
 	void CalculateAABBForSceneDatabase();
+	void FlattenSceneDatabase();
 
 private:
 	IProducer* m_pProducer = nullptr;
@@ -53,6 +57,7 @@ private:
 	bool m_enableDumpSceneDatabase = true;
 	bool m_enableValidateSceneDatabase = true;
 	bool m_enableCalculateAABBForSceneDatabase = true;
+	bool m_enableFlattenSceneDatabase = false;
 };
 
 }

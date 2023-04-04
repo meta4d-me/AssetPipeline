@@ -67,27 +67,27 @@ uint32_t GenericProducerImpl::GetImportFlags() const
 	uint32_t importFlags = DefaultImportModelFlags;
 	if (IsTriangulateServiceActive())
 	{
-		importFlags += aiProcess_Triangulate;
+		importFlags |= aiProcess_Triangulate;
 	}
 
 	if (IsBoundingBoxServiceActive())
 	{
-		importFlags += aiProcess_GenBoundingBoxes;
+		importFlags |= aiProcess_GenBoundingBoxes;
 	}
 
 	if (IsFlattenHierarchyServiceActive())
 	{
-		importFlags += aiProcess_PreTransformVertices;
+		importFlags |= aiProcess_PreTransformVertices;
 	}
 
 	if (IsTangentsSpaceServiceActive())
 	{
-		importFlags += aiProcess_CalcTangentSpace;
+		importFlags |= aiProcess_CalcTangentSpace;
 	}
 
 	if (IsImproveACMRServiceActive())
 	{
-		importFlags += aiProcess_ImproveCacheLocality;
+		importFlags |= aiProcess_ImproveCacheLocality;
 	}
 
 	return importFlags;
@@ -135,7 +135,8 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 	}
 	else
 	{
-		finalMaterialName = "untitled_" + pSceneDatabase->GetMaterialCount();
+		finalMaterialName = "untitled_";
+		finalMaterialName += std::to_string(pSceneDatabase->GetMaterialCount());
 		printf("\tWarning : current material doesn't have name?\n");
 	}
 

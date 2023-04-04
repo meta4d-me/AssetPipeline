@@ -38,6 +38,11 @@ public:
 	void SetCalculateAABBForSceneDatabaseEnable(bool enable);
 	bool IsCalculateAABBForSceneDatabaseEnabled() const;
 
+	// Flatten objects hierarchy for SceneDatabase.
+	// Currently, we only support to flatten cd::Node and cd::Mesh for static meshes.
+	void SetFlattenSceneDatabaseEnable(bool enable);
+	bool IsFlattenSceneDatabaseEnabled() const;
+
 	const cd::SceneDatabase* GetSceneDatabase() const;
 	void Run();
 

@@ -18,6 +18,16 @@ Processor::~Processor()
 	}
 }
 
+const cd::SceneDatabase* Processor::GetSceneDatabase() const
+{
+	return m_pProcessorImpl->GetSceneDatabase();
+}
+
+void Processor::Run()
+{
+	m_pProcessorImpl->Run();
+}
+
 void Processor::SetValidateSceneDatabaseEnable(bool enable)
 {
 	m_pProcessorImpl->SetValidateSceneDatabaseEnable(enable);
@@ -38,14 +48,24 @@ bool Processor::IsDumpSceneDatabaseEnabled() const
 	return m_pProcessorImpl->IsDumpSceneDatabaseEnabled();
 }
 
-const cd::SceneDatabase* Processor::GetSceneDatabase() const
+void Processor::SetCalculateAABBForSceneDatabaseEnable(bool enable)
 {
-	return m_pProcessorImpl->GetSceneDatabase();
+	m_pProcessorImpl->SetCalculateAABBForSceneDatabaseEnable(enable);
 }
 
-void Processor::Run()
+bool Processor::IsCalculateAABBForSceneDatabaseEnabled() const
 {
-	m_pProcessorImpl->Run();
+	return m_pProcessorImpl->IsCalculateAABBForSceneDatabaseEnabled();
+}
+
+void Processor::SetFlattenSceneDatabaseEnable(bool enable)
+{
+	m_pProcessorImpl->SetFlattenSceneDatabaseEnable(enable);
+}
+
+bool Processor::IsFlattenSceneDatabaseEnabled() const
+{
+	return m_pProcessorImpl->IsFlattenSceneDatabaseEnabled();
 }
 
 }
