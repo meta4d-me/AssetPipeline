@@ -22,7 +22,7 @@ void Dump(const char* label, cd::Vec3f vector)
 
 void Dump(const char* label, cd::Vec4f vector)
 {
-	printf("%s : (x = %f, y = %f, z = %f, w = %f)\n", label, vector.x(), vector.y(), vector.z(), vector.z());
+	printf("%s : (x = %f, y = %f, z = %f, w = %f)\n", label, vector.x(), vector.y(), vector.z(), vector.w());
 }
 
 void Dump(const cd::Transform& transform)
