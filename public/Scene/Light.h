@@ -18,52 +18,56 @@ public:
 	Light() = delete;
 	explicit Light(InputArchive& inputArchive);
 	explicit Light(InputArchiveSwapBytes & inputArchive);
-	explicit Light(LightID lightID, const LightType type);
+	explicit Light(LightID lightID, LightType type);
 	Light(const Light&) = delete;
 	Light& operator=(const Light&) = delete;
 	Light(Light&&);
 	Light& operator=(Light&&);
 	~Light();
 
-	void Init(LightID lightID, const LightType type);
-	const LightID& GetID() const;
-	const LightType& GetType() const;
+	void Init(LightID lightID, LightType type);
 
-	void SetIntensity(const float intensity);
+	LightID GetID() const;
+	LightType GetType() const;
+
+	void SetName(const char* pName);
+	const char* GetName() const;
+
+	void SetIntensity(float intensity);
 	float& GetIntensity();
-	const float& GetIntensity() const;
+	float GetIntensity() const;
 
-	void SetRange(const float range);
+	void SetRange(float range);
 	float& GetRange();
-	const float& GetRange() const;
+	float GetRange() const;
 
-	void SetRadius(const float radius);
+	void SetRadius(float radius);
 	float& GetRadius();
-	const float& GetRadius() const;
+	float GetRadius() const;
 
-	void SetWidth(const float width);
+	void SetWidth(float width);
 	float& GetWidth();
-	const float& GetWidth() const;
+	float GetWidth() const;
 
-	void SetHeight(const float height);
+	void SetHeight(float height);
 	float& GetHeight();
-	const float& GetHeight() const;
+	float GetHeight() const;
 
-	void SetAngleScale(const float angleScale);
+	void SetAngleScale(float angleScale);
 	float& GetAngleScale();
-	const float& GetAngleScale() const;
+	float GetAngleScale() const;
 
-	void SetAngleOffeset(const float angleOffeset);
-	float& GetAngleOffeset();
-	const float& GetAngleOffeset() const;
-
-	void SetPosition(cd::Point position);
-	cd::Point& GetPosition();
-	const cd::Point& GetPosition() const;
+	void SetAngleOffset(float angleOffset);
+	float& GetAngleOffset();
+	float GetAngleOffset() const;
 
 	void SetColor(cd::Vec3f color);
 	cd::Vec3f& GetColor();
 	const cd::Vec3f& GetColor() const;
+
+	void SetPosition(cd::Point position);
+	cd::Point& GetPosition();
+	const cd::Point& GetPosition() const;
 
 	void SetDirection(cd::Direction direction);
 	cd::Direction& GetDirection();
@@ -73,7 +77,7 @@ public:
 	cd::Direction& GetUp();
 	const cd::Direction& GetUp() const;
 
-	const std::pair<float, float> CalculateScaleAndOffeset(const float innerAngle, const float outerAngle) const;
+	std::pair<float, float> CalculateScaleAndOffset(float innerAngle, float outerAngle) const;
 
 	Light& operator<<(InputArchive& inputArchive);
 	Light& operator<<(InputArchiveSwapBytes& inputArchive);

@@ -39,11 +39,6 @@ Camera::~Camera()
     }
 }
 
-void Camera::Init(CameraID id, std::string name)
-{
-    m_pCameraImpl->Init(id, cd::MoveTemp(name));
-}
-
 const CameraID& Camera::GetID() const
 {
     return m_pCameraImpl->GetID();

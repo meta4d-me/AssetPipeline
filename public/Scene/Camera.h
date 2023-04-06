@@ -6,7 +6,6 @@
 #include "Scene/ObjectID.h"
 
 #include <vector>
-#include <string>
 
 namespace cd
 {
@@ -26,8 +25,6 @@ public:
 	Camera& operator=(Camera&&);
 	~Camera();
 	
-	void Init(CameraID id, std::string name);
-
 	const CameraID& GetID() const;
 
 	void SetName(std::string name);

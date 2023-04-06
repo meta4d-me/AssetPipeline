@@ -146,7 +146,7 @@ void ProcessorImpl::DumpSceneDatabase()
 		printf("\n");
 		for (const auto& node : m_pCurrentSceneDatabase->GetNodes())
 		{
-			printf("[Node %u] ParentID : %u, Name : %s\n", node.GetID().Data(), node.GetParentID().Data(), node.GetName());
+			printf("[Node %u] ParentID = %u, Name = %s\n", node.GetID().Data(), node.GetParentID().Data(), node.GetName());
 			details::Dump(node.GetTransform());
 
 			for (cd::MeshID meshID : node.GetMeshIDs())
@@ -162,8 +162,8 @@ void ProcessorImpl::DumpSceneDatabase()
 		printf("\n");
 		for (const auto& mesh : m_pCurrentSceneDatabase->GetMeshes())
 		{
-			printf("[Mesh %u] Name : %s\n", mesh.GetID().Data(), mesh.GetName());
-			printf("\tVertexCount : %u, TriangleCount : %u\n", mesh.GetVertexCount(), mesh.GetPolygonCount());
+			printf("[Mesh %u] Name = %s\n", mesh.GetID().Data(), mesh.GetName());
+			printf("\tVertexCount = %u, TriangleCount = %u\n", mesh.GetVertexCount(), mesh.GetPolygonCount());
 			if (mesh.GetMaterialID().IsValid())
 			{
 				printf("\t[Associated Material %u]\n", mesh.GetMaterialID().Data());
@@ -178,7 +178,7 @@ void ProcessorImpl::DumpSceneDatabase()
 		printf("\n");
 		for (const auto& material : m_pCurrentSceneDatabase->GetMaterials())
 		{
-			printf("[MaterialID %u] %s\n", material.GetID().Data(), material.GetName());
+			printf("[MaterialID %u] Name = %s\n", material.GetID().Data(), material.GetName());
 
 			for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
 			{
@@ -187,7 +187,7 @@ void ProcessorImpl::DumpSceneDatabase()
 				{
 					const auto& textureID = material.GetTextureID(textureType);
 					const auto& texture = m_pCurrentSceneDatabase->GetTexture(textureID.value().Data());
-					printf("\t[Associated Texture %u] %s\n", textureID.value().Data(), cd::GetMaterialPropertyGroupName(textureType));
+					printf("\t[Associated Texture %u] Type = %s\n", textureID.value().Data(), cd::GetMaterialPropertyGroupName(textureType));
 					printf("\t\tPath = %s\n", texture.GetPath());
 				}
 			}
@@ -209,7 +209,7 @@ void ProcessorImpl::DumpSceneDatabase()
 		printf("\n");
 		for (const auto& texture : m_pCurrentSceneDatabase->GetTextures())
 		{
-			printf("[Texture %u] %s\n", texture.GetID().Data(), cd::GetMaterialPropertyGroupName(texture.GetType()));
+			printf("[Texture %u] Type = %s\n", texture.GetID().Data(), cd::GetMaterialPropertyGroupName(texture.GetType()));
 			printf("\tPath = %s\n", texture.GetPath());
 		}
 	}
@@ -219,7 +219,7 @@ void ProcessorImpl::DumpSceneDatabase()
 		printf("\n");
 		for (const auto& camera : m_pCurrentSceneDatabase->GetCameras())
 		{
-			printf("[Camera %u] %s\n", camera.GetID().Data(), camera.GetName());
+			printf("[Camera %u] Name = %s\n", camera.GetID().Data(), camera.GetName());
 			details::Dump("\tEye", camera.GetEye());
 			details::Dump("\tLookAt", camera.GetLookAt());
 			details::Dump("\tUp", camera.GetUp());
@@ -233,7 +233,15 @@ void ProcessorImpl::DumpSceneDatabase()
 		printf("\n");
 		for (const auto& light : m_pCurrentSceneDatabase->GetLights())
 		{
-			printf("[Light %u]\n", light.GetID().Data());
+			printf("[Light %u] Type = %s, Name = %s\n", light.GetID().Data(), cd::GetLightTypeName(light.GetType()), light.GetName());
+			printf("\tIntensity = %f\n", light.GetIntensity());
+			printf("\tRange = %f, Radius = %f\n", light.GetRange(), light.GetRadius());
+			printf("\tWidth = %f, Height = %f\n", light.GetWidth(), light.GetHeight());
+			printf("\tAngleScale = %f, AngleOffset = %f\n", light.GetAngleScale(), light.GetAngleOffset());
+			details::Dump("\tColor", light.GetColor());
+			details::Dump("\tPosition", light.GetPosition());
+			details::Dump("\tDirection", light.GetDirection());
+			details::Dump("\tUp", light.GetUp());
 		}
 	}
 

@@ -39,27 +39,37 @@ Light::~Light()
 	}
 }
 
-void Light::Init(LightID lightID, const LightType type)
+void Light::Init(LightID lightID, LightType type)
 {
 	m_pLightImpl->Init(lightID, type);
 }
 
-const std::pair<float, float> Light::CalculateScaleAndOffeset(const float innerAngle, const float outerAngle) const
+std::pair<float, float> Light::CalculateScaleAndOffset(float innerAngle, float outerAngle) const
 {
-	return m_pLightImpl->CalculateScaleAndOffeset(innerAngle, outerAngle);
+	return m_pLightImpl->CalculateScaleAndOffset(innerAngle, outerAngle);
 }
 
-const LightID& Light::GetID() const
+LightID Light::GetID() const
 {
 	return m_pLightImpl->GetID();
 }
 
-const LightType& Light::GetType() const
+LightType Light::GetType() const
 {
 	return m_pLightImpl->GetType();
 }
 
-void Light::SetIntensity(const float intensity)
+void Light::SetName(const char* pName)
+{
+	return m_pLightImpl->SetName(pName);
+}
+
+const char* Light::GetName() const
+{
+	return m_pLightImpl->GetName().c_str();
+}
+
+void Light::SetIntensity(float intensity)
 {
 	m_pLightImpl->SetIntensity(intensity);
 }
@@ -69,7 +79,7 @@ float& Light::GetIntensity()
 	return m_pLightImpl->GetIntensity();
 }
 
-const float& Light::GetIntensity() const
+float Light::GetIntensity() const
 {
 	return m_pLightImpl->GetIntensity();
 }
@@ -84,7 +94,7 @@ float& Light::GetRange()
 	return m_pLightImpl->GetRange();
 }
 
-const float& Light::GetRange() const
+float Light::GetRange() const
 {
 	return m_pLightImpl->GetRange();
 }
@@ -99,7 +109,7 @@ float& Light::GetRadius()
 	return m_pLightImpl->GetRange();
 }
 
-const float& Light::GetRadius() const
+float Light::GetRadius() const
 {
 	return m_pLightImpl->GetRange();
 }
@@ -114,7 +124,7 @@ float& Light::GetWidth()
 	return m_pLightImpl->GetWidth();
 }
 
-const float& Light::GetWidth() const
+float Light::GetWidth() const
 {
 	return m_pLightImpl->GetWidth();
 }
@@ -129,7 +139,7 @@ float& Light::GetHeight()
 	return m_pLightImpl->GetHeight();
 }
 
-const float& Light::GetHeight() const
+float Light::GetHeight() const
 {
 	return m_pLightImpl->GetHeight();
 }
@@ -144,24 +154,24 @@ float& Light::GetAngleScale()
 	return m_pLightImpl->GetAngleScale();
 }
 
-const float& Light::GetAngleScale() const
+float Light::GetAngleScale() const
 {
 	return m_pLightImpl->GetAngleScale();
 }
 
-void Light::SetAngleOffeset(const float angleOffeset)
+void Light::SetAngleOffset(const float angleOffset)
 {
-	return m_pLightImpl->SetAngleOffeset(angleOffeset);
+	return m_pLightImpl->SetAngleOffset(angleOffset);
 }
 
-float& Light::GetAngleOffeset()
+float& Light::GetAngleOffset()
 {
-	return m_pLightImpl->GetAngleOffeset();
+	return m_pLightImpl->GetAngleOffset();
 }
 
-const float& Light::GetAngleOffeset() const
+float Light::GetAngleOffset() const
 {
-	return m_pLightImpl->GetAngleOffeset();
+	return m_pLightImpl->GetAngleOffset();
 }
 
 void Light::SetPosition(cd::Point position)
