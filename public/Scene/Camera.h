@@ -19,7 +19,7 @@ public:
 	Camera() = delete;
 	explicit Camera(InputArchive& inputArchive);
 	explicit Camera(InputArchiveSwapBytes& inputArchive);
-	explicit Camera(CameraID id, std::string name);
+	explicit Camera(CameraID id, const char* pName);
 	Camera(const Camera&) = delete;
 	Camera& operator=(const Camera&) = delete;
 	Camera(Camera&&);
@@ -33,9 +33,33 @@ public:
 	void SetName(std::string name);
 	const char* GetName() const;
 
-	void SetTransform(Transform transform);
-	Transform& GetTransform();
-	const Transform& GetTransform() const;
+	void SetEye(Vec3f eye);
+	Vec3f& GetEye();
+	const Vec3f& GetEye() const;
+
+	void SetLookAt(Vec3f lookAt);
+	Vec3f& GetLookAt();
+	const Vec3f& GetLookAt() const;
+
+	void SetUp(Vec3f up);
+	Vec3f& GetUp();
+	const Vec3f& GetUp() const;
+
+	void SetAspect(float aspect);
+	float& GetAspect();
+	float GetAspect() const;
+
+	void SetFov(float fov);
+	float& GetFov();
+	float GetFov() const;
+
+	void SetNearPlane(float near);
+	float& GetNearPlane();
+	float GetNearPlane() const;
+
+	void SetFarPlane(float far);
+	float& GetFarPlane();
+	float GetFarPlane() const;
 
 	Camera& operator<<(InputArchive& inputArchive);
 	Camera& operator<<(InputArchiveSwapBytes& inputArchive);

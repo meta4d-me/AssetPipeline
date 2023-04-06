@@ -36,9 +36,9 @@ public:
 	std::string& GetName() { return m_name; }
 	const std::string& GetName() const { return m_name; }
 
-	void SetPosition(Vec3f position) { m_position = MoveTemp(position); }
-	Vec3f& GetPosition() { return m_position; }
-	const Vec3f& GetPosition() const { return m_position; }
+	void SetEye(Vec3f eye) { m_eye = MoveTemp(eye); }
+	Vec3f& GetEye() { return m_eye; }
+	const Vec3f& GetEye() const { return m_eye; }
 
 	void SetLookAt(Vec3f lookAt) { m_lookAt = MoveTemp(lookAt); }
 	Vec3f& GetLookAt() { return m_lookAt; }
@@ -49,15 +49,19 @@ public:
 	const Vec3f& GetUp() const { return m_up; }
 
 	void SetAspect(float aspect) { m_aspect = aspect; }
+	float& GetAspect() { return m_aspect; }
 	float GetAspect() const { return m_aspect; }
 
 	void SetFov(float fov) { m_fov = fov; }
+	float& GetFov() { return m_fov; }
 	float GetFov() const { return m_fov; }
 
 	void SetNearPlane(float near) { m_near = near; }
+	float& GetNearPlane() { return m_near; }
 	float GetNearPlane() const { return m_near; }
 
 	void SetFarPlane(float far) { m_far = far; }
+	float& GetFarPlane() { return m_far; }
 	float GetFarPlane() const { return m_far; }
 
 	template<bool SwapBytesOrder>
@@ -65,27 +69,11 @@ public:
 	{
 		uint32_t cameraID;
 		std::string cameraName;
-		Vec3f position;
-		Vec3f lookAt;
-		Vec3f up;
-		float aspect;
-		float fov;
-		float near;
-		float far;
-
-		inputArchive >> cameraID >> cameraName
-			>> position >> lookAt >> up
-			>> aspect >> fov >> near >> far;
-
+		inputArchive >> cameraID >> cameraName;
 		Init(CameraID(cameraID), cd::MoveTemp(cameraName));
-		SetPosition(MoveTemp(position));
-		SetLookAt(MoveTemp(lookAt));
-		SetUp(MoveTemp(up));
-		SetAspect(aspect);
-		SetFov(fov);
-		SetNearPlane(near);
-		SetFarPlane(far);
-
+		inputArchive >> GetEye() >> GetLookAt() >> GetUp()
+			>> GetNearPlane() >> GetFarPlane() >> GetAspect() >> GetFov();
+		
 		return *this;
 	}
 
@@ -93,22 +81,23 @@ public:
 	const CameraImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
 		outputArchive << GetID().Data() << GetName()
-			<< GetPosition() << GetLookAt() << GetUp()
-			<< GetAspect() << GetFov() << GetNearPlane() << GetFarPlane();
+			<< GetEye() << GetLookAt() << GetUp()
+			<< GetNearPlane() << GetFarPlane() << GetAspect() << GetFov();
 
 		return *this;
 	}
 
 private:
 	CameraID m_id;
-	Vec3f m_position;
+	std::string m_name;
+
+	Vec3f m_eye;
 	Vec3f m_lookAt;
 	Vec3f m_up;
 	float m_aspect;
 	float m_fov;
 	float m_near;
 	float m_far;
-	std::string m_name;
 };
 
 }
