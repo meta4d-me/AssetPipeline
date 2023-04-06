@@ -89,17 +89,21 @@ public:
 		else if constexpr (std::is_floating_point_v<T>)
 		{
 			m_pIStream->read(reinterpret_cast<char*>(&data), sizeof(data));
-			if constexpr (4 == sizeof(T))
+			
+			if constexpr (SwapBytesOrder)
 			{
-				data = byte_swap<float>(data);
-			}
-			else if constexpr (8 == sizeof(T))
-			{
-				data = byte_swap<double>(data);
-			}
-			else
-			{
-				static_assert("80 bit long double or half float?");
+				if constexpr (4 == sizeof(T))
+				{
+					data = byte_swap<float>(data);
+				}
+				else if constexpr (8 == sizeof(T))
+				{
+					data = byte_swap<double>(data);
+				}
+				else
+				{
+					static_assert("80 bit long double or half float?");
+				}
 			}
 		}
 		else if constexpr (std::is_same<T, std::string>())

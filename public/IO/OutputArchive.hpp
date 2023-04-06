@@ -69,8 +69,8 @@ public:
 			bufferBytes = sourceBufferBytes;
 		}
 
-		m_pOStream->write(reinterpret_cast<const char *>(&bufferBytes), sizeof(uint64_t));
-		m_pOStream->write(reinterpret_cast<const char *>(data), sourceBufferBytes);
+		m_pOStream->write(reinterpret_cast<const char*>(&bufferBytes), sizeof(uint64_t));
+		m_pOStream->write(reinterpret_cast<const char*>(data), sourceBufferBytes);
 
 		return *this;
 	}
