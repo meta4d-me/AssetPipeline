@@ -15,6 +15,7 @@ SceneDatabaseImpl::SceneDatabaseImpl()
 	// If you are outside user in other platforms, you can set it by yourself.
 	// TODO : add a update method to change axis system for SceneDatabase dynamicly.
 	m_axisSystem = AxisSystem::CDEngine();
+	m_unit = Unit::CenterMeter;
 }
 
 ///////////////////////////////////////////////////////////////////

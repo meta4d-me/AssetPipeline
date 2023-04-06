@@ -129,6 +129,8 @@ void ProcessorImpl::DumpSceneDatabase()
 	printf("\t\tHandedness : %s\n", cd::Handedness::Left == m_pCurrentSceneDatabase->GetAxisSystem().GetHandedness() ? "LeftHandSystem" : "RightHandSystem");
 	details::Dump("\t\tUpAxis", cd::Vec3f::GetUpAxis(m_pCurrentSceneDatabase->GetAxisSystem()));
 	details::Dump("\t\tFrontAxis", cd::Vec3f::GetFrontAxis(m_pCurrentSceneDatabase->GetAxisSystem()));
+	printf("\tUnitSystem : \n");
+	printf("\t\tUnit : %s\n", cd::Unit::CenterMeter == m_pCurrentSceneDatabase->GetUnit() ? "CenterMeter" : "Meter");
 
 	printf("\tNode count : %d\n", m_pCurrentSceneDatabase->GetNodeCount());
 	printf("\tMesh count : %d\n", m_pCurrentSceneDatabase->GetMeshCount());

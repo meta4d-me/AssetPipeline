@@ -71,6 +71,21 @@ const AxisSystem& SceneDatabase::GetAxisSystem() const
 	return m_pSceneDatabaseImpl->GetAxisSystem();
 }
 
+void SceneDatabase::SetUnit(Unit unit)
+{
+	m_pSceneDatabaseImpl->SetUnit(unit);
+}
+
+Unit& SceneDatabase::GetUnit()
+{
+	return m_pSceneDatabaseImpl->GetUnit();
+}
+
+Unit SceneDatabase::GetUnit() const
+{
+	return m_pSceneDatabaseImpl->GetUnit();
+}
+
 ///////////////////////////////////////////////////////////////////
 // Node
 ///////////////////////////////////////////////////////////////////

@@ -2,6 +2,7 @@
 
 #include "Base/Template.h"
 #include "Math/Box.hpp"
+#include "Math/UnitSystem.hpp"
 #include "Scene/Animation.h"
 #include "Scene/Bone.h"
 #include "Scene/Camera.h"
@@ -40,10 +41,15 @@ public:
 	AABB& GetAABB() { return m_aabb; }
 	const AABB& GetAABB() const { return m_aabb; }
 
-	// UpVector
+	// AxisSystem
 	void SetAxisSystem(AxisSystem axis) { m_axisSystem = MoveTemp(axis); }
 	AxisSystem& GetAxisSystem() { return m_axisSystem; }
 	const AxisSystem& GetAxisSystem() const { return m_axisSystem; }
+
+	// Unit
+	void SetUnit(Unit unit) { m_unit = unit; }
+	Unit& GetUnit() { return m_unit; }
+	Unit GetUnit() const { return m_unit; }
 
 	// Node
 	void AddNode(Node node) { m_nodes.emplace_back(MoveTemp(node)); }
@@ -137,6 +143,10 @@ public:
 		inputArchive >> axisSystem;
 		SetAxisSystem(MoveTemp(axisSystem));
 
+		uint8_t unit;
+		inputArchive >> unit;
+		SetUnit(static_cast<Unit>(unit));
+
 		uint32_t nodeCount;
 		uint32_t meshCount;
 		uint32_t textureCount;
@@ -213,7 +223,7 @@ public:
 	template<bool SwapBytesOrder>
 	const SceneDatabaseImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetName() << GetAABB() << GetAxisSystem()
+		outputArchive << GetName() << GetAABB() << GetAxisSystem() << static_cast<uint8_t>(GetUnit())
 			<< GetNodeCount() << GetMeshCount()
 			<< GetMaterialCount() << GetTextureCount()
 			<< GetCameraCount() << GetLightCount()
@@ -280,6 +290,7 @@ private:
 	std::string m_name;
 	AABB m_aabb;
 	AxisSystem m_axisSystem;
+	Unit m_unit;
 
 	// Hierarchy data to present relationships between meshes.
 	std::vector<Node> m_nodes;

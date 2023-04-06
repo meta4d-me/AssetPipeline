@@ -4,6 +4,7 @@
 #include "Base/Export.h"
 #include "Base/Template.h"
 #include "Math/Box.hpp"
+#include "Math/UnitSystem.hpp"
 #include "Scene/Animation.h"
 #include "Scene/Bone.h"
 #include "Scene/Camera.h"
@@ -44,6 +45,11 @@ public:
 	void SetAxisSystem(AxisSystem axis);
 	AxisSystem& GetAxisSystem();
 	const AxisSystem& GetAxisSystem() const;
+
+	// Unit
+	void SetUnit(Unit unit);
+	Unit& GetUnit();
+	Unit GetUnit() const;
 
 	// Node
 	void AddNode(Node node);
