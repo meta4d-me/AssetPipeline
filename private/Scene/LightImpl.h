@@ -87,7 +87,7 @@ public:
 		uint8_t lightType;
 		inputArchive >> lightID >> lightType;
 		Init(LightID(lightID), static_cast<LightType>(lightType));
-		inputArchive >> GetIntensity() >> GetRange() >> GetRadius()
+		inputArchive >> GetName() >> GetIntensity() >> GetRange() >> GetRadius()
 			>> GetWidth() >> GetHeight() >> GetAngleScale() >> GetAngleOffset()
 			>> GetColor() >> GetPosition() >> GetDirection() >> GetUp();
 		return *this;
@@ -97,7 +97,7 @@ public:
 	const LightImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
 		outputArchive << GetID().Data() << static_cast<uint8_t>(GetType())
-			<< GetIntensity() << GetRange() << GetRadius()
+			<< GetName() << GetIntensity() << GetRange() << GetRadius()
 			<< GetWidth() << GetHeight() << GetAngleScale() << GetAngleOffset()
 			<< GetColor() << GetPosition() << GetDirection() << GetUp();
 

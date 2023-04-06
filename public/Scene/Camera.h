@@ -27,7 +27,7 @@ public:
 	
 	const CameraID& GetID() const;
 
-	void SetName(std::string name);
+	void SetName(const char* pName);
 	const char* GetName() const;
 
 	void SetEye(Vec3f eye);

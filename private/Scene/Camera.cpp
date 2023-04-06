@@ -44,9 +44,9 @@ const CameraID& Camera::GetID() const
     return m_pCameraImpl->GetID();
 }
 
-void Camera::SetName(std::string name)
+void Camera::SetName(const char* pName)
 {
-    return m_pCameraImpl->SetName(cd::MoveTemp(name));
+    return m_pCameraImpl->SetName(pName);
 }
 
 const char* Camera::GetName() const
