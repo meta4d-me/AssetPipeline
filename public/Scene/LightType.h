@@ -5,7 +5,7 @@
 namespace cd
 {
 
-enum class LightType
+enum class LightType : uint8_t
 {
 	Point = 0,
 	Directional,
