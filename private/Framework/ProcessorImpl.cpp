@@ -60,9 +60,6 @@ ProcessorImpl::ProcessorImpl(IProducer* pProducer, IConsumer* pConsumer, cd::Sce
 	m_pProducer(pProducer),
 	m_pConsumer(pConsumer)
 {
-	assert(pProducer && "pProducer is invalid.");
-	assert(pConsumer && "pConsumer is invalid.");
-
 	if (nullptr == pHostSceneDatabase)
 	{
 		// Processor will create a SceneDatabase managed by itself.
@@ -82,7 +79,10 @@ ProcessorImpl::~ProcessorImpl()
 
 void ProcessorImpl::Run()
 {
-	m_pProducer->Execute(m_pCurrentSceneDatabase);
+	if (m_pProducer)
+	{
+		m_pProducer->Execute(m_pCurrentSceneDatabase);
+	}
 
 	// Take care to keep correct order for post-process steps.
 	if (IsValidateSceneDatabaseEnabled())
@@ -112,7 +112,10 @@ void ProcessorImpl::Run()
 		DumpSceneDatabase();
 	}
 
-	m_pConsumer->Execute(m_pCurrentSceneDatabase);
+	if (m_pConsumer)
+	{
+		m_pConsumer->Execute(m_pCurrentSceneDatabase);
+	}
 }
 
 void ProcessorImpl::DumpSceneDatabase()
@@ -215,6 +218,11 @@ void ProcessorImpl::DumpSceneDatabase()
 		for (const auto& camera : m_pCurrentSceneDatabase->GetCameras())
 		{
 			printf("[Camera %u] %s\n", camera.GetID().Data(), camera.GetName());
+			details::Dump("\tEye", camera.GetEye());
+			details::Dump("\tLookAt", camera.GetLookAt());
+			details::Dump("\tUp", camera.GetUp());
+			printf("\tNearPlane = %f, FarPlane = %f\n", camera.GetNearPlane(), camera.GetFarPlane());
+			printf("\tAspect = %f, Fov = %f\n", camera.GetAspect(), camera.GetFov());
 		}
 	}
 
