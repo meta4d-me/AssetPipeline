@@ -5,6 +5,8 @@
 #include "TerrainProducer/AlphaMapTypes.h"
 #include "TerrainProducer/TerrainTypes.h"
 
+#include <memory>
+
 namespace cd
 {
 

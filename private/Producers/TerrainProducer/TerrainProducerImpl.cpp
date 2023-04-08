@@ -12,7 +12,6 @@
 #include "Utilities/Utils.h"
 
 #include <cinttypes>
-#include <memory>
 
 using namespace cd;
 using namespace cdtools;
