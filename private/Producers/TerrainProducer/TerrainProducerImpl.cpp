@@ -1,6 +1,7 @@
 #include "TerrainProducerImpl.h"
 
 #include "Hashers/StringHash.hpp"
+#include "Math/Math.hpp"
 #include "Math/NoiseGenerator.h"
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
@@ -8,6 +9,7 @@
 #include "Scene/Texture.h"
 #include "Scene/VertexFormat.h"
 #include "Utilities/StringUtils.h"
+#include "Utilities/Utils.h"
 
 #include <cinttypes>
 
@@ -41,6 +43,30 @@ float GetNoiseAt(
 	}
 	height = pow(height, redistPower);
 	return height;
+}
+
+uint8_t GetChannelValue(uint32_t pixel, cdtools::AlphaMapChannel channel)
+{
+	// We assume the packing is RGBA in LSB order
+	switch (channel)
+	{
+	case AlphaMapChannel::Red:
+		return static_cast<uint8_t>(pixel & 0xFF);
+	case AlphaMapChannel::Green:
+		return static_cast<uint8_t>((pixel >> 8) & 0xFF);
+	case AlphaMapChannel::Blue:
+		return static_cast<uint8_t>((pixel >> 16) & 0xFF);
+	case AlphaMapChannel::Alpha:
+		return static_cast<uint8_t>((pixel >> 24) & 0xFF);
+	default:
+		assert(false);
+	}
+}
+
+uint32_t PackAsRGBA8U(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha)
+{
+	// Assume RGBA in LSB order
+	return static_cast<uint32_t>(red | (green << 8) | (blue << 16) | (alpha << 24));
 }
 
 uint32_t kNextTextureId;
@@ -85,6 +111,18 @@ void TerrainProducerImpl::SetSectorMetadata(const TerrainSectorMetadata& metadat
 	m_sectorMetadata = metadata;
 }
 
+void TerrainProducerImpl::SetAlphaMapTextureName(AlphaMapChannel channel, const std::string_view textureName)
+{
+	assert(channel != AlphaMapChannel::Count);
+	m_alphaMapTextureNames[static_cast<uint8_t>(channel)] = textureName;
+}
+
+void TerrainProducerImpl::RemoveAlphaMapGeneration()
+{
+	m_pElevationAlphaMapDef = nullptr;
+	m_pNoiseAlphaMapDef = nullptr;
+}
+
 void TerrainProducerImpl::Initialize()
 {
 	m_sectorLenInX = m_sectorMetadata.numQuadsInX * m_sectorMetadata.quadLenInX;
@@ -96,6 +134,20 @@ void TerrainProducerImpl::Initialize()
 	m_verticesPerSector = m_quadsPerSector * 4;
 	m_trianglesPerSector = m_quadsPerSector * 2;
 	kNextTextureId = 0;
+}
+
+void TerrainProducerImpl::GenerateAlphaMapWithElevation(
+	const AlphaMapBlendRegion<int32_t>& redGreenRegion,
+	const AlphaMapBlendRegion<int32_t>& greenBlueRegion,
+	const AlphaMapBlendRegion<int32_t>& blueAlphaRegion,
+	const AlphaMapBlendFunction& blendFunction)
+{
+	m_pElevationAlphaMapDef.reset(new ElevationAlphaMapDef());
+	m_pElevationAlphaMapDef->redGreenBlendRegion = redGreenRegion;
+	m_pElevationAlphaMapDef->greenBlueBlendRegion = greenBlueRegion;
+	m_pElevationAlphaMapDef->blueAlphaBlendRegion = blueAlphaRegion;
+	m_pElevationAlphaMapDef->blendFunction = blendFunction;
+	m_pNoiseAlphaMapDef = nullptr;	// only one can exist
 }
 
 void TerrainProducerImpl::Execute(SceneDatabase* pSceneDatabase)
@@ -125,6 +177,135 @@ void TerrainProducerImpl::GenerateElevationMap(std::vector<int32_t>& outElevatio
 				)
 				));
 		}
+	}
+}
+
+void TerrainProducerImpl::GenerateElevationBasedAlphaMap(std::vector<uint32_t>& outAlphaMap, const std::vector<int32_t>& elevationMap) const
+{
+	assert(m_pElevationAlphaMapDef != nullptr);
+	assert(m_pElevationAlphaMapDef->redGreenBlendRegion.blendStart <= m_pElevationAlphaMapDef->redGreenBlendRegion.blendEnd);
+	assert(m_pElevationAlphaMapDef->greenBlueBlendRegion.blendStart <= m_pElevationAlphaMapDef->greenBlueBlendRegion.blendEnd);
+	assert(m_pElevationAlphaMapDef->blueAlphaBlendRegion.blendStart <= m_pElevationAlphaMapDef->blueAlphaBlendRegion.blendEnd);
+
+	outAlphaMap.clear();
+	// We will use RGBA8 here
+	// 1 byte per channel; 4 channels per pixel
+	outAlphaMap.resize(elevationMap.size());
+	uint8_t red;
+	uint8_t green;
+	uint8_t blue;
+	uint8_t alpha;
+	for (size_t i = 0; i < elevationMap.size(); ++i)
+	{
+		const int32_t elevation = elevationMap[i];
+		// Clear old value
+		outAlphaMap[i] = 0;
+		red = 0;
+		green = 0;
+		blue = 0;
+		alpha = 0;
+
+		// Calculate alpha map
+		const float greenBlendRange = static_cast<float>(
+			m_pElevationAlphaMapDef->redGreenBlendRegion.blendEnd - m_pElevationAlphaMapDef->redGreenBlendRegion.blendStart);
+		const float blueBlendRange = static_cast<float>(
+			m_pElevationAlphaMapDef->greenBlueBlendRegion.blendEnd - m_pElevationAlphaMapDef->greenBlueBlendRegion.blendStart);
+		const float alphaBlendRange = static_cast<float>(
+			m_pElevationAlphaMapDef->blueAlphaBlendRegion.blendEnd - m_pElevationAlphaMapDef->blueAlphaBlendRegion.blendStart);
+		if (elevation < m_pElevationAlphaMapDef->redGreenBlendRegion.blendStart)
+		{
+			// All red
+			red = 0xFF;
+		}
+		else if (elevation < m_pElevationAlphaMapDef->redGreenBlendRegion.blendEnd)
+		{
+			// Blend between red and green channel textures
+			const float t = (elevation - m_pElevationAlphaMapDef->redGreenBlendRegion.blendStart) / greenBlendRange;
+			switch (m_pElevationAlphaMapDef->blendFunction)
+			{
+			case cdtools::AlphaMapBlendFunction::Step:
+				// no blend since we are stepping
+				red = 0xFF;
+				break;
+			case cdtools::AlphaMapBlendFunction::Linear:
+				red = static_cast<uint8_t>(std::ceil(cdtools::lerp<float>(0x0, 0xFF, t)));
+				break;
+			case cdtools::AlphaMapBlendFunction::SmoothStep:
+				red = static_cast<uint8_t>(std::ceil(cdtools::smoothstep<float>(0.0f, 255.0f, t)));
+				break;
+			case cdtools::AlphaMapBlendFunction::SmoothStepHigh:
+				red = static_cast<uint8_t>(std::ceil(cdtools::smoothstep_high<float>(0.0f, 255.0f, t)));
+				break;
+			default:
+				assert(false);
+			}
+			green = static_cast<uint8_t>(0xFF - red);
+		}
+		else if (elevation < m_pElevationAlphaMapDef->greenBlueBlendRegion.blendStart)
+		{
+			// All green
+			green = 0xFF;
+		}
+		else if (elevation < m_pElevationAlphaMapDef->greenBlueBlendRegion.blendEnd)
+		{
+			// Blend between green and blue channel textures
+			const float t = (elevation - m_pElevationAlphaMapDef->greenBlueBlendRegion.blendStart) / blueBlendRange;
+			switch (m_pElevationAlphaMapDef->blendFunction)
+			{
+			case cdtools::AlphaMapBlendFunction::Step:
+				// no blend since we are stepping
+				green = 0xFF;
+				break;
+			case cdtools::AlphaMapBlendFunction::Linear:
+				green = static_cast<uint8_t>(std::ceil(cdtools::lerp<float>(0x0, 0xFF, t)));
+				break;
+			case cdtools::AlphaMapBlendFunction::SmoothStep:
+				green = static_cast<uint8_t>(std::ceil(cdtools::smoothstep<float>(0.0f, 255.0f, t)));
+				break;
+			case cdtools::AlphaMapBlendFunction::SmoothStepHigh:
+				green = static_cast<uint8_t>(std::ceil(cdtools::smoothstep_high<float>(0.0f, 255.0f, t)));
+				break;
+			default:
+				assert(false);
+			}
+			blue = static_cast<uint8_t>(0xFF - green);
+		}
+		else if (elevation < m_pElevationAlphaMapDef->blueAlphaBlendRegion.blendStart)
+		{
+			// All blue
+			blue = 0xFF;
+		}
+		else if (elevation < m_pElevationAlphaMapDef->blueAlphaBlendRegion.blendEnd)
+		{
+			// Blend between blue and alpha channel textures
+			const float t = (elevation - m_pElevationAlphaMapDef->blueAlphaBlendRegion.blendStart) / alphaBlendRange;
+			switch (m_pElevationAlphaMapDef->blendFunction)
+			{
+			case cdtools::AlphaMapBlendFunction::Step:
+				// no blend since we are stepping
+				blue = 0xFF;
+				break;
+			case cdtools::AlphaMapBlendFunction::Linear:
+				blue = static_cast<uint8_t>(std::ceil(cdtools::lerp<float>(0x0, 0xFF, t)));
+				break;
+			case cdtools::AlphaMapBlendFunction::SmoothStep:
+				blue = static_cast<uint8_t>(std::ceil(cdtools::smoothstep<float>(0.0f, 255.0f, t)));
+				break;
+			case cdtools::AlphaMapBlendFunction::SmoothStepHigh:
+				blue = static_cast<uint8_t>(std::ceil(cdtools::smoothstep_high<float>(0.0f, 255.0f, t)));
+				break;
+			default:
+				assert(false);
+			}
+			alpha = static_cast<uint8_t>(0xFF - blue);
+		}
+		else
+		{
+			// all alpha
+			alpha = 0xFF;
+		}
+		// Write the value
+		outAlphaMap[i] = PackAsRGBA8U(red, green, blue, alpha);
 	}
 }
 
@@ -223,21 +404,27 @@ MaterialID TerrainProducerImpl::GenerateMaterialAndTextures(cd::SceneDatabase* p
 	MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash);
 	Material terrainSectorMaterial(materialID, materialName.c_str(), MaterialType::BasePBR);
 
-	// Base color texture
-	std::string textureName = "Terrain_baseColor";
+	// ElevationMap texture
+	std::string textureName = string_format("TerrainElevationMap(%d, %d)", sector_x, sector_z);
 	TextureID::ValueType textureHash = StringHash<TextureID::ValueType>(textureName);
 	TextureID textureID = TextureID(kNextTextureId++);
-	terrainSectorMaterial.AddTextureID(MaterialTextureType::BaseColor, textureID);
-	pSceneDatabase->AddTexture(Texture(textureID, MaterialTextureType::BaseColor, textureName.c_str()));
-
-	// ElevationMap texture
-	textureName = string_format("TerrainElevationMap(%d, %d)", sector_x, sector_z);
-	textureHash = StringHash<TextureID::ValueType>(textureName);
-	textureID = TextureID(kNextTextureId++);
-	terrainSectorMaterial.AddTextureID(MaterialTextureType::Roughness, textureID);
-	Texture elevationTexture = Texture(textureID, MaterialTextureType::Roughness, textureName.c_str());
+	terrainSectorMaterial.AddTextureID(MaterialTextureType::Elevation, textureID);
+	Texture elevationTexture = Texture(textureID, MaterialTextureType::Elevation, textureName.c_str());
 	elevationTexture.SetRawTexture(elevationMap, TextureFormat::R32I, m_sectorLenInX + 1, m_sectorLenInZ + 1);
 	pSceneDatabase->AddTexture(MoveTemp(elevationTexture));
+
+	if (m_pElevationAlphaMapDef != nullptr)
+	{
+		textureName = string_format("TerrainAlphaMap(%d, %d)", sector_x, sector_z);
+		textureHash = StringHash<TextureID::ValueType>(textureName);
+		textureID = TextureID(kNextTextureId++);
+		terrainSectorMaterial.AddTextureID(MaterialTextureType::AlphaMap, textureID);
+		Texture elevationTexture = Texture(textureID, MaterialTextureType::AlphaMap, textureName.c_str());
+		std::vector<uint32_t> alphaMap;
+		GenerateElevationBasedAlphaMap(alphaMap, elevationMap);
+		elevationTexture.SetRawTexture(alphaMap, TextureFormat::RGBA8, m_sectorLenInX + 1, m_sectorLenInZ + 1);
+		pSceneDatabase->AddTexture(MoveTemp(elevationTexture));
+	}
 	
 	pSceneDatabase->AddMaterial(MoveTemp(terrainSectorMaterial));
 

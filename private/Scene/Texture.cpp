@@ -44,6 +44,11 @@ void Texture::Init(TextureID textureID, MaterialTextureType textureType, const c
     m_pTextureImpl->Init(textureID, textureType, pTexturePath);
 }
 
+void Texture::SetRawTexture(const std::vector<uint32_t>& inputData, const cd::TextureFormat format, uint32_t width, uint32_t height)
+{
+    m_pTextureImpl->SetRawTexture(inputData, format, width, height);
+}
+
 void Texture::SetRawTexture(const std::vector<int32_t>& inputData, const cd::TextureFormat format, uint32_t width, uint32_t height)
 {
     m_pTextureImpl->SetRawTexture(inputData, format, width, height);

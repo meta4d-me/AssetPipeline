@@ -34,6 +34,8 @@ enum class MaterialPropertyGroup
 	Metallic,
 	Normal,
 	Emissive,
+	Elevation,
+	AlphaMap,
 	General,
 
 	Count,
@@ -52,6 +54,8 @@ constexpr const char *MaterialPropertyGroupName[] =
 	"Metallic",
 	"Normal",
 	"Emissive",
+	"Elevation",
+	"AlphaMap",
 	"General",
 };
 
