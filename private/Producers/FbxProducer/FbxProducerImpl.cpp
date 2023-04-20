@@ -9,6 +9,7 @@
 
 #include <cassert>
 #include <filesystem>
+#include <format>
 #include <vector>
 
 namespace details
@@ -234,7 +235,55 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 	}
 	else if (fbxsdk::FbxNodeAttribute::eMesh == pNodeAttribute->GetAttributeType())
 	{
-		AddMesh(pSDKNode, pParentNode, pSceneDatabase);
+		const fbxsdk::FbxMesh* pFbxMesh = reinterpret_cast<const fbxsdk::FbxMesh*>(pNodeAttribute);
+		assert(pFbxMesh);
+		
+		bool hasError = false;
+		if (!pFbxMesh->IsTriangleMesh())
+		{
+			printf("[Error] Mesh is not triangulated.\n");
+			hasError = true;
+		}
+
+		const fbxsdk::FbxLayer* pMeshBaseLayer = pFbxMesh->GetLayer(0);
+		if (!pMeshBaseLayer)
+		{
+			printf("[Error] No geometry info in the FbxMesh.\n");
+			hasError = true;
+		}
+
+		if (!hasError)
+		{
+			const fbxsdk::FbxLayerElementMaterial* pLayerElementMaterial = pMeshBaseLayer->GetMaterials();
+			uint32_t materialCount = pSDKNode->GetMaterialCount();
+			if (materialCount > 0U)
+			{
+				fbxsdk::FbxLayerElement::EMappingMode materialMappingMode = pLayerElementMaterial->GetMappingMode();
+				if (fbxsdk::FbxLayerElement::eAllSame == materialMappingMode)
+				{
+					assert(1U == materialCount && "Material is AllSame mapping mode but has multiple materials.");
+
+					AddMesh(pFbxMesh, pSDKNode->GetName(), 0, pParentNode, pSceneDatabase);
+				}
+				else if (fbxsdk::FbxLayerElement::eByPolygon == materialMappingMode)
+				{
+					assert(materialCount > 1U && "Material is ByPolygon mapping mode but only one material.");
+
+					// It will generate multiple meshes to assign one material.
+					// To manage them conveniently, they are placed under a new Node.
+					cd::NodeID meshesNodeID = AddNode(pSDKNode, pParentNode, pSceneDatabase);
+					for (uint32_t materialIndex = 0U; materialIndex < materialCount; ++materialIndex)
+					{
+						std::string splitMeshName(std::format("{}_{}", pSDKNode->GetName(), materialIndex));
+						AddMesh(pFbxMesh, splitMeshName.c_str(), materialIndex, &pSceneDatabase->GetNodes()[meshesNodeID.Data()], pSceneDatabase);
+					}
+				}
+			}
+			else
+			{
+				AddMesh(pFbxMesh, pSDKNode->GetName(), std::nullopt, pParentNode, pSceneDatabase);
+			}
+		}
 	}
 
 	for (int childIndex = 0; childIndex < pSDKNode->GetChildCount(); ++childIndex)
@@ -258,37 +307,44 @@ cd::NodeID FbxProducerImpl::AddNode(const fbxsdk::FbxNode* pSDKNode, cd::Node* p
 	return nodeID;
 }
 
-cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase)
+cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char* pMeshName, std::optional<int32_t> optMaterialIndex, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase)
 {
-	const fbxsdk::FbxNodeAttribute* pNodeAttribute = pSDKNode->GetNodeAttribute();
-	const fbxsdk::FbxMesh* pFbxMesh = reinterpret_cast<const fbxsdk::FbxMesh*>(pNodeAttribute);
-	assert(pFbxMesh);
+	// For geometry data, we only query base layer which means index 0.
+	const fbxsdk::FbxLayer* pMeshBaseLayer = pFbxMesh->GetLayer(0);
+	uint32_t totalVertexCount = pFbxMesh->GetControlPointsCount();
+	uint32_t totalPolygonCount = pFbxMesh->GetPolygonCount();
 
-	if (!pFbxMesh->IsTriangleMesh())
+	const fbxsdk::FbxLayerElementMaterial* pLayerElementMaterial = pMeshBaseLayer->GetMaterials();
+	bool filterPolygonByMaterial = optMaterialIndex.has_value() && fbxsdk::FbxLayerElement::eByPolygon == pLayerElementMaterial->GetMappingMode();
+	if (filterPolygonByMaterial)
 	{
-		printf("[Error] Mesh is not triangulated.\n");
-		return cd::MeshID(cd::MeshID::InvalidID);
+		uint32_t availablePolygonCount = 0U;
+		for (uint32_t polygonIndex = 0U; polygonIndex < totalPolygonCount; ++polygonIndex)
+		{
+			assert(3 == pFbxMesh->GetPolygonSize(polygonIndex));
+
+			int32_t materialIndex = pLayerElementMaterial->GetIndexArray().GetAt(polygonIndex);
+			if (materialIndex == optMaterialIndex.value())
+			{
+				++availablePolygonCount;
+			}
+		}
+
+		totalPolygonCount = availablePolygonCount;
+		totalVertexCount = totalPolygonCount * 3;
 	}
 
-	uint32_t vertexCount = pFbxMesh->GetControlPointsCount();
-	uint32_t polygonCount = pFbxMesh->GetPolygonCount();
-	if (0U == vertexCount || 0U == polygonCount)
+	if (0 == totalPolygonCount || 0 == totalVertexCount)
 	{
 		printf("[Error] Mesh doesn't have any vertex or polygon.\n");
 		return cd::MeshID(cd::MeshID::InvalidID);
 	}
 
-	const fbxsdk::FbxLayer* pMeshBaseLayer = pFbxMesh->GetLayer(0);
-	if (!pMeshBaseLayer)
-	{
-		printf("[Error] No geometry info in the FbxMesh.\n");
-		return cd::MeshID(cd::MeshID::InvalidID);
-	}
+	// Convert fbx mesh to cd mesh.
+	cd::MeshID meshID = m_meshIDGenerator.AllocateID();
+	cd::Mesh mesh(meshID, pMeshName, totalVertexCount, totalPolygonCount);
 
-	// For geometry data, we only query base layer which means index 0.
 	const fbxsdk::FbxVector4* pMeshVertexPositions = pFbxMesh->GetControlPoints();
-	assert(pMeshVertexPositions);
-
 	const fbxsdk::FbxLayerElementNormal* pLayerElementNormalData = pMeshBaseLayer->GetNormals();
 	const fbxsdk::FbxLayerElementTangent* pLayerElementTangentData = pMeshBaseLayer->GetTangents();
 	const fbxsdk::FbxLayerElementBinormal* pLayerElementBinormalData = pMeshBaseLayer->GetBinormals();
@@ -305,11 +361,6 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxNode* pSDKNode, cd::Node* p
 			layerElementUVDatas.push_back(pLayerUVSets[uvSetIndex]);
 		}
 	}
-
-	// Convert fbx mesh to cd mesh.
-	// Process basic information data.
-	cd::MeshID meshID = m_meshIDGenerator.AllocateID();
-	cd::Mesh mesh(meshID, pSDKNode->GetName(), vertexCount, polygonCount);
 	mesh.SetVertexUVSetCount(static_cast<uint32_t>(layerElementUVDatas.size()));
 
 	// TODO : Multiple vertex color sets if necessary.
@@ -324,14 +375,9 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxNode* pSDKNode, cd::Node* p
 		pParentNode->AddMeshID(meshID.Data());
 	}
 
-	// Associate material id.
-	uint32_t materialCount = pSDKNode->GetMaterialCount();
-	if (materialCount > 0U)
+	if (optMaterialIndex.has_value())
 	{
-		const fbxsdk::FbxLayerElementMaterial* pLayerElementMaterial = pMeshBaseLayer->GetMaterials();
-		// TODO : Support other material mapping modes.
-		// assert(fbxsdk::FbxLayerElement::eAllSame == pLayerElementMaterial->GetMappingMode());
-		int32_t materialIndex = pLayerElementMaterial->GetIndexArray().GetAt(0);
+		int32_t materialIndex = optMaterialIndex.value();
 		auto itMaterialID = m_fbxMaterialIndexToMaterialID.find(materialIndex);
 		assert(itMaterialID != m_fbxMaterialIndexToMaterialID.end());
 		mesh.SetMaterialID(itMaterialID->second);
@@ -340,12 +386,19 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxNode* pSDKNode, cd::Node* p
 	// Process polygon and vertex data.
 	uint32_t polygonVertexBeginIndex = 0U;
 	uint32_t polygonVertexEndIndex = 0U;
-	for (uint32_t polygonIndex = 0U, vertexID = 0U; polygonIndex < polygonCount; ++polygonIndex, vertexID += 3)
+	for (uint32_t polygonIndex = 0U, vertexID = 0U; polygonIndex < totalPolygonCount; ++polygonIndex, vertexID += 3)
 	{
-		assert(3 == pFbxMesh->GetPolygonSize(polygonIndex));
-
 		polygonVertexBeginIndex = polygonVertexEndIndex;
 		polygonVertexEndIndex += 3;
+
+		if (filterPolygonByMaterial)
+		{
+			int32_t materialIndex = pLayerElementMaterial->GetIndexArray().GetAt(polygonIndex);
+			if (materialIndex != optMaterialIndex.value())
+			{
+				continue;
+			}
+		}
 
 		// Position
 		uint32_t polygonVertexID[3];
@@ -434,7 +487,6 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxNode* pSDKNode, cd::Node* p
 	}
 
 	pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
-
 	return meshID;
 }
 
