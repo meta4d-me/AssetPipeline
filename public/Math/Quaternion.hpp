@@ -28,7 +28,7 @@ public:
 		return TQuaternion<T>(std::cos(halfAngle), axis.x() * sinHalfAngle, axis.y() * sinHalfAngle, axis.z() * sinHalfAngle);
 	}
 
-	static TQuaternion<T> FromRollPitchYaw(T roll, T pitch, T yaw)
+	static TQuaternion<T> FromPitchYawRoll(T pitch, T yaw, T roll)
 	{
 		constexpr T Round = static_cast<T>(360);
 		const T rollNoWinding = std::fmod(roll, Round);
@@ -288,7 +288,7 @@ public:
 
 	CD_FORCEINLINE TVector<T, 3> ToEulerAngles()
 	{
-		return TVector<T, 3>(Pitch(), Yaw(x), Roll());
+		return TVector<T, 3>(Math::RadianToDegree(Pitch()), Math::RadianToDegree(Yaw()), Math::RadianToDegree(Roll()));
 	}
 
 	// Calculations

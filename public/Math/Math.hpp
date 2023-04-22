@@ -33,10 +33,10 @@ public:
 	static constexpr float INVERSE_SQRT_3 = 1.0f / SQRT_3;
 
 	template<typename T>
-	static constexpr T DegreeToRadian(float degree) { return degree * DEGREE_TO_RADIAN; }
+	static constexpr T DegreeToRadian(T degree) { return degree * DEGREE_TO_RADIAN; }
 
 	template<typename T>
-	static constexpr T RadianToDegree(float radian) { return radian * RADIAN_TO_DEGREE; }
+	static constexpr T RadianToDegree(T radian) { return radian * RADIAN_TO_DEGREE; }
 
 	template<typename T>
 	static constexpr T GetEpsilon()
