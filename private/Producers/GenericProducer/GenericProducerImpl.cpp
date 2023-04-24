@@ -519,11 +519,57 @@ void GenericProducerImpl::AddMaterials(cd::SceneDatabase* pSceneDatabase, const 
 	}
 }
 
+void GenericProducerImpl::AddLight(cd::SceneDatabase* pSceneDatabase, const aiLight* pSourceLight)
+{
+	auto GetLightType = [](aiLightSourceType type) -> cd::LightType
+	{
+		switch (type)
+		{
+		case aiLightSource_DIRECTIONAL:
+			return cd::LightType::Directional;
+		case aiLightSource_POINT:
+			return cd::LightType::Point;
+		case aiLightSource_SPOT:
+			return cd::LightType::Spot;
+		case aiLightSource_AREA:
+			return cd::LightType::Rectangle;
+		case aiLightSource_AMBIENT:
+		case aiLightSource_UNDEFINED:
+		default:
+			return cd::LightType::Count;
+		}
+	};
+
+	cd::LightType lightType = GetLightType(pSourceLight->mType);
+	if (cd::LightType::Count == lightType)
+	{
+		printf("Unknown light source type.\n");
+		return;
+	}
+
+	cd::Light light(m_lightIDGenerator.AllocateID(), lightType);
+	light.SetName(pSourceLight->mName.C_Str());
+	light.SetColor(cd::RGB(pSourceLight->mColorAmbient.r, pSourceLight->mColorAmbient.g, pSourceLight->mColorAmbient.b));
+	light.SetPosition(cd::Point(pSourceLight->mPosition.x, pSourceLight->mPosition.y, pSourceLight->mPosition.z));
+	light.SetDirection(cd::Direction(pSourceLight->mDirection.x, pSourceLight->mDirection.y, pSourceLight->mDirection.z));
+	light.SetUp(cd::Direction(pSourceLight->mUp.x, pSourceLight->mUp.y, pSourceLight->mUp.z));
+;	pSceneDatabase->AddLight(cd::MoveTemp(light));
+}
+
 void GenericProducerImpl::AddScene(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene)
 {
 	// TODO : it is not ideal as we will import many scenes to the SceneDatabase.
 	// Multiple SceneDatabase vs Multiple Scenes in one SceneDatabase.
 	pSceneDatabase->SetName(m_filePath.c_str());
+
+	if (pSourceScene->HasLights())
+	{
+		pSceneDatabase->SetLightCount(pSourceScene->mNumLights);
+		for (uint32_t lightIndex = 0U; lightIndex < pSourceScene->mNumLights; ++lightIndex)
+		{
+			AddLight(pSceneDatabase, pSourceScene->mLights[lightIndex]);
+		}
+	}
 
 	if (pSourceScene->HasMeshes())
 	{

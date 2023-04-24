@@ -8,6 +8,7 @@
 #include <string>
 
 struct aiAnimation;
+struct aiLight;
 struct aiMaterial;
 struct aiMesh;
 struct aiNode;
@@ -66,6 +67,7 @@ private:
 	// Import different type of objects in the SceneGraph.
 	void AddScene(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene);
 	void AddNodeRecursively(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t nodeID);
+	void AddLight(cd::SceneDatabase* pSceneDatabase, const aiLight* pSourceLight);
 	void AddMaterials(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene);
 	cd::MaterialID AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial);
 	cd::MeshID AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh);
