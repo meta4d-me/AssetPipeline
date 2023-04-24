@@ -498,36 +498,47 @@ void FbxProducerImpl::AddMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDK
 	pMaterial;
 }
 
-void FbxProducerImpl::AddMaterialTexture(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pTextureName,
-	cd::MaterialTextureType textureType, cd::Material* pMaterial, cd::SceneDatabase* pSceneDatabase)
+void FbxProducerImpl::AddMaterialTexture(const fbxsdk::FbxProperty& sdkProperty, cd::MaterialTextureType textureType, cd::Material& material, cd::SceneDatabase* pSceneDatabase)
 {
-	if (pMaterial->IsTextureSetup(textureType))
+	if (material.IsTextureSetup(textureType))
 	{
 		return;
 	}
 
-	fbxsdk::FbxProperty textureProperty = pSDKMaterial->FindProperty(pTextureName);
-	if (textureProperty.GetSrcObjectCount<fbxsdk::FbxTexture>() <= 0)
+	uint32_t unsupportedTextureCount = sdkProperty.GetSrcObjectCount<fbxsdk::FbxLayeredTexture>() + sdkProperty.GetSrcObjectCount<fbxsdk::FbxProceduralTexture>();
+	if (unsupportedTextureCount > 0U)
 	{
-		return;
+		printf("UnsupportedTextureCount = %d\n", unsupportedTextureCount);
 	}
 
-	fbxsdk::FbxTexture* pSDKTexture = fbxsdk::FbxCast<fbxsdk::FbxTexture>(textureProperty.GetSrcObject<fbxsdk::FbxTexture>(0));
-	for (const std::string& textureSearchFolder : m_textureSearchFolders)
+	uint32_t supportedTextureCount = sdkProperty.GetSrcObjectCount<fbxsdk::FbxFileTexture>();
+	for (uint32_t textureIndex = 0U; textureIndex < supportedTextureCount; ++textureIndex)
 	{
-		std::filesystem::path textureFilePath(textureSearchFolder);
-		textureFilePath.append(pSDKTexture->GetName());
-
-		if (std::filesystem::exists(textureFilePath))
+		fbxsdk::FbxFileTexture* pFileTexture = sdkProperty.GetSrcObject<fbxsdk::FbxFileTexture>(textureIndex);
+		if (!pFileTexture)
 		{
-			// TODO : Need a better way to process things about std::filesystem::path and std::string_view
-			std::string filePath = textureFilePath.string();
-			uint32_t textureHash = cd::StringHash<cd::TextureID::ValueType>(filePath);
-			cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash);
-			cd::Texture texture(textureID, textureType, filePath.c_str());
-			pMaterial->AddTextureID(textureType, textureID);
-			pSceneDatabase->AddTexture(cd::MoveTemp(texture));
-			break;
+			continue;
+		}
+
+		for (const std::string& textureSearchFolder : m_textureSearchFolders)
+		{
+			std::filesystem::path textureFilePath(textureSearchFolder);
+			textureFilePath.append(pFileTexture->GetFileName());
+
+			if (std::filesystem::exists(textureFilePath))
+			{
+				std::string filePath = textureFilePath.string();
+				uint32_t textureHash = cd::StringHash<cd::TextureID::ValueType>(filePath);
+				bool isReused = false;
+				cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, &isReused);
+				if (!isReused)
+				{
+					cd::Texture texture(textureID, textureType, filePath.c_str());
+					pSceneDatabase->AddTexture(cd::MoveTemp(texture));
+				}
+				material.AddTextureID(textureType, textureID);
+				break;
+			}
 		}
 	}
 }
@@ -540,21 +551,35 @@ cd::MaterialID FbxProducerImpl::AddMaterial(const fbxsdk::FbxSurfaceMaterial* pS
 
 	if (WantImportTexture())
 	{
-		AddMaterialTexture(pSDKMaterial, "baseColor", cd::MaterialTextureType::BaseColor, &material, pSceneDatabase);
-		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sDiffuse, cd::MaterialTextureType::BaseColor, &material, pSceneDatabase);
+		static std::unordered_map<std::string, cd::MaterialTextureType> mapTexturePropertyFBXToCD;
+		mapTexturePropertyFBXToCD["base"] = cd::MaterialTextureType::BaseColor;
+		mapTexturePropertyFBXToCD["baseColor"] = cd::MaterialTextureType::BaseColor;
+		mapTexturePropertyFBXToCD["normalCamera"] = cd::MaterialTextureType::Normal;
+		mapTexturePropertyFBXToCD["specularColor"] = cd::MaterialTextureType::Roughness;
+		mapTexturePropertyFBXToCD["metalness"] = cd::MaterialTextureType::Metallic;
+		mapTexturePropertyFBXToCD["emissionColor"] = cd::MaterialTextureType::Emissive;
+		mapTexturePropertyFBXToCD[fbxsdk::FbxSurfaceMaterial::sDiffuse] = cd::MaterialTextureType::BaseColor;
+		mapTexturePropertyFBXToCD[fbxsdk::FbxSurfaceMaterial::sNormalMap] = cd::MaterialTextureType::Normal;
+		mapTexturePropertyFBXToCD[fbxsdk::FbxSurfaceMaterial::sBump] = cd::MaterialTextureType::Normal;
+		mapTexturePropertyFBXToCD[fbxsdk::FbxSurfaceMaterial::sSpecularFactor] = cd::MaterialTextureType::Roughness;
+		mapTexturePropertyFBXToCD[fbxsdk::FbxSurfaceMaterial::sShininess] = cd::MaterialTextureType::Metallic;
+		mapTexturePropertyFBXToCD[fbxsdk::FbxSurfaceMaterial::sEmissive] = cd::MaterialTextureType::Emissive;
+		mapTexturePropertyFBXToCD[fbxsdk::FbxSurfaceMaterial::sAmbient] = cd::MaterialTextureType::Occlusion;
+		// mapPropertyFBXToNew[fbxsdk::FbxSurfaceMaterial::sSpecular] = "Specular";
+		// mapPropertyFBXToNew[fbxsdk::FbxSurfaceMaterial::sTransparentColor] = "Opacity";
+		// mapPropertyFBXToNew[fbxsdk::FbxSurfaceMaterial::sTransparencyFactor] = "OpacityMask";
 
-		AddMaterialTexture(pSDKMaterial, "normalCamera", cd::MaterialTextureType::Normal, &material, pSceneDatabase);
-		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sBump, cd::MaterialTextureType::Normal, &material, pSceneDatabase);
-		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sNormalMap, cd::MaterialTextureType::Normal, &material, pSceneDatabase);
+		fbxsdk::FbxProperty currentProperty = pSDKMaterial->GetFirstProperty();
+		while (currentProperty.IsValid())
+		{
+			const char* pFBXPropertyName = currentProperty.GetNameAsCStr();
+			if (const auto& itPropertyName = mapTexturePropertyFBXToCD.find(pFBXPropertyName); itPropertyName != mapTexturePropertyFBXToCD.end())
+			{
+				AddMaterialTexture(currentProperty, itPropertyName->second, material, pSceneDatabase);
+			}
 
-		AddMaterialTexture(pSDKMaterial, "specularRoughness", cd::MaterialTextureType::Roughness, &material, pSceneDatabase);
-		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sSpecularFactor, cd::MaterialTextureType::Roughness, &material, pSceneDatabase);
-
-		AddMaterialTexture(pSDKMaterial, "metalness", cd::MaterialTextureType::Metallic, &material, pSceneDatabase);
-		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sShininess, cd::MaterialTextureType::Metallic, &material, pSceneDatabase);
-
-		AddMaterialTexture(pSDKMaterial, "emissionColor", cd::MaterialTextureType::Emissive, &material, pSceneDatabase);
-		AddMaterialTexture(pSDKMaterial, fbxsdk::FbxSurfaceMaterial::sEmissive, cd::MaterialTextureType::Emissive, &material, pSceneDatabase);
+			currentProperty = pSDKMaterial->GetNextProperty(currentProperty);
+		}
 	}
 
 	pSceneDatabase->AddMaterial(cd::MoveTemp(material));
