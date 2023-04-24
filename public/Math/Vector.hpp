@@ -308,6 +308,7 @@ using Point = Vec3f;
 using Direction = Vec3f;
 using Color = Vec4f;
 using UV = Vec2f;
+using RGB = Vec3f;
 
 static_assert(2 * sizeof(float) == sizeof(Vec2f));
 static_assert(3 * sizeof(float) == sizeof(Vec3f));
