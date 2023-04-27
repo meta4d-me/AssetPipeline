@@ -22,7 +22,7 @@ cd::Transform ConvertFbxNodeTransform(fbxsdk::FbxNode* pNode)
 	fbxsdk::FbxDouble3 scaling = pNode->LclScaling.EvaluateValue(FBXSDK_TIME_ZERO);
 	return cd::Transform(
 		cd::Vec3f(static_cast<float>(translation[0]), static_cast<float>(translation[1]), static_cast<float>(translation[2])),
-		cd::Quaternion::FromRollPitchYaw(static_cast<float>(rotation[0]), static_cast<float>(rotation[1]), static_cast<float>(rotation[2])),
+		cd::Quaternion::FromPitchYawRoll(static_cast<float>(rotation[0]), static_cast<float>(rotation[1]), static_cast<float>(rotation[2])),
 		cd::Vec3f(static_cast<float>(scaling[0]), static_cast<float>(scaling[1]), static_cast<float>(scaling[2])));
 }
 
@@ -233,6 +233,13 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 		cd::NodeID nodeID = AddNode(pSDKNode, pParentNode, pSceneDatabase);
 		pNode = &pSceneDatabase->GetNodes()[nodeID.Data()];
 	}
+	else if (fbxsdk::FbxNodeAttribute::eLight == pNodeAttribute->GetAttributeType() && m_importLight)
+	{
+		const fbxsdk::FbxLight* pFbxLight = reinterpret_cast<const fbxsdk::FbxLight*>(pNodeAttribute);
+		assert(pFbxLight);
+
+		AddLight(pFbxLight, pSDKNode->GetName(), details::ConvertFbxNodeTransform(pSDKNode), pSceneDatabase);
+	}
 	else if (fbxsdk::FbxNodeAttribute::eMesh == pNodeAttribute->GetAttributeType())
 	{
 		const fbxsdk::FbxMesh* pFbxMesh = reinterpret_cast<const fbxsdk::FbxMesh*>(pNodeAttribute);
@@ -305,6 +312,73 @@ cd::NodeID FbxProducerImpl::AddNode(const fbxsdk::FbxNode* pSDKNode, cd::Node* p
 	pSceneDatabase->AddNode(cd::MoveTemp(node));
 
 	return nodeID;
+}
+
+cd::LightID FbxProducerImpl::AddLight(const fbxsdk::FbxLight* pFbxLight, const char* pLightName, cd::Transform transform, cd::SceneDatabase* pSceneDatabase)
+{
+	cd::LightType lightType = cd::LightType::Count;
+	float lightIntensity = static_cast<float>(pFbxLight->Intensity.Get());
+
+	switch (pFbxLight->LightType.Get())
+	{
+		case fbxsdk::FbxLight::EType::ePoint:
+		{
+			lightType = cd::LightType::Point;
+			break;
+		}
+		case fbxsdk::FbxLight::EType::eDirectional:
+		{
+			lightType = cd::LightType::Directional;
+			break;
+		}
+		case fbxsdk::FbxLight::EType::eArea:
+		{
+			lightIntensity = 1.0f;
+
+			switch (pFbxLight->AreaLightShape.Get())
+			{
+				case fbxsdk::FbxLight::EAreaLightShape::eRectangle:
+				{
+					lightType = cd::LightType::Rectangle;
+					break;
+				}
+				default:
+				{
+					lightType = cd::LightType::Sphere;
+					break;
+				}
+			}
+			break;
+		}
+		case fbxsdk::FbxLight::EType::eSpot:
+		{
+			lightType = cd::LightType::Spot;
+			break;
+		}
+	}
+
+	if (cd::LightType::Count == lightType)
+	{
+		printf("Unknown light type.\n");
+		return cd::LightID(cd::LightID::InvalidID);
+	}
+
+	cd::LightID lightID = m_lightIDGenerator.AllocateID();
+	fbxsdk::FbxDouble3 lightColor = pFbxLight->Color.Get();
+	cd::Light light(lightID, lightType);
+	light.SetName(pLightName);
+	light.SetColor(cd::Vec3f(lightColor[0], lightColor[1], lightColor[2]));
+	light.SetIntensity(lightIntensity);
+	std::pair<float, float> angleScaleAndOffset = light.CalculateScaleAndOffset(static_cast<float>(pFbxLight->InnerAngle.Get()), static_cast<float>(pFbxLight->OuterAngle.Get()));
+	light.SetAngleScale(angleScaleAndOffset.first);
+	light.SetAngleOffset(angleScaleAndOffset.second);
+	light.SetPosition(transform.GetTranslation());
+	// TODO: Use AxisSystem to convert.
+	light.SetUp(transform.GetRotation() * cd::Vec3f(0.0f, 1.0f, 0.0f));
+	light.SetDirection(transform.GetRotation() * cd::Vec3f(1.0f, 0.0f, 0.0f));
+	pSceneDatabase->AddLight(cd::MoveTemp(light));
+
+	return lightID;
 }
 
 cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char* pMeshName, std::optional<int32_t> optMaterialIndex, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase)
