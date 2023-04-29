@@ -9,6 +9,7 @@
 #include "Scene/Light.h"
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
+#include "Scene/Morph.h"
 #include "Scene/Node.h"
 #include "Scene/Texture.h"
 #include "Scene/Track.h"
@@ -67,6 +68,14 @@ public:
 	void SetMeshCount(uint32_t count) { m_meshes.reserve(count); }
 	const Mesh& GetMesh(uint32_t index) const { return m_meshes[index];  }
 	uint32_t GetMeshCount() const { return static_cast<uint32_t>(m_meshes.size()); }
+
+	// Morph
+	void AddMorph(Morph morph) { m_morphs.emplace_back(MoveTemp(morph)); }
+	std::vector<Morph>& GetMorphs() { return m_morphs; }
+	const std::vector<Morph>& GetMorphs() const { return m_morphs; }
+	void SetMorphCount(uint32_t count) { m_morphs.reserve(count); }
+	const Morph& GetMorph(uint32_t index) const { return m_morphs[index]; }
+	uint32_t GetMorphCount() const { return static_cast<uint32_t>(m_morphs.size()); }
 
 	// Texture
 	void AddTexture(Texture texture) { m_textures.emplace_back(MoveTemp(texture)); }
@@ -156,14 +165,16 @@ public:
 		uint32_t boneCount;
 		uint32_t animationCount;
 		uint32_t trackCount;
+		uint32_t morphCount;
 
-		inputArchive >> nodeCount >> meshCount
+		inputArchive >> nodeCount >> meshCount >> morphCount
 			>> materialCount >> textureCount
 			>> cameraCount >> lightCount
 			>> boneCount >> animationCount >> trackCount;
 
 		SetNodeCount(nodeCount);
 		SetMeshCount(meshCount);
+		SetMorphCount(morphCount);
 		SetMaterialCount(materialCount);
 		SetTextureCount(textureCount);
 		SetCameraCount(cameraCount);
@@ -180,6 +191,11 @@ public:
 		for (uint32_t meshIndex = 0U; meshIndex < meshCount; ++meshIndex)
 		{
 			AddMesh(Mesh(inputArchive));
+		}
+
+		for (uint32_t morphIndex = 0U; morphIndex < morphCount; ++morphIndex)
+		{
+			AddMorph(Morph(inputArchive));
 		}
 
 		for (uint32_t materialIndex = 0U; materialIndex < materialCount; ++materialIndex)
@@ -224,7 +240,7 @@ public:
 	const SceneDatabaseImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
 		outputArchive << GetName() << GetAABB() << GetAxisSystem() << static_cast<uint8_t>(GetUnit())
-			<< GetNodeCount() << GetMeshCount()
+			<< GetNodeCount() << GetMeshCount() << GetMorphCount()
 			<< GetMaterialCount() << GetTextureCount()
 			<< GetCameraCount() << GetLightCount()
 			<< GetBoneCount() << GetAnimationCount() << GetTrackCount();
@@ -239,6 +255,12 @@ public:
 		{
 			const Mesh& mesh = GetMesh(meshIndex);
 			mesh >> outputArchive;
+		}
+
+		for (uint32_t morphIndex = 0U; morphIndex < GetMorphCount(); ++morphIndex)
+		{
+			const Morph& morph = GetMorph(morphIndex);
+			morph >> outputArchive;
 		}
 
 		for (uint32_t materialIndex = 0U; materialIndex < GetMaterialCount(); ++materialIndex)
@@ -297,6 +319,7 @@ private:
 
 	// Mesh data both for StatciMesh and SkinMesh.
 	std::vector<Mesh> m_meshes;
+	std::vector<Morph> m_morphs;
 
 	// Texturing data.
 	std::vector<Material> m_materials;

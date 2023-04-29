@@ -15,7 +15,8 @@ enum class ObjectType
 	Camera,
 	Bone,
 	Animation,
-	Track
+	Track,
+	Morph
 };
 
 }

@@ -11,6 +11,7 @@
 #include "Scene/Light.h"
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
+#include "Scene/Morph.h"
 #include "Scene/Node.h"
 #include "Scene/Texture.h"
 #include "Scene/Track.h"
@@ -67,6 +68,14 @@ public:
 	void SetMeshCount(uint32_t meshCount);
 	const Mesh& GetMesh(uint32_t index) const;
 	uint32_t GetMeshCount() const;
+
+	// Morph
+	void AddMorph(Morph morph);
+	std::vector<Morph>& GetMorphs();
+	const std::vector<Morph>& GetMorphs() const;
+	void SetMorphCount(uint32_t morphCount);
+	const Morph& GetMorph(uint32_t index) const;
+	uint32_t GetMorphCount() const;
 
 	// Material
 	void AddMaterial(Material material);

@@ -4,7 +4,7 @@
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
 #include "Math/Box.hpp"
-#include "Scene/ObjectID.h"
+#include "Scene/Morph.h"
 #include "Scene/VertexFormat.h"
 
 #include <array>
@@ -209,8 +209,13 @@ private:
 	MaterialID					m_materialID;
 	std::string					m_name;
 	AABB						m_aabb;
-	
+
+	// morph targets
+	std::vector<Morph>			m_morphTargets;
+
 	// vertex geometry data
+	// TODO : Remove m_vertexFormat.
+	// We can generate VertexFormat immediately based on current vertex data types.
 	VertexFormat				m_vertexFormat;
 	std::vector<Point>			m_vertexPositions;
 	std::vector<Direction>		m_vertexNormals;		// Maybe we wants to use face normals? Or we can help to calculate it.

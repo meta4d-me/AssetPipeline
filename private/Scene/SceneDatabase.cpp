@@ -158,6 +158,39 @@ uint32_t SceneDatabase::GetMeshCount() const
 }
 
 ///////////////////////////////////////////////////////////////////
+// Morph
+///////////////////////////////////////////////////////////////////
+void SceneDatabase::AddMorph(Morph morph)
+{
+	return m_pSceneDatabaseImpl->AddMorph(cd::MoveTemp(morph));
+}
+
+std::vector<Morph>& SceneDatabase::GetMorphs()
+{
+	return m_pSceneDatabaseImpl->GetMorphs();
+}
+
+const std::vector<Morph>& SceneDatabase::GetMorphs() const
+{
+	return m_pSceneDatabaseImpl->GetMorphs();
+}
+
+void SceneDatabase::SetMorphCount(uint32_t morphCount)
+{
+	return m_pSceneDatabaseImpl->SetMorphCount(morphCount);
+}
+
+const Morph& SceneDatabase::GetMorph(uint32_t index) const
+{
+	return m_pSceneDatabaseImpl->GetMorph(index);
+}
+
+uint32_t SceneDatabase::GetMorphCount() const
+{
+	return m_pSceneDatabaseImpl->GetMorphCount();
+}
+
+///////////////////////////////////////////////////////////////////
 // Material
 ///////////////////////////////////////////////////////////////////
 void SceneDatabase::AddMaterial(Material material)
