@@ -3,3 +3,4 @@ build
 .vs
 x64
 auto/commercial_sdk_locations.bat
+Makefile
