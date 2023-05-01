@@ -21,6 +21,24 @@ public:
 		return TQuaternion<T>(one, zero, zero, zero);
 	}
 
+	static TQuaternion<T> RotateX(T radian)
+	{
+		T halfRadian = static_cast<T>(0.5) * radian;
+		return TQuaternion<T>(std::cos(halfRadian), std::sin(halfRadian), 0.0f, 0.0f);
+	}
+
+	static TQuaternion<T> RotateY(T radian)
+	{
+		T halfRadian = static_cast<T>(0.5) * radian;
+		return TQuaternion<T>(std::cos(halfRadian), 0.0f, std::sin(halfRadian), 0.0f);
+	}
+
+	static TQuaternion<T> RotateZ(T radian)
+	{
+		T halfRadian = static_cast<T>(0.5) * radian;
+		return TQuaternion<T>(std::cos(halfRadian), 0.0f, 0.0f, std::sin(halfRadian));
+	}
+
 	static TQuaternion<T> FromAxisAngle(const TVector<T, 3>& axis, T angleRadian)
 	{
 		T halfAngle = angleRadian * static_cast<T>(0.5);
@@ -31,23 +49,22 @@ public:
 	static TQuaternion<T> FromPitchYawRoll(T pitch, T yaw, T roll)
 	{
 		constexpr T Round = static_cast<T>(360);
-		const T rollNoWinding = std::fmod(roll, Round);
-
 		const T pitchNoWinding = std::fmod(pitch, Round);
 		const T yawNoWinding = std::fmod(yaw, Round);
+		const T rollNoWinding = std::fmod(roll, Round);
 
-		T sinRoll = std::sin(Math::DegreeToRadian<T>(rollNoWinding) * 0.5f);
-		T cosRoll = std::cos(Math::DegreeToRadian<T>(rollNoWinding) * 0.5f);
 		T sinPitch = std::sin(Math::DegreeToRadian<T>(pitchNoWinding) * 0.5f);
 		T cosPitch = std::cos(Math::DegreeToRadian<T>(pitchNoWinding) * 0.5f);
 		T sinYaw = std::sin(Math::DegreeToRadian<T>(yawNoWinding) * 0.5f);
 		T cosYaw = std::cos(Math::DegreeToRadian<T>(yawNoWinding) * 0.5f);
+		T sinRoll = std::sin(Math::DegreeToRadian<T>(rollNoWinding) * 0.5f);
+		T cosRoll = std::cos(Math::DegreeToRadian<T>(rollNoWinding) * 0.5f);
 
 		return TQuaternion<T>(
-			cosRoll * cosPitch * cosYaw + sinRoll * sinPitch * sinYaw,
-			cosRoll * sinPitch * sinYaw - sinRoll * cosPitch * cosYaw,
-			-cosRoll * sinPitch * cosYaw - sinRoll * cosPitch * sinYaw,
-			cosRoll * cosPitch * sinYaw - sinRoll * sinPitch * cosYaw);
+			cosPitch * cosYaw * cosRoll + sinPitch * sinYaw * sinRoll,
+			sinPitch * cosYaw * cosRoll - cosPitch * sinYaw * sinRoll,
+			cosPitch * sinYaw * cosRoll + sinPitch * cosYaw * sinRoll,
+			cosPitch * cosYaw * sinRoll - sinPitch * sinYaw * cosRoll);
 	}
 
 	static TQuaternion<T> Lerp(const TQuaternion<T>& a, const TQuaternion<T>& b, T t)
@@ -249,46 +266,24 @@ public:
 			zero, zero, zero, one);
 	}
 
-	CD_FORCEINLINE T Roll() const
-	{
-		constexpr T two = static_cast<T>(2);
-
-		T resultX = w() * w() - x() * x() - y() * y() + z() * z();
-		T resultY = two * (x() * y() + w() * z());
-
-		if (Math::IsEqualToZero(resultX) && Math::IsEqualToZero(resultY))
-		{
-			// avoid atan2(0, 0)
-			return static_cast<T>(two * std::atan2(x(), w()));
-		}
-
-		return static_cast<T>(std::atan2(resultY, resultX));
-	}
-
 	CD_FORCEINLINE T Pitch() const
 	{
-		constexpr T two = static_cast<T>(2);
-
-		T resultX = w() * w() - x() * x() - y() * y() + z() * z();
-		T resultY = two * (y() * z() + w() * x());
-
-		if (Math::IsEqualToZero(resultX) && Math::IsEqualToZero(resultY))
-		{
-			// avoid atan2(0, 0)
-			return static_cast<T>(two * std::atan2(x(), w()));
-		}
-
-		return static_cast<T>(std::atan2(resultY, resultX));
+		return Math::RadianToDegree(std::atan2(static_cast<T>(2) * (y() * z() + w() * x()), w() * w() - x() * x() - y() * y() + z() * z()));
 	}
 
 	CD_FORCEINLINE T Yaw() const
 	{
-		return std::asin(std::clamp(static_cast<T>(-2) * (x() * z() - w() * y()), static_cast<T>(-1), static_cast<T>(1)));
+		return Math::RadianToDegree(std::asin(static_cast<T>(-2) * (x() * z() - w() * y())));
+	}
+
+	CD_FORCEINLINE T Roll() const
+	{
+		return  Math::RadianToDegree(std::atan2(static_cast<T>(2) * (x() * y() + w() * z()), w() * w() + x() * x() - y() * y() - z() * z()));
 	}
 
 	CD_FORCEINLINE TVector<T, 3> ToEulerAngles()
 	{
-		return TVector<T, 3>(Math::RadianToDegree(Pitch()), Math::RadianToDegree(Yaw()), Math::RadianToDegree(Roll()));
+		return TVector<T, 3>(Pitch(), Yaw(), Roll());
 	}
 
 	// Calculations

@@ -56,6 +56,12 @@ public:
 	}
 
 	template<typename T>
+	static constexpr bool IsEqualTo(T a, T b, T eps)
+	{
+		return std::abs(a - b) <= eps;
+	}
+
+	template<typename T>
 	static constexpr bool IsEqualTo(T a, T b)
 	{
 		if constexpr (std::is_same<float, T>())
