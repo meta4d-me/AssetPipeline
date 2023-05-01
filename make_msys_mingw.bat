@@ -8,7 +8,7 @@ cd build
 echo [ ASSIMP ] Start making project...
 if not exist assimp\. mkdir assimp
 cd assimp
-cmake ../../external/assimp -G "Visual Studio 16 2019" -A x64  -DASSIMP_BUILD_ZLIB=ON
+cmake ../../external/assimp -G "MinGW Makefiles" -DASSIMP_BUILD_ZLIB=ON
 cd ..
 echo\
 
@@ -21,4 +21,4 @@ if exist "./auto/commercial_sdk_locations.bat" (
 )
 @echo on
 cd auto
-call "./Premake/Windows/premake5" --os=windows vs2019
+call "./Premake/Windows/premake5" --os=windows gmake2

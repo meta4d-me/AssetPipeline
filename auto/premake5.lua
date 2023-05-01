@@ -47,6 +47,11 @@ project("AutoMake")
 			"cd "..RootPath,
 			"make_win64_vs2019.bat",
 		}
+	filter { "system:windows", "action:gmake2" }
+		prebuildcommands {
+			"cd "..RootPath,
+			"make_win64_vs2019.bat",
+		}		
 	filter { "system:linux", "action:gmake2" }
 		prebuildcommands {
 			"cd "..RootPath,

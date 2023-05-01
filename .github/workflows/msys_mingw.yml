@@ -1,0 +1,32 @@
+name: msys_mingw
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-msys-mingw:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+
+    - name: Checkout repository
+      uses: actions/checkout@v3.2.0
+
+    - name: Checkout submodules
+      run: git submodule update --init --recursive
+
+    - name: Make 3rdParty and project
+      run: ${{github.workspace}}/make_msys_mingw.bat
+      
+    - name: Use makefile to compile debug version
+      run: mingw config=debug
+    - name: Use makefile to compile release version
+      run: mingw config=release

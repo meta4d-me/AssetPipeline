@@ -1,7 +1,6 @@
 @echo on
 
 cd /d %~dp0
-Set CMAKE_EXE=%~dp0auto\CMake\bin\cmake.exe
 
 if not exist build\. mkdir build
 cd build
@@ -9,7 +8,7 @@ cd build
 echo [ ASSIMP ] Start making project...
 if not exist assimp\. mkdir assimp
 cd assimp
-%CMAKE_EXE% ../../external/assimp -G "Visual Studio 17 2022" -A x64 -DASSIMP_BUILD_ZLIB=ON
+cmake ../../external/assimp -G "Visual Studio 17 2022" -A x64 -DASSIMP_BUILD_ZLIB=ON
 cd ..
 echo\
 
