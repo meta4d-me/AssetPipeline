@@ -56,9 +56,19 @@ void Mesh::Init(MeshID meshID, const char* pMeshName, uint32_t vertexCount, uint
 	m_pMeshImpl->Init(meshID, pMeshName, vertexCount, polygonCount);
 }
 
-const MeshID& Mesh::GetID() const
+void Mesh::SetID(MeshID id)
+{
+	m_pMeshImpl->SetID(id);
+}
+
+MeshID Mesh::GetID() const
 {
 	return m_pMeshImpl->GetID();
+}
+
+void Mesh::SetName(const char* pName)
+{
+	m_pMeshImpl->SetName(pName);
 }
 
 const char* Mesh::GetName() const

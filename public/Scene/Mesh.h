@@ -30,8 +30,13 @@ public:
 
 	void Init(uint32_t vertexCount, uint32_t polygonCount);
 	void Init(MeshID meshID, const char* pMeshName, uint32_t vertexCount, uint32_t polygonCount);
-	const MeshID& GetID() const;
+	
+	void SetID(MeshID id);
+	MeshID GetID() const;
+
+	void SetName(const char* pName);
 	const char* GetName() const;
+
 	uint32_t GetVertexCount() const;
 	uint32_t GetPolygonCount() const;
 

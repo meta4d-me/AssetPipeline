@@ -36,8 +36,13 @@ public:
 
 	void Init(uint32_t vertexCount, uint32_t polygonCount);
 	void Init(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount);
-	const MeshID& GetID() const { return m_id; }
+	
+	void SetID(MeshID id) { m_id = id; }
+	MeshID GetID() const { return m_id; }
+
+	void SetName(std::string name) { m_name = MoveTemp(name); }
 	const std::string& GetName() const { return m_name; }
+
 	uint32_t GetVertexCount() const { return m_vertexCount; }
 	uint32_t GetPolygonCount() const { return m_polygonCount; }
 
