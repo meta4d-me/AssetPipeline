@@ -16,6 +16,12 @@ jobs:
     steps:
     - name: Setup MSYS2
       uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: True
+        install: >-
+            git
+            mingw-w64-x86_64-gcc
 
     - name: Checkout repository
       uses: actions/checkout@v3.2.0
