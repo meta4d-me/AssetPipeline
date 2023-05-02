@@ -73,10 +73,6 @@ project("GenericProducer")
 			SetupAssimpLib("assimp-vc142-mtd", "Debug")
 	filter { "system:Windows", "configurations:Release", "action:vs2019" }
 			SetupAssimpLib("assimp-vc142-mt", "Release")
-	filter { "system:Windows", "configurations:Debug", "action:gmake2" }
-			SetupAssimpLib("assimp", "Debug")
-	filter { "system:Windows", "configurations:Release", "action:gmake2" }
-			SetupAssimpLib("assimp", "Release")
 	filter{}
 
 	-- Auto copy dlls
