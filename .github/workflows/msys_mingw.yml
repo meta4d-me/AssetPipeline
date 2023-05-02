@@ -21,6 +21,8 @@ jobs:
         update: True
         install: >-
             git
+            cmake
+            mingw-w64-x86_64-make
             mingw-w64-x86_64-gcc
 
     - name: Checkout repository
