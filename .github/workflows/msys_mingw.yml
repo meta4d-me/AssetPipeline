@@ -33,6 +33,6 @@ jobs:
       run: ./make_msys_mingw.bat
       
     - name: Use makefile to compile debug version
-      run: mingw config=debug
+      run: mingw32-make config=debug
     - name: Use makefile to compile release version
-      run: mingw config=release
+      run: mingw32-make config=release
