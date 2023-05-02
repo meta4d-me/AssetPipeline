@@ -30,7 +30,7 @@ jobs:
       run: git submodule update --init --recursive
 
     - name: Make 3rdParty and project
-      run: ${{github.workspace}}/make_msys_mingw.bat
+      run: ./make_msys_mingw.bat
       
     - name: Use makefile to compile debug version
       run: mingw config=debug
