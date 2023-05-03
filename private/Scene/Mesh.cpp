@@ -398,24 +398,24 @@ void Mesh::AddVertexAdjacentVertexID(uint32_t vertexIndex, VertexID vertexID)
 	return m_pMeshImpl->AddVertexAdjacentVertexID(vertexIndex, vertexID);
 }
 
-VertexIDArray& Mesh::GetVertexAdjacentVertexID(uint32_t vertexIndex)
+VertexIDArray& Mesh::GetVertexAdjacentVertexArray(uint32_t vertexIndex)
 {
-	return m_pMeshImpl->GetVertexAdjacentVertexID(vertexIndex);
+	return m_pMeshImpl->GetVertexAdjacentVertexArray(vertexIndex);
 }
 
-const VertexIDArray& Mesh::GetVertexAdjacentVertexID(uint32_t vertexIndex) const
+const VertexIDArray& Mesh::GetVertexAdjacentVertexArray(uint32_t vertexIndex) const
 {
-	return m_pMeshImpl->GetVertexAdjacentVertexID(vertexIndex);
+	return m_pMeshImpl->GetVertexAdjacentVertexArray(vertexIndex);
 }
 
-std::vector<VertexIDArray>& Mesh::GetVertexAdjacentVertexIDs()
+std::vector<VertexIDArray>& Mesh::GetVertexAdjacentVertexArrays()
 {
-	return m_pMeshImpl->GetVertexAdjacentVertexIDs();
+	return m_pMeshImpl->GetVertexAdjacentVertexArrays();
 }
 
-const std::vector<VertexIDArray>& Mesh::GetVertexAdjacentVertexIDs() const
+const std::vector<VertexIDArray>& Mesh::GetVertexAdjacentVertexArrays() const
 {
-	return m_pMeshImpl->GetVertexAdjacentVertexIDs();
+	return m_pMeshImpl->GetVertexAdjacentVertexArrays();
 }
 
 uint32_t Mesh::GetVertexAdjacentPolygonCount(uint32_t vertexIndex) const
@@ -428,24 +428,24 @@ void Mesh::AddVertexAdjacentPolygonID(uint32_t vertexIndex, PolygonID polygonID)
 	return m_pMeshImpl->AddVertexAdjacentPolygonID(vertexIndex, polygonID);
 }
 
-PolygonIDArray& Mesh::GetVertexAdjacentPolygonID(uint32_t vertexIndex)
+PolygonIDArray& Mesh::GetVertexAdjacentPolygonArray(uint32_t vertexIndex)
 {
-	return m_pMeshImpl->GetVertexAdjacentPolygonID(vertexIndex);
+	return m_pMeshImpl->GetVertexAdjacentPolygonArray(vertexIndex);
 }
 
-const PolygonIDArray& Mesh::GetVertexAdjacentPolygonID(uint32_t vertexIndex) const
+const PolygonIDArray& Mesh::GetVertexAdjacentPolygonArray(uint32_t vertexIndex) const
 {
-	return m_pMeshImpl->GetVertexAdjacentPolygonID(vertexIndex);
+	return m_pMeshImpl->GetVertexAdjacentPolygonArray(vertexIndex);
 }
 
-std::vector<PolygonIDArray>& Mesh::GetVertexAdjacentPolygonIDs()
+std::vector<PolygonIDArray>& Mesh::GetVertexAdjacentPolygonArrays()
 {
-	return m_pMeshImpl->GetVertexAdjacentPolygonIDs();
+	return m_pMeshImpl->GetVertexAdjacentPolygonArrays();
 }
 
-const std::vector<PolygonIDArray>& Mesh::GetVertexAdjacentPolygonIDs() const
+const std::vector<PolygonIDArray>& Mesh::GetVertexAdjacentPolygonArrays() const
 {
-	return m_pMeshImpl->GetVertexAdjacentPolygonIDs();
+	return m_pMeshImpl->GetVertexAdjacentPolygonArrays();
 }
 
 //////////////////////////////////////////////////////////////////////////

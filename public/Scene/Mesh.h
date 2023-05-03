@@ -112,17 +112,17 @@ public:
 
 	uint32_t GetVertexAdjacentVertexCount(uint32_t vertexIndex) const;
 	void AddVertexAdjacentVertexID(uint32_t vertexIndex, VertexID vertexID);
-	VertexIDArray& GetVertexAdjacentVertexID(uint32_t vertexIndex);
-	const VertexIDArray& GetVertexAdjacentVertexID(uint32_t vertexIndex) const;
-	std::vector<VertexIDArray>& GetVertexAdjacentVertexIDs();
-	const std::vector<VertexIDArray>& GetVertexAdjacentVertexIDs() const;
+	VertexIDArray& GetVertexAdjacentVertexArray(uint32_t vertexIndex);
+	const VertexIDArray& GetVertexAdjacentVertexArray(uint32_t vertexIndex) const;
+	std::vector<VertexIDArray>& GetVertexAdjacentVertexArrays();
+	const std::vector<VertexIDArray>& GetVertexAdjacentVertexArrays() const;
 
 	uint32_t GetVertexAdjacentPolygonCount(uint32_t vertexIndex) const;
 	void AddVertexAdjacentPolygonID(uint32_t vertexIndex, PolygonID polygonID);
-	PolygonIDArray& GetVertexAdjacentPolygonID(uint32_t vertexIndex);
-	const PolygonIDArray& GetVertexAdjacentPolygonID(uint32_t vertexIndex) const;
-	std::vector<PolygonIDArray>& GetVertexAdjacentPolygonIDs();
-	const std::vector<PolygonIDArray>& GetVertexAdjacentPolygonIDs() const;
+	PolygonIDArray& GetVertexAdjacentPolygonArray(uint32_t vertexIndex);
+	const PolygonIDArray& GetVertexAdjacentPolygonArray(uint32_t vertexIndex) const;
+	std::vector<PolygonIDArray>& GetVertexAdjacentPolygonArrays();
+	const std::vector<PolygonIDArray>& GetVertexAdjacentPolygonArrays() const;
 
 	void SetPolygon(uint32_t polygonIndex, const VertexID& v0, const VertexID& v1, const VertexID& v2);
 	std::vector<Polygon>& GetPolygons();

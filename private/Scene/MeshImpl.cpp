@@ -135,12 +135,30 @@ void MeshImpl::SetVertexBoneWeight(uint32_t boneIndex, uint32_t vertexIndex, Bon
 ////////////////////////////////////////////////////////////////////////////////////
 void MeshImpl::AddVertexAdjacentVertexID(uint32_t vertexIndex, VertexID vertexID)
 {
-	m_vertexAdjacentVertexIDs[vertexIndex].push_back(vertexID);
+	VertexIDArray& adjVertexArray = m_vertexAdjacentVertexArrays[vertexIndex];
+	for (VertexID adjVertexID : adjVertexArray)
+	{
+		if (vertexID == adjVertexID)
+		{
+			return;
+		}
+	}
+
+	adjVertexArray.push_back(vertexID);
 }
 
 void MeshImpl::AddVertexAdjacentPolygonID(uint32_t vertexIndex, PolygonID polygonID)
 {
-	m_vertexAdjacentPolygonIDs[vertexIndex].push_back(polygonID);
+	PolygonIDArray& adjPolygonArray = m_vertexAdjacentPolygonArrays[vertexIndex];
+	for (PolygonID adjPolygonID : adjPolygonArray)
+	{
+		if (polygonID == adjPolygonID)
+		{
+			return;
+		}
+	}
+
+	m_vertexAdjacentPolygonArrays[vertexIndex].push_back(polygonID);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

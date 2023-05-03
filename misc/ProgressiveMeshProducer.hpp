@@ -32,11 +32,23 @@ public:
 		uint32_t vertexCount = mesh.GetVertexCount();
 		for (uint32_t vertexIndex = 0U; vertexIndex < vertexCount; ++vertexIndex)
 		{
+			printf("\tVertex [%u]\n", vertexIndex);
+			printf("\t\tAdjacent Vertex : ");
+			for (cd::VertexID adjVertexID : mesh.GetVertexAdjacentVertexArray(vertexIndex))
+			{
+				printf("%u, ", adjVertexID.Data());
+			}
+			printf("\n");
+
+			printf("\t\tAdjacent Polygon : ");
+			for (cd::PolygonID adjPolygonID : mesh.GetVertexAdjacentPolygonArray(vertexIndex))
+			{
+				printf("%u, ", adjPolygonID.Data());
+			}
+			printf("\n");
+
 			const cd::Point pos = mesh.GetVertexPosition(vertexIndex);
-
 		}
-
-
 	}
 
 private:

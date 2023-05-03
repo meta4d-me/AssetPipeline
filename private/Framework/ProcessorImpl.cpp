@@ -373,8 +373,8 @@ void ProcessorImpl::CalculateConnetivityData()
 	for (auto& mesh : m_pCurrentSceneDatabase->GetMeshes())
 	{
 		uint32_t vertexCount = mesh.GetVertexCount();
-		mesh.GetVertexAdjacentVertexIDs().resize(vertexCount);
-		mesh.GetVertexAdjacentPolygonIDs().resize(vertexCount);
+		mesh.GetVertexAdjacentVertexArrays().resize(vertexCount);
+		mesh.GetVertexAdjacentPolygonArrays().resize(vertexCount);
 
 		uint32_t polygonCount = mesh.GetPolygonCount();
 		for (uint32_t polygonIndex = 0U; polygonIndex < polygonCount; ++polygonIndex)
@@ -392,6 +392,15 @@ void ProcessorImpl::CalculateConnetivityData()
 			mesh.AddVertexAdjacentPolygonID(polygon[0].Data(), cd::PolygonID(polygonIndex));
 			mesh.AddVertexAdjacentPolygonID(polygon[1].Data(), cd::PolygonID(polygonIndex));
 			mesh.AddVertexAdjacentPolygonID(polygon[2].Data(), cd::PolygonID(polygonIndex));
+		}
+
+		for (uint32_t vertexIndex = 0U; vertexIndex < vertexCount; ++vertexIndex)
+		{
+			cd::VertexIDArray& adjVertexIDs = mesh.GetVertexAdjacentVertexArray(vertexIndex);
+			std::sort(adjVertexIDs.begin(), adjVertexIDs.end(), [](cd::VertexID lhs, cd::VertexID rhs) { return lhs.Data() < rhs.Data(); });
+
+			cd::PolygonIDArray& adjPolygonIDs = mesh.GetVertexAdjacentPolygonArray(vertexIndex);
+			std::sort(adjPolygonIDs.begin(), adjPolygonIDs.end(), [](cd::PolygonID lhs, cd::PolygonID rhs) { return lhs.Data() < rhs.Data(); });
 		}
 	}
 }

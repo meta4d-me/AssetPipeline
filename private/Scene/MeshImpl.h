@@ -115,19 +115,19 @@ public:
 	std::vector<VertexWeight>& GetVertexWeights(uint32_t boneIndex) { return m_vertexWeights[boneIndex]; }
 	const std::vector<VertexWeight>& GetVertexWeights(uint32_t boneIndex) const { return m_vertexWeights[boneIndex]; }
 
-	uint32_t GetVertexAdjacentVertexCount(uint32_t vertexIndex) const { return static_cast<uint32_t>(m_vertexAdjacentVertexIDs[vertexIndex].size()); }
+	uint32_t GetVertexAdjacentVertexCount(uint32_t vertexIndex) const { return static_cast<uint32_t>(m_vertexAdjacentVertexArrays[vertexIndex].size()); }
 	void AddVertexAdjacentVertexID(uint32_t vertexIndex, VertexID vertexID);
-	VertexIDArray& GetVertexAdjacentVertexID(uint32_t vertexIndex) { return m_vertexAdjacentVertexIDs[vertexIndex]; }
-	const VertexIDArray& GetVertexAdjacentVertexID(uint32_t vertexIndex) const { return m_vertexAdjacentVertexIDs[vertexIndex]; }
-	std::vector<VertexIDArray>& GetVertexAdjacentVertexIDs() { return m_vertexAdjacentVertexIDs; }
-	const std::vector<VertexIDArray>& GetVertexAdjacentVertexIDs() const { return m_vertexAdjacentVertexIDs; }
+	VertexIDArray& GetVertexAdjacentVertexArray(uint32_t vertexIndex) { return m_vertexAdjacentVertexArrays[vertexIndex]; }
+	const VertexIDArray& GetVertexAdjacentVertexArray(uint32_t vertexIndex) const { return m_vertexAdjacentVertexArrays[vertexIndex]; }
+	std::vector<VertexIDArray>& GetVertexAdjacentVertexArrays() { return m_vertexAdjacentVertexArrays; }
+	const std::vector<VertexIDArray>& GetVertexAdjacentVertexArrays() const { return m_vertexAdjacentVertexArrays; }
 
-	uint32_t GetVertexAdjacentPolygonCount(uint32_t vertexIndex) const { return static_cast<uint32_t>(m_vertexAdjacentPolygonIDs[vertexIndex].size()); }
+	uint32_t GetVertexAdjacentPolygonCount(uint32_t vertexIndex) const { return static_cast<uint32_t>(m_vertexAdjacentPolygonArrays[vertexIndex].size()); }
 	void AddVertexAdjacentPolygonID(uint32_t vertexIndex, PolygonID polygonID);
-	PolygonIDArray& GetVertexAdjacentPolygonID(uint32_t vertexIndex) { return m_vertexAdjacentPolygonIDs[vertexIndex]; }
-	const PolygonIDArray& GetVertexAdjacentPolygonID(uint32_t vertexIndex) const { return m_vertexAdjacentPolygonIDs[vertexIndex]; }
-	std::vector<PolygonIDArray>& GetVertexAdjacentPolygonIDs() { return m_vertexAdjacentPolygonIDs; }
-	const std::vector<PolygonIDArray>& GetVertexAdjacentPolygonIDs() const { return m_vertexAdjacentPolygonIDs; }
+	PolygonIDArray& GetVertexAdjacentPolygonArray(uint32_t vertexIndex) { return m_vertexAdjacentPolygonArrays[vertexIndex]; }
+	const PolygonIDArray& GetVertexAdjacentPolygonArray(uint32_t vertexIndex) const { return m_vertexAdjacentPolygonArrays[vertexIndex]; }
+	std::vector<PolygonIDArray>& GetVertexAdjacentPolygonArrays() { return m_vertexAdjacentPolygonArrays; }
+	const std::vector<PolygonIDArray>& GetVertexAdjacentPolygonArrays() const { return m_vertexAdjacentPolygonArrays; }
 
 	void SetPolygon(uint32_t polygonIndex, VertexID v0, VertexID v1, VertexID v2);
 	std::vector<Polygon>& GetPolygons() { return m_polygons; }
@@ -257,8 +257,8 @@ private:
 
 	// vertex connectivity data
 	// For geometry processing algorithms, it is common to query connectivity data.
-	std::vector<VertexIDArray>	m_vertexAdjacentVertexIDs;
-	std::vector<PolygonIDArray>	m_vertexAdjacentPolygonIDs;
+	std::vector<VertexIDArray>	m_vertexAdjacentVertexArrays;
+	std::vector<PolygonIDArray>	m_vertexAdjacentPolygonArrays;
 
 	// polygon data
 	std::vector<Polygon>		m_polygons;
