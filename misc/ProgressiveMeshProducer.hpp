@@ -26,7 +26,17 @@ public:
 
 	virtual void Execute(cd::SceneDatabase* pSceneDatabase) override
 	{
-		pSceneDatabase->SetName("ProgressiveMeshProducer");
+		pSceneDatabase->SetName("ProgressiveMesh");
+		const cd::Mesh& mesh = pSceneDatabase->GetMesh(0);
+		
+		uint32_t vertexCount = mesh.GetVertexCount();
+		for (uint32_t vertexIndex = 0U; vertexIndex < vertexCount; ++vertexIndex)
+		{
+			const cd::Point pos = mesh.GetVertexPosition(vertexIndex);
+
+		}
+
+
 	}
 
 private:

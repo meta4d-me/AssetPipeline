@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <vector>
 
 namespace cd
 {
@@ -54,5 +55,8 @@ using TrackID = ObjectID<uint32_t, ObjectType::Track>;
 using MorphID = ObjectID<uint32_t, ObjectType::Morph>;
 
 static_assert(sizeof(VertexID) == sizeof(uint32_t));
+
+using VertexIDArray = std::vector<VertexID>;
+using PolygonIDArray = std::vector<PolygonID>;
 
 }

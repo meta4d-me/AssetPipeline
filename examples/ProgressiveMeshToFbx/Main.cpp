@@ -27,6 +27,7 @@ int main(int argc, char** argv)
 		// Generate a source mesh.
 		MeshGenerteProducer producer("");
 		Processor processor(&producer, nullptr, pSceneDatabase.get());
+		processor.SetCalculateConnetivityDataEnable(true);
 		processor.Run();
 	}
 

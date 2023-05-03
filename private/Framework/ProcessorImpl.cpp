@@ -107,6 +107,11 @@ void ProcessorImpl::Run()
 		ValidateSceneDatabase();
 	}
 
+	if (IsCalculateConnetivityDataEnabled())
+	{
+		CalculateConnetivityData();
+	}
+
 	if (IsDumpSceneDatabaseEnabled())
 	{
 		DumpSceneDatabase();
@@ -360,6 +365,34 @@ void ProcessorImpl::ValidateSceneDatabase()
 
 		//assert(m_pCurrentSceneDatabase->GetBoneByName(track.GetName()));
 		CheckKeyFramesTimeOrder(track);
+	}
+}
+
+void ProcessorImpl::CalculateConnetivityData()
+{
+	for (auto& mesh : m_pCurrentSceneDatabase->GetMeshes())
+	{
+		uint32_t vertexCount = mesh.GetVertexCount();
+		mesh.GetVertexAdjacentVertexIDs().resize(vertexCount);
+		mesh.GetVertexAdjacentPolygonIDs().resize(vertexCount);
+
+		uint32_t polygonCount = mesh.GetPolygonCount();
+		for (uint32_t polygonIndex = 0U; polygonIndex < polygonCount; ++polygonIndex)
+		{
+			const auto& polygon = mesh.GetPolygon(polygonIndex);
+			static_assert(3U == polygon.Size);
+			
+			mesh.AddVertexAdjacentVertexID(polygon[0].Data(), polygon[1]);
+			mesh.AddVertexAdjacentVertexID(polygon[0].Data(), polygon[2]);
+			mesh.AddVertexAdjacentVertexID(polygon[1].Data(), polygon[0]);
+			mesh.AddVertexAdjacentVertexID(polygon[1].Data(), polygon[2]);
+			mesh.AddVertexAdjacentVertexID(polygon[2].Data(), polygon[0]);
+			mesh.AddVertexAdjacentVertexID(polygon[2].Data(), polygon[1]);
+
+			mesh.AddVertexAdjacentPolygonID(polygon[0].Data(), cd::PolygonID(polygonIndex));
+			mesh.AddVertexAdjacentPolygonID(polygon[1].Data(), cd::PolygonID(polygonIndex));
+			mesh.AddVertexAdjacentPolygonID(polygon[2].Data(), cd::PolygonID(polygonIndex));
+		}
 	}
 }
 
