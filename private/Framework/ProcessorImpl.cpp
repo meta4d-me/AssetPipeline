@@ -418,10 +418,10 @@ void ProcessorImpl::CalculateConnetivityData()
 		for (uint32_t vertexIndex = 0U; vertexIndex < vertexCount; ++vertexIndex)
 		{
 			cd::VertexIDArray& adjVertexIDs = mesh.GetVertexAdjacentVertexArray(vertexIndex);
-			std::sort(adjVertexIDs.begin(), adjVertexIDs.end(), [](cd::VertexID lhs, cd::VertexID rhs) { return lhs.Data() < rhs.Data(); });
+			std::sort(adjVertexIDs.begin(), adjVertexIDs.end(), [](cd::VertexID lhs, cd::VertexID rhs) { return lhs < rhs; });
 
 			cd::PolygonIDArray& adjPolygonIDs = mesh.GetVertexAdjacentPolygonArray(vertexIndex);
-			std::sort(adjPolygonIDs.begin(), adjPolygonIDs.end(), [](cd::PolygonID lhs, cd::PolygonID rhs) { return lhs.Data() < rhs.Data(); });
+			std::sort(adjPolygonIDs.begin(), adjPolygonIDs.end(), [](cd::PolygonID lhs, cd::PolygonID rhs) { return lhs < rhs; });
 		}
 	}
 }

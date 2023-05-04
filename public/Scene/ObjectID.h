@@ -36,6 +36,14 @@ public:
 	bool operator==(T id) const { return m_id == id; }
 	bool operator!=(const ObjectID& other) const { return m_id != other.m_id; }
 	bool operator!=(T id) const { return m_id != id; }
+	bool operator<(const ObjectID& other) const { return m_id < other.m_id; }
+	bool operator<(T id) const { return m_id < id; }
+	bool operator<=(const ObjectID& other) const { return m_id <= other.m_id; }
+	bool operator<=(T id) const { return m_id <= id; }
+	bool operator>(const ObjectID& other) const { return m_id > other.m_id; }
+	bool operator>(T id) const { return m_id > id; }
+	bool operator>=(const ObjectID& other) const { return m_id >= other.m_id; }
+	bool operator>=(T id) const { return m_id >= id; }
 
 private:
 	T m_id = InvalidID;
