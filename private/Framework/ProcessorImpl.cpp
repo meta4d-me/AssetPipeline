@@ -176,26 +176,23 @@ void ProcessorImpl::DumpSceneDatabase()
 				materialDrawMeshIDs[mesh.GetMaterialID().Data()].push_back(mesh.GetID().Data());
 			}
 
-			if constexpr (true)
-			{
-				for (uint32_t vertexIndex = 0U; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
-				{
-					printf("\tVertex [%u]\n", vertexIndex);
-					printf("\t\tAdjacent Vertex : ");
-					for (cd::VertexID adjVertexID : mesh.GetVertexAdjacentVertexArray(vertexIndex))
-					{
-						printf("%u, ", adjVertexID.Data());
-					}
-					printf("\n");
-
-					printf("\t\tAdjacent Polygon : ");
-					for (cd::PolygonID adjPolygonID : mesh.GetVertexAdjacentPolygonArray(vertexIndex))
-					{
-						printf("%u, ", adjPolygonID.Data());
-					}
-					printf("\n");
-				}
-			}
+			//for (uint32_t vertexIndex = 0U; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
+			//{
+			//	printf("\tVertex [%u]\n", vertexIndex);
+			//	printf("\t\tAdjacent Vertex : ");
+			//	for (cd::VertexID adjVertexID : mesh.GetVertexAdjacentVertexArray(vertexIndex))
+			//	{
+			//		printf("%u, ", adjVertexID.Data());
+			//	}
+			//	printf("\n");
+			//
+			//	printf("\t\tAdjacent Polygon : ");
+			//	for (cd::PolygonID adjPolygonID : mesh.GetVertexAdjacentPolygonArray(vertexIndex))
+			//	{
+			//		printf("%u, ", adjPolygonID.Data());
+			//	}
+			//	printf("\n");
+			//}
 		}
 	}
 
