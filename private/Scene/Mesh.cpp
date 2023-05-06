@@ -56,9 +56,19 @@ void Mesh::Init(MeshID meshID, const char* pMeshName, uint32_t vertexCount, uint
 	m_pMeshImpl->Init(meshID, pMeshName, vertexCount, polygonCount);
 }
 
-const MeshID& Mesh::GetID() const
+void Mesh::SetID(MeshID id)
+{
+	m_pMeshImpl->SetID(id);
+}
+
+MeshID Mesh::GetID() const
 {
 	return m_pMeshImpl->GetID();
+}
+
+void Mesh::SetName(const char* pName)
+{
+	m_pMeshImpl->SetName(pName);
 }
 
 const char* Mesh::GetName() const
@@ -114,6 +124,31 @@ void Mesh::SetMaterialID(uint32_t materialIndex)
 const MaterialID& Mesh::GetMaterialID() const
 {
 	return m_pMeshImpl->GetMaterialID();
+}
+
+uint32_t Mesh::GetMorphCount() const
+{
+	return m_pMeshImpl->GetMorphCount();
+}
+
+Morph& Mesh::GetMorph(uint32_t morphIndex)
+{
+	return m_pMeshImpl->GetMorph(morphIndex);
+}
+
+const Morph& Mesh::GetMorph(uint32_t morphIndex) const
+{
+	return m_pMeshImpl->GetMorph(morphIndex);
+}
+
+std::vector<Morph>& Mesh::GetMorphs()
+{
+	return m_pMeshImpl->GetMorphs();
+}
+
+const std::vector<Morph>& Mesh::GetMorphs() const
+{
+	return m_pMeshImpl->GetMorphs();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -348,6 +383,69 @@ VertexWeight& Mesh::GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex)
 const VertexWeight& Mesh::GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex) const
 {
 	return m_pMeshImpl->GetVertexWeight(boneIndex, vertexIndex);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Vertex connectivity data
+//////////////////////////////////////////////////////////////////////////
+uint32_t Mesh::GetVertexAdjacentVertexCount(uint32_t vertexIndex) const
+{
+	return m_pMeshImpl->GetVertexAdjacentVertexCount(vertexIndex);
+}
+
+void Mesh::AddVertexAdjacentVertexID(uint32_t vertexIndex, VertexID vertexID)
+{
+	return m_pMeshImpl->AddVertexAdjacentVertexID(vertexIndex, vertexID);
+}
+
+VertexIDArray& Mesh::GetVertexAdjacentVertexArray(uint32_t vertexIndex)
+{
+	return m_pMeshImpl->GetVertexAdjacentVertexArray(vertexIndex);
+}
+
+const VertexIDArray& Mesh::GetVertexAdjacentVertexArray(uint32_t vertexIndex) const
+{
+	return m_pMeshImpl->GetVertexAdjacentVertexArray(vertexIndex);
+}
+
+std::vector<VertexIDArray>& Mesh::GetVertexAdjacentVertexArrays()
+{
+	return m_pMeshImpl->GetVertexAdjacentVertexArrays();
+}
+
+const std::vector<VertexIDArray>& Mesh::GetVertexAdjacentVertexArrays() const
+{
+	return m_pMeshImpl->GetVertexAdjacentVertexArrays();
+}
+
+uint32_t Mesh::GetVertexAdjacentPolygonCount(uint32_t vertexIndex) const
+{
+	return m_pMeshImpl->GetVertexAdjacentPolygonCount(vertexIndex);
+}
+
+void Mesh::AddVertexAdjacentPolygonID(uint32_t vertexIndex, PolygonID polygonID)
+{
+	return m_pMeshImpl->AddVertexAdjacentPolygonID(vertexIndex, polygonID);
+}
+
+PolygonIDArray& Mesh::GetVertexAdjacentPolygonArray(uint32_t vertexIndex)
+{
+	return m_pMeshImpl->GetVertexAdjacentPolygonArray(vertexIndex);
+}
+
+const PolygonIDArray& Mesh::GetVertexAdjacentPolygonArray(uint32_t vertexIndex) const
+{
+	return m_pMeshImpl->GetVertexAdjacentPolygonArray(vertexIndex);
+}
+
+std::vector<PolygonIDArray>& Mesh::GetVertexAdjacentPolygonArrays()
+{
+	return m_pMeshImpl->GetVertexAdjacentPolygonArrays();
+}
+
+const std::vector<PolygonIDArray>& Mesh::GetVertexAdjacentPolygonArrays() const
+{
+	return m_pMeshImpl->GetVertexAdjacentPolygonArrays();
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -151,7 +151,21 @@ public:
 	CD_FORCEINLINE constexpr TVector<T, 3> xyz() const { static_assert(3 <= N); return TVector<T, 3>(x(), y(), z()); }
 
 	// Validation
-	CD_FORCEINLINE bool IsNaN() const { return std::isnan(x()) || std::isnan(y()) || std::isnan(z()); }
+	CD_FORCEINLINE bool IsNaN() const
+	{
+		if constexpr (2 == N)
+		{
+			return std::isnan(x()) || std::isnan(y());
+		}
+		else if constexpr (3 == N)
+		{
+			return std::isnan(x()) || std::isnan(y()) || std::isnan(z());
+		}
+		else if constexpr (4 == N)
+		{
+			return std::isnan(x()) || std::isnan(y()) || std::isnan(z() || std::isnan(w()));
+		}
+	}
 	CD_FORCEINLINE bool IsZero() const
 	{
 		if constexpr (2 == N)
@@ -166,6 +180,19 @@ public:
 		{
 			return Math::IsEqualToZero(x()) && Math::IsEqualToZero(y()) && Math::IsEqualToZero(z()) && Math::IsEqualToZero(w());
 		}
+	}
+
+	CD_FORCEINLINE bool Contains(T value) const
+	{
+		for (size_t index = 0; index < N; ++index)
+		{
+			if (Math::IsEqualTo(data[index], value))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	// Calculation

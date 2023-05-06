@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 
 	using namespace cdtools;
 
-	PerformanceProfiler profiler("TerrainGenerator");
+	PerformanceProfiler profiler("MeshGenerator");
 
 	const char* pInputFilePath = argv[1];
 	const char* pOutputFilePath = argv[2];

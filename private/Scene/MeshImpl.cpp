@@ -97,7 +97,7 @@ void MeshImpl::SetVertexColor(uint32_t setIndex, uint32_t vertexIndex, const Col
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-// Vertex animation data
+// Vertex skin data
 ////////////////////////////////////////////////////////////////////////////////////
 void MeshImpl::SetVertexInfluenceCount(uint32_t influenceCount)
 {
@@ -128,6 +128,37 @@ void MeshImpl::SetVertexBoneWeight(uint32_t boneIndex, uint32_t vertexIndex, Bon
 
 	m_vertexBoneIDs[boneIndex][vertexIndex] = boneID;
 	m_vertexWeights[boneIndex][vertexIndex] = weight;
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+// Vertex connectivity data
+////////////////////////////////////////////////////////////////////////////////////
+void MeshImpl::AddVertexAdjacentVertexID(uint32_t vertexIndex, VertexID vertexID)
+{
+	VertexIDArray& adjVertexArray = m_vertexAdjacentVertexArrays[vertexIndex];
+	for (VertexID adjVertexID : adjVertexArray)
+	{
+		if (vertexID == adjVertexID)
+		{
+			return;
+		}
+	}
+
+	adjVertexArray.push_back(vertexID);
+}
+
+void MeshImpl::AddVertexAdjacentPolygonID(uint32_t vertexIndex, PolygonID polygonID)
+{
+	PolygonIDArray& adjPolygonArray = m_vertexAdjacentPolygonArrays[vertexIndex];
+	for (PolygonID adjPolygonID : adjPolygonArray)
+	{
+		if (polygonID == adjPolygonID)
+		{
+			return;
+		}
+	}
+
+	m_vertexAdjacentPolygonArrays[vertexIndex].push_back(polygonID);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

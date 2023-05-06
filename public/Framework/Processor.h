@@ -43,6 +43,9 @@ public:
 	void SetFlattenSceneDatabaseEnable(bool enable);
 	bool IsFlattenSceneDatabaseEnabled() const;
 
+	void SetCalculateConnetivityDataEnable(bool enable);
+	bool IsCalculateConnetivityDataEnabled() const;
+
 	const cd::SceneDatabase* GetSceneDatabase() const;
 	void Run();
 

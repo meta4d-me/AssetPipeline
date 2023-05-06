@@ -4,6 +4,7 @@
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
 #include "Math/Box.hpp"
+#include "Scene/Morph.h"
 #include "Scene/VertexAttribute.h"
 
 #include <vector>
@@ -30,8 +31,13 @@ public:
 
 	void Init(uint32_t vertexCount, uint32_t polygonCount);
 	void Init(MeshID meshID, const char* pMeshName, uint32_t vertexCount, uint32_t polygonCount);
-	const MeshID& GetID() const;
+	
+	void SetID(MeshID id);
+	MeshID GetID() const;
+
+	void SetName(const char* pName);
 	const char* GetName() const;
+
 	uint32_t GetVertexCount() const;
 	uint32_t GetPolygonCount() const;
 
@@ -45,6 +51,12 @@ public:
 
 	void SetMaterialID(uint32_t materialIndex);
 	const MaterialID& GetMaterialID() const;
+
+	uint32_t GetMorphCount() const;
+	Morph& GetMorph(uint32_t morphIndex);
+	const Morph& GetMorph(uint32_t morphIndex) const;
+	std::vector<Morph>& GetMorphs();
+	const std::vector<Morph>& GetMorphs() const;
 
 	void SetVertexPosition(uint32_t vertexIndex, const Point& position);
 	std::vector<Point>& GetVertexPositions();
@@ -97,6 +109,20 @@ public:
 	const std::vector<VertexWeight>& GetVertexWeights(uint32_t boneIndex) const;
 	VertexWeight& GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex);
 	const VertexWeight& GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex) const;
+
+	uint32_t GetVertexAdjacentVertexCount(uint32_t vertexIndex) const;
+	void AddVertexAdjacentVertexID(uint32_t vertexIndex, VertexID vertexID);
+	VertexIDArray& GetVertexAdjacentVertexArray(uint32_t vertexIndex);
+	const VertexIDArray& GetVertexAdjacentVertexArray(uint32_t vertexIndex) const;
+	std::vector<VertexIDArray>& GetVertexAdjacentVertexArrays();
+	const std::vector<VertexIDArray>& GetVertexAdjacentVertexArrays() const;
+
+	uint32_t GetVertexAdjacentPolygonCount(uint32_t vertexIndex) const;
+	void AddVertexAdjacentPolygonID(uint32_t vertexIndex, PolygonID polygonID);
+	PolygonIDArray& GetVertexAdjacentPolygonArray(uint32_t vertexIndex);
+	const PolygonIDArray& GetVertexAdjacentPolygonArray(uint32_t vertexIndex) const;
+	std::vector<PolygonIDArray>& GetVertexAdjacentPolygonArrays();
+	const std::vector<PolygonIDArray>& GetVertexAdjacentPolygonArrays() const;
 
 	void SetPolygon(uint32_t polygonIndex, const VertexID& v0, const VertexID& v1, const VertexID& v2);
 	std::vector<Polygon>& GetPolygons();

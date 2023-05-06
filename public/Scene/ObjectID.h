@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <vector>
 
 namespace cd
 {
@@ -35,6 +36,14 @@ public:
 	bool operator==(T id) const { return m_id == id; }
 	bool operator!=(const ObjectID& other) const { return m_id != other.m_id; }
 	bool operator!=(T id) const { return m_id != id; }
+	bool operator<(const ObjectID& other) const { return m_id < other.m_id; }
+	bool operator<(T id) const { return m_id < id; }
+	bool operator<=(const ObjectID& other) const { return m_id <= other.m_id; }
+	bool operator<=(T id) const { return m_id <= id; }
+	bool operator>(const ObjectID& other) const { return m_id > other.m_id; }
+	bool operator>(T id) const { return m_id > id; }
+	bool operator>=(const ObjectID& other) const { return m_id >= other.m_id; }
+	bool operator>=(T id) const { return m_id >= id; }
 
 private:
 	T m_id = InvalidID;
@@ -54,5 +63,8 @@ using TrackID = ObjectID<uint32_t, ObjectType::Track>;
 using MorphID = ObjectID<uint32_t, ObjectType::Morph>;
 
 static_assert(sizeof(VertexID) == sizeof(uint32_t));
+
+using VertexIDArray = std::vector<VertexID>;
+using PolygonIDArray = std::vector<PolygonID>;
 
 }

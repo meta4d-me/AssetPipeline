@@ -41,11 +41,15 @@ public:
 	void SetFlattenSceneDatabaseEnable(bool enable) { m_enableFlattenSceneDatabase = enable; }
 	bool IsFlattenSceneDatabaseEnabled() const { return m_enableFlattenSceneDatabase; }
 
+	void SetCalculateConnetivityDataEnable(bool enable) { m_enableCalculateConnetivityData = enable; }
+	bool IsCalculateConnetivityDataEnabled() const { return m_enableCalculateConnetivityData; }
+
 private:
 	void DumpSceneDatabase();
 	void ValidateSceneDatabase();
 	void CalculateAABBForSceneDatabase();
 	void FlattenSceneDatabase();
+	void CalculateConnetivityData();
 
 private:
 	IProducer* m_pProducer = nullptr;
@@ -58,6 +62,7 @@ private:
 	bool m_enableValidateSceneDatabase = true;
 	bool m_enableCalculateAABBForSceneDatabase = true;
 	bool m_enableFlattenSceneDatabase = false;
+	bool m_enableCalculateConnetivityData = false;
 };
 
 }

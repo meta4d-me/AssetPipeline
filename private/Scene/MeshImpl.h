@@ -36,8 +36,13 @@ public:
 
 	void Init(uint32_t vertexCount, uint32_t polygonCount);
 	void Init(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount);
-	const MeshID& GetID() const { return m_id; }
+	
+	void SetID(MeshID id) { m_id = id; }
+	MeshID GetID() const { return m_id; }
+
+	void SetName(std::string name) { m_name = MoveTemp(name); }
 	const std::string& GetName() const { return m_name; }
+
 	uint32_t GetVertexCount() const { return m_vertexCount; }
 	uint32_t GetPolygonCount() const { return m_polygonCount; }
 
@@ -52,57 +57,77 @@ public:
 	void SetMaterialID(uint32_t materialIndex) { m_materialID = materialIndex; }
 	const MaterialID& GetMaterialID() const { return m_materialID; }
 
+	uint32_t GetMorphCount() const { return static_cast<uint32_t>(m_morphTargets.size()); }
+	Morph& GetMorph(uint32_t morphIndex) { return m_morphTargets[morphIndex]; }
+	const Morph& GetMorph(uint32_t morphIndex) const { return m_morphTargets[morphIndex]; }
+	std::vector<Morph>& GetMorphs() { return m_morphTargets; }
+	const std::vector<Morph>& GetMorphs() const { return m_morphTargets; }
+
 	void SetVertexPosition(uint32_t vertexIndex, const Point& position);
-	std::vector<Point>& GetVertexPositions() { return m_vertexPositions; }
 	Point& GetVertexPosition(uint32_t vertexIndex) { return m_vertexPositions[vertexIndex]; }
 	const Point& GetVertexPosition(uint32_t vertexIndex) const { return m_vertexPositions[vertexIndex]; }
+	std::vector<Point>& GetVertexPositions() { return m_vertexPositions; }
 	const std::vector<Point>& GetVertexPositions() const { return m_vertexPositions; }
 
 	void SetVertexNormal(uint32_t vertexIndex, const Direction& normal);
-	std::vector<Direction>& GetVertexNormals() { return m_vertexNormals; }
 	Direction& GetVertexNormal(uint32_t vertexIndex) { return m_vertexNormals[vertexIndex]; }
 	const Direction& GetVertexNormal(uint32_t vertexIndex) const { return m_vertexNormals[vertexIndex]; }
+	std::vector<Direction>& GetVertexNormals() { return m_vertexNormals; }
 	const std::vector<Direction>& GetVertexNormals() const { return m_vertexNormals; }
 
 	void SetVertexTangent(uint32_t vertexIndex, const Direction& tangent);
-	std::vector<Direction>& GetVertexTangents() { return m_vertexTangents; }
 	Direction& GetVertexTangent(uint32_t vertexIndex) { return m_vertexTangents[vertexIndex]; }
 	const Direction& GetVertexTangent(uint32_t vertexIndex) const { return m_vertexTangents[vertexIndex]; }
+	std::vector<Direction>& GetVertexTangents() { return m_vertexTangents; }
 	const std::vector<Direction>& GetVertexTangents() const { return m_vertexTangents; }
 
 	void SetVertexBiTangent(uint32_t vertexIndex, const Direction& biTangent);
-	std::vector<Direction>& GetVertexBiTangents() { return m_vertexBiTangents; }
 	Direction& GetVertexBiTangent(uint32_t vertexIndex) { return m_vertexBiTangents[vertexIndex]; }
 	const Direction& GetVertexBiTangent(uint32_t vertexIndex) const { return m_vertexBiTangents[vertexIndex]; }
+	std::vector<Direction>& GetVertexBiTangents() { return m_vertexBiTangents; }
 	const std::vector<Direction>& GetVertexBiTangents() const { return m_vertexBiTangents; }
 
 	void SetVertexUVSetCount(uint32_t setCount);
 	uint32_t GetVertexUVSetCount() const { return m_vertexUVSetCount; }
 	void SetVertexUV(uint32_t setIndex, uint32_t vertexIndex, const UV& uv);
-	std::vector<UV>& GetVertexUVs(uint32_t uvSetIndex) { return m_vertexUVSets[uvSetIndex]; }
-	const std::vector<UV>& GetVertexUVs(uint32_t uvSetIndex) const { return m_vertexUVSets[uvSetIndex]; }
 	UV& GetVertexUV(uint32_t setIndex, uint32_t vertexIndex) { return m_vertexUVSets[setIndex][vertexIndex]; }
 	const UV& GetVertexUV(uint32_t setIndex, uint32_t vertexIndex) const { return m_vertexUVSets[setIndex][vertexIndex]; }
+	std::vector<UV>& GetVertexUVs(uint32_t uvSetIndex) { return m_vertexUVSets[uvSetIndex]; }
+	const std::vector<UV>& GetVertexUVs(uint32_t uvSetIndex) const { return m_vertexUVSets[uvSetIndex]; }
 
 	void SetVertexColorSetCount(uint32_t setCount);
 	uint32_t GetVertexColorSetCount() const { return m_vertexColorSetCount; }
 	void SetVertexColor(uint32_t setIndex, uint32_t vertexIndex, const Color& color);
-	std::vector<Color>& GetVertexColors(uint32_t colorSetIndex) { return m_vertexColorSets[colorSetIndex]; }
-	const std::vector<Color>& GetVertexColors(uint32_t colorSetIndex) const { return m_vertexColorSets[colorSetIndex]; }
 	Color& GetVertexColor(uint32_t setIndex, uint32_t vertexIndex) { return m_vertexColorSets[setIndex][vertexIndex]; }
 	const Color& GetVertexColor(uint32_t setIndex, uint32_t vertexIndex) const { return m_vertexColorSets[setIndex][vertexIndex]; }
+	std::vector<Color>& GetVertexColors(uint32_t colorSetIndex) { return m_vertexColorSets[colorSetIndex]; }
+	const std::vector<Color>& GetVertexColors(uint32_t colorSetIndex) const { return m_vertexColorSets[colorSetIndex]; }
 
 	void SetVertexInfluenceCount(uint32_t influenceCount);
 	uint32_t GetVertexInfluenceCount() const { return m_vertexInfluenceCount; }
 	void SetVertexBoneWeight(uint32_t boneIndex, uint32_t vertexIndex, BoneID boneID, VertexWeight weight);
-	std::vector<BoneID>& GetVertexBoneIDs(uint32_t boneIndex) { return m_vertexBoneIDs[boneIndex]; }
-	const std::vector<BoneID>& GetVertexBoneIDs(uint32_t boneIndex) const { return m_vertexBoneIDs[boneIndex]; }
 	BoneID& GetVertexBoneID(uint32_t boneIndex, uint32_t vertexIndex) { return m_vertexBoneIDs[boneIndex][vertexIndex]; }
 	const BoneID& GetVertexBoneID(uint32_t boneIndex, uint32_t vertexIndex) const { return m_vertexBoneIDs[boneIndex][vertexIndex]; }
-	std::vector<VertexWeight>& GetVertexWeights(uint32_t boneIndex) { return m_vertexWeights[boneIndex]; }
-	const std::vector<VertexWeight>& GetVertexWeights(uint32_t boneIndex) const { return m_vertexWeights[boneIndex]; }
+	std::vector<BoneID>& GetVertexBoneIDs(uint32_t boneIndex) { return m_vertexBoneIDs[boneIndex]; }
+	const std::vector<BoneID>& GetVertexBoneIDs(uint32_t boneIndex) const { return m_vertexBoneIDs[boneIndex]; }
 	VertexWeight& GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex) { return m_vertexWeights[boneIndex][vertexIndex]; }
 	const VertexWeight& GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex) const { return m_vertexWeights[boneIndex][vertexIndex]; }
+	std::vector<VertexWeight>& GetVertexWeights(uint32_t boneIndex) { return m_vertexWeights[boneIndex]; }
+	const std::vector<VertexWeight>& GetVertexWeights(uint32_t boneIndex) const { return m_vertexWeights[boneIndex]; }
+
+	uint32_t GetVertexAdjacentVertexCount(uint32_t vertexIndex) const { return static_cast<uint32_t>(m_vertexAdjacentVertexArrays[vertexIndex].size()); }
+	void AddVertexAdjacentVertexID(uint32_t vertexIndex, VertexID vertexID);
+	VertexIDArray& GetVertexAdjacentVertexArray(uint32_t vertexIndex) { return m_vertexAdjacentVertexArrays[vertexIndex]; }
+	const VertexIDArray& GetVertexAdjacentVertexArray(uint32_t vertexIndex) const { return m_vertexAdjacentVertexArrays[vertexIndex]; }
+	std::vector<VertexIDArray>& GetVertexAdjacentVertexArrays() { return m_vertexAdjacentVertexArrays; }
+	const std::vector<VertexIDArray>& GetVertexAdjacentVertexArrays() const { return m_vertexAdjacentVertexArrays; }
+
+	uint32_t GetVertexAdjacentPolygonCount(uint32_t vertexIndex) const { return static_cast<uint32_t>(m_vertexAdjacentPolygonArrays[vertexIndex].size()); }
+	void AddVertexAdjacentPolygonID(uint32_t vertexIndex, PolygonID polygonID);
+	PolygonIDArray& GetVertexAdjacentPolygonArray(uint32_t vertexIndex) { return m_vertexAdjacentPolygonArrays[vertexIndex]; }
+	const PolygonIDArray& GetVertexAdjacentPolygonArray(uint32_t vertexIndex) const { return m_vertexAdjacentPolygonArrays[vertexIndex]; }
+	std::vector<PolygonIDArray>& GetVertexAdjacentPolygonArrays() { return m_vertexAdjacentPolygonArrays; }
+	const std::vector<PolygonIDArray>& GetVertexAdjacentPolygonArrays() const { return m_vertexAdjacentPolygonArrays; }
 
 	void SetPolygon(uint32_t polygonIndex, VertexID v0, VertexID v1, VertexID v2);
 	std::vector<Polygon>& GetPolygons() { return m_polygons; }
@@ -229,6 +254,11 @@ private:
 	// vertex skin data
 	std::vector<BoneID>			m_vertexBoneIDs[MaxBoneInfluenceCount];
 	std::vector<VertexWeight>	m_vertexWeights[MaxBoneInfluenceCount];
+
+	// vertex connectivity data
+	// For geometry processing algorithms, it is common to query connectivity data.
+	std::vector<VertexIDArray>	m_vertexAdjacentVertexArrays;
+	std::vector<PolygonIDArray>	m_vertexAdjacentPolygonArrays;
 
 	// polygon data
 	std::vector<Polygon>		m_polygons;

@@ -28,7 +28,7 @@ public:
 	{
 		pSceneDatabase->SetName("MeshGenerator");
 
-		cd::Box box(cd::Vec3f(-1.0f, -1.0f, -1.0f), cd::Vec3f(1.0f, 1.0f, 1.0f));
+		cd::Box box(cd::Vec3f(-100.0f, -100.0f, -100.0f), cd::Vec3f(100.0f, 100.0f, 100.0f));
 		cd::VertexFormat vertexFormat;
 		vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), 3);
 		vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Point::ValueType>(), 3);
@@ -38,8 +38,10 @@ public:
 			return;
 		}
 
-		pSceneDatabase->SetMeshCount(1);
-		pSceneDatabase->AddMesh(MoveTemp(optMesh.value()));
+		cd::Mesh& mesh = optMesh.value();
+		mesh.SetID(cd::MeshID(0U));
+		pSceneDatabase->SetMeshCount(1U);
+		pSceneDatabase->AddMesh(MoveTemp(mesh));
 	}
 
 private:
