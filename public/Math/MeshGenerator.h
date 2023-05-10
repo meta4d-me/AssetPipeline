@@ -41,8 +41,7 @@ public:
 	~MeshGenerator() = delete;
 
 	static std::optional<Mesh> Generate(const TBox<float, 3>& box, const VertexFormat& vertexFormat, bool useCounterWiseForFrontFace = true);
-	static std::optional<Mesh> Generate(const TPlane<float>& plane, float width, float height, const VertexFormat& vertexFormat);
-	static std::optional<Mesh> Generate(const TSphere<float>& sphere, const VertexFormat& vertexFormat);
+	static std::optional<Mesh> Generate(const TSphere<float>& sphere, uint32_t numStacks, uint32_t numSlices, const VertexFormat& vertexFormat);
 };
 
 }

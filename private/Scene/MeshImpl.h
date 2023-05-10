@@ -74,18 +74,19 @@ public:
 	const Direction& GetVertexNormal(uint32_t vertexIndex) const { return m_vertexNormals[vertexIndex]; }
 	std::vector<Direction>& GetVertexNormals() { return m_vertexNormals; }
 	const std::vector<Direction>& GetVertexNormals() const { return m_vertexNormals; }
+	void ComputeVertexNormals();
 
 	void SetVertexTangent(uint32_t vertexIndex, const Direction& tangent);
 	Direction& GetVertexTangent(uint32_t vertexIndex) { return m_vertexTangents[vertexIndex]; }
 	const Direction& GetVertexTangent(uint32_t vertexIndex) const { return m_vertexTangents[vertexIndex]; }
 	std::vector<Direction>& GetVertexTangents() { return m_vertexTangents; }
 	const std::vector<Direction>& GetVertexTangents() const { return m_vertexTangents; }
-
 	void SetVertexBiTangent(uint32_t vertexIndex, const Direction& biTangent);
 	Direction& GetVertexBiTangent(uint32_t vertexIndex) { return m_vertexBiTangents[vertexIndex]; }
 	const Direction& GetVertexBiTangent(uint32_t vertexIndex) const { return m_vertexBiTangents[vertexIndex]; }
 	std::vector<Direction>& GetVertexBiTangents() { return m_vertexBiTangents; }
 	const std::vector<Direction>& GetVertexBiTangents() const { return m_vertexBiTangents; }
+	void ComputeVertexTangents();
 
 	void SetVertexUVSetCount(uint32_t setCount);
 	uint32_t GetVertexUVSetCount() const { return m_vertexUVSetCount; }
@@ -129,10 +130,11 @@ public:
 	std::vector<PolygonIDArray>& GetVertexAdjacentPolygonArrays() { return m_vertexAdjacentPolygonArrays; }
 	const std::vector<PolygonIDArray>& GetVertexAdjacentPolygonArrays() const { return m_vertexAdjacentPolygonArrays; }
 
-	void SetPolygon(uint32_t polygonIndex, VertexID v0, VertexID v1, VertexID v2);
+	void SetPolygon(uint32_t polygonIndex, cd::Polygon polygon);
 	std::vector<Polygon>& GetPolygons() { return m_polygons; }
 	const std::vector<Polygon>& GetPolygons() const { return m_polygons; }
 	const Polygon& GetPolygon(uint32_t polygonIndex) const { return m_polygons[polygonIndex]; }
+	cd::VertexID GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const;
 
 	template<bool SwapBytesOrder>
 	MeshImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)

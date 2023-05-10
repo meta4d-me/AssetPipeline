@@ -34,7 +34,6 @@ public:
 	
 	void SetID(MeshID id);
 	MeshID GetID() const;
-
 	void SetName(const char* pName);
 	const char* GetName() const;
 
@@ -69,18 +68,19 @@ public:
 	Direction& GetVertexNormal(uint32_t vertexIndex);
 	const Direction& GetVertexNormal(uint32_t vertexIndex) const;
 	const std::vector<Direction>& GetVertexNormals() const;
+	void ComputeVertexNormals();
 
 	void SetVertexTangent(uint32_t vertexIndex, const Direction& tangent);
 	std::vector<Direction>& GetVertexTangents();
 	Direction& GetVertexTangent(uint32_t vertexIndex);
 	const Direction& GetVertexTangent(uint32_t vertexIndex) const;
 	const std::vector<Direction>& GetVertexTangents() const;
-
 	void SetVertexBiTangent(uint32_t vertexIndex, const Direction& biTangent);
 	std::vector<Direction>& GetVertexBiTangents();
 	Direction& GetVertexBiTangent(uint32_t vertexIndex);
 	const Direction& GetVertexBiTangent(uint32_t vertexIndex) const;
 	const std::vector<Direction>& GetVertexBiTangents() const;
+	void ComputeVertexTangents();
 
 	void SetVertexUVSetCount(uint32_t setCount);
 	uint32_t GetVertexUVSetCount() const;
@@ -124,10 +124,11 @@ public:
 	std::vector<PolygonIDArray>& GetVertexAdjacentPolygonArrays();
 	const std::vector<PolygonIDArray>& GetVertexAdjacentPolygonArrays() const;
 
-	void SetPolygon(uint32_t polygonIndex, const VertexID& v0, const VertexID& v1, const VertexID& v2);
+	void SetPolygon(uint32_t polygonIndex, Polygon polygon);
 	std::vector<Polygon>& GetPolygons();
 	const std::vector<Polygon>& GetPolygons() const;
 	const Polygon& GetPolygon(uint32_t polygonIndex) const;
+	cd::VertexID GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const;
 
 	Mesh& operator<<(InputArchive& inputArchive);
 	Mesh& operator<<(InputArchiveSwapBytes& inputArchive);

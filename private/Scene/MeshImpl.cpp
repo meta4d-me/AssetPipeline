@@ -55,6 +55,53 @@ void MeshImpl::SetVertexNormal(uint32_t vertexIndex, const Direction& normal)
 	m_vertexNormals[vertexIndex] = normal;
 }
 
+void MeshImpl::ComputeVertexNormals()
+{
+	const uint32_t vertexCount = GetVertexCount();
+	const uint32_t polygonCount = GetPolygonCount();
+
+	if (vertexCount == 0U || polygonCount == 0U)
+	{
+		// Cannot compute normals without vertex positions or polygons
+		return;
+	}
+
+	// Create a vector of normals with the same size as the vertex positions vector,
+	// initialized to the zero vector.
+	std::vector<Direction> vertexNormals(vertexCount, Direction(0, 0, 0));
+
+	// For each polygon in the mesh
+	for (uint32_t polygonIndex = 0U; polygonIndex < polygonCount; ++polygonIndex)
+	{
+		const Polygon& polygon = GetPolygon(polygonIndex);
+
+		// Calculate the polygon normal
+		const Point& p0 = GetVertexPosition(polygon[0].Data());
+		const Point& p1 = GetVertexPosition(polygon[1].Data());
+		const Point& p2 = GetVertexPosition(polygon[2].Data());
+		const Direction polygonNormal = (p1 - p0).Cross(p2 - p0).Normalize();
+
+		// Add the polygon normal to the normal of each of its vertices
+		for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < 3; ++polygonVertexIndex)
+		{
+			const uint32_t vertexIndex = polygon[polygonVertexIndex].Data();
+			vertexNormals[vertexIndex] += polygonNormal;
+		}
+	}
+
+	// Normalize all vertex normals
+	for (Direction& normal : vertexNormals)
+	{
+		normal.Normalize();
+	}
+
+	// Set the computed normals back to the mesh
+	for (uint32_t i = 0; i < vertexCount; ++i)
+	{
+		SetVertexNormal(i, vertexNormals[i]);
+	}
+}
+
 void MeshImpl::SetVertexTangent(uint32_t vertexIndex, const Direction& tangent)
 {
 	m_vertexTangents[vertexIndex] = tangent;
@@ -63,6 +110,47 @@ void MeshImpl::SetVertexTangent(uint32_t vertexIndex, const Direction& tangent)
 void MeshImpl::SetVertexBiTangent(uint32_t vertexIndex, const Direction& biTangent)
 {
 	m_vertexBiTangents[vertexIndex] = biTangent;
+}
+
+void MeshImpl::ComputeVertexTangents()
+{
+	// Compute the tangents
+	for (const auto& polygon : GetPolygons())
+	{
+		const auto& position1 = GetVertexPosition(polygon[0].Data());
+		const auto& position2 = GetVertexPosition(polygon[1].Data());
+		const auto& position3 = GetVertexPosition(polygon[2].Data());
+
+		const auto& uv1 = GetVertexUV(0U, polygon[0].Data());
+		const auto& uv2 = GetVertexUV(0U, polygon[1].Data());
+		const auto& uv3 = GetVertexUV(0U, polygon[2].Data());
+
+		const cd::Vec3f edge1(position2.x() - position1.x(), position2.y() - position1.y(), position2.z() - position1.z());
+		const cd::Vec3f edge2(position3.x() - position1.x(), position3.y() - position1.y(), position3.z() - position1.z());
+
+		const float deltaU1 = uv2.x() - uv1.x();
+		const float deltaV1 = uv2.y() - uv1.y();
+		const float deltaU2 = uv3.x() - uv1.x();
+		const float deltaV2 = uv3.y() - uv1.y();
+
+		const float f = 1.0f / (deltaU1 * deltaV2 - deltaU2 * deltaV1);
+
+		Direction tangent;
+		tangent.x() = f * (deltaV2 * edge1.x() - deltaV1 * edge2.x());
+		tangent.y() = f * (deltaV2 * edge1.y() - deltaV1 * edge2.y());
+		tangent.z() = f * (deltaV2 * edge1.z() - deltaV1 * edge2.z());
+
+		for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < 3; ++polygonVertexIndex)
+		{
+			GetVertexTangent(polygon[polygonVertexIndex].Data()) += tangent;
+		}
+	}
+
+	// Normalize the tangents
+	for (auto& tangent : GetVertexTangents())
+	{
+		tangent.Normalize();
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -164,11 +252,14 @@ void MeshImpl::AddVertexAdjacentPolygonID(uint32_t vertexIndex, PolygonID polygo
 ////////////////////////////////////////////////////////////////////////////////////
 // Polygon index data
 ////////////////////////////////////////////////////////////////////////////////////
-void MeshImpl::SetPolygon(uint32_t polygonIndex, VertexID v0, VertexID v1, VertexID v2)
+void MeshImpl::SetPolygon(uint32_t polygonIndex, cd::Polygon polygon)
 {
-	m_polygons[polygonIndex][0] = v0;
-	m_polygons[polygonIndex][1] = v1;
-	m_polygons[polygonIndex][2] = v2;
+	m_polygons[polygonIndex] = MoveTemp(polygon);
+}
+
+cd::VertexID MeshImpl::GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const
+{
+	return m_polygons[polygonIndex][vertexIndex];
 }
 
 }
