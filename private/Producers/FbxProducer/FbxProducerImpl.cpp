@@ -488,16 +488,16 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 		vertexID += 3U;
 
 		// Position
-		uint32_t polygonVertexID[3];
+		cd::Polygon polygon;
 		for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < 3U; ++polygonVertexIndex)
 		{
 			uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
 			fbxsdk::FbxVector4 position = pMeshVertexPositions[controlPointIndex];
 			mesh.SetVertexPosition(mapControlPointToVertexID[controlPointIndex], cd::Point(position[0], position[1], position[2]));
 
-			polygonVertexID[polygonVertexIndex] = controlPointIndex;
+			polygon[polygonVertexIndex] = controlPointIndex;
 		}
-		mesh.SetPolygon(polygonID++, cd::VertexID(polygonVertexID[0]), cd::VertexID(polygonVertexID[1]), cd::VertexID(polygonVertexID[2]));
+		mesh.SetPolygon(polygonID++, cd::MoveTemp(polygon));
 
 		// Normal
 		bool applyTangentData = false;

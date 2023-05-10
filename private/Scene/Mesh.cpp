@@ -204,6 +204,11 @@ const std::vector<Direction>& Mesh::GetVertexNormals() const
 	return m_pMeshImpl->GetVertexNormals();
 }
 
+void Mesh::ComputeVertexNormals()
+{
+	m_pMeshImpl->ComputeVertexNormals();
+}
+
 void Mesh::SetVertexTangent(uint32_t vertexIndex, const Direction& tangent)
 {
 	m_pMeshImpl->SetVertexTangent(vertexIndex, tangent);
@@ -252,6 +257,11 @@ const Direction& Mesh::GetVertexBiTangent(uint32_t vertexIndex) const
 const std::vector<Direction>& Mesh::GetVertexBiTangents() const
 {
 	return m_pMeshImpl->GetVertexBiTangents();
+}
+
+void Mesh::ComputeVertexTangents()
+{
+	m_pMeshImpl->ComputeVertexTangents();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -451,9 +461,9 @@ const std::vector<PolygonIDArray>& Mesh::GetVertexAdjacentPolygonArrays() const
 //////////////////////////////////////////////////////////////////////////
 // Polygon index data
 //////////////////////////////////////////////////////////////////////////
-void Mesh::SetPolygon(uint32_t polygonIndex, const VertexID& v0, const VertexID& v1, const VertexID& v2)
+void Mesh::SetPolygon(uint32_t polygonIndex, cd::Polygon polygon)
 {
-	m_pMeshImpl->SetPolygon(polygonIndex, v0, v1, v2);
+	m_pMeshImpl->SetPolygon(polygonIndex, cd::MoveTemp(polygon));
 }
 
 std::vector<Polygon>& Mesh::GetPolygons()
@@ -469,6 +479,11 @@ const std::vector<Polygon>& Mesh::GetPolygons() const
 const Polygon& Mesh::GetPolygon(uint32_t polygonIndex) const
 {
 	return m_pMeshImpl->GetPolygon(polygonIndex);
+}
+
+cd::VertexID Mesh::GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const
+{
+	return m_pMeshImpl->GetPolygonVertexID(polygonIndex, vertexIndex);
 }
 
 Mesh& Mesh::operator<<(InputArchive& inputArchive)

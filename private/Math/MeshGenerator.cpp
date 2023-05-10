@@ -6,6 +6,7 @@
 #include "Scene/Mesh.h"
 #include "Scene/VertexFormat.h"
 
+#include <array>
 #include <cassert>
 
 namespace cd
@@ -13,9 +14,11 @@ namespace cd
 
 std::optional<Mesh> MeshGenerator::Generate(const Box& box, const VertexFormat& vertexFormat, bool useCounterWiseForFrontFace)
 {
-	const Vec3f& min = box.Min();
-	const Vec3f& max = box.Max();
-	Vec3f extent = max - min;
+	assert(vertexFormat.Contains(VertexAttributeType::Position));
+
+	const auto& min = box.Min();
+	const auto& max = box.Max();
+	const auto extent = max - min;
 
 	//          0 --- 1 (max)
 	//        / |   / |
@@ -25,97 +28,78 @@ std::optional<Mesh> MeshGenerator::Generate(const Box& box, const VertexFormat& 
 	//       | /   | /
 	// (min) 6 --- 7
 
-	Mesh mesh(8U, 12U);
+	std::array<cd::Point, 8> positions = {
+		cd::Point(min.x(), max.y(), max.z()),
+		cd::Point(max.x(), max.y(), max.z()),
+		cd::Point(min.x(), min.y(), max.z()),
+		cd::Point(max.x(), min.y(), max.z()),
+		cd::Point(min.x(), max.y(), min.z()),
+		cd::Point(max.x(), max.y(), min.z()),
+		cd::Point(min.x(), min.y(), min.z()),
+		cd::Point(max.x(), min.y(), min.z())
+	};
 
-	// Index buffer. Front face is CW and Back face is CCW to cull.
-	mesh.SetPolygon(0U, VertexID(0U), VertexID(2U), VertexID(1U));
-	mesh.SetPolygon(1U, VertexID(1U), VertexID(2U), VertexID(3U));
-	mesh.SetPolygon(2U, VertexID(4U), VertexID(5U), VertexID(6U));
-	mesh.SetPolygon(3U, VertexID(5U), VertexID(7U), VertexID(6U));
-	mesh.SetPolygon(4U, VertexID(0U), VertexID(6U), VertexID(2U));
-	mesh.SetPolygon(5U, VertexID(4U), VertexID(6U), VertexID(0U));
-	mesh.SetPolygon(6U, VertexID(1U), VertexID(3U), VertexID(7U));
-	mesh.SetPolygon(7U, VertexID(5U), VertexID(1U), VertexID(7U));
-	mesh.SetPolygon(8U, VertexID(0U), VertexID(1U), VertexID(4U));
-	mesh.SetPolygon(9U, VertexID(4U), VertexID(1U), VertexID(5U));
-	mesh.SetPolygon(10U, VertexID(2U), VertexID(6U), VertexID(3U));
-	mesh.SetPolygon(11U, VertexID(6U), VertexID(7U), VertexID(3U));
+	std::array<cd::Polygon, 12> polygons = {
+		cd::Polygon{0U, 2U, 1U},
+		cd::Polygon{1U, 2U, 3U},
+		cd::Polygon{4U, 5U, 6U},
+		cd::Polygon{5U, 7U, 6U},
+		cd::Polygon{0U, 6U, 2U},
+		cd::Polygon{4U, 6U, 0U},
+		cd::Polygon{1U, 3U, 7U},
+		cd::Polygon{5U, 1U, 7U},
+		cd::Polygon{0U, 1U, 4U},
+		cd::Polygon{4U, 1U, 5U},
+		cd::Polygon{2U, 6U, 3U},
+		cd::Polygon{6U, 7U, 3U}
+	};
 
 	if (!useCounterWiseForFrontFace)
 	{
-		for (uint32_t polygonIndex = 0U; polygonIndex < mesh.GetPolygonCount(); ++polygonIndex)
+		for (auto& polygon : polygons)
 		{
-			const Polygon& polygon = mesh.GetPolygon(polygonIndex);
-			mesh.SetPolygon(polygonIndex, polygon[0], polygon[2], polygon[1]);
+			std::swap(polygon[1], polygon[2]);
 		}
+	}
+
+	cd::Mesh mesh(static_cast<uint32_t>(positions.size()), static_cast<uint32_t>(polygons.size()));
+
+	for (uint32_t i = 0; i < positions.size(); ++i)
+	{
+		mesh.SetVertexPosition(i, positions[i]);
+	}
+
+	for (uint32_t i = 0; i < polygons.size(); ++i)
+	{
+		mesh.SetPolygon(i, polygons[i]);
 	}
 
 	cd::VertexFormat meshVertexFormat;
-
-	// Vertex positions
-	if (vertexFormat.Contains(VertexAttributeType::Position))
-	{
-		mesh.SetVertexPosition(0U, Point(min.x(), max.y(), max.z()));
-		mesh.SetVertexPosition(1U, Point(max.x(), max.y(), max.z()));
-		mesh.SetVertexPosition(2U, Point(min.x(), min.y(), max.z()));
-		mesh.SetVertexPosition(3U, Point(max.x(), min.y(), max.z()));
-		mesh.SetVertexPosition(4U, Point(min.x(), max.y(), min.z()));
-		mesh.SetVertexPosition(5U, Point(max.x(), max.y(), min.z()));
-		mesh.SetVertexPosition(6U, Point(min.x(), min.y(), min.z()));
-		mesh.SetVertexPosition(7U, Point(max.x(), min.y(), min.z()));
-		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
-	}
+	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
 
 	if (vertexFormat.Contains(VertexAttributeType::Normal))
 	{
-		//for (uint32_t vertexIndex = 0U; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
-		//{
-		//	mesh.SetVertexNormal(vertexIndex, Direction(0.0f, 1.0f, 0.0f));
-		//}
-
-		for (uint32_t polygonIndex = 0U; polygonIndex < mesh.GetPolygonCount(); ++polygonIndex)
-		{
-			const Polygon& polygon = mesh.GetPolygon(polygonIndex);
-		
-			const Point& v1 = mesh.GetVertexPosition(polygon[0].Data());
-			const Point& v2 = mesh.GetVertexPosition(polygon[1].Data());
-			const Point& v3 = mesh.GetVertexPosition(polygon[2].Data());
-		
-			Direction faceNormal = (v2 - v1).Cross(v3 - v1);
-			for (uint32_t pointIndex = 0U; pointIndex < 3U; ++pointIndex)
-			{
-				uint32_t vertexIndex = polygon[pointIndex].Data();
-				Direction& vertexNormal = mesh.GetVertexNormal(vertexIndex);
-				vertexNormal += faceNormal;
-			}
-		}
-		
-		for (uint32_t vertexIndex = 0U; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
-		{
-			Direction& vertexNormal = mesh.GetVertexNormal(vertexIndex);
-			vertexNormal.Normalize();
-		}
-
+		mesh.ComputeVertexNormals();
 		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
 	}
 
-	if (vertexFormat.Contains(VertexAttributeType::Tangent))
+	if (vertexFormat.Contains(VertexAttributeType::UV))
 	{
-		// TODO
+		mesh.SetVertexUVSetCount(1);
 		for (uint32_t vertexIndex = 0U; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
 		{
-			mesh.SetVertexTangent(vertexIndex, Direction(1.0f, 0.0f, 0.0f));
+			const auto& position = mesh.GetVertexPosition(vertexIndex);
+			mesh.SetVertexUV(0U, vertexIndex, cd::UV(position.x(), position.z()));
 		}
-		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+
+		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
 	}
 
-	if (vertexFormat.Contains(VertexAttributeType::Bitangent))
+
+	if (vertexFormat.Contains(VertexAttributeType::Tangent) || vertexFormat.Contains(VertexAttributeType::Bitangent))
 	{
-		// TODO
-		for (uint32_t vertexIndex = 0U; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
-		{
-			mesh.SetVertexBiTangent(vertexIndex, Direction(1.0f, 0.0f, 0.0f));
-		}
+		mesh.ComputeVertexTangents();
+		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
 		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Bitangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
 	}
 
@@ -134,69 +118,70 @@ std::optional<Mesh> MeshGenerator::Generate(const Box& box, const VertexFormat& 
 		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Vec4f::ValueType>(), cd::Vec4f::Size);
 	}
 
-	if (vertexFormat.Contains(VertexAttributeType::UV))
-	{
-		mesh.SetVertexUVSetCount(1);
-		mesh.SetVertexUV(0U, 0U, cd::UV(0.0f, 0.0f));
-		mesh.SetVertexUV(0U, 1U, cd::UV(1.0f, 0.0f));
-		mesh.SetVertexUV(0U, 2U, cd::UV(0.0f, 1.0f));
-		mesh.SetVertexUV(0U, 3U, cd::UV(1.0f, 1.0f));
-		mesh.SetVertexUV(0U, 4U, cd::UV(0.0f, 0.0f));
-		mesh.SetVertexUV(0U, 5U, cd::UV(1.0f, 0.0f));
-		mesh.SetVertexUV(0U, 6U, cd::UV(0.0f, 1.0f));
-		mesh.SetVertexUV(0U, 7U, cd::UV(1.0f, 1.0f));
-		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
-	}
-
 	mesh.SetVertexFormat(MoveTemp(meshVertexFormat));
 	mesh.SetAABB(AABB(min, max));
 
 	return mesh;
 }
 
-std::optional<Mesh> MeshGenerator::Generate(const Plane& plane, float width, float height, const VertexFormat& vertexFormat)
+std::optional<Mesh> MeshGenerator::Generate(const Sphere& sphere, uint32_t numStacks, uint32_t numSlices, const VertexFormat& vertexFormat)
 {
-	assert(vertexFormat.Contains(VertexAttributeType::Position) && "Don't want to generate position?");
+	assert(vertexFormat.Contains(VertexAttributeType::Position));
 
-	//const Vec3f& normal = plane.GetNormal();
-	//Vec3f origin = plane.GetOrigin();
-	//
-	//// 0 --- 1
-	//// |  \  |
-	//// 2 --- 3
-	//
-	//Mesh mesh(4U, 2U);
-	//mesh.SetVertexPosition(0U, Point(min.x(), max.y(), min.z()));
-	//mesh.SetVertexPosition(1U, Point(min.x(), min.y(), max.z()));
-	//mesh.SetVertexPosition(2U, Point(max.x(), min.y(), max.z()));
-	//mesh.SetVertexPosition(3U, Point(max.x(), min.y(), min.z()));
-	//
-	//if (vertexFormat.Contains(VertexAttributeType::Normal))
-	//{
-	//	mesh.SetVertexNormal(0U, Direction(0.0f, 1.0f, 0.0f));
-	//	mesh.SetVertexNormal(1U, Direction(0.0f, 1.0f, 0.0f));
-	//	mesh.SetVertexNormal(2U, Direction(0.0f, 1.0f, 0.0f));
-	//	mesh.SetVertexNormal(3U, Direction(0.0f, 1.0f, 0.0f));
-	//}
-	//
-	//if (vertexFormat.Contains(VertexAttributeType::UV))
-	//{
-	//	mesh.SetVertexUVSetCount(1);
-	//	mesh.SetVertexUV(0U, 0U, UV(0.0f, 0.0f));
-	//	mesh.SetVertexUV(0U, 1U, UV(1.0f, 0.0f));
-	//	mesh.SetVertexUV(0U, 2U, UV(1.0f, 1.0f));
-	//	mesh.SetVertexUV(0U, 3U, UV(0.0f, 1.0f));
-	//}
-	//
-	//mesh.SetPolygon(0U, VertexID(0U), VertexID(1U), VertexID(3U));
-	//mesh.SetPolygon(1U, VertexID(0U), VertexID(3U), VertexID(2U));
+	uint32_t vertexCount = (numStacks + 1) * (numSlices + 1);
+	uint32_t polygonCount = numStacks * numSlices * 2;
 
-	return std::nullopt;
-}
+	cd::Mesh mesh(vertexCount, polygonCount);
 
-std::optional<Mesh> MeshGenerator::Generate(const Sphere& sphere, const VertexFormat& vertexFormat)
-{
-	return std::nullopt;
+	// Generate vertices
+	uint32_t vertexIndex = 0U;
+	float radius = sphere.Radius();
+	for (uint32_t stackIndex = 0U; stackIndex <= numStacks; ++stackIndex)
+	{
+		float v = static_cast<float>(stackIndex) / static_cast<float>(numStacks);
+		float theta = v * Math::PI;
+		float sinTheta = std::sin(theta);
+		float cosTheta = std::cos(theta);
+
+		for (uint32_t sliceIndex = 0U; sliceIndex <= numSlices; ++sliceIndex)
+		{
+			float u = static_cast<float>(sliceIndex) / static_cast<float>(numSlices);
+			float phi = u * Math::TWO_PI;
+			float sinPhi = std::sin(phi);
+			float cosPhi = std::cos(phi);
+			mesh.SetVertexPosition(vertexIndex++, cd::Point(radius * sinTheta * cosPhi, radius * sinTheta * sinPhi, radius * cosTheta));
+		}
+	}
+
+	// Generate indices
+	uint32_t polygonIndex = 0U;
+	for (uint32_t stackIndex = 0U; stackIndex < numStacks; ++stackIndex)
+	{
+		uint32_t stackStart = stackIndex * (numSlices + 1);
+		uint32_t stackEnd = stackStart + numSlices + 1;
+
+		for (uint32_t sliceIndex = 0U; sliceIndex < numSlices; ++sliceIndex)
+		{
+			mesh.SetPolygon(polygonIndex++, cd::Polygon(stackStart + sliceIndex, stackEnd + sliceIndex, stackEnd + sliceIndex + 1));
+			mesh.SetPolygon(polygonIndex++, cd::Polygon(stackStart + sliceIndex, stackEnd + sliceIndex + 1, stackStart + sliceIndex + 1));
+		}
+	}
+
+	cd::VertexFormat meshVertexFormat;
+	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+
+	if (vertexFormat.Contains(VertexAttributeType::Normal))
+	{
+		mesh.ComputeVertexNormals();
+		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	}
+
+	mesh.SetVertexFormat(MoveTemp(meshVertexFormat));
+	cd::Point min = sphere.Center() - cd::Vec3f(radius);
+	cd::Point max = sphere.Center() + cd::Vec3f(radius);
+	mesh.SetAABB(cd::AABB(min, max));
+
+	return mesh;
 }
 
 }

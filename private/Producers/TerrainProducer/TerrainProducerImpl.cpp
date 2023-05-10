@@ -374,8 +374,8 @@ Mesh TerrainProducerImpl::GenerateSectorAt(uint32_t sector_x, uint32_t sector_z,
 			terrain.SetVertexUV(0, topRightPointId, UV(1.0f, 1.0f));
 			terrain.SetVertexUV(0, bottomRightPointId, UV(1.0f, 0.0f));
 			// The two triangle indices
-			terrain.SetPolygon(current_polygon_id++, VertexID(bottomLeftPointId), VertexID(topLeftPointId), VertexID(bottomRightPointId));
-			terrain.SetPolygon(current_polygon_id++, VertexID(bottomRightPointId), VertexID(topLeftPointId), VertexID(topRightPointId));
+			terrain.SetPolygon(current_polygon_id++, cd::Polygon(bottomLeftPointId, topLeftPointId, bottomRightPointId));
+			terrain.SetPolygon(current_polygon_id++, cd::Polygon(bottomRightPointId, topLeftPointId, topRightPointId));
 		}
 	}
 	// Set vertex attribute
