@@ -25,10 +25,10 @@ public:
 	using ConstIterator = const T*;
 
 public:
-	static VectorType Zero() { return VectorType(static_cast<T>(0)); }
-	static VectorType One() { return VectorType(static_cast<T>(1)); }
+	static constexpr VectorType Zero() { return VectorType(static_cast<T>(0)); }
+	static constexpr VectorType One() { return VectorType(static_cast<T>(1)); }
 
-	static VectorType Lerp(const VectorType& a, const VectorType& b, float factor)
+	static VectorType Lerp(const VectorType& a, const VectorType& b, T factor)
 	{
 		return a + (b - a) * factor;
 	}
@@ -242,7 +242,7 @@ public:
 	}
 
 	// Operators
-	CD_FORCEINLINE bool operator!=(const TVector& rhs) const { return !this == rhs; }
+	CD_FORCEINLINE bool operator!=(const TVector& rhs) const { return !(*this == rhs); }
 	bool operator==(const TVector& rhs) const
 	{
 		for (int index = 0; index < Size; ++index)
