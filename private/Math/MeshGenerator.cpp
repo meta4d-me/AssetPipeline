@@ -176,6 +176,25 @@ std::optional<Mesh> MeshGenerator::Generate(const Sphere& sphere, uint32_t numSt
 		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
 	}
 
+	if (vertexFormat.Contains(VertexAttributeType::UV))
+	{
+		mesh.SetVertexUVSetCount(1);
+		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+	}
+
+	if (vertexFormat.Contains(VertexAttributeType::Tangent) || vertexFormat.Contains(VertexAttributeType::Bitangent))
+	{
+		mesh.ComputeVertexTangents();
+		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Bitangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+	}
+
+	if (vertexFormat.Contains(VertexAttributeType::Color))
+	{
+		mesh.SetVertexColorSetCount(1U);
+		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Vec4f::ValueType>(), cd::Vec4f::Size);
+	}
+
 	mesh.SetVertexFormat(MoveTemp(meshVertexFormat));
 	cd::Point min = sphere.Center() - cd::Vec3f(radius);
 	cd::Point max = sphere.Center() + cd::Vec3f(radius);
