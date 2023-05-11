@@ -9,9 +9,58 @@
 namespace cdtools
 {
 
-DEFINE_ENUM_WITH_NAMES(AlphaMapType, Texture, Elevation, Simplex2D);
-DEFINE_ENUM_WITH_NAMES(AlphaMapChannel, Red, Green, Blue, Alpha);
-DEFINE_ENUM_WITH_NAMES(AlphaMapBlendFunction, Step, Linear, SmoothStep, SmoothStepHigh);
+enum class AlphaMapType : uint8_t
+{
+	Texture = 0x0,
+	Elevation = 0x1,
+	Simplex2D = 0x2,
+	Count
+};
+
+constexpr const char* AlphaMapTypeName[] =
+{
+	"Texture",
+	"Elevation",
+	"Simplex2D"
+};
+
+enum class AlphaMapChannel : uint8_t
+{
+	Red = 0x0,
+	Green = 0x1,
+	Blue = 0x2,
+	Alpha = 0x3,
+	Count
+};
+
+constexpr const char* AlphaMapChannelName[] =
+{
+	"Red",
+	"Green",
+	"Blue",
+	"Alpha"
+};
+static_assert(static_cast<int>(AlphaMapChannel::Count) == sizeof(AlphaMapChannelName) / sizeof(char*),
+	"AlphaMapChannel and names mismatch.");
+
+enum class AlphaMapBlendFunction : uint8_t 
+{
+	Step,
+	Linear,
+	SmoothStep,
+	SmoothStepHigh,
+	Count
+};
+
+constexpr const char* AlphaMapBlendFunctionName[] =
+{
+	"Step",
+	"Linear",
+	"SmoothStep",
+	"SmoothStepHigh"
+};
+static_assert(static_cast<int>(AlphaMapBlendFunction::Count) == sizeof(AlphaMapBlendFunctionName) / sizeof(char*),
+	"AlphaMapBlendFunction and names mismatch.");
 
 template<typename T, typename = typename std::enable_if<std::is_arithmetic_v<T>, T>::type>
 struct AlphaMapBlendRegion 

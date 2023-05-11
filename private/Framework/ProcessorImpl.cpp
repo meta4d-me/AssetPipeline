@@ -256,7 +256,7 @@ void ProcessorImpl::DumpSceneDatabase()
 		printf("\n");
 		for (const auto& light : m_pCurrentSceneDatabase->GetLights())
 		{
-			printf("[Light %u] Type = %s, Name = %s\n", light.GetID().Data(), cd::LightTypeNames[static_cast<int>(light.GetType())], light.GetName());
+			printf("[Light %u] Type = %s, Name = %s\n", light.GetID().Data(), cd::GetLightTypeName(light.GetType()), light.GetName());
 			printf("\tIntensity = %f\n", light.GetIntensity());
 			printf("\tRange = %f, Radius = %f\n", light.GetRange(), light.GetRadius());
 			printf("\tWidth = %f, Height = %f\n", light.GetWidth(), light.GetHeight());
