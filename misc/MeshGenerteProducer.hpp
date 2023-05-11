@@ -28,12 +28,15 @@ public:
 	{
 		pSceneDatabase->SetName("MeshGenerator");
 
-		cd::Sphere sphere(cd::Point(0.0f, 0.0f, 0.0f), 100.0f);
-		//cd::Box box(cd::Vec3f(-100.0f, -100.0f, -100.0f), cd::Vec3f(100.0f, 100.0f, 100.0f));
+		cd::Sphere sphere(cd::Point(0.0f, 0.0f, 0.0f), 2.0f);
+		//cd::Box box(cd::Vec3f(-1.0f, -1.0f, -1.0f), cd::Vec3f(1.0f, 1.0f, 1.0f));
 		cd::VertexFormat vertexFormat;
 		vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), 3);
 		vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Point::ValueType>(), 3);
-		std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(sphere, 100, 100, vertexFormat);
+		vertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::Point::ValueType>(), 3);
+		vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Point::ValueType>(), 3);
+		vertexFormat.AddAttributeLayout(cd::VertexAttributeType::Bitangent, cd::GetAttributeValueType<cd::Point::ValueType>(), 3);
+		std::optional<cd::Mesh> optMesh = cd::MeshGenerator::Generate(sphere, 20, 20, vertexFormat);
 		if (!optMesh.has_value())
 		{
 			return;

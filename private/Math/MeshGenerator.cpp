@@ -132,6 +132,15 @@ std::optional<Mesh> MeshGenerator::Generate(const Sphere& sphere, uint32_t numSt
 	uint32_t polygonCount = numStacks * numSlices * 2;
 
 	cd::Mesh mesh(vertexCount, polygonCount);
+	cd::VertexFormat meshVertexFormat;
+	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+	
+	bool generateUV = vertexFormat.Contains(VertexAttributeType::UV);
+	if (generateUV)
+	{
+		mesh.SetVertexUVSetCount(1);
+		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+	}
 
 	// Generate vertices
 	uint32_t vertexIndex = 0U;
@@ -149,7 +158,14 @@ std::optional<Mesh> MeshGenerator::Generate(const Sphere& sphere, uint32_t numSt
 			float phi = u * Math::TWO_PI;
 			float sinPhi = std::sin(phi);
 			float cosPhi = std::cos(phi);
-			mesh.SetVertexPosition(vertexIndex++, cd::Point(radius * sinTheta * cosPhi, radius * sinTheta * sinPhi, radius * cosTheta));
+			mesh.SetVertexPosition(vertexIndex, cd::Point(radius * sinTheta * cosPhi, radius * sinTheta * sinPhi, radius * cosTheta));
+		
+			if (generateUV)
+			{
+				mesh.SetVertexUV(0, vertexIndex, cd::UV(u, v));
+			}
+
+			++vertexIndex;
 		}
 	}
 
@@ -167,19 +183,11 @@ std::optional<Mesh> MeshGenerator::Generate(const Sphere& sphere, uint32_t numSt
 		}
 	}
 
-	cd::VertexFormat meshVertexFormat;
-	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
-
+	// Add other vertex attributes.
 	if (vertexFormat.Contains(VertexAttributeType::Normal))
 	{
 		mesh.ComputeVertexNormals();
 		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
-	}
-
-	if (vertexFormat.Contains(VertexAttributeType::UV))
-	{
-		mesh.SetVertexUVSetCount(1);
-		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
 	}
 
 	if (vertexFormat.Contains(VertexAttributeType::Tangent) || vertexFormat.Contains(VertexAttributeType::Bitangent))
