@@ -60,8 +60,8 @@ void FbxConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
 		{
 			pUVElement = pFbxMesh->CreateElementUV("BaseUV");
 			assert(pUVElement && "Failed to create fbx uv element.");
-			pUVElement->SetMappingMode(fbxsdk::FbxGeometryElement::eByPolygonVertex);
-			pUVElement->SetReferenceMode(fbxsdk::FbxGeometryElement::eIndexToDirect);
+			pUVElement->SetMappingMode(fbxsdk::FbxGeometryElement::eByControlPoint);
+			pUVElement->SetReferenceMode(fbxsdk::FbxGeometryElement::eDirect);
 		}
 
 		fbxsdk::FbxVector4* pFbxVertices = pFbxMesh->GetControlPoints();
