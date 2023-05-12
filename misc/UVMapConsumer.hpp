@@ -49,6 +49,11 @@ public:
 		cd::Rect uvmapRect = cd::Rect::Empty();
 		for (const auto& mesh : pSceneDatabase->GetMeshes())
 		{
+			if (mesh.GetVertexUVSetCount() < m_uvSetIndex + 1)
+			{
+				continue;
+			}
+
 			cd::UV minUV(FLT_MAX);
 			cd::UV maxUV(FLT_MIN);
 			for (uint32_t vertexIndex = 0U; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
@@ -110,12 +115,17 @@ public:
 		cd::UV uvOffsetInPicture = uvmapRect.Min();
 		for (const auto& mesh : pSceneDatabase->GetMeshes())
 		{
+			if (mesh.GetVertexUVSetCount() < m_uvSetIndex + 1)
+			{
+				continue;
+			}
+
 			for (uint32_t polygonIndex = 0U; polygonIndex < mesh.GetPolygonCount(); ++polygonIndex)
 			{
 				const auto& polygon = mesh.GetPolygon(polygonIndex);
-				const auto& t0UV = mesh.GetVertexUV(0U, polygon[0].Data()) - uvOffsetInPicture;
-				const auto& t1UV = mesh.GetVertexUV(0U, polygon[1].Data()) - uvOffsetInPicture;
-				const auto& t2UV = mesh.GetVertexUV(0U, polygon[2].Data()) - uvOffsetInPicture;
+				const auto& t0UV = mesh.GetVertexUV(m_uvSetIndex, polygon[0].Data()) - uvOffsetInPicture;
+				const auto& t1UV = mesh.GetVertexUV(m_uvSetIndex, polygon[1].Data()) - uvOffsetInPicture;
+				const auto& t2UV = mesh.GetVertexUV(m_uvSetIndex, polygon[2].Data()) - uvOffsetInPicture;
 				
 				DrawTriangle(CastUVToPoint2d(t0UV), CastUVToPoint2d(t1UV), CastUVToPoint2d(t2UV));
 			}
