@@ -752,8 +752,15 @@ void GenericProducerImpl::RemoveBoneReferenceNodes(cd::SceneDatabase* pSceneData
 		// Sort to delete bone nodes from end to begin.
 		auto& sceneNodes = pSceneDatabase->GetNodes();
 		std::sort(removeNodeIndexes.begin(), removeNodeIndexes.end(), [](uint32_t lhs, uint32_t rhs) { return lhs > rhs; });
+		std::set<uint32_t> alreadyRemovedIndexes;
 		for (uint32_t nodeIndex : removeNodeIndexes)
 		{
+			if (alreadyRemovedIndexes.find(nodeIndex) != alreadyRemovedIndexes.end())
+			{
+				continue;
+			}
+
+			alreadyRemovedIndexes.insert(nodeIndex);
 			sceneNodes.erase(sceneNodes.begin() + nodeIndex);
 		}
 	}
