@@ -23,64 +23,115 @@ public:
 	SplitTextureConsumer& operator=(SplitTextureConsumer&&) = default;
 	virtual ~SplitTextureConsumer() {}
 
-	void init(int width, int height)
+	void init(int width, int height, unsigned char* data)
 	{
 		m_textureHeight = height;
 		m_textureWidth = width;
+		texture_data = data;
 	}
 
-	void live_R(unsigned char* texture)
+	void live_RGB(bool R_state_s, bool G_state_s, bool B_state_s)
 	{
-		auto data = texture;
-		for (int i = 0; i < m_textureHeight; i++)
-		{
-			for (int j = 0; j < m_textureWidth; j++)
-			{
-				data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount)+1] = 0;
-				data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) +2] = 0;
-			}
-		}
-		stbi_write_png("out.png", m_textureWidth, m_textureHeight, m_chanelCount, data, m_chanelCount*m_textureWidth);
+		R_state = R_state_s;
+		G_state = G_state_s;
+		B_state = B_state_s;
 	}
 
-	void live_G(stbi_uc *texture)
-	{
-		auto data = texture;
-		for (int i = 0; i < m_textureHeight; i++)
-		{
-			for (int j = 0; j < m_textureWidth; j++)
-			{
-				texture[i * m_chanelCount * m_textureWidth + j * m_chanelCount ] = 0;
-				texture[i * m_chanelCount * m_textureWidth + j * m_chanelCount + 2] = 0;
-			}
-		}
-		stbi_write_png("out.png", m_textureWidth, m_textureHeight, m_chanelCount, data, m_chanelCount * m_textureWidth);
-	}
 
-	void live_B(stbi_uc* texture)
-	{
-		auto data = texture;
-		for (int i = 0; i < m_textureHeight; i++)
-		{
-			for (int j = 0; j < m_textureWidth; j++)
-			{
-				texture[i * m_chanelCount * m_textureWidth + j * m_chanelCount] = 0;
-				texture[i * m_chanelCount * m_textureWidth + j * m_chanelCount + 1] = 0;
-			}
-		}
-		stbi_write_png("out.png", m_textureWidth, m_textureHeight, m_chanelCount, data, m_chanelCount * m_textureWidth);
-	}
 	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) override
 	{
+		if (R_state && G_state && B_state) // 保留 RGB
+		{
 
+		}
+		else if (!R_state && !G_state && !B_state) //都不保留
+		{
+			for (int i = 0; i < m_textureHeight; i++)
+			{
+				for (int j = 0; j < m_textureWidth; j++)
+				{
+					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) ] = 0;
+					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 1] = 0;
+					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 2] = 0;
+				}
+			}
+		}
+		else if (R_state && G_state && !B_state) //保留RG 不保留B
+		{
+			for (int i = 0; i < m_textureHeight; i++)
+			{
+				for (int j = 0; j < m_textureWidth; j++)
+				{
+					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 2] = 0;
+				}
+			}
+		}
+		else if (R_state && !G_state && B_state) //保留RB 不保留G
+		{
+			for (int i = 0; i < m_textureHeight; i++)
+			{
+				for (int j = 0; j < m_textureWidth; j++)
+				{
+					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 1] = 0;
+				}
+			}
+		}
+		else if (!R_state && G_state && B_state) //保留 GB 不保留R
+		{
+			for (int i = 0; i < m_textureHeight; i++)
+			{
+				for (int j = 0; j < m_textureWidth; j++)
+				{
+					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount)] = 0;
+				}
+			}
+		}
+		else if (R_state && !G_state && !B_state) //保留R 不保留GB
+		{
+			for (int i = 0; i < m_textureHeight; i++)
+			{
+				for (int j = 0; j < m_textureWidth; j++)
+				{
+					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 1] = 0;
+					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 2] = 0;
+				}
+			}
+		}
+		else if (!R_state && G_state && !B_state) // 保留G 不保留RB
+		{
+			for (int i = 0; i < m_textureHeight; i++)
+			{
+				for (int j = 0; j < m_textureWidth; j++)
+				{
+					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount)] = 0;
+					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 2] = 0;
+				}
+			}
+		}
+		else if (!R_state && !G_state && B_state) //保留B 不保留RG
+		{
+			for (int i = 0; i < m_textureHeight; i++)
+			{
+				for (int j = 0; j < m_textureWidth; j++)
+				{
+					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount)] = 0;
+					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 1] = 0;
+				}
+			}
+		}
+		stbi_write_png("C:\\Toolchain_Scene_Data\\CDSDK_Example\\RGB\\B.png", m_textureWidth, m_textureHeight, m_chanelCount, texture_data, m_chanelCount* m_textureWidth);
 	}
 
 
 private:
-	std::string m_filePath;
-	std::uint32_t m_textureWidth;
-	std::uint32_t m_textureHeight;
-	std::uint32_t m_chanelCount= 3;
+	const char* m_filePath;
+	int m_textureWidth;
+	int m_textureHeight;
+	int m_chanelCount= 3;
+	unsigned char* texture_data;
+	bool R_state;
+	bool G_state;
+	bool B_state;
 };
 
 

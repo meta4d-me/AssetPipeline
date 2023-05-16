@@ -24,20 +24,32 @@ int main(int argc, char** argv)
 	const char* pOutputFilePath = argv[2];
 
 	auto pSceneDatabase = std::make_unique<cd::SceneDatabase>();
+
+
 	GenericProducer producer(pInputFilePath);
 	producer.ActivateTriangulateService();
 	Processor processor(&producer, nullptr, pSceneDatabase.get());
 	processor.Run();
 
 	{
-		 const char* filepath = "C:\\Toolchain_Scene_Data\\CDSDK_Example\\Models\\textures\\gas_bottle_clean_baseColor.png";
+		 const char* filepath = "C:\\Toolchain_Scene_Data\\CDSDK_Example\\RGB\\B.png";
 		 int width, height,channels;
+		 if (filepath == NULL)
+		 {
+			 static_assert("ERROR_FILE_NOT_LOAD");
+			 return -1;
+		 }
 		 auto  texture1 =  stbi_load(filepath,&width, &height ,&channels,3);
 		 std::stringstream ss;
-		 ss << pOutputFilePath << "/" << "Split texture"  << ".png";
-		 SplitTextureConsumer consumer1(ss.str().c_str()); \
-	     consumer1.init(width, height);
-		 consumer1.live_R(texture1);
+		 ss << pOutputFilePath << "/" << "Split_texture"  << ".png";
+		 SplitTextureConsumer consumer1(ss.str().c_str()); 
+	     consumer1.init(width, height,texture1);
+		 consumer1.live_RGB(false, false, true);
+		 for (auto& ORM : pSceneDatabase->GetMaterials())
+		 {
+			 ORM.GetPropertyGroups();
+		 }
+
 		 Processor processor(nullptr, &consumer1, pSceneDatabase.get());
 		 processor.Run();
 	}
