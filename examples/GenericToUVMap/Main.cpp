@@ -40,7 +40,7 @@ int main(int argc, char** argv)
 		for (uint32_t uvSetIndex = 0U; uvSetIndex < uvSetMaxCount; ++uvSetIndex)
 		{
 			std::stringstream ss;
-			ss << pOutputFilePath << "/" << "UVMapTest" << "_UVSet" << uvSetIndex << ".png";
+			ss << pOutputFilePath << "/" << "UVMapTestRGB" << "_UVSet" << uvSetIndex << ".png";
 			UVMapConsumer consumer(ss.str().c_str());
 			consumer.SetUVSetIndex(uvSetIndex);
 			consumer.SetUVMapUnitSize(512, 512);

@@ -12,6 +12,77 @@
 
 namespace cdtools
 {
+class SplitTextureConsumer : public cdtools::IConsumer
+{
+public:
+	SplitTextureConsumer() = delete;
+	explicit SplitTextureConsumer(const char* pFilePath) : m_filePath(pFilePath) {}
+	SplitTextureConsumer(const SplitTextureConsumer&) = delete;
+	SplitTextureConsumer& operator=(const SplitTextureConsumer&) = delete;
+	SplitTextureConsumer(SplitTextureConsumer&&) = default;
+	SplitTextureConsumer& operator=(SplitTextureConsumer&&) = default;
+	virtual ~SplitTextureConsumer() {}
+
+	void init(int width, int height)
+	{
+		m_textureHeight = height;
+		m_textureWidth = width;
+	}
+
+	void live_R(unsigned char* texture)
+	{
+		auto data = texture;
+		for (int i = 0; i < m_textureHeight; i++)
+		{
+			for (int j = 0; j < m_textureWidth; j++)
+			{
+				data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount)+1] = 0;
+				data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) +2] = 0;
+			}
+		}
+		stbi_write_png("out.png", m_textureWidth, m_textureHeight, m_chanelCount, data, m_chanelCount*m_textureWidth);
+	}
+
+	void live_G(stbi_uc *texture)
+	{
+		auto data = texture;
+		for (int i = 0; i < m_textureHeight; i++)
+		{
+			for (int j = 0; j < m_textureWidth; j++)
+			{
+				texture[i * m_chanelCount * m_textureWidth + j * m_chanelCount ] = 0;
+				texture[i * m_chanelCount * m_textureWidth + j * m_chanelCount + 2] = 0;
+			}
+		}
+		stbi_write_png("out.png", m_textureWidth, m_textureHeight, m_chanelCount, data, m_chanelCount * m_textureWidth);
+	}
+
+	void live_B(stbi_uc* texture)
+	{
+		auto data = texture;
+		for (int i = 0; i < m_textureHeight; i++)
+		{
+			for (int j = 0; j < m_textureWidth; j++)
+			{
+				texture[i * m_chanelCount * m_textureWidth + j * m_chanelCount] = 0;
+				texture[i * m_chanelCount * m_textureWidth + j * m_chanelCount + 1] = 0;
+			}
+		}
+		stbi_write_png("out.png", m_textureWidth, m_textureHeight, m_chanelCount, data, m_chanelCount * m_textureWidth);
+	}
+	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) override
+	{
+
+	}
+
+
+private:
+	std::string m_filePath;
+	std::uint32_t m_textureWidth;
+	std::uint32_t m_textureHeight;
+	std::uint32_t m_chanelCount= 3;
+};
+
 
 class UVMapConsumer : public cdtools::IConsumer
 {

@@ -61,6 +61,10 @@ public:
 	void ActivateImproveACMRService() { m_bWantSimpleAnimation = true; }
 	bool IsImproveACMRServiceActive() const { return m_bWantSimpleAnimation; }
 
+   //  ssssssssssss
+	void ActiveSplittextureService() { m_bWantSplitTexture = true; }
+	bool IsSimpleActiveSplittextureService() const { return m_bWantSplitTexture; }
+
 private:
 	uint32_t GetImportFlags() const;
 
@@ -90,6 +94,8 @@ private:
 	bool m_bWantCleanUnused = false;
 	bool m_bWantSimpleAnimation = false;
 	bool m_bWantImproveACMR = false;
+
+	bool m_bWantSplitTexture = false;
 
 	// Generate IDs for different objects
 	cd::ObjectIDGenerator<cd::NodeID> m_nodeIDGenerator;
