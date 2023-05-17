@@ -35,91 +35,58 @@ public:
 		R_state = R_state_s;
 		G_state = G_state_s;
 		B_state = B_state_s;
+		live = true;
 	}
 
+	void merge_RGB(bool R_state_s, bool G_state_s, bool B_state_s , unsigned char * data1,unsigned char* data2)
+	{
+		R_state = R_state_s;
+		G_state = G_state_s;
+		B_state = B_state_s;
+		texture_data = data1;
+		texture_data2 = data2;
+		merge_to_p1 = true;
+	}
 
 	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) override
 	{
-		if (R_state && G_state && B_state) // 保留 RGB
+		if (live)
 		{
+			for (int i = 0; i < m_textureHeight; i++)
+			{
+				for (int j = 0; j < m_textureWidth; j++)
+				{
+					if (!R_state)
+						texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount)] =0;
+					if (!G_state)
+						texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 1] =0;
+					if (!B_state)
+						texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 2] =0;
+				}
+			}
+		}
+		live = false;
 
-		}
-		else if (!R_state && !G_state && !B_state) //都不保留
+
+		if (merge_to_p1)
 		{
 			for (int i = 0; i < m_textureHeight; i++)
 			{
 				for (int j = 0; j < m_textureWidth; j++)
 				{
-					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) ] = 0;
-					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 1] = 0;
-					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 2] = 0;
+					if(R_state)
+						texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount)] += texture_data2[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount)];
+					if(G_state)
+						texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 1] += texture_data2[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount)+1];
+					if(B_state)
+						texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 2] += texture_data2[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount)+2];
 				}
 			}
 		}
-		else if (R_state && G_state && !B_state) //保留RG 不保留B
-		{
-			for (int i = 0; i < m_textureHeight; i++)
-			{
-				for (int j = 0; j < m_textureWidth; j++)
-				{
-					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 2] = 0;
-				}
-			}
-		}
-		else if (R_state && !G_state && B_state) //保留RB 不保留G
-		{
-			for (int i = 0; i < m_textureHeight; i++)
-			{
-				for (int j = 0; j < m_textureWidth; j++)
-				{
-					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 1] = 0;
-				}
-			}
-		}
-		else if (!R_state && G_state && B_state) //保留 GB 不保留R
-		{
-			for (int i = 0; i < m_textureHeight; i++)
-			{
-				for (int j = 0; j < m_textureWidth; j++)
-				{
-					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount)] = 0;
-				}
-			}
-		}
-		else if (R_state && !G_state && !B_state) //保留R 不保留GB
-		{
-			for (int i = 0; i < m_textureHeight; i++)
-			{
-				for (int j = 0; j < m_textureWidth; j++)
-				{
-					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 1] = 0;
-					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 2] = 0;
-				}
-			}
-		}
-		else if (!R_state && G_state && !B_state) // 保留G 不保留RB
-		{
-			for (int i = 0; i < m_textureHeight; i++)
-			{
-				for (int j = 0; j < m_textureWidth; j++)
-				{
-					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount)] = 0;
-					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 2] = 0;
-				}
-			}
-		}
-		else if (!R_state && !G_state && B_state) //保留B 不保留RG
-		{
-			for (int i = 0; i < m_textureHeight; i++)
-			{
-				for (int j = 0; j < m_textureWidth; j++)
-				{
-					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount)] = 0;
-					texture_data[(i * m_chanelCount * m_textureWidth) + (j * m_chanelCount) + 1] = 0;
-				}
-			}
-		}
-		stbi_write_png("C:\\Toolchain_Scene_Data\\CDSDK_Example\\RGB\\B.png", m_textureWidth, m_textureHeight, m_chanelCount, texture_data, m_chanelCount* m_textureWidth);
+		merge_to_p1 = false;
+
+
+		stbi_write_png("C:\\Toolchain_Scene_Data\\CDSDK_Example\\RGB\\T2.png", m_textureWidth, m_textureHeight, m_chanelCount, texture_data, m_chanelCount* m_textureWidth);
 	}
 
 
@@ -129,9 +96,13 @@ private:
 	int m_textureHeight;
 	int m_chanelCount= 3;
 	unsigned char* texture_data;
+	unsigned char* texture_data2;
 	bool R_state;
 	bool G_state;
 	bool B_state;
+	bool live = false;
+	bool merge_to_p1 = false;
+
 };
 
 

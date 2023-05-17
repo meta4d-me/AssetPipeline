@@ -32,24 +32,23 @@ int main(int argc, char** argv)
 	processor.Run();
 
 	{
-		 const char* filepath = "C:\\Toolchain_Scene_Data\\CDSDK_Example\\RGB\\B.png";
+		 const char* filepath = "C:\\Toolchain_Scene_Data\\CDSDK_Example\\RGB\\T2.png";
+		 const char* filepath2 = "C:\\Toolchain_Scene_Data\\CDSDK_Example\\RGB\\B.png";
 		 int width, height,channels;
+		 int width2, height2, channels2;
 		 if (filepath == NULL)
 		 {
 			 static_assert("ERROR_FILE_NOT_LOAD");
 			 return -1;
 		 }
 		 auto  texture1 =  stbi_load(filepath,&width, &height ,&channels,3);
+		 auto  texture2 = stbi_load(filepath2, &width2, &height2, &channels2, 3);
+
 		 std::stringstream ss;
 		 ss << pOutputFilePath << "/" << "Split_texture"  << ".png";
 		 SplitTextureConsumer consumer1(ss.str().c_str()); 
 	     consumer1.init(width, height,texture1);
-		 consumer1.live_RGB(false, false, true);
-		 for (auto& ORM : pSceneDatabase->GetMaterials())
-		 {
-			 ORM.GetPropertyGroups();
-		 }
-
+		 consumer1.live_RGB(true, false, true);
 		 Processor processor(nullptr, &consumer1, pSceneDatabase.get());
 		 processor.Run();
 	}
