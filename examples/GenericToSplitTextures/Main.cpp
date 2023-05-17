@@ -32,10 +32,12 @@ int main(int argc, char** argv)
 	processor.Run();
 
 	{
-		 const char* filepath = "C:\\Toolchain_Scene_Data\\CDSDK_Example\\RGB\\T2.png";
-		 const char* filepath2 = "C:\\Toolchain_Scene_Data\\CDSDK_Example\\RGB\\B.png";
+		 const char* filepath = "C:\\TestAssets\\PBR\\te\\DamagedHelmet\\testu\\MR.jpg";
+		 const char* filepath2 = "C:\\TestAssets\\PBR\\te\\DamagedHelmet\\testu\\AO.jpg";
 		 int width, height,channels;
 		 int width2, height2, channels2;
+		 auto  texture1 = stbi_load(filepath, &width, &height, &channels, 3);
+		 auto  texture2 = stbi_load(filepath2, &width2, &height2, &channels2, 3);
 		 if (filepath == NULL)
 		 {
 			 static_assert("ERROR_FILE_NOT_LOAD");
@@ -51,14 +53,13 @@ int main(int argc, char** argv)
 			 static_assert("ERROR_SIZE_DIFFERENT");
 			 return -1;
 		 }
-		 auto  texture1 =  stbi_load(filepath,&width, &height ,&channels,3);
-		 auto  texture2 = stbi_load(filepath2, &width2, &height2, &channels2, 3);
+
 
 		 std::stringstream ss;
 		 ss << pOutputFilePath << "/" << "Split_texture"  << ".png";
 		 SplitTextureConsumer consumer1(ss.str().c_str()); 
 	     consumer1.init(width, height,texture1);
-		 consumer1.live_RGB(true, false, true);
+		 consumer1.merge_RGB(true, true,true, texture1, texture2);
 		 Processor processor(nullptr, &consumer1, pSceneDatabase.get());
 		 processor.Run();
 	}

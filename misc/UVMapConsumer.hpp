@@ -86,7 +86,7 @@ public:
 		merge_to_p1 = false;
 
 
-		stbi_write_png("C:\\Toolchain_Scene_Data\\CDSDK_Example\\RGB\\T2.png", m_textureWidth, m_textureHeight, m_chanelCount, texture_data, m_chanelCount* m_textureWidth);
+		stbi_write_jpg("C:\\TestAssets\\PBR\\te\\DamagedHelmet\\testu\\MR.jpg", m_textureWidth, m_textureHeight, m_chanelCount, texture_data, m_textureWidth*m_chanelCount);
 	}
 
 
