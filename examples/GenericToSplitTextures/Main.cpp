@@ -41,6 +41,16 @@ int main(int argc, char** argv)
 			 static_assert("ERROR_FILE_NOT_LOAD");
 			 return -1;
 		 }
+		 if (width != width2)
+		 {
+			 static_assert("ERROR_SIZE_DIFFERENT");
+			 return -1;
+		 }
+		 if (height != height2)
+		 {
+			 static_assert("ERROR_SIZE_DIFFERENT");
+			 return -1;
+		 }
 		 auto  texture1 =  stbi_load(filepath,&width, &height ,&channels,3);
 		 auto  texture2 = stbi_load(filepath2, &width2, &height2, &channels2, 3);
 
