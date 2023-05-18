@@ -526,7 +526,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 			fbxsdk::FbxVector4 position = pMeshVertexPositions[controlPointIndex];
 			mesh.SetVertexPosition(mapControlPointToVertexID[controlPointIndex], cd::Point(position[0], position[1], position[2]));
 
-			polygon[polygonVertexIndex] = controlPointIndex;
+			polygon[polygonVertexIndex] = mapControlPointToVertexID[controlPointIndex];
 		}
 		mesh.SetPolygon(polygonID++, cd::MoveTemp(polygon));
 
