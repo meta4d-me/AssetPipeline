@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 	const char* pInputFilePath = argv[1];
 	const char* pOutputFilePath = argv[2];
 	FbxProducer producer(pInputFilePath);
-	producer.AddTextureSearchFolderPath("S:/box_gallery_lights/textures");
+	//producer.AddTextureSearchFolderPath("D:/box_gallery_lights/textures");
 
 	FbxConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);
