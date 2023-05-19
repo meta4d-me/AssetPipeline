@@ -59,7 +59,7 @@ int main(int argc, char** argv)
 		}
 		else if (!strcmp(pDot, ".fbx"))
 		{
-			FbxProducer fbx(pInputFilePath);
+
 		}
 		else
 		{
