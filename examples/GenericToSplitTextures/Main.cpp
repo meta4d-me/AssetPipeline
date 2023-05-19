@@ -2,7 +2,8 @@
 #include "Framework/Processor.h"
 #include "GenericProducer.h"
 #include "Utilities/PerformanceProfiler.h"
-#include "UVMapConsumer.hpp"
+#include"SplitTexturesConsumer.hpp"
+
 
 #include <filesystem>
 
@@ -10,7 +11,7 @@ int main(int argc, char** argv)
 {
 	// argv[0] : exe name
 	// argv[1] : input file path
-	// argv[2] : output file path
+	// argv[2] : input file2 path 
 	if (argc != 3)
 	{
 		return 1;
@@ -21,48 +22,76 @@ int main(int argc, char** argv)
 	PerformanceProfiler profiler("AssetPipeline");
 
 	const char* pInputFilePath = argv[1];
-	const char* pOutputFilePath = argv[2];
+	const char* pInputFilePath2 = argv[2];
 
-	auto pSceneDatabase = std::make_unique<cd::SceneDatabase>();
-
-
-	GenericProducer producer(pInputFilePath);
-	producer.ActivateTriangulateService();
-	Processor processor(&producer, nullptr, pSceneDatabase.get());
-	processor.Run();
-
+	if (pInputFilePath == NULL && pInputFilePath2 == NULL)
 	{
-		 const char* filepath = "C:\\TestAssets\\PBR\\te\\DamagedHelmet\\testu\\MR.jpg";
-		 const char* filepath2 = "C:\\TestAssets\\PBR\\te\\DamagedHelmet\\testu\\AO.jpg";
+		static_assert("INPUT NULL");
+		return -1;
+	}
+	else if (pInputFilePath == NULL && pInputFilePath2 != NULL)
+	{
+		pInputFilePath = pInputFilePath2;
+	}
+	else if (pInputFilePath2 == NULL && pInputFilePath != NULL)
+	{
+		pInputFilePath2 = pInputFilePath;
+	}
+
+
+		char * type = nullptr;
+		const char* pDot = strrchr(pInputFilePath, '.');
+		const char* pDot2 = strrchr(pInputFilePath2, '.');
+
+		if (strcmp(pDot, pDot2))
+		{
+			static_assert("TYPE_DIFFERENT");
+			return 0;
+		}
+
+		if (!strcmp(pDot, ".jpg"))
+		{
+			type = "jpg";
+		}
+		else if (!strcmp(pDot, ".png"))
+		{
+			type = "png";
+		}
+		else if (!strcmp(pDot, ".fbx"))
+		{
+			FbxProducer fbx(pInputFilePath);
+		}
+		else
+		{
+
+		}
+
+
+
+
+	     auto pSceneDatabase = std::make_unique<cd::SceneDatabase>();
 		 int width, height,channels;
 		 int width2, height2, channels2;
-		 auto  texture1 = stbi_load(filepath, &width, &height, &channels, 3);
-		 auto  texture2 = stbi_load(filepath2, &width2, &height2, &channels2, 3);
-		 if (filepath == NULL)
-		 {
-			 static_assert("ERROR_FILE_NOT_LOAD");
-			 return -1;
-		 }
+		 auto  texture1 = stbi_load(pInputFilePath, &width, &height, &channels, 3);
+		 auto  texture2 = stbi_load(pInputFilePath2, &width2, &height2, &channels2, 3);
 		 if (width != width2)
 		 {
-			 static_assert("ERROR_SIZE_DIFFERENT");
+			 static_assert("ERROR_WIDE_DIFFERENT");
 			 return -1;
 		 }
 		 if (height != height2)
 		 {
-			 static_assert("ERROR_SIZE_DIFFERENT");
+			 static_assert("ERROR_HEIGHT_DIFFERENT");
 			 return -1;
 		 }
 
 
-		 std::stringstream ss;
-		 ss << pOutputFilePath << "/" << "Split_texture"  << ".png";
-		 SplitTextureConsumer consumer1(ss.str().c_str()); 
-	     consumer1.init(width, height,texture1);
+		 SplitTextureConsumer consumer1(pInputFilePath); 
+	     consumer1.init(width, height,texture1 , type);
 		 consumer1.merge_RGB(true, true,true, texture1, texture2);
 		 Processor processor(nullptr, &consumer1, pSceneDatabase.get());
 		 processor.Run();
-	}
+	
 
-	return 0;
+		return 0;
 }
