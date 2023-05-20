@@ -79,10 +79,11 @@ public:
 
 	// Texture
 	void AddTexture(Texture texture) { m_textures.emplace_back(MoveTemp(texture)); }
-	std::vector<Texture> &GetTextures() { return m_textures; }
-	const std::vector<Texture> &GetTextures() const { return m_textures; }
+	std::vector<Texture>& GetTextures() { return m_textures; }
+	const std::vector<Texture>& GetTextures() const { return m_textures; }
 	void SetTextureCount(uint32_t count) { m_textures.reserve(count); }
-	const Texture &GetTexture(uint32_t index) const { return m_textures[index]; }
+	Texture& GetTexture(uint32_t index) { return m_textures[index]; }
+	const Texture& GetTexture(uint32_t index) const { return m_textures[index]; }
 	uint32_t GetTextureCount() const { return static_cast<uint32_t>(m_textures.size()); }
 
 	// Material

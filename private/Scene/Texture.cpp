@@ -78,6 +78,11 @@ const char* Texture::GetPath() const
     return m_pTextureImpl->GetPath().c_str();
 }
 
+void Texture::SetPath(const char* pFilePath)
+{
+    return m_pTextureImpl->SetPath(pFilePath);
+}
+
 const cd::TextureFormat Texture::GetTextureFormat() const
 {
     return m_pTextureImpl->GetTextureFormat();

@@ -36,7 +36,10 @@ public:
 
 	const TextureID& GetID() const;
 	cd::MaterialTextureType GetType() const;
+
 	const char* GetPath() const;
+	void SetPath(const char* pFilePath);
+
 	const cd::TextureFormat GetTextureFormat() const;
 	const std::vector<std::byte>& GetRawTexture() const;
 	uint32_t GetWidth() const;
