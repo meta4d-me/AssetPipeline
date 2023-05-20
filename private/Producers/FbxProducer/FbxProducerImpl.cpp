@@ -4,6 +4,7 @@
 #include "Scene/Mesh.h"
 #include "Scene/ObjectID.h"
 #include "Scene/SceneDatabase.h"
+#include "Scene/VertexFormat.h"
 
 #include <fbxsdk.h>
 
@@ -243,7 +244,7 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 	else if (fbxsdk::FbxNodeAttribute::eMesh == pNodeAttribute->GetAttributeType())
 	{
 		const fbxsdk::FbxMesh* pFbxMesh = reinterpret_cast<const fbxsdk::FbxMesh*>(pNodeAttribute);
-		assert(pFbxMesh);
+		assert(pFbxMesh && pFbxMesh->IsTriangleMesh());
 		
 		bool hasError = false;
 		if (!pFbxMesh->IsTriangleMesh())
@@ -388,13 +389,12 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 	uint32_t totalVertexCount = pFbxMesh->GetControlPointsCount();
 	uint32_t totalPolygonCount = pFbxMesh->GetPolygonCount();
 
-	uint32_t avaiablePolygonCount = 0U;
-	uint32_t avaiableVertexCount = 0U;
+	uint32_t availablePolygonCount = 0U;
+	uint32_t availableVertexCount = 0U;
 	const fbxsdk::FbxLayerElementMaterial* pLayerElementMaterial = pMeshBaseLayer->GetMaterials();
 	bool splitPolygonByMaterial = optMaterialIndex.has_value() && fbxsdk::FbxLayerElement::eByPolygon == pLayerElementMaterial->GetMappingMode();
 	if (splitPolygonByMaterial)
 	{
-		uint32_t availablePolygonCount = 0U;
 		for (uint32_t polygonIndex = 0U; polygonIndex < totalPolygonCount; ++polygonIndex)
 		{
 			assert(3 == pFbxMesh->GetPolygonSize(polygonIndex));
@@ -406,11 +406,15 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 			}
 		}
 
-		avaiablePolygonCount = availablePolygonCount;
-		avaiableVertexCount = avaiablePolygonCount * 3;
+		availableVertexCount = availablePolygonCount * 3;
+	}
+	else
+	{
+		availablePolygonCount = totalPolygonCount;
+		availableVertexCount = totalVertexCount;
 	}
 
-	if (0 == avaiablePolygonCount || 0 == avaiableVertexCount)
+	if (0 == availablePolygonCount || 0 == availableVertexCount)
 	{
 		printf("[Error] Mesh doesn't have any vertex or polygon.\n");
 		return cd::MeshID(cd::MeshID::InvalidID);
@@ -418,7 +422,8 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 
 	// Convert fbx mesh to cd mesh.
 	cd::MeshID meshID = m_meshIDGenerator.AllocateID();
-	cd::Mesh mesh(meshID, pMeshName, avaiableVertexCount, avaiablePolygonCount);
+	cd::Mesh mesh(meshID, pMeshName, availableVertexCount, availablePolygonCount);
+	cd::VertexFormat meshVertexFormat;
 
 	const fbxsdk::FbxVector4* pMeshVertexPositions = pFbxMesh->GetControlPoints();
 	const fbxsdk::FbxLayerElementNormal* pLayerElementNormalData = pMeshBaseLayer->GetNormals();
@@ -437,13 +442,37 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 			layerElementUVDatas.push_back(pLayerUVSets[uvSetIndex]);
 		}
 	}
-	mesh.SetVertexUVSetCount(static_cast<uint32_t>(layerElementUVDatas.size()));
 
+	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+	if (pLayerElementNormalData)
+	{
+		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+
+		if (pLayerElementTangentData)
+		{
+			meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+		}
+
+		if (pLayerElementBinormalData)
+		{
+			meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Bitangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+		}
+	}
+
+	if (layerElementUVDatas.size() > 0)
+	{
+		mesh.SetVertexUVSetCount(static_cast<uint32_t>(layerElementUVDatas.size()));
+		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+	}
+	
 	// TODO : Multiple vertex color sets if necessary.
 	if (pLayerElementColorData)
 	{
 		mesh.SetVertexColorSetCount(1U);
+		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Vec4f::ValueType>(), cd::Vec4f::Size);
 	}
+
+	mesh.SetVertexFormat(cd::MoveTemp(meshVertexFormat));
 
 	// Associate mesh id to its parent transform node.
 	if (pParentNode)
@@ -483,9 +512,11 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 		for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < 3U; ++polygonVertexIndex)
 		{
 			uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
-			mapControlPointToVertexID[controlPointIndex] = vertexID + polygonVertexIndex;
+			if (auto itVertexID = mapControlPointToVertexID.find(controlPointIndex); itVertexID == mapControlPointToVertexID.end())
+			{
+				mapControlPointToVertexID[controlPointIndex] = vertexID++;
+			}
 		}
-		vertexID += 3U;
 
 		// Position
 		cd::Polygon polygon;
@@ -495,7 +526,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 			fbxsdk::FbxVector4 position = pMeshVertexPositions[controlPointIndex];
 			mesh.SetVertexPosition(mapControlPointToVertexID[controlPointIndex], cd::Point(position[0], position[1], position[2]));
 
-			polygon[polygonVertexIndex] = controlPointIndex;
+			polygon[polygonVertexIndex] = mapControlPointToVertexID[controlPointIndex];
 		}
 		mesh.SetPolygon(polygonID++, cd::MoveTemp(polygon));
 

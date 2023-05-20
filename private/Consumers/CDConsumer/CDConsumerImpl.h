@@ -20,7 +20,7 @@ class CDConsumerImpl final
 {
 public:
 	CDConsumerImpl() = delete;
-	explicit CDConsumerImpl(std::string filePath) : m_filePath(cd::MoveTemp(filePath)) {}
+	explicit CDConsumerImpl(std::string filePath) : m_filePath(cd::MoveTemp(filePath)), m_exportMode(ExportMode::PureBinary) {}
 	CDConsumerImpl(const CDConsumerImpl&) = delete;
 	CDConsumerImpl& operator=(const CDConsumerImpl&) = delete;
 	CDConsumerImpl(CDConsumerImpl&&) = delete;
