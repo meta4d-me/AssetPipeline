@@ -246,6 +246,11 @@ void SceneDatabase::SetTextureCount(uint32_t textureCount)
 	return m_pSceneDatabaseImpl->SetTextureCount(textureCount);
 }
 
+Texture& SceneDatabase::GetTexture(uint32_t index)
+{
+	return m_pSceneDatabaseImpl->GetTexture(index);
+}
+
 const Texture& SceneDatabase::GetTexture(uint32_t index) const
 {
 	return m_pSceneDatabaseImpl->GetTexture(index);
