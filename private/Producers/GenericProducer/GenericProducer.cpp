@@ -98,15 +98,4 @@ bool GenericProducer::IsImproveACMRServiceActive() const
 	return m_pGenericProducerImpl->IsImproveACMRServiceActive();
 }
 
-void GenericProducer::ActiveSplittextureService()
-{
-	m_pGenericProducerImpl->ActiveSplittextureService();
-}
-
-bool GenericProducer::IsSimpleActiveSplittextureService() const
-{
-	return  IsSimpleActiveSplittextureService();
-}
-
-
 }

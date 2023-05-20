@@ -13,7 +13,6 @@
 namespace cdtools
 {
 
-
 class UVMapConsumer : public cdtools::IConsumer
 {
 public:

@@ -17,8 +17,8 @@ namespace cdtools
 enum class ColorIndex
 {
 	R = 0,
-	G = 1,
-	B = 2
+	G,
+	B
 };
 
 constexpr int RequestChannelCount = 3;
@@ -31,6 +31,15 @@ struct Texture2D
 	int size = 0;
 	Texture2DRect rect;
 	int channel = 0;
+
+	~Texture2D()
+	{
+		if (data)
+		{
+			stbi_image_free(data);
+			data = nullptr;
+		}
+	}
 
 	void Allocate()
 	{
@@ -57,15 +66,20 @@ struct Texture2D
 	}
 };
 
-class SplitTextureConsumer : public cdtools::IConsumer
+class MergeTextureConsumer : public cdtools::IConsumer
 {
 public:
-	SplitTextureConsumer() = default;
-	SplitTextureConsumer(const SplitTextureConsumer&) = delete;
-	SplitTextureConsumer& operator=(const SplitTextureConsumer&) = delete;
-	SplitTextureConsumer(SplitTextureConsumer&&) = default;
-	SplitTextureConsumer& operator=(SplitTextureConsumer&&) = default;
-	virtual ~SplitTextureConsumer() {}
+	MergeTextureConsumer() = default;
+	MergeTextureConsumer(const MergeTextureConsumer&) = delete;
+	MergeTextureConsumer& operator=(const MergeTextureConsumer&) = delete;
+	MergeTextureConsumer(MergeTextureConsumer&&) = default;
+	MergeTextureConsumer& operator=(MergeTextureConsumer&&) = default;
+	virtual ~MergeTextureConsumer() = default;
+
+	void SetMergedTextureSuffixAndExtension(const char* pSuffixAndExtension)
+	{
+		m_mergedTextureSuffixAndExtension = pSuffixAndExtension;
+	}
 
 	void SetTextureTypeAndColorIndex(cd::MaterialTextureType textureType, ColorIndex colorIndex)
 	{
@@ -74,6 +88,7 @@ public:
 
 	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) override
 	{
+		assert(!m_mergedTextureSuffixAndExtension.empty() && "Need to specify merged texture suffix and output file extension.");
 		assert(!m_textureColorIndex.empty() && "Forgot to set texture type and its according color index?");
 
 		for (const auto& material : pSceneDatabase->GetMaterials())
@@ -102,14 +117,17 @@ public:
 			// Validate all texture files can be loaded successfully.
 			// TODO : texture type is a valid 2D texture.
 			// TextureType : 2D, 3D, Volume, Cubemap...
-			std::map<cd::MaterialTextureType, Texture2D> loadedTexturesData;
+			std::vector<Texture2D> texture2DStorage;
+			texture2DStorage.reserve(textureFileSupportTypes.size());
+
+			std::map<cd::MaterialTextureType, Texture2D*> loadedTexturesData;
 			std::optional<Texture2DRect> mergedTextureRect;
 			std::filesystem::path mergedTextureFilePath;
 			bool isAnyUnknownTexture = false;
 			bool isSameTextureSize = true;
 			for (const auto& [textureFilePath, textureTypes] : textureFileSupportTypes)
 			{
-				Texture2D texture2D;
+				Texture2D& texture2D = texture2DStorage.emplace_back();
 				texture2D.data = stbi_load(textureFilePath.c_str(), &texture2D.rect.x(), &texture2D.rect.y(), &texture2D.channel, RequestChannelCount);
 				if (!texture2D.data)
 				{
@@ -131,13 +149,12 @@ public:
 
 				for (cd::MaterialTextureType textureType : textureTypes)
 				{
-					loadedTexturesData[textureType] = texture2D;
+					loadedTexturesData[textureType] = &texture2D;
 				}
 			}
 
 			if (isAnyUnknownTexture || !isSameTextureSize)
 			{
-				// TODO : free heap memory.
 				continue;
 			}
 
@@ -146,30 +163,35 @@ public:
 			mergedTexture.rect = mergedTextureRect.value();
 			mergedTexture.channel = RequestChannelCount;
 			mergedTexture.Allocate();
-			for (const auto& [textureType, texture2D] : loadedTexturesData)
+			for (const auto& [textureType, pTexture2D] : loadedTexturesData)
 			{
 				int colorIndex = static_cast<int>(m_textureColorIndex[textureType]);
 				for (int i = 0; i < mergedTexture.rect.x(); ++i)
 				{
 					for (int j = 0; j < mergedTexture.rect.y(); ++j)
 					{
-						mergedTexture.SetPixelData(i, j, colorIndex, texture2D.GetPixelData(i, j, colorIndex));
+						mergedTexture.SetPixelData(i, j, colorIndex, pTexture2D->GetPixelData(i, j, colorIndex));
 					}
 				}
 			}
 
 			std::filesystem::path mergedFilePath = mergedTextureFilePath.parent_path();
 			mergedFilePath = mergedFilePath / material.GetName();
-			mergedFilePath += "_orm.png";
+			mergedFilePath += "_" + m_mergedTextureSuffixAndExtension;
 			std::string outputFilePath = mergedFilePath.string();
 			if (!mergedTexture.Save(outputFilePath.c_str()))
 			{
-				printf("Failed to save %s while merging textures.", outputFilePath.c_str());
+				printf("Failed to save %s while merging textures.\n", outputFilePath.c_str());
+			}
+			else
+			{
+				printf("Succeed to save merged texture : %s.\n", outputFilePath.c_str());
 			}
 		}
 	}
 
 private:
+	std::string m_mergedTextureSuffixAndExtension;
 	std::map<cd::MaterialTextureType, ColorIndex> m_textureColorIndex; 
 };
 }

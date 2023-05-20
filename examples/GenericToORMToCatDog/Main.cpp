@@ -3,7 +3,7 @@
 #include "Framework/Processor.h"
 #include "GenericProducer.h"
 #include "Utilities/PerformanceProfiler.h"
-#include "SplitTexturesConsumer.hpp"
+#include "MergeTexturesConsumer.hpp"
 
 #include <filesystem>
 
@@ -31,6 +31,7 @@ int main(int argc, char** argv)
 	TextureTypeToColorIndex[cd::MaterialTextureType::Metallic] = ColorIndex::B;
 
 	// Import a generic model file and merge its material texture files as standard ORM PBR workflow.
+	std::string ormTextureSuffixAndExtension = "orm.png";
 	{
 		GenericProducer producer(pInputFilePath);
 		producer.ActivateBoundingBoxService();
@@ -38,7 +39,8 @@ int main(int argc, char** argv)
 		producer.ActivateTangentsSpaceService();
 		producer.ActivateCleanUnusedService();
 
-		SplitTextureConsumer consumer;
+		MergeTextureConsumer consumer;
+		consumer.SetMergedTextureSuffixAndExtension(ormTextureSuffixAndExtension.c_str());
 		for (const auto& [textureType, colorIndex] : TextureTypeToColorIndex)
 		{
 			consumer.SetTextureTypeAndColorIndex(textureType, colorIndex);
@@ -63,7 +65,7 @@ int main(int argc, char** argv)
 				auto& texture = pSceneDatabase->GetTexture(optTextureID.value().Data());
 				std::filesystem::path mergedTextureFilePath = texture.GetPath();
 				mergedTextureFilePath = mergedTextureFilePath.parent_path() / material.GetName();
-				mergedTextureFilePath += "_orm.png";
+				mergedTextureFilePath += "_" + ormTextureSuffixAndExtension;
 				texture.SetPath(mergedTextureFilePath.string().c_str());
 			}
 		}
@@ -72,7 +74,6 @@ int main(int argc, char** argv)
 	// Save current scene database as a .cdbin file.
 	{
 		CDConsumer consumer(pOutputFilePath);
-		consumer.SetExportMode(ExportMode::PureBinary);
 		Processor processor(nullptr, &consumer, pSceneDatabase.get());
 		processor.Run();
 	}

@@ -70,11 +70,6 @@ public:
 	void ActivateImproveACMRService();
 	bool IsImproveACMRServiceActive() const;
 
-
-	// split texture
-	void ActiveSplittextureService();
-	bool IsSimpleActiveSplittextureService() const;
-
 private:
 	GenericProducerImpl* m_pGenericProducerImpl;
 };
