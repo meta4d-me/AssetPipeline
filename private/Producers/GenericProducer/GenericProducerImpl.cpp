@@ -216,7 +216,7 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			if (!isTextureReused)
 			{
 				cd::Texture materialTexture(textureID, materialTextureType, textureAbsolutePath.string().c_str());
-				ConvertAssimpTextureMapMode(textureMapMode[0]), ConvertAssimpTextureMapMode(textureMapMode[0]);
+				ConvertAssimpTextureMapMode(textureMapMode[0]), ConvertAssimpTextureMapMode(textureMapMode[1]);
 				pSceneDatabase->AddTexture(cd::MoveTemp(materialTexture));
 			}
 		}
