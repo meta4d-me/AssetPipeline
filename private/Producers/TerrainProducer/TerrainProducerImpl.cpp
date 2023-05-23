@@ -409,7 +409,7 @@ MaterialID TerrainProducerImpl::GenerateMaterialAndTextures(cd::SceneDatabase* p
 	TextureID::ValueType textureHash = StringHash<TextureID::ValueType>(textureName);
 	TextureID textureID = TextureID(kNextTextureId++);
 	terrainSectorMaterial.AddTextureID(MaterialTextureType::Elevation, textureID);
-	Texture elevationTexture(textureID, MaterialTextureType::Elevation, TextureMapMode::Wrap, textureName.c_str());
+	Texture elevationTexture(textureID, MaterialTextureType::Elevation, textureName.c_str());
 	elevationTexture.SetRawTexture(elevationMap, TextureFormat::R32I, m_sectorLenInX + 1, m_sectorLenInZ + 1);
 	pSceneDatabase->AddTexture(MoveTemp(elevationTexture));
 
@@ -419,7 +419,7 @@ MaterialID TerrainProducerImpl::GenerateMaterialAndTextures(cd::SceneDatabase* p
 		textureHash = StringHash<TextureID::ValueType>(textureName);
 		textureID = TextureID(kNextTextureId++);
 		terrainSectorMaterial.AddTextureID(MaterialTextureType::AlphaMap, textureID);
-		Texture elevationTexture(textureID, MaterialTextureType::AlphaMap, TextureMapMode::Wrap, textureName.c_str());
+		Texture elevationTexture(textureID, MaterialTextureType::AlphaMap, textureName.c_str());
 		std::vector<uint32_t> alphaMap;
 		GenerateElevationBasedAlphaMap(alphaMap, elevationMap);
 		elevationTexture.SetRawTexture(alphaMap, TextureFormat::RGBA8, m_sectorLenInX + 1, m_sectorLenInZ + 1);

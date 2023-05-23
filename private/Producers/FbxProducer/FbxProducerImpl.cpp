@@ -1,6 +1,7 @@
 #include "FbxProducerImpl.h"
 
 #include "Hashers/StringHash.hpp"
+#include "Scene/MaterialTextureType.h"
 #include "Scene/Mesh.h"
 #include "Scene/ObjectID.h"
 #include "Scene/SceneDatabase.h"
@@ -698,7 +699,7 @@ void FbxProducerImpl::AddMaterialTexture(const fbxsdk::FbxProperty& sdkProperty,
 				cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, &isReused);
 				if (!isReused)
 				{
-					cd::Texture texture(textureID, textureType, cd::TextureMapMode::Wrap, filePath.c_str());
+					cd::Texture texture(textureID, textureType, filePath.c_str());
 					pSceneDatabase->AddTexture(cd::MoveTemp(texture));
 				}
 				material.AddTextureID(textureType, textureID);

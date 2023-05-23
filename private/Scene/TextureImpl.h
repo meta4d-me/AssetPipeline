@@ -71,8 +71,7 @@ public:
 		std::string texturePath;
 		bool hasRawTexture = false;
 
-		inputArchive >> textureID >> textureType >> textureUMapMode >> textureVMapMode >>
-			texturePath >> hasRawTexture;
+		inputArchive >> textureID >> textureType >> textureUMapMode >> textureVMapMode >> texturePath >> hasRawTexture;
 		if (hasRawTexture)
 		{
 			uint32_t textureFormat;
@@ -94,9 +93,7 @@ public:
 	template<bool SwapBytesOrder>
 	const TextureImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetID().Data() << static_cast<uint8_t>(GetType()) << GetPath() <<
-			static_cast<uint8_t>(GetUMapMode()) << static_cast<uint8_t>(GetVMapMode()) << !m_rawTexture.empty();
-
+		outputArchive << GetID().Data() << static_cast<uint8_t>(GetType()) << static_cast<uint8_t>(GetUMapMode()) << static_cast<uint8_t>(GetVMapMode()) << GetPath() << !m_rawTexture.empty();
 		if (!m_rawTexture.empty())
 		{
 			outputArchive << static_cast<uint32_t>(m_textureFormat) << m_rawTexture.size();
