@@ -234,6 +234,7 @@ void ProcessorImpl::DumpSceneDatabase()
 		{
 			printf("[Texture %u] Type = %s\n", texture.GetID().Data(), cd::GetMaterialPropertyGroupName(texture.GetType()));
 			printf("\tPath = %s\n", texture.GetPath());
+			printf("\tUVMapMode = (%s, %s)\n", GetTextureMapModeName(texture.GetUMapMode()), GetTextureMapModeName(texture.GetVMapMode()));
 		}
 	}
 

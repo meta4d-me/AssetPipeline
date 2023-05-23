@@ -120,4 +120,29 @@ CD_FORCEINLINE std::string GetMaterialPropertyTextureKey(MaterialPropertyGroup p
 	return GetMaterialPropertyKey(propertyGroup, MaterialProperty::Texture);
 }
 
+enum class TextureMapMode
+{
+	Wrap,
+	Clamp,
+	Mirror,
+	Border,
+	Count
+};
+
+constexpr const char* TextureMapModeNames[] =
+{
+	"Wrap",
+	"Clamp",
+	"Mirror",
+	"Border",
+};
+
+static_assert(static_cast<int>(TextureMapMode::Count) == sizeof(TextureMapModeNames) / sizeof(char*),
+	"Material texture map modes and names mismatch.");
+
+static constexpr const char* GetTextureMapModeName(cd::TextureMapMode mapMode)
+{
+	return TextureMapModeNames[static_cast<uint8_t>(mapMode)];
+}
+
 }
