@@ -47,6 +47,12 @@ public:
 	const TextureID& GetID() const { return m_id; }
 	cd::MaterialTextureType GetType() const { return m_textureType; }
 
+	cd::TextureMapMode GetUMapMode() const { return m_textureUMapMode; }
+	void SetUMapMode(cd::TextureMapMode mapMode) { m_textureUMapMode = mapMode; }
+
+	cd::TextureMapMode GetVMapMode() const { return m_textureVMapMode; }
+	void SetVMapMode(cd::TextureMapMode mapMode) { m_textureVMapMode = mapMode; }
+
 	const std::string& GetPath() const { return m_path; }
 	void SetPath(std::string filePath) { m_path = MoveTemp(filePath); }
 
@@ -60,10 +66,13 @@ public:
 	{
 		uint32_t textureID;
 		uint8_t textureType;
+		uint8_t textureUMapMode;
+		uint8_t textureVMapMode;
 		std::string texturePath;
 		bool hasRawTexture = false;
 
-		inputArchive >> textureID >> textureType >> texturePath >> hasRawTexture;
+		inputArchive >> textureID >> textureType >> textureUMapMode >> textureVMapMode >>
+			texturePath >> hasRawTexture;
 		if (hasRawTexture)
 		{
 			uint32_t textureFormat;
@@ -76,6 +85,8 @@ public:
 		}
 
 		Init(TextureID(textureID), static_cast<cd::MaterialTextureType>(textureType), MoveTemp(texturePath));
+		SetUMapMode(static_cast<cd::TextureMapMode>(textureUMapMode));
+		SetVMapMode(static_cast<cd::TextureMapMode>(textureVMapMode));
 
 		return *this;
 	}
@@ -83,7 +94,9 @@ public:
 	template<bool SwapBytesOrder>
 	const TextureImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetID().Data() << static_cast<uint8_t>(GetType()) << GetPath() << !m_rawTexture.empty();
+		outputArchive << GetID().Data() << static_cast<uint8_t>(GetType()) << GetPath() <<
+			static_cast<uint8_t>(GetUMapMode()) << static_cast<uint8_t>(GetVMapMode()) << !m_rawTexture.empty();
+
 		if (!m_rawTexture.empty())
 		{
 			outputArchive << static_cast<uint32_t>(m_textureFormat) << m_rawTexture.size();
@@ -96,6 +109,8 @@ public:
 private:
 	TextureID m_id;
 	cd::MaterialTextureType m_textureType;
+	cd::TextureMapMode m_textureUMapMode;
+	cd::TextureMapMode m_textureVMapMode;
 	std::string m_path;
 	cd::TextureFormat m_textureFormat;
 	uint32_t m_textureWidth;

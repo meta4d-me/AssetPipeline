@@ -39,11 +39,6 @@ Texture::~Texture()
     }
 }
 
-void Texture::Init(TextureID textureID, MaterialTextureType textureType, const char* pTexturePath)
-{
-    m_pTextureImpl->Init(textureID, textureType, pTexturePath);
-}
-
 void Texture::SetRawTexture(const std::vector<uint32_t>& inputData, const cd::TextureFormat format, uint32_t width, uint32_t height)
 {
     m_pTextureImpl->SetRawTexture(inputData, format, width, height);
@@ -71,6 +66,26 @@ const TextureID& Texture::GetID() const
 cd::MaterialTextureType Texture::GetType() const
 {
     return m_pTextureImpl->GetType();
+}
+
+cd::TextureMapMode Texture::GetUMapMode() const
+{
+    return m_pTextureImpl->GetUMapMode();
+}
+
+void Texture::SetUMapMode(cd::TextureMapMode mapMode)
+{
+    m_pTextureImpl->SetUMapMode(mapMode);
+}
+
+cd::TextureMapMode Texture::GetVMapMode() const
+{
+    return m_pTextureImpl->GetVMapMode();
+}
+
+void Texture::SetVMapMode(cd::TextureMapMode mapMode)
+{
+    m_pTextureImpl->SetVMapMode(mapMode);
 }
 
 const char* Texture::GetPath() const

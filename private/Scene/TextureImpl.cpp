@@ -24,6 +24,8 @@ void TextureImpl::Init(TextureID textureID, MaterialTextureType textureType, std
 {
 	m_id = textureID;
 	m_textureType = textureType;
+	m_textureUMapMode = TextureMapMode::Wrap;
+	m_textureVMapMode = TextureMapMode::Wrap;
 	m_path = MoveTemp(texturePath);
 }
 
