@@ -228,6 +228,15 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 				materialTexture.SetUVScale(cd::Vec2f(uvTransform.mScaling.x, uvTransform.mScaling.y));
 				pSceneDatabase->AddTexture(cd::MoveTemp(materialTexture));
 			}
+			else
+			{
+				// Check if there are same file path but different tiling settings.
+				const cd::Texture& texture = pSceneDatabase->GetTexture(textureID.Data());
+				assert(texture.GetUVOffset().x() == uvTransform.mTranslation.x);
+				assert(texture.GetUVOffset().y() == uvTransform.mTranslation.y);
+				assert(texture.GetUVScale().x() == uvTransform.mScaling.x);
+				assert(texture.GetUVScale().y() == uvTransform.mScaling.y);
+			}
 		}
 	}
 

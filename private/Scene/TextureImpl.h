@@ -54,9 +54,11 @@ public:
 	void SetVMapMode(cd::TextureMapMode mapMode) { m_uvMapMode[1] = mapMode; }
 
 	const cd::Vec2f& GetUVOffset() const { return m_uvOffset; }
+	cd::Vec2f& GetUVOffset() { return m_uvOffset; }
 	void SetUVOffset(cd::Vec2f uvOffset) { m_uvOffset = cd::MoveTemp(uvOffset); }
 
 	const cd::Vec2f& GetUVScale() const { return m_uvScale; }
+	cd::Vec2f& GetUVScale() { return m_uvScale; }
 	void SetUVScale(cd::Vec2f uvScale) { m_uvScale = cd::MoveTemp(uvScale); }
 
 	const std::string& GetPath() const { return m_path; }
@@ -77,7 +79,8 @@ public:
 		std::string texturePath;
 		bool hasRawTexture = false;
 
-		inputArchive >> textureID >> textureType >> textureUMapMode >> textureVMapMode >> texturePath >> hasRawTexture;
+		inputArchive >> textureID >> textureType >> texturePath >> textureUMapMode >> textureVMapMode >>
+			GetUVOffset() >> GetUVScale() >> hasRawTexture;
 		if (hasRawTexture)
 		{
 			uint32_t textureFormat;
@@ -99,15 +102,11 @@ public:
 	template<bool SwapBytesOrder>
 	const TextureImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-<<<<<<< Updated upstream
-		outputArchive << GetID().Data() << static_cast<uint8_t>(GetType()) << static_cast<uint8_t>(GetUMapMode()) << static_cast<uint8_t>(GetVMapMode()) << GetPath() << !m_rawTexture.empty();
-		if (!m_rawTexture.empty())
-=======
 		outputArchive << GetID().Data() << static_cast<uint8_t>(GetType()) << GetPath() <<
-			static_cast<uint8_t>(GetUMapMode()) << static_cast<uint8_t>(GetVMapMode()) << !m_rawData.empty();
+			static_cast<uint8_t>(GetUMapMode()) << static_cast<uint8_t>(GetVMapMode()) <<
+			GetUVOffset() << GetUVScale() << !m_rawData.empty();
 
 		if (!m_rawData.empty())
->>>>>>> Stashed changes
 		{
 			outputArchive << static_cast<uint32_t>(m_format) << m_rawData.size();
 			outputArchive.ExportBuffer(m_rawData.data(), m_rawData.size());
