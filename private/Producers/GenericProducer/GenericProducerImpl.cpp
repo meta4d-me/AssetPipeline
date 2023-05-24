@@ -49,6 +49,24 @@ cd::Matrix4x4 ConvertAssimpMatrix(const aiMatrix4x4& matrix)
 		matrix.a4, matrix.b4, matrix.c4, matrix.d4);
 }
 
+cd::TextureMapMode ConvertAssimpTextureMapMode(aiTextureMapMode mapMode)
+{
+	switch (mapMode)
+	{
+	case aiTextureMapMode_Wrap:
+		return cd::TextureMapMode::Wrap;
+	case aiTextureMapMode_Clamp:
+		return cd::TextureMapMode::Clamp;
+	case aiTextureMapMode_Mirror:
+		return cd::TextureMapMode::Mirror;
+	case aiTextureMapMode_Decal:
+	case _aiTextureMapMode_Force32Bit:
+	default:
+		assert("Need to support more texture map mode.");
+		return cd::TextureMapMode::Wrap;
+	}
+}
+
 }
 
 namespace cdtools
@@ -107,20 +125,18 @@ void GenericProducerImpl::SetSceneDatabaseIDs(uint32_t nodeID, uint32_t meshID, 
 
 cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial)
 {
+	// Mapping assimp material key to pbr based material key.
 	static std::unordered_map<aiTextureType, cd::MaterialTextureType> materialTextureMapping;
-	{
-		// Mapping assimp material key to pbr based material key.
-		materialTextureMapping[aiTextureType_DIFFUSE] = cd::MaterialTextureType::BaseColor;
-		materialTextureMapping[aiTextureType_BASE_COLOR] = cd::MaterialTextureType::BaseColor;
-		materialTextureMapping[aiTextureType_NORMALS] = cd::MaterialTextureType::Normal;
-		materialTextureMapping[aiTextureType_NORMAL_CAMERA] = cd::MaterialTextureType::Normal;
-		materialTextureMapping[aiTextureType_EMISSIVE] = cd::MaterialTextureType::Emissive;
-		materialTextureMapping[aiTextureType_EMISSION_COLOR] = cd::MaterialTextureType::Emissive;
-		materialTextureMapping[aiTextureType_METALNESS] = cd::MaterialTextureType::Metallic;
-		materialTextureMapping[aiTextureType_DIFFUSE_ROUGHNESS] = cd::MaterialTextureType::Roughness;
-		materialTextureMapping[aiTextureType_AMBIENT_OCCLUSION] = cd::MaterialTextureType::Occlusion;
-		materialTextureMapping[aiTextureType_LIGHTMAP] = cd::MaterialTextureType::Occlusion;
-	}
+	materialTextureMapping[aiTextureType_DIFFUSE] = cd::MaterialTextureType::BaseColor;
+	materialTextureMapping[aiTextureType_BASE_COLOR] = cd::MaterialTextureType::BaseColor;
+	materialTextureMapping[aiTextureType_NORMALS] = cd::MaterialTextureType::Normal;
+	materialTextureMapping[aiTextureType_NORMAL_CAMERA] = cd::MaterialTextureType::Normal;
+	materialTextureMapping[aiTextureType_EMISSIVE] = cd::MaterialTextureType::Emissive;
+	materialTextureMapping[aiTextureType_EMISSION_COLOR] = cd::MaterialTextureType::Emissive;
+	materialTextureMapping[aiTextureType_METALNESS] = cd::MaterialTextureType::Metallic;
+	materialTextureMapping[aiTextureType_DIFFUSE_ROUGHNESS] = cd::MaterialTextureType::Roughness;
+	materialTextureMapping[aiTextureType_AMBIENT_OCCLUSION] = cd::MaterialTextureType::Occlusion;
+	materialTextureMapping[aiTextureType_LIGHTMAP] = cd::MaterialTextureType::Occlusion;
 
 	aiString materialName;
 	if (aiReturn_SUCCESS != aiGetMaterialString(pSourceMaterial, AI_MATKEY_NAME, &materialName))
@@ -137,7 +153,6 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 	{
 		finalMaterialName = "untitled_";
 		finalMaterialName += std::to_string(pSceneDatabase->GetMaterialCount());
-		printf("\tWarning : current material doesn't have name?\n");
 	}
 
 	bool isMaterialReused;
@@ -151,8 +166,6 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 		return materialID;
 	}
 
-	//printf("\t[MaterialID %u] %s\n", materialID.Data(), finalMaterialName.c_str());
-	
 	// Create a base PBR material type by default.
 	cd::Material material(materialID, finalMaterialName.c_str(), cd::MaterialType::BasePBR);
 
@@ -172,41 +185,57 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			continue;
 		}
 
+		aiUVTransform uvTransform;
+		unsigned int maxBytes = sizeof(aiUVTransform);
+		aiReturn result = aiGetMaterialFloatArray(pSourceMaterial, AI_MATKEY_UVTRANSFORM(textureType, 0), (float*)&uvTransform, &maxBytes);
+		assert(aiReturn_SUCCESS == result && "Failed to get texture uv transform?");
+
+		assert(textureCount == 1U && "Need to support multiple textures per type?");
 		for (uint32_t textureIndex = 0; textureIndex < textureCount; ++textureIndex)
 		{
-			aiString ai_path;
-			aiReturn result = aiGetMaterialTexture(pSourceMaterial, textureType, textureIndex, &ai_path);
-			if (aiReturn_SUCCESS != result)
+			aiString textureFilePath;
+			aiTextureMapping textureMapping;
+			uint32_t uvIndex;
+			aiTextureMapMode textureMapMode[2];
+			float blendFactor;
+			aiTextureOp blendOperation;
+			aiReturn result = aiGetMaterialTexture(pSourceMaterial, textureType, textureIndex, &textureFilePath,
+				&textureMapping, &uvIndex, &blendFactor, &blendOperation, textureMapMode);
+			assert(aiTextureMapping_UV == textureMapping && "Not UVMaping?");
+			assert(0U == uvIndex && "Need to support non-zero uvIndex mapping.");
+			if (aiReturn_SUCCESS != result ||
+				aiTextureType_NONE == textureType ||
+				aiTextureType_UNKNOWN == textureType)
 			{
-				//printf("\t\tFailed to read material texture property, textureType is %u, texture index is %u", textureType, textureIndex);
-				continue;
-			}
-
-			if (textureType == aiTextureType_NONE)
-			{
-				//printf("\t\tTextureType is none? Investigate the cause please.");
-				continue;
-			}
-
-			if (textureType == aiTextureType_UNKNOWN)
-			{
-				//printf("\t\tTextureType is unknown. Should find ways to map it.");
 				continue;
 			}
 
 			bool isTextureReused;
-			uint32_t textureHash = cd::StringHash<cd::TextureID::ValueType>(ai_path.C_Str());
+			uint32_t textureHash = cd::StringHash<cd::TextureID::ValueType>(textureFilePath.C_Str());
 			cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, &isTextureReused);
 
 			std::filesystem::path textureAbsolutePath = m_folderPath;
-			textureAbsolutePath.append(ai_path.C_Str());
+			textureAbsolutePath.append(textureFilePath.C_Str());
 
 			material.AddTextureID(materialTextureType, textureID);
 
 			// Reused textures don't need to add to SceneDatabase again.
 			if (!isTextureReused)
 			{
-				pSceneDatabase->AddTexture(cd::Texture(textureID, materialTextureType, textureAbsolutePath.generic_string().c_str()));
+				cd::Texture materialTexture(textureID, materialTextureType, textureAbsolutePath.string().c_str());
+				ConvertAssimpTextureMapMode(textureMapMode[0]), ConvertAssimpTextureMapMode(textureMapMode[1]);
+				materialTexture.SetUVOffset(cd::Vec2f(uvTransform.mTranslation.x, uvTransform.mTranslation.y));
+				materialTexture.SetUVScale(cd::Vec2f(uvTransform.mScaling.x, uvTransform.mScaling.y));
+				pSceneDatabase->AddTexture(cd::MoveTemp(materialTexture));
+			}
+			else
+			{
+				// Check if there are same file path but different tiling settings.
+				const cd::Texture& texture = pSceneDatabase->GetTexture(textureID.Data());
+				assert(texture.GetUVOffset().x() == uvTransform.mTranslation.x);
+				assert(texture.GetUVOffset().y() == uvTransform.mTranslation.y);
+				assert(texture.GetUVScale().x() == uvTransform.mScaling.x);
+				assert(texture.GetUVScale().y() == uvTransform.mScaling.y);
 			}
 		}
 	}
