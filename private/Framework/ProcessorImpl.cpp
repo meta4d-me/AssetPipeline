@@ -10,17 +10,22 @@
 namespace details
 {
 
-void Dump(const char* label, cd::Quaternion quaternion)
+void Dump(const char* label, const cd::Quaternion& quaternion)
 {
 	printf("%s : (w = %f, x = %f, y = %f, z = %f)\n", label, quaternion.w(), quaternion.x(), quaternion.y(), quaternion.z());
 }
 
-void Dump(const char* label, cd::Vec3f vector)
+void Dump(const char* label, const cd::Vec2f& vector)
+{
+	printf("%s : (x = %f, y = %f)\n", label, vector.x(), vector.y());
+}
+
+void Dump(const char* label, const cd::Vec3f& vector)
 {
 	printf("%s : (x = %f, y = %f, z = %f)\n", label, vector.x(), vector.y(), vector.z());
 }
 
-void Dump(const char* label, cd::Vec4f vector)
+void Dump(const char* label, const cd::Vec4f& vector)
 {
 	printf("%s : (x = %f, y = %f, z = %f, w = %f)\n", label, vector.x(), vector.y(), vector.z(), vector.w());
 }
@@ -235,6 +240,8 @@ void ProcessorImpl::DumpSceneDatabase()
 			printf("[Texture %u] Type = %s\n", texture.GetID().Data(), cd::GetMaterialPropertyGroupName(texture.GetType()));
 			printf("\tPath = %s\n", texture.GetPath());
 			printf("\tUVMapMode = (%s, %s)\n", GetTextureMapModeName(texture.GetUMapMode()), GetTextureMapModeName(texture.GetVMapMode()));
+			details::Dump("\tUVOffset", texture.GetUVOffset());
+			details::Dump("\tUVScale", texture.GetUVScale());
 		}
 	}
 
