@@ -88,6 +88,26 @@ void Texture::SetVMapMode(cd::TextureMapMode mapMode)
     m_pTextureImpl->SetVMapMode(mapMode);
 }
 
+const cd::Vec2f& Texture::GetUVOffset() const
+{
+    return m_pTextureImpl->GetUVOffset();
+}
+
+void Texture::SetUVOffset(cd::Vec2f uvOffset)
+{
+    m_pTextureImpl->SetUVOffset(cd::MoveTemp(uvOffset));
+}
+
+const cd::Vec2f& Texture::GetUVScale() const
+{
+    return m_pTextureImpl->GetUVScale();
+}
+
+void Texture::SetUVScale(cd::Vec2f uvScale)
+{
+    m_pTextureImpl->SetUVScale(cd::MoveTemp(uvScale));
+}
+
 const char* Texture::GetPath() const
 {
     return m_pTextureImpl->GetPath().c_str();

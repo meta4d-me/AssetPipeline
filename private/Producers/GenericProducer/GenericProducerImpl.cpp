@@ -185,19 +185,26 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			continue;
 		}
 
+		aiUVTransform uvTransform;
+		unsigned int maxBytes = sizeof(aiUVTransform);
+		aiReturn result = aiGetMaterialFloatArray(pSourceMaterial, AI_MATKEY_UVTRANSFORM(textureType, 0), (float*)&uvTransform, &maxBytes);
+		assert(aiReturn_SUCCESS == result && "Failed to get texture uv transform?");
+
 		assert(textureCount == 1U && "Need to support multiple textures per type?");
 		for (uint32_t textureIndex = 0; textureIndex < textureCount; ++textureIndex)
 		{
 			aiString textureFilePath;
+			aiTextureMapping textureMapping;
+			uint32_t uvIndex;
 			aiTextureMapMode textureMapMode[2];
+			float blendFactor;
+			aiTextureOp blendOperation;
 			aiReturn result = aiGetMaterialTexture(pSourceMaterial, textureType, textureIndex, &textureFilePath,
-				nullptr, nullptr, nullptr, nullptr, textureMapMode);
-			if (aiReturn_SUCCESS != result)
-			{
-				continue;
-			}
-
-			if (aiTextureType_NONE == textureType ||
+				&textureMapping, &uvIndex, &blendFactor, &blendOperation, textureMapMode);
+			assert(aiTextureMapping_UV == textureMapping && "Not UVMaping?");
+			assert(0U == uvIndex && "Need to support non-zero uvIndex mapping.");
+			if (aiReturn_SUCCESS != result ||
+				aiTextureType_NONE == textureType ||
 				aiTextureType_UNKNOWN == textureType)
 			{
 				continue;
@@ -217,6 +224,8 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			{
 				cd::Texture materialTexture(textureID, materialTextureType, textureAbsolutePath.string().c_str());
 				ConvertAssimpTextureMapMode(textureMapMode[0]), ConvertAssimpTextureMapMode(textureMapMode[1]);
+				materialTexture.SetUVOffset(cd::Vec2f(uvTransform.mTranslation.x, uvTransform.mTranslation.y));
+				materialTexture.SetUVScale(cd::Vec2f(uvTransform.mScaling.x, uvTransform.mScaling.y));
 				pSceneDatabase->AddTexture(cd::MoveTemp(materialTexture));
 			}
 		}

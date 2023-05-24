@@ -41,6 +41,12 @@ public:
 	cd::TextureMapMode GetVMapMode() const;
 	void SetVMapMode(cd::TextureMapMode mapMode);
 
+	const cd::Vec2f& GetUVOffset() const;
+	void SetUVOffset(cd::Vec2f uvOffset);
+
+	const cd::Vec2f& GetUVScale() const;
+	void SetUVScale(cd::Vec2f uvScale);
+
 	const char* GetPath() const;
 	void SetPath(const char* pFilePath);
 

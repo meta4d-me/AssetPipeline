@@ -16,7 +16,7 @@ enum class ObjectType
 	Bone,
 	Animation,
 	Track,
-	Morph
+	Morph,
 };
 
 }

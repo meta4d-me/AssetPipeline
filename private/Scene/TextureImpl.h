@@ -35,31 +35,37 @@ public:
 	void SetRawTexture(const std::vector<T>& inputData, const cd::TextureFormat format, const uint32_t width, const uint32_t height) {
 		const size_t sizeRatio = sizeof(T) / sizeof(std::byte);
 		const size_t sizeInBytes = inputData.size() * sizeRatio;
-		m_rawTexture.resize(sizeInBytes);
-		std::memcpy(m_rawTexture.data(), inputData.data(), sizeInBytes);
-		m_textureFormat = format;
-		m_textureWidth = width;
-		m_textureHeight = height;
+		m_rawData.resize(sizeInBytes);
+		std::memcpy(m_rawData.data(), inputData.data(), sizeInBytes);
+		m_format = format;
+		m_width = width;
+		m_height = height;
 	}
 	void ClearRawTexture();
-	bool HasRawTexture() const { return !m_rawTexture.empty(); }
+	bool HasRawTexture() const { return !m_rawData.empty(); }
 
 	const TextureID& GetID() const { return m_id; }
-	cd::MaterialTextureType GetType() const { return m_textureType; }
+	cd::MaterialTextureType GetType() const { return m_type; }
 
-	cd::TextureMapMode GetUMapMode() const { return m_textureUMapMode; }
-	void SetUMapMode(cd::TextureMapMode mapMode) { m_textureUMapMode = mapMode; }
+	cd::TextureMapMode GetUMapMode() const { return m_uvMapMode[0]; }
+	void SetUMapMode(cd::TextureMapMode mapMode) { m_uvMapMode[0] = mapMode; }
 
-	cd::TextureMapMode GetVMapMode() const { return m_textureVMapMode; }
-	void SetVMapMode(cd::TextureMapMode mapMode) { m_textureVMapMode = mapMode; }
+	cd::TextureMapMode GetVMapMode() const { return m_uvMapMode[1]; }
+	void SetVMapMode(cd::TextureMapMode mapMode) { m_uvMapMode[1] = mapMode; }
+
+	const cd::Vec2f& GetUVOffset() const { return m_uvOffset; }
+	void SetUVOffset(cd::Vec2f uvOffset) { m_uvOffset = cd::MoveTemp(uvOffset); }
+
+	const cd::Vec2f& GetUVScale() const { return m_uvScale; }
+	void SetUVScale(cd::Vec2f uvScale) { m_uvScale = cd::MoveTemp(uvScale); }
 
 	const std::string& GetPath() const { return m_path; }
 	void SetPath(std::string filePath) { m_path = MoveTemp(filePath); }
 
-	const cd::TextureFormat GetTextureFormat() const { return m_textureFormat; }
-	const std::vector<std::byte>& GetRawTexture() const { return m_rawTexture; }
-	uint32_t GetWidth() const { return m_textureWidth; }
-	uint32_t GetHeight() const { return m_textureHeight; }
+	const cd::TextureFormat GetTextureFormat() const { return m_format; }
+	const std::vector<std::byte>& GetRawTexture() const { return m_rawData; }
+	uint32_t GetWidth() const { return m_width; }
+	uint32_t GetHeight() const { return m_height; }
 
 	template<bool SwapBytesOrder>
 	TextureImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
@@ -78,9 +84,9 @@ public:
 			size_t rawTextureSize;
 			inputArchive >> textureFormat >> rawTextureSize;
 
-			m_textureFormat = static_cast<TextureFormat>(textureFormat);
-			m_rawTexture.reserve(rawTextureSize);
-			inputArchive.ImportBuffer(m_rawTexture.data());
+			m_format = static_cast<TextureFormat>(textureFormat);
+			m_rawData.reserve(rawTextureSize);
+			inputArchive.ImportBuffer(m_rawData.data());
 		}
 
 		Init(TextureID(textureID), static_cast<cd::MaterialTextureType>(textureType), MoveTemp(texturePath));
@@ -93,11 +99,18 @@ public:
 	template<bool SwapBytesOrder>
 	const TextureImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
+<<<<<<< Updated upstream
 		outputArchive << GetID().Data() << static_cast<uint8_t>(GetType()) << static_cast<uint8_t>(GetUMapMode()) << static_cast<uint8_t>(GetVMapMode()) << GetPath() << !m_rawTexture.empty();
 		if (!m_rawTexture.empty())
+=======
+		outputArchive << GetID().Data() << static_cast<uint8_t>(GetType()) << GetPath() <<
+			static_cast<uint8_t>(GetUMapMode()) << static_cast<uint8_t>(GetVMapMode()) << !m_rawData.empty();
+
+		if (!m_rawData.empty())
+>>>>>>> Stashed changes
 		{
-			outputArchive << static_cast<uint32_t>(m_textureFormat) << m_rawTexture.size();
-			outputArchive.ExportBuffer(m_rawTexture.data(), m_rawTexture.size());
+			outputArchive << static_cast<uint32_t>(m_format) << m_rawData.size();
+			outputArchive.ExportBuffer(m_rawData.data(), m_rawData.size());
 		}
 
 		return *this;
@@ -105,14 +118,15 @@ public:
 
 private:
 	TextureID m_id;
-	cd::MaterialTextureType m_textureType;
-	cd::TextureMapMode m_textureUMapMode;
-	cd::TextureMapMode m_textureVMapMode;
+	cd::MaterialTextureType m_type;
+	cd::TextureMapMode m_uvMapMode[2];
+	cd::Vec2f m_uvOffset;
+	cd::Vec2f m_uvScale;
 	std::string m_path;
-	cd::TextureFormat m_textureFormat;
-	uint32_t m_textureWidth;
-	uint32_t m_textureHeight;
-	std::vector<std::byte> m_rawTexture;
+	cd::TextureFormat m_format;
+	uint32_t m_width;
+	uint32_t m_height;
+	std::vector<std::byte> m_rawData;
 };
 
 }
