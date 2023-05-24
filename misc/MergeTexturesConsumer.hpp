@@ -175,8 +175,9 @@ public:
 				}
 			}
 
-			std::filesystem::path mergedFilePath = mergedTextureFilePath.parent_path();
-			mergedFilePath = mergedFilePath / material.GetName();
+			std::filesystem::path mergedFilePath = mergedTextureFilePath.parent_path() / material.GetName();
+			mergedFilePath += "_" + std::to_string(mergedTextureRect.value().x());
+			mergedFilePath += "x" + std::to_string(mergedTextureRect.value().y());
 			mergedFilePath += "_" + m_mergedTextureSuffixAndExtension;
 			std::string outputFilePath = mergedFilePath.string();
 			if (!mergedTexture.Save(outputFilePath.c_str()))
