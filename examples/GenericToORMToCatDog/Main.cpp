@@ -30,6 +30,17 @@ int main(int argc, char** argv)
 	TextureTypeToColorIndex[cd::MaterialTextureType::Roughness] = ColorIndex::G;
 	TextureTypeToColorIndex[cd::MaterialTextureType::Metallic] = ColorIndex::B;
 
+	std::map<cd::MaterialTextureType, std::string> TextureTypeToStringType;
+	TextureTypeToStringType[cd::MaterialTextureType::BaseColor] = "BaseColor";
+	TextureTypeToStringType[cd::MaterialTextureType::Occlusion] = "Occlusion";
+	TextureTypeToStringType[cd::MaterialTextureType::Roughness] = "Roughness";
+	TextureTypeToStringType[cd::MaterialTextureType::Metallic] = "Metallic";
+	TextureTypeToStringType[cd::MaterialTextureType::Normal] = "Normal";
+	TextureTypeToStringType[cd::MaterialTextureType::Emissive] = "Emissive";
+	TextureTypeToStringType[cd::MaterialTextureType::Elevation] = "Elevation";
+	TextureTypeToStringType[cd::MaterialTextureType::AlphaMap] = "AlphaMap";
+	TextureTypeToStringType[cd::MaterialTextureType::General] = "General";
+
 	// Import a generic model file and merge its material texture files as standard ORM PBR workflow.
 	std::string ormTextureSuffixAndExtension = "orm.png";
 	{
@@ -54,6 +65,27 @@ int main(int argc, char** argv)
 	{
 		for (auto& material : pSceneDatabase->GetMaterials())
 		{
+			for (const auto& [textureType, _] : TextureTypeToStringType)
+			{
+				if (!material.IsTextureSetup(textureType))
+				{
+					continue;
+				}
+
+				std::optional<cd::TextureID> optTextureID = material.GetTextureID(textureType);
+				auto& texture = pSceneDatabase->GetTexture(optTextureID.value().Data());
+				std::filesystem::path mergedTextureFilePath = texture.GetPath();
+				mergedTextureFilePath = mergedTextureFilePath.parent_path() / material.GetName();
+				mergedTextureFilePath += "_" + std::to_string(texture.GetWidth());
+				mergedTextureFilePath += "x" + std::to_string(texture.GetHeight());
+				mergedTextureFilePath += "_" + TextureTypeToStringType[textureType];
+				mergedTextureFilePath += ".jpg";
+				std::filesystem::path current_Name = texture.GetPath();
+				texture.SetPath(mergedTextureFilePath.string().c_str());
+				std::filesystem::path new_Name = texture.GetPath();
+				std::filesystem::rename(current_Name, new_Name);
+			}
+
 			for (const auto& [textureType, _] : TextureTypeToColorIndex)
 			{
 				if (!material.IsTextureSetup(textureType))
@@ -65,6 +97,8 @@ int main(int argc, char** argv)
 				auto& texture = pSceneDatabase->GetTexture(optTextureID.value().Data());
 				std::filesystem::path mergedTextureFilePath = texture.GetPath();
 				mergedTextureFilePath = mergedTextureFilePath.parent_path() / material.GetName();
+				mergedTextureFilePath += "_" + std::to_string(texture.GetWidth());
+				mergedTextureFilePath += "x" + std::to_string(texture.GetHeight());
 				mergedTextureFilePath += "_" + ormTextureSuffixAndExtension;
 				texture.SetPath(mergedTextureFilePath.string().c_str());
 			}
