@@ -188,8 +188,6 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 		aiUVTransform uvTransform;
 		unsigned int maxBytes = sizeof(aiUVTransform);
 		aiReturn result = aiGetMaterialFloatArray(pSourceMaterial, AI_MATKEY_UVTRANSFORM(textureType, 0), (float*)&uvTransform, &maxBytes);
-		assert(aiReturn_SUCCESS == result && "Failed to get texture uv transform?");
-
 		assert(textureCount == 1U && "Need to support multiple textures per type?");
 		for (uint32_t textureIndex = 0; textureIndex < textureCount; ++textureIndex)
 		{
