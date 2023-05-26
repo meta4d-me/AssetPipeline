@@ -151,7 +151,6 @@ public:
 				{
 					loadedTexturesData[textureType] = &texture2D;
 				}
-
 			}
 
 			if (isAnyUnknownTexture || !isSameTextureSize)
