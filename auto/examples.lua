@@ -24,7 +24,7 @@ function MakeExample(exampleProject)
 	project(exampleProject)
 		kind("ConsoleApp")
 		language("C++")
-		cppdialect("c++17")
+		Platform_SetCppDialect()
 		dependson { "AssetPipelineCore" }
 		
 		location(path.join(RootPath, "build"))
