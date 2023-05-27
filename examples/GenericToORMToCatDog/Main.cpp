@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 			int width, height;
 			free(stbi_load(texture.GetPath(), &width, &height, nullptr, 0));
 			std::filesystem::path currentFilePath = texture.GetPath();
-			std::string newFilePath = std::format("{}_{}x{}_{}{}", material.GetName(), width, height, cd::GetMaterialPropertyGroupName(textureType), currentFilePath.extension());
+			std::string newFilePath = std::format("{}_{}x{}_{}{}", material.GetName(), width, height, cd::GetMaterialPropertyGroupName(textureType), currentFilePath.extension().string());
 			std::filesystem::rename(currentFilePath, newFilePath);
 			texture.SetPath(newFilePath.c_str());
 		};
