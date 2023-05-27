@@ -40,18 +40,18 @@ std::optional<Mesh> MeshGenerator::Generate(const Box& box, const VertexFormat& 
 	};
 
 	std::array<cd::Polygon, 12> polygons = {
-		cd::Polygon{0U, 2U, 1U},
-		cd::Polygon{1U, 2U, 3U},
+		cd::Polygon{0U, 3U, 1U},
+		cd::Polygon{0U, 2U, 3U},
 		cd::Polygon{4U, 5U, 6U},
 		cd::Polygon{5U, 7U, 6U},
-		cd::Polygon{0U, 6U, 2U},
-		cd::Polygon{4U, 6U, 0U},
-		cd::Polygon{1U, 3U, 7U},
 		cd::Polygon{5U, 1U, 7U},
+		cd::Polygon{1U, 3U, 7U},
+		cd::Polygon{0U, 4U, 2U},
+		cd::Polygon{2U, 4U, 6U},
 		cd::Polygon{0U, 1U, 4U},
-		cd::Polygon{4U, 1U, 5U},
-		cd::Polygon{2U, 6U, 3U},
-		cd::Polygon{6U, 7U, 3U}
+		cd::Polygon{1U, 5U, 4U},
+		cd::Polygon{2U, 7U, 3U},
+		cd::Polygon{2U, 6U, 7U},
 	};
 
 	if (!useCounterWiseForFrontFace)
