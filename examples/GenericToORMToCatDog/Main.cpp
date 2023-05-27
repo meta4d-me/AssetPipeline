@@ -6,6 +6,7 @@
 #include "MergeTexturesConsumer.hpp"
 
 #include <filesystem>
+#include <format>
 
 int main(int argc, char** argv)
 {
@@ -50,29 +51,36 @@ int main(int argc, char** argv)
 		processor.Run();
 	}
 
+	// Rename material texture file name by type.
+	{
+		auto RenameMaterialTextureFilePath = [](cd::Material& material, cd::MaterialTextureType textureType, cd::SceneDatabase* pSceneDatabase)
+		{
+			if (!material.IsTextureSetup(textureType))
+			{
+				return;
+			}
+
+			std::optional<cd::TextureID> optTextureID = material.GetTextureID(textureType);
+			if (!optTextureID.has_value())
+			{
+				return;
+			}
+
+			auto& texture = pSceneDatabase->GetTexture(optTextureID.value().Data());
+
+			int width, height;
+			free(stbi_load(texture.GetPath(), &width, &height, nullptr, 0));
+			std::filesystem::path currentFilePath = texture.GetPath();
+			std::string newFilePath = std::format("{}_{}x{}_{}{}", material.GetName(), width, height, cd::GetMaterialPropertyGroupName(textureType), currentFilePath.extension());
+			std::filesystem::rename(currentFilePath, newFilePath);
+			texture.SetPath(newFilePath.c_str());
+		};
+	}
+
 	// Set all material's texture path as merged file path.
 	{
 		for (auto& material : pSceneDatabase->GetMaterials())
 		{
-			for (const auto& texture: pSceneDatabase->GetTextures())
-			{
-				std::optional<cd::TextureID> optTextureID = material.GetTextureID(texture.GetType());
-				auto& texture = pSceneDatabase->GetTexture(optTextureID.value().Data());
-				std::filesystem::path mergedTextureFilePath = texture.GetPath();
-				int x, y;
-				free(stbi_load(mergedTextureFilePath.string().c_str(), &x, &y, nullptr, 0));
-				mergedTextureFilePath = mergedTextureFilePath.parent_path() / material.GetName();
-				mergedTextureFilePath += "_" + std::to_string(x);
-				mergedTextureFilePath += "x" + std::to_string(y);
-				mergedTextureFilePath += "_"  ;
-				mergedTextureFilePath += GetMaterialPropertyGroupName(texture.GetType());
-				std::filesystem::path current_Name = texture.GetPath();
-				mergedTextureFilePath += current_Name.extension();
-				texture.SetPath(mergedTextureFilePath.string().c_str());
-				std::filesystem::path new_Name = texture.GetPath();
-				std::filesystem::rename(current_Name, new_Name);
-			}
-
 			for (const auto& [textureType, _] : TextureTypeToColorIndex)
 			{
 				if (!material.IsTextureSetup(textureType))
@@ -83,11 +91,7 @@ int main(int argc, char** argv)
 				std::optional<cd::TextureID> optTextureID = material.GetTextureID(textureType);
 				auto& texture = pSceneDatabase->GetTexture(optTextureID.value().Data());
 				std::filesystem::path mergedTextureFilePath = texture.GetPath();
-				int x, y;
-				free(stbi_load(mergedTextureFilePath.string().c_str(), &x, &y, nullptr, 0));
 				mergedTextureFilePath = mergedTextureFilePath.parent_path() / material.GetName();
-				mergedTextureFilePath += "_" + std::to_string(x);
-				mergedTextureFilePath += "x" + std::to_string(y);
 				mergedTextureFilePath += "_" + ormTextureSuffixAndExtension;
 				texture.SetPath(mergedTextureFilePath.string().c_str());
 			}
