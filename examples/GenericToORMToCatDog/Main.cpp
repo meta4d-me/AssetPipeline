@@ -51,30 +51,46 @@ int main(int argc, char** argv)
 		processor.Run();
 	}
 
+	auto RenameMaterialTextureFilePath = [](cd::Material& material, cd::MaterialTextureType textureType, cd::SceneDatabase* pSceneDatabase)
+	{
+		if (!material.IsTextureSetup(textureType))
+		{
+			return;
+		}
+
+		std::optional<cd::TextureID> optTextureID = material.GetTextureID(textureType);
+		if (!optTextureID.has_value())
+		{
+			return;
+		}
+
+		auto& texture = pSceneDatabase->GetTexture(optTextureID.value().Data());
+		std::filesystem::path currentFilePath = texture.GetPath();
+		if (!std::filesystem::exists(currentFilePath))
+		{
+			printf("[RenameMaterialTextureFilePath] : Can't find texture file %s.\n", currentFilePath.string().c_str());
+			return;
+		}
+
+		int width, height, channel;
+		stbi_image_free(stbi_load(texture.GetPath(), &width, &height, &channel, 3));
+
+		std::string newFilePath = std::format("{}/{}_{}x{}_{}{}", currentFilePath.parent_path().string(),
+			material.GetName(), width, height, cd::GetMaterialPropertyGroupName(textureType), currentFilePath.extension().string());
+		std::filesystem::rename(currentFilePath, newFilePath);
+		texture.SetPath(newFilePath.c_str());
+	};
+
 	// Rename material texture file name by type.
 	{
-		auto RenameMaterialTextureFilePath = [](cd::Material& material, cd::MaterialTextureType textureType, cd::SceneDatabase* pSceneDatabase)
+		for (auto& material : pSceneDatabase->GetMaterials())
 		{
-			if (!material.IsTextureSetup(textureType))
+			for (int typeIndex = 0; typeIndex < static_cast<int>(cd::MaterialTextureType::Count); ++typeIndex)
 			{
-				return;
+				cd::MaterialTextureType textureType = static_cast<cd::MaterialTextureType>(typeIndex);
+				RenameMaterialTextureFilePath(material, textureType, pSceneDatabase.get());
 			}
-
-			std::optional<cd::TextureID> optTextureID = material.GetTextureID(textureType);
-			if (!optTextureID.has_value())
-			{
-				return;
-			}
-
-			auto& texture = pSceneDatabase->GetTexture(optTextureID.value().Data());
-
-			int width, height;
-			free(stbi_load(texture.GetPath(), &width, &height, nullptr, 0));
-			std::filesystem::path currentFilePath = texture.GetPath();
-			std::string newFilePath = std::format("{}_{}x{}_{}{}", material.GetName(), width, height, cd::GetMaterialPropertyGroupName(textureType), currentFilePath.extension().string());
-			std::filesystem::rename(currentFilePath, newFilePath);
-			texture.SetPath(newFilePath.c_str());
-		};
+		}
 	}
 
 	// Set all material's texture path as merged file path.
