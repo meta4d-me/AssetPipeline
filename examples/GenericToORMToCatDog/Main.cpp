@@ -30,18 +30,6 @@ int main(int argc, char** argv)
 	TextureTypeToColorIndex[cd::MaterialTextureType::Roughness] = ColorIndex::G;
 	TextureTypeToColorIndex[cd::MaterialTextureType::Metallic] = ColorIndex::B;
 
-	std::vector<cd::MaterialTextureType> textureTypes = {
-		cd::MaterialTextureType::BaseColor,
-		cd::MaterialTextureType::Occlusion,
-		cd::MaterialTextureType::Roughness,
-		cd::MaterialTextureType::Metallic,
-		cd::MaterialTextureType::Emissive,
-		cd::MaterialTextureType::Normal,
-		cd::MaterialTextureType::Elevation,
-	    cd::MaterialTextureType::AlphaMap,
-		cd::MaterialTextureType::General,
-	};
-
 	// Import a generic model file and merge its material texture files as standard ORM PBR workflow.
 	std::string ormTextureSuffixAndExtension = "orm.png";
 	{
@@ -66,23 +54,18 @@ int main(int argc, char** argv)
 	{
 		for (auto& material : pSceneDatabase->GetMaterials())
 		{
-			for (const auto& type: textureTypes)
+			for (const auto& texture: pSceneDatabase->GetTextures())
 			{
-				if (!material.IsTextureSetup(type))
-				{
-					continue;
-				}
-
-				std::optional<cd::TextureID> optTextureID = material.GetTextureID(type);
+				std::optional<cd::TextureID> optTextureID = material.GetTextureID(texture.GetType());
 				auto& texture = pSceneDatabase->GetTexture(optTextureID.value().Data());
 				std::filesystem::path mergedTextureFilePath = texture.GetPath();
 				int x, y;
-				stbi_load(mergedTextureFilePath.string().c_str(), &x, &y, nullptr, 0);
+				free(stbi_load(mergedTextureFilePath.string().c_str(), &x, &y, nullptr, 0));
 				mergedTextureFilePath = mergedTextureFilePath.parent_path() / material.GetName();
 				mergedTextureFilePath += "_" + std::to_string(x);
 				mergedTextureFilePath += "x" + std::to_string(y);
 				mergedTextureFilePath += "_"  ;
-				mergedTextureFilePath += GetMaterialPropertyGroupName(type);
+				mergedTextureFilePath += GetMaterialPropertyGroupName(texture.GetType());
 				std::filesystem::path current_Name = texture.GetPath();
 				mergedTextureFilePath += current_Name.extension();
 				texture.SetPath(mergedTextureFilePath.string().c_str());
@@ -101,7 +84,7 @@ int main(int argc, char** argv)
 				auto& texture = pSceneDatabase->GetTexture(optTextureID.value().Data());
 				std::filesystem::path mergedTextureFilePath = texture.GetPath();
 				int x, y;
-				stbi_load(mergedTextureFilePath.string().c_str(), &x, &y, nullptr, 0);
+				free(stbi_load(mergedTextureFilePath.string().c_str(), &x, &y, nullptr, 0));
 				mergedTextureFilePath = mergedTextureFilePath.parent_path() / material.GetName();
 				mergedTextureFilePath += "_" + std::to_string(x);
 				mergedTextureFilePath += "x" + std::to_string(y);
