@@ -27,9 +27,8 @@ int main(int argc, char** argv)
 	producer.ActivateSimpleAnimationService();
 
 	CDConsumer consumer(pOutputFilePath);
-	consumer.SetExportMode(ExportMode::PureBinary);
-
 	Processor processor(&producer, &consumer);
+	processor.SetFlattenSceneDatabaseEnable(true);
 	processor.SetDumpSceneDatabaseEnable(true);
 	processor.SetValidateSceneDatabaseEnable(true);
 	processor.Run();

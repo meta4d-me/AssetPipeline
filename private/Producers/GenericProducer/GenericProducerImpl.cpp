@@ -250,7 +250,10 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 	assert(pSourceMesh->mVertices && numVertices > 0 && "No vertex data.");
 
 	std::stringstream meshHashString;
-	meshHashString << pSourceMesh->mName.C_Str() << "_" << pSourceMesh->mVertices << "_" << pSourceMesh->mFaces;
+	// TODO : this hash is good to reuse mesh instance, but break the rule id same to index. Wait to have a explicit mesh instance support.
+	// meshHashString << pSourceMesh->mName.C_Str() << "_" << pSourceMesh->mVertices << "_" << pSourceMesh->mFaces;
+	meshHashString << pSourceMesh->mName.C_Str() << "_" << pSceneDatabase->GetMeshCount();
+
 	cd::MeshID::ValueType meshHash = cd::StringHash<cd::MeshID::ValueType>(meshHashString.str());
 	cd::MeshID meshID = m_meshIDGenerator.AllocateID(meshHash);
 	cd::Mesh mesh(meshID, pSourceMesh->mName.C_Str(), numVertices, pSourceMesh->mNumFaces);
@@ -467,7 +470,8 @@ void GenericProducerImpl::AddNodeRecursively(cd::SceneDatabase* pSceneDatabase, 
 	cd::Node sceneNode(sceneNodeID, pSourceNode->mName.C_Str());
 
 	cd::Matrix4x4 transformation = ConvertAssimpMatrix(pSourceNode->mTransformation);
-	sceneNode.SetTransform(cd::Transform(transformation.GetTranslation(), cd::Quaternion::FromMatrix(transformation.GetRotation()), transformation.GetScale()));
+	cd::Transform newTransform(transformation.GetTranslation(), cd::Quaternion::FromMatrix(transformation.GetRotation()), transformation.GetScale());
+	sceneNode.SetTransform(cd::MoveTemp(newTransform));
 
 	// Cache it for searching parent node id.
 	m_aiNodeToNodeIDLookup[pSourceNode] = nodeID;

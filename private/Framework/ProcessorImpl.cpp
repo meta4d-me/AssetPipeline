@@ -45,8 +45,10 @@ void CalculateNodeTransforms(std::vector<cd::Matrix4x4>& nodeFinalTransforms, co
 	{
 		parentTransform = nodeFinalTransforms[node.GetParentID().Data()];
 	}
-	cd::Matrix4x4 localTransform = node.GetTransform().GetMatrix();
-	nodeFinalTransforms[node.GetID().Data()] = localTransform * parentTransform;
+
+	const cd::Transform& sourceTransform = node.GetTransform();
+	cd::Matrix4x4 localTransform = sourceTransform.GetMatrix();
+	nodeFinalTransforms[node.GetID().Data()] = parentTransform * localTransform;
 
 	const std::vector<cd::NodeID>& childIDs = node.GetChildIDs();
 	for (uint32_t childIndex = 0U; childIndex < node.GetChildCount(); ++childIndex)
@@ -184,19 +186,28 @@ void ProcessorImpl::DumpSceneDatabase()
 			//for (uint32_t vertexIndex = 0U; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
 			//{
 			//	printf("\tVertex [%u]\n", vertexIndex);
-			//	printf("\t\tAdjacent Vertex : ");
-			//	for (cd::VertexID adjVertexID : mesh.GetVertexAdjacentVertexArray(vertexIndex))
-			//	{
-			//		printf("%u, ", adjVertexID.Data());
-			//	}
-			//	printf("\n");
+			//	details::Dump("\t\tPosition", mesh.GetVertexPosition(vertexIndex));
+			//	details::Dump("\t\tNormal", mesh.GetVertexNormal(vertexIndex));
 			//
-			//	printf("\t\tAdjacent Polygon : ");
-			//	for (cd::PolygonID adjPolygonID : mesh.GetVertexAdjacentPolygonArray(vertexIndex))
-			//	{
-			//		printf("%u, ", adjPolygonID.Data());
-			//	}
-			//	printf("\n");
+			//	//if (mesh.GetVertexAdjacentVertexCount(vertexIndex) > 0U)
+			//	//{
+			//	//	printf("\t\tAdjacent Vertex : ");
+			//	//	for (cd::VertexID adjVertexID : mesh.GetVertexAdjacentVertexArray(vertexIndex))
+			//	//	{
+			//	//		printf("%u, ", adjVertexID.Data());
+			//	//	}
+			//	//	printf("\n");
+			//	//}
+			//	//
+			//	//if (mesh.GetVertexAdjacentPolygonCount(vertexIndex) > 0U)
+			//	//{
+			//	//	printf("\t\tAdjacent Polygon : ");
+			//	//	for (cd::PolygonID adjPolygonID : mesh.GetVertexAdjacentPolygonArray(vertexIndex))
+			//	//	{
+			//	//		printf("%u, ", adjPolygonID.Data());
+			//	//	}
+			//	//	printf("\n");
+			//	//}
 			//}
 		}
 	}

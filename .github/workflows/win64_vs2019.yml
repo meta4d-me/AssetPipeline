@@ -37,3 +37,5 @@ jobs:
           ${{github.workspace}}/public/**/*.*
           ${{github.workspace}}/build/bin/**/AssetPipelineCore.*
           ${{github.workspace}}/build/bin/**/CDProducer.*
+          ${{github.workspace}}/build/bin/**/GenericToCD.*
+          ${{github.workspace}}/build/bin/**/GenericToORMToCD.*

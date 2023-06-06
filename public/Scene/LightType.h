@@ -5,11 +5,12 @@
 namespace cd
 {
 
+// Note that this enum should align with U_Light.sh definitions.
 enum class LightType : uint8_t
 {
 	Point = 0,
-	Directional,
 	Spot,
+	Directional,
 
 	// Areal light
 	Sphere,
@@ -23,8 +24,8 @@ enum class LightType : uint8_t
 constexpr const char *LightTypeName[] =
 {
 	"Point",
-	"Directional",
 	"Spot",
+	"Directional",
 	"Sphere",
 	"Disk",
 	"Rectangle",
