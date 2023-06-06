@@ -118,6 +118,7 @@ int main(int argc, char** argv)
 	{
 		CDConsumer consumer(pOutputFilePath);
 		Processor processor(nullptr, &consumer, pSceneDatabase.get());
+		processor.SetFlattenSceneDatabaseEnable(true);
 		processor.Run();
 	}
 

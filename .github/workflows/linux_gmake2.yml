@@ -33,3 +33,5 @@ jobs:
           ${{github.workspace}}/public/**/*.*
           ${{github.workspace}}/build/bin/**/libAssetPipelineCore.*
           ${{github.workspace}}/build/bin/**/libCDProducer.*
+          ${{github.workspace}}/build/bin/**/GenericToCD.*
+          ${{github.workspace}}/build/bin/**/GenericToORMToCD.*          
