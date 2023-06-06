@@ -36,6 +36,8 @@ jobs:
         path: |
           ${{github.workspace}}/public/**/*.*
           ${{github.workspace}}/build/bin/**/AssetPipelineCore.*
+          ${{github.workspace}}/build/bin/**/CDConsumer.*
           ${{github.workspace}}/build/bin/**/CDProducer.*
-          ${{github.workspace}}/build/bin/**/GenericToCD.*
+          ${{github.workspace}}/build/bin/**/GenericProducer.*
+          ${{github.workspace}}/build/bin/**/assimp-vc142-mtd.*
           ${{github.workspace}}/build/bin/**/GenericToORMToCD.*
