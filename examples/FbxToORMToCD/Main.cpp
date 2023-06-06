@@ -1,7 +1,7 @@
 #include "CDConsumer.h"
 #include "Framework/IConsumer.h"
 #include "Framework/Processor.h"
-#include "GenericProducer.h"
+#include "FbxProducer.h"
 #include "Utilities/PerformanceProfiler.h"
 #include "MergeTexturesConsumer.hpp"
 
@@ -34,13 +34,7 @@ int main(int argc, char** argv)
 	// Import a generic model file and merge its material texture files as standard ORM PBR workflow.
 	std::string ormTextureSuffixAndExtension = "orm.png";
 	{
-		GenericProducer producer(pInputFilePath);
-		producer.ActivateBoundingBoxService();
-		producer.ActivateTriangulateService();
-		producer.ActivateTangentsSpaceService();
-		producer.ActivateCleanUnusedService();
-		producer.ActivateFlattenHierarchyService();
-
+		FbxProducer producer(pInputFilePath);
 		MergeTextureConsumer consumer;
 		consumer.SetMergedTextureSuffixAndExtension(ormTextureSuffixAndExtension.c_str());
 		for (const auto& [textureType, colorIndex] : TextureTypeToColorIndex)
@@ -56,7 +50,9 @@ int main(int argc, char** argv)
 		processor.Run();
 	}
 
-	pSceneDatabase->GetLights().clear();
+	pSceneDatabase->GetMaterials().clear();
+	pSceneDatabase->GetTextures().clear();
+	pSceneDatabase->GetMeshes().clear();
 
 	//auto RenameMaterialTextureFilePath = [](cd::Material& material, cd::MaterialTextureType textureType, cd::SceneDatabase* pSceneDatabase)
 	//{
@@ -125,6 +121,7 @@ int main(int argc, char** argv)
 	{
 		CDConsumer consumer(pOutputFilePath);
 		Processor processor(nullptr, &consumer, pSceneDatabase.get());
+		processor.SetFlattenSceneDatabaseEnable(true);
 		processor.Run();
 	}
 
