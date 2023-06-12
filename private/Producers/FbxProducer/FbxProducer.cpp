@@ -23,11 +23,6 @@ void FbxProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 	m_pFbxProducerImpl->Execute(pSceneDatabase);
 }
 
-void FbxProducer::AddTextureSearchFolderPath(const char* pTextureFolderPath)
-{
-	m_pFbxProducerImpl->AddTextureSearchFolderPath(pTextureFolderPath);
-}
-
 void FbxProducer::SetWantImportMaterial(bool flag)
 {
 	m_pFbxProducerImpl->SetWantImportMaterial(flag);

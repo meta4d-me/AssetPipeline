@@ -6,6 +6,7 @@
 
 #include <cassert>
 #include <cfloat>
+#include <filesystem>
 
 namespace details
 {
@@ -56,6 +57,36 @@ void CalculateNodeTransforms(std::vector<cd::Matrix4x4>& nodeFinalTransforms, co
 	}
 };
 
+class SceneDatabaseValidator
+{
+public:
+	SceneDatabaseValidator() = delete;
+	explicit SceneDatabaseValidator(cdtools::ProcessorImpl* pProcessorImpl)
+	{
+		assert(pProcessorImpl);
+		m_pProcessImpl = pProcessorImpl;
+
+		if (m_pProcessImpl->IsValidateSceneDatabaseEnabled())
+		{
+			m_pProcessImpl->ValidateSceneDatabase();
+		}
+	}
+	SceneDatabaseValidator(const SceneDatabaseValidator&) = delete;
+	SceneDatabaseValidator& operator=(const SceneDatabaseValidator&) = delete;
+	SceneDatabaseValidator(SceneDatabaseValidator&&) = delete;
+	SceneDatabaseValidator& operator=(SceneDatabaseValidator&&) = delete;
+	~SceneDatabaseValidator()
+	{
+		if (m_pProcessImpl->IsValidateSceneDatabaseEnabled())
+		{
+			m_pProcessImpl->ValidateSceneDatabase();
+		}
+	}
+
+private:
+	cdtools::ProcessorImpl* m_pProcessImpl = nullptr;
+};
+
 }
 
 namespace cdtools
@@ -89,34 +120,33 @@ void ProcessorImpl::Run()
 		m_pProducer->Execute(m_pCurrentSceneDatabase);
 	}
 
-	// Take care to keep correct order for post-process steps.
-	if (IsValidateSceneDatabaseEnabled())
+	// Adding post processing here.
+	// SceneDatabaseValidator will help to validate if data is correct before and after.
 	{
-		// Pre-validation before doing post-process.
-		ValidateSceneDatabase();
+		details::SceneDatabaseValidator validator(this);
+
+		if (IsFlattenSceneDatabaseEnabled())
+		{
+			FlattenSceneDatabase();
+		}
+
+		if (IsCalculateAABBForSceneDatabaseEnabled())
+		{
+			CalculateAABBForSceneDatabase();
+		}
+
+		if (IsCalculateConnetivityDataEnabled())
+		{
+			CalculateConnetivityData();
+		}
+
+		if (IsSearchMissingTexturesEnabled())
+		{
+			SearchMissingTextures();
+		}
 	}
 
-	if (IsFlattenSceneDatabaseEnabled())
-	{
-		FlattenSceneDatabase();
-	}
-
-	if (IsCalculateAABBForSceneDatabaseEnabled())
-	{
-		CalculateAABBForSceneDatabase();
-	}
-
-	if (IsValidateSceneDatabaseEnabled())
-	{
-		// Post-validation after doing post-process.
-		ValidateSceneDatabase();
-	}
-
-	if (IsCalculateConnetivityDataEnabled())
-	{
-		CalculateConnetivityData();
-	}
-
+	// Dump all information finally.
 	if (IsDumpSceneDatabaseEnabled())
 	{
 		DumpSceneDatabase();
@@ -518,6 +548,30 @@ void ProcessorImpl::FlattenSceneDatabase()
 	// Delete all nodes.
 	m_pCurrentSceneDatabase->GetNodes().clear();
 	m_pCurrentSceneDatabase->SetNodeCount(0U);
+}
+
+void ProcessorImpl::SearchMissingTextures()
+{
+	for (auto& texture : m_pCurrentSceneDatabase->GetTextures())
+	{
+		std::filesystem::path originFilePath(texture.GetPath());
+		if (std::filesystem::exists(originFilePath))
+		{
+			continue;
+		}
+
+		for (const std::string& textureSearchFolder : m_textureSearchFolders)
+		{
+			std::filesystem::path newFilePath(textureSearchFolder);
+			newFilePath /= originFilePath.stem();
+
+			if (std::filesystem::exists(newFilePath))
+			{
+				texture.SetPath(newFilePath.string().c_str());
+				break;
+			}
+		}
+	}
 }
 
 }

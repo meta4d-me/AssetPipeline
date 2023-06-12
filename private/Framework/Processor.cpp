@@ -78,4 +78,9 @@ bool Processor::IsCalculateConnetivityDataEnabled() const
 	return m_pProcessorImpl->IsCalculateConnetivityDataEnabled();
 }
 
+void Processor::AddExtraTextureSearchFolder(const char* pFolderPath)
+{
+	m_pProcessorImpl->AddExtraTextureSearchFolder(pFolderPath);
+}
+
 }
