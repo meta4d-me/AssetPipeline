@@ -10,7 +10,6 @@
 #include <fbxsdk.h>
 
 #include <cassert>
-#include <filesystem>
 #include <format>
 #include <vector>
 
@@ -133,9 +132,6 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	m_materialIDGenerator.SetCurrentID(pSceneDatabase->GetMaterialCount());
 	m_textureIDGenerator.SetCurrentID(pSceneDatabase->GetTextureCount());
 	m_meshIDGenerator.SetCurrentID(pSceneDatabase->GetMeshCount());
-
-	std::filesystem::path fbxFilePath(m_filePath.c_str());
-	m_textureSearchFolders.push_back(fbxFilePath.parent_path().string());
 
 	// Bake animation layers to the base layer and destroy other layers.
 	uint32_t animationStackCount = pSDKScene->GetSrcObjectCount<fbxsdk::FbxAnimStack>();
@@ -686,26 +682,16 @@ void FbxProducerImpl::AddMaterialTexture(const fbxsdk::FbxProperty& sdkProperty,
 			continue;
 		}
 
-		for (const std::string& textureSearchFolder : m_textureSearchFolders)
+		std::string textureFileName = pFileTexture->GetFileName();
+		uint32_t textureHash = cd::StringHash<cd::TextureID::ValueType>(textureFileName);
+		bool isReused = false;
+		cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, &isReused);
+		if (!isReused)
 		{
-			std::filesystem::path textureFilePath(textureSearchFolder);
-			textureFilePath.append(pFileTexture->GetFileName());
-
-			if (std::filesystem::exists(textureFilePath))
-			{
-				std::string filePath = textureFilePath.string();
-				uint32_t textureHash = cd::StringHash<cd::TextureID::ValueType>(filePath);
-				bool isReused = false;
-				cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, &isReused);
-				if (!isReused)
-				{
-					cd::Texture texture(textureID, textureType, filePath.c_str());
-					pSceneDatabase->AddTexture(cd::MoveTemp(texture));
-				}
-				material.AddTextureID(textureType, textureID);
-				break;
-			}
+			cd::Texture texture(textureID, textureType, textureFileName.c_str());
+			pSceneDatabase->AddTexture(cd::MoveTemp(texture));
 		}
+		material.AddTextureID(textureType, textureID);
 	}
 }
 

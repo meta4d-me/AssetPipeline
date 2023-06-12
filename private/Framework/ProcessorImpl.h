@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace cd
 {
@@ -44,12 +46,15 @@ public:
 	void SetCalculateConnetivityDataEnable(bool enable) { m_enableCalculateConnetivityData = enable; }
 	bool IsCalculateConnetivityDataEnabled() const { return m_enableCalculateConnetivityData; }
 
-private:
+	void AddExtraTextureSearchFolder(const char* pFolderPath) { m_textureSearchFolders.push_back(pFolderPath); }
+	bool IsSearchMissingTexturesEnabled() const { return !m_textureSearchFolders.empty(); }
+
 	void DumpSceneDatabase();
 	void ValidateSceneDatabase();
 	void CalculateAABBForSceneDatabase();
 	void FlattenSceneDatabase();
 	void CalculateConnetivityData();
+	void SearchMissingTextures();
 
 private:
 	IProducer* m_pProducer = nullptr;
@@ -57,6 +62,7 @@ private:
 
 	cd::SceneDatabase* m_pCurrentSceneDatabase;
 	std::unique_ptr<cd::SceneDatabase> m_pLocalSceneDatabase;
+	std::vector<std::string> m_textureSearchFolders;
 
 	bool m_enableDumpSceneDatabase = true;
 	bool m_enableValidateSceneDatabase = true;

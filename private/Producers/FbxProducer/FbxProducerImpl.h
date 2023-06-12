@@ -49,8 +49,6 @@ public:
 
 	void Execute(cd::SceneDatabase* pSceneDatabase);
 
-	void AddTextureSearchFolderPath(const char* pTextureFolderPath) { m_textureSearchFolders.push_back(pTextureFolderPath); }
-
 	void SetWantImportMaterial(bool flag) { m_importMaterial = flag; }
 	bool WantImportMaterial() const { return m_importMaterial; }
 
@@ -96,7 +94,6 @@ private:
 	fbxsdk::FbxManager* m_pSDKManager = nullptr;
 
 	std::map<int32_t, uint32_t> m_fbxMaterialIndexToMaterialID;
-	std::vector<std::string> m_textureSearchFolders;
 
 	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
 	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;

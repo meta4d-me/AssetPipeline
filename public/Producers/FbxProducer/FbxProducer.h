@@ -28,8 +28,6 @@ public:
 
 	virtual void Execute(cd::SceneDatabase* pSceneDatabase) override;
 
-	void AddTextureSearchFolderPath(const char* pTextureFolderPath);
-
 	// Want to import materials.
 	void SetWantImportMaterial(bool flag);
 	bool WantImportMaterial() const;
