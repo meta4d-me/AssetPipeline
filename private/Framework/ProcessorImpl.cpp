@@ -574,7 +574,7 @@ void ProcessorImpl::SearchMissingTextures()
 		for (const std::string& textureSearchFolder : m_textureSearchFolders)
 		{
 			std::filesystem::path newFilePath(textureSearchFolder);
-			newFilePath /= originFilePath.stem();
+			newFilePath /= originFilePath.filename();
 
 			if (std::filesystem::exists(newFilePath))
 			{
