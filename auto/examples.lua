@@ -13,8 +13,8 @@ function MakeExample(exampleProject)
 
 	local doUseFbxProducer = string.contains(exampleProject, "FbxTo")
 	local doUseFbxConsumer = string.contains(exampleProject, "ToFbx")
-	local doUseCDProducer = string.contains(exampleProject, "CatDogTo")
-	local doUseCDConsumer = string.contains(exampleProject, "ToCatDog")
+	local doUseCDProducer = string.contains(exampleProject, "CatDogTo") or string.contains(exampleProject, "CDTo")
+	local doUseCDConsumer = string.contains(exampleProject, "ToCatDog") or string.contains(exampleProject, "ToCD")
 	local doUseGenericProducer = string.contains(exampleProject, "GenericTo")
 	local doUseGenericConsumer = string.contains(exampleProject, "ToGeneric")
 	
@@ -24,7 +24,7 @@ function MakeExample(exampleProject)
 	project(exampleProject)
 		kind("ConsoleApp")
 		language("C++")
-		cppdialect("c++17")
+		Platform_SetCppDialect()
 		dependson { "AssetPipelineCore" }
 		
 		location(path.join(RootPath, "build"))

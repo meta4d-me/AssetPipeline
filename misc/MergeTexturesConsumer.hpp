@@ -45,7 +45,7 @@ struct Texture2D
 	{
 		assert(data == nullptr);
 		size = rect.x() * rect.y() * channel;
-		assert(size != 0);
+		assert(size > 0);
 		data = new stbi_uc[size];
 		memset(data, 0, size);
 	}
@@ -58,6 +58,12 @@ struct Texture2D
 	void SetPixelData(int i, int j, int colorIndex, stbi_uc value)
 	{
 		data[(i * channel * rect.x()) + (j * channel) + colorIndex] = value;
+	}
+
+	void MemsetPixData(stbi_uc value)
+	{
+		assert(data != nullptr && size > 0);
+		memset(data, value, size);
 	}
 
 	bool Save(const char* pFilePath)
@@ -79,6 +85,11 @@ public:
 	void SetMergedTextureSuffixAndExtension(const char* pSuffixAndExtension)
 	{
 		m_mergedTextureSuffixAndExtension = pSuffixAndExtension;
+	}
+
+	void SetTextureTypeAndDefaultValue(cd::MaterialTextureType textureType, uint8_t value)
+	{
+		m_textureColorDefaultValue[textureType] = value;
 	}
 
 	void SetTextureTypeAndColorIndex(cd::MaterialTextureType textureType, ColorIndex colorIndex)
@@ -106,7 +117,7 @@ public:
 				textureFileSupportTypes[texture.GetPath()].push_back(textureType);
 			}
 
-			if (textureFileSupportTypes.size() <= 1)
+			if (textureFileSupportTypes.size() < 1)
 			{
 				// Material only has one texture type.
 				// TextureTypes already share same texture file path.
@@ -163,6 +174,17 @@ public:
 			mergedTexture.rect = mergedTextureRect.value();
 			mergedTexture.channel = RequestChannelCount;
 			mergedTexture.Allocate();
+
+			for (const auto& [textureType, colorValue] : m_textureColorDefaultValue)
+			{
+				// Init default color value if file not loaded.
+				if (!loadedTexturesData.contains(textureType))
+				{
+					assert(m_textureColorDefaultValue.contains(textureType));
+					mergedTexture.MemsetPixData(m_textureColorDefaultValue[textureType]);
+				}
+			}
+
 			for (const auto& [textureType, pTexture2D] : loadedTexturesData)
 			{
 				int colorIndex = static_cast<int>(m_textureColorIndex[textureType]);
@@ -175,8 +197,9 @@ public:
 				}
 			}
 
-			std::filesystem::path mergedFilePath = mergedTextureFilePath.parent_path();
-			mergedFilePath = mergedFilePath / material.GetName();
+			std::filesystem::path mergedFilePath = mergedTextureFilePath.parent_path() / material.GetName();
+			//mergedFilePath += "_" + std::to_string(mergedTextureRect.value().x());
+			//mergedFilePath += "x" + std::to_string(mergedTextureRect.value().y());
 			mergedFilePath += "_" + m_mergedTextureSuffixAndExtension;
 			std::string outputFilePath = mergedFilePath.string();
 			if (!mergedTexture.Save(outputFilePath.c_str()))
@@ -193,5 +216,6 @@ public:
 private:
 	std::string m_mergedTextureSuffixAndExtension;
 	std::map<cd::MaterialTextureType, ColorIndex> m_textureColorIndex; 
+	std::map<cd::MaterialTextureType, uint8_t> m_textureColorDefaultValue; 
 };
 }
