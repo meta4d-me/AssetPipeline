@@ -7,6 +7,7 @@
 #include <cassert>
 #include <cfloat>
 #include <filesystem>
+#include <fstream>
 
 namespace details
 {
@@ -89,6 +90,26 @@ private:
 	cdtools::ProcessorImpl* m_pProcessImpl = nullptr;
 };
 
+std::vector<std::byte> LoadFile(const char* pFilePath)
+{
+	std::vector<std::byte> fileData;
+
+	std::ifstream fin(pFilePath, std::ios::in | std::ios::binary);
+	if (!fin.is_open())
+	{
+		return fileData;
+	}
+
+	fin.seekg(0L, std::ios::end);
+	size_t fileSize = fin.tellg();
+	fin.seekg(0L, std::ios::beg);
+	fileData.resize(fileSize);
+	fin.read(reinterpret_cast<char*>(fileData.data()), fileSize);
+	fin.close();
+
+	return fileData;
+}
+
 }
 
 namespace cdtools
@@ -145,6 +166,11 @@ void ProcessorImpl::Run()
 		if (IsSearchMissingTexturesEnabled())
 		{
 			SearchMissingTextures();
+		}
+
+		if (IsEmbedTextureFilesEnabled())
+		{
+			EmbedTextureFiles();
 		}
 	}
 
@@ -582,6 +608,26 @@ void ProcessorImpl::SearchMissingTextures()
 				break;
 			}
 		}
+	}
+}
+
+void ProcessorImpl::EmbedTextureFiles()
+{
+	for (auto& texture : m_pCurrentSceneDatabase->GetTextures())
+	{
+		if (texture.ExistRawData())
+		{
+			continue;
+		}
+
+		const char* pFilePath = texture.GetPath();
+		if (!std::filesystem::exists(pFilePath))
+		{
+			continue;
+		}
+
+		// Just embed texture file, not parse its information.
+		texture.SetRawData(details::LoadFile(pFilePath));
 	}
 }
 
