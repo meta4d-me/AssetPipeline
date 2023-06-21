@@ -56,8 +56,6 @@ int main(int argc, char** argv)
 		processor.Run();
 	}
 
-	pSceneDatabase->GetLights().clear();
-
 	//auto RenameMaterialTextureFilePath = [](cd::Material& material, cd::MaterialTextureType textureType, cd::SceneDatabase* pSceneDatabase)
 	//{
 	//	if (!material.IsTextureSetup(textureType))
