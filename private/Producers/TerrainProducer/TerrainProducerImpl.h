@@ -106,11 +106,11 @@ private:
 	cd::ObjectIDGenerator<cd::MeshID> m_meshIDGenerator;
 	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
 
-	void GenerateElevationMap(std::vector<int32_t>& outElevationMap, uint32_t sector_x, uint32_t sector_z) const;
-	void GenerateElevationBasedAlphaMap(std::vector<uint32_t>& outAlphaMap, const std::vector<int32_t>& elevationMap) const;
+	std::vector<std::byte> GenerateElevationMap(uint32_t sector_x, uint32_t sector_z, cd::Vec2f& elevationMinMax) const;
+	std::vector<std::byte> GenerateElevationBasedAlphaMap(const std::vector<std::byte>& elevationMap) const;
 	void GenerateAllSectors(cd::SceneDatabase* pSceneDatabase);
-	cd::Mesh GenerateSectorAt(uint32_t sector_x, uint32_t sector_z, const std::vector<int32_t>& elevationMap);
-	cd::MaterialID GenerateMaterialAndTextures(cd::SceneDatabase* pSceneDatabase, uint32_t sector_x, uint32_t sector_z, std::vector<int32_t>& elevationMap);
+	cd::Mesh GenerateSectorAt(uint32_t sector_x, uint32_t sector_z, const cd::Vec2f& elevationMinMax);
+	cd::MaterialID GenerateMaterialAndTextures(cd::SceneDatabase* pSceneDatabase, uint32_t sector_x, uint32_t sector_z, std::vector<std::byte>&& elevationMap);
 };
 
 }	// namespace cdtools

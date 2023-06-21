@@ -688,7 +688,8 @@ void FbxProducerImpl::AddMaterialTexture(const fbxsdk::FbxProperty& sdkProperty,
 		cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, &isReused);
 		if (!isReused)
 		{
-			cd::Texture texture(textureID, textureType, textureFileName.c_str());
+			cd::Texture texture(textureID, textureType);
+			texture.SetPath(textureFileName.c_str());
 			pSceneDatabase->AddTexture(cd::MoveTemp(texture));
 		}
 		material.AddTextureID(textureType, textureID);

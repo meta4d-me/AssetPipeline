@@ -20,21 +20,17 @@ public:
 	Texture() = delete;
 	explicit Texture(InputArchive& inputArchive);
 	explicit Texture(InputArchiveSwapBytes& inputArchive);
-	explicit Texture(TextureID textureID, MaterialTextureType textureType, const char* pTexturePath);
+	explicit Texture(TextureID textureID, MaterialTextureType textureType);
 	Texture(const Texture&) = delete;
 	Texture& operator=(const Texture&) = delete;
 	Texture(Texture&&) noexcept;
 	Texture& operator=(Texture&&) noexcept;
 	~Texture();
 
-	void SetRawTexture(const std::vector<uint32_t>& inputData, const cd::TextureFormat format, uint32_t width, uint32_t height);
-	void SetRawTexture(const std::vector<int32_t>& inputData, const cd::TextureFormat format, uint32_t width, uint32_t height);
-	void ClearRawTexture();
-	bool HasRawTexture() const;
-
-	const TextureID& GetID() const;
+	TextureID GetID() const;
 	cd::MaterialTextureType GetType() const;
 
+	// Texture sampler data
 	cd::TextureMapMode GetUMapMode() const;
 	void SetUMapMode(cd::TextureMapMode mapMode);
 
@@ -47,14 +43,32 @@ public:
 	const cd::Vec2f& GetUVScale() const;
 	void SetUVScale(cd::Vec2f uvScale);
 
+	// File texture data
 	const char* GetPath() const;
-	void SetPath(const char* pFilePath);
+	void SetPath(const char* filePath);
 
-	const cd::TextureFormat GetTextureFormat() const;
-	const std::vector<std::byte>& GetRawTexture() const;
+	// Texture performance data
+	bool UseMipMap() const;
+	void SetUseMipMap(bool use);
+
+	void SetFormat(cd::TextureFormat format);
+	cd::TextureFormat GetFormat() const;
+
+	// Detailed texture data
 	uint32_t GetWidth() const;
-	uint32_t GetHeight() const;
+	void SetWidth(uint32_t width);
 
+	uint32_t GetHeight() const;
+	void SetHeight(uint32_t height);
+
+	uint32_t GetDepth() const;
+	void SetDepth(uint32_t depth);
+
+	const std::vector<std::byte>& GetRawData() const;
+	void SetRawData(std::vector<std::byte> rawData);
+	void ClearRawData();
+	bool ExistData() const;
+	
 	Texture& operator<<(InputArchive& inputArchive);
 	Texture& operator<<(InputArchiveSwapBytes& inputArchive);
 	const Texture& operator>>(OutputArchive& outputArchive) const;
