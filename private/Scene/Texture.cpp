@@ -14,9 +14,9 @@ Texture::Texture(InputArchiveSwapBytes& inputArchive)
     m_pTextureImpl = new TextureImpl(inputArchive);
 }
 
-Texture::Texture(TextureID textureID, MaterialTextureType textureType, const char* pTexturePath)
+Texture::Texture(TextureID textureID, MaterialTextureType textureType)
 {
-    m_pTextureImpl = new TextureImpl(textureID, textureType, pTexturePath);
+    m_pTextureImpl = new TextureImpl(textureID, textureType);
 }
 
 Texture::Texture(Texture&& rhs) noexcept
@@ -39,26 +39,7 @@ Texture::~Texture()
     }
 }
 
-void Texture::SetRawTexture(const std::vector<uint32_t>& inputData, const cd::TextureFormat format, uint32_t width, uint32_t height)
-{
-    m_pTextureImpl->SetRawTexture(inputData, format, width, height);
-}
-
-void Texture::SetRawTexture(const std::vector<int32_t>& inputData, const cd::TextureFormat format, uint32_t width, uint32_t height)
-{
-    m_pTextureImpl->SetRawTexture(inputData, format, width, height);
-}
-
-void Texture::ClearRawTexture()
-{
-    m_pTextureImpl->ClearRawTexture();
-}
-
-bool Texture::HasRawTexture() const {
-    return m_pTextureImpl->HasRawTexture();
-}
-
-const TextureID& Texture::GetID() const
+TextureID Texture::GetID() const
 {
     return m_pTextureImpl->GetID();
 }
@@ -108,6 +89,16 @@ void Texture::SetUVScale(cd::Vec2f uvScale)
     m_pTextureImpl->SetUVScale(cd::MoveTemp(uvScale));
 }
 
+cd::TextureFormat Texture::GetFormat() const
+{
+    return m_pTextureImpl->GetFormat();
+}
+
+void Texture::SetFormat(cd::TextureFormat format)
+{
+    return m_pTextureImpl->SetFormat(format);
+}
+
 const char* Texture::GetPath() const
 {
     return m_pTextureImpl->GetPath().c_str();
@@ -118,22 +109,64 @@ void Texture::SetPath(const char* pFilePath)
     return m_pTextureImpl->SetPath(pFilePath);
 }
 
-const cd::TextureFormat Texture::GetTextureFormat() const
+bool Texture::UseMipMap() const
 {
-    return m_pTextureImpl->GetTextureFormat();
+    return m_pTextureImpl->UseMipMap();
 }
 
-const std::vector<std::byte>& Texture::GetRawTexture() const
+void Texture::SetUseMipMap(bool use)
 {
-    return m_pTextureImpl->GetRawTexture();
+    m_pTextureImpl->SetUseMipMap(use);
 }
 
-uint32_t Texture::GetWidth() const {
+uint32_t Texture::GetWidth() const
+{
     return m_pTextureImpl->GetWidth();
 }
 
-uint32_t Texture::GetHeight() const {
+void Texture::SetWidth(uint32_t width)
+{
+    m_pTextureImpl->SetWidth(width);
+}
+
+uint32_t Texture::GetHeight() const
+{
     return m_pTextureImpl->GetHeight();
+}
+
+void Texture::SetHeight(uint32_t height)
+{
+    m_pTextureImpl->SetHeight(height);
+}
+
+uint32_t Texture::GetDepth() const
+{
+    return m_pTextureImpl->GetDepth();
+}
+
+void Texture::SetDepth(uint32_t depth)
+{
+    m_pTextureImpl->SetDepth(depth);
+}
+
+const std::vector<std::byte>& Texture::GetRawData() const
+{
+    return m_pTextureImpl->GetRawData();
+}
+
+void Texture::SetRawData(std::vector<std::byte> rawData)
+{
+    m_pTextureImpl->SetRawData(cd::MoveTemp(rawData));
+}
+
+void Texture::ClearRawData()
+{
+    m_pTextureImpl->ClearRawData();
+}
+
+bool Texture::ExistData() const
+{
+    return m_pTextureImpl->ExistData();
 }
 
 Texture& Texture::operator<<(InputArchive& inputArchive)

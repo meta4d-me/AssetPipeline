@@ -3,30 +3,35 @@
 namespace cd
 {
 
-TextureImpl::TextureImpl(TextureID textureID, MaterialTextureType textureType, std::string texturePath)
-	: m_format(TextureFormat::Count)
-	, m_rawData()
-	, m_width(0)
-	, m_height(0)
+TextureImpl::TextureImpl(TextureID textureID, MaterialTextureType textureType)
 {
-	Init(textureID, textureType, MoveTemp(texturePath));
+	Init(textureID, textureType);
 }
 
-void TextureImpl::ClearRawTexture()
+void TextureImpl::ClearRawData()
 {
 	m_format = TextureFormat::Count;
 	m_rawData.clear();
 	m_width = 0;
 	m_height = 0;
+	m_depth = 0;
 }
 
-void TextureImpl::Init(TextureID textureID, MaterialTextureType textureType, std::string texturePath)
+void TextureImpl::Init(TextureID textureID, MaterialTextureType textureType)
 {
 	m_id = textureID;
 	m_type = textureType;
+
+	// Assign default values
 	m_uvMapMode[0] = TextureMapMode::Wrap;
 	m_uvMapMode[1] = TextureMapMode::Wrap;
-	m_path = MoveTemp(texturePath);
+	m_uvOffset = cd::Vec2f::Zero();
+	m_uvScale = cd::Vec2f::One();
+
+	m_format = TextureFormat::Count;
+	m_useMipMap = true;
+
+	ClearRawData();
 }
 
 }

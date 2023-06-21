@@ -220,7 +220,8 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			// Reused textures don't need to add to SceneDatabase again.
 			if (!isTextureReused)
 			{
-				cd::Texture materialTexture(textureID, materialTextureType, textureAbsolutePath.string().c_str());
+				cd::Texture materialTexture(textureID, materialTextureType);
+				materialTexture.SetPath(textureAbsolutePath.string().c_str());
 				ConvertAssimpTextureMapMode(textureMapMode[0]), ConvertAssimpTextureMapMode(textureMapMode[1]);
 				materialTexture.SetUVOffset(cd::Vec2f(uvTransform.mTranslation.x, uvTransform.mTranslation.y));
 				materialTexture.SetUVScale(cd::Vec2f(uvTransform.mScaling.x, uvTransform.mScaling.y));
