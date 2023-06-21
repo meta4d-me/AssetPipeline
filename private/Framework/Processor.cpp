@@ -83,4 +83,19 @@ void Processor::AddExtraTextureSearchFolder(const char* pFolderPath)
 	m_pProcessorImpl->AddExtraTextureSearchFolder(pFolderPath);
 }
 
+bool Processor::IsSearchMissingTexturesEnabled() const
+{
+	return m_pProcessorImpl->IsSearchMissingTexturesEnabled();
+}
+
+void Processor::SetEmbedTextureFilesEnable(bool enable)
+{
+	m_pProcessorImpl->SetEmbedTextureFilesEnable(enable);
+}
+
+bool Processor::IsEmbedTextureFilesEnabled() const
+{
+	return m_pProcessorImpl->IsEmbedTextureFilesEnabled();
+}
+
 }

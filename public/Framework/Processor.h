@@ -47,6 +47,10 @@ public:
 	bool IsCalculateConnetivityDataEnabled() const;
 
 	void AddExtraTextureSearchFolder(const char* pFolderPath);
+	bool IsSearchMissingTexturesEnabled() const;
+
+	void SetEmbedTextureFilesEnable(bool enable);
+	bool IsEmbedTextureFilesEnabled() const;
 
 	const cd::SceneDatabase* GetSceneDatabase() const;
 	void Run();

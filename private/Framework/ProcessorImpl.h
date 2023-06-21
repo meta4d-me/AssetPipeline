@@ -49,12 +49,16 @@ public:
 	void AddExtraTextureSearchFolder(const char* pFolderPath) { m_textureSearchFolders.push_back(pFolderPath); }
 	bool IsSearchMissingTexturesEnabled() const { return !m_textureSearchFolders.empty(); }
 
+	void SetEmbedTextureFilesEnable(bool enable) { m_enableEmbedTextureFiles = enable; }
+	bool IsEmbedTextureFilesEnabled() const { return m_enableEmbedTextureFiles; }
+
 	void DumpSceneDatabase();
 	void ValidateSceneDatabase();
 	void CalculateAABBForSceneDatabase();
 	void FlattenSceneDatabase();
 	void CalculateConnetivityData();
 	void SearchMissingTextures();
+	void EmbedTextureFiles();
 
 private:
 	IProducer* m_pProducer = nullptr;
@@ -69,6 +73,7 @@ private:
 	bool m_enableCalculateAABBForSceneDatabase = true;
 	bool m_enableFlattenSceneDatabase = false;
 	bool m_enableCalculateConnetivityData = false;
+	bool m_enableEmbedTextureFiles = false;
 };
 
 }

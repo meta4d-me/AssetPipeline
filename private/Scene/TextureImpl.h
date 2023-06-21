@@ -77,7 +77,7 @@ public:
 	const std::vector<std::byte>& GetRawData() const { return m_rawData; }
 	void SetRawData(std::vector<std::byte> rawData) { m_rawData = cd::MoveTemp(rawData); }
 	void ClearRawData();
-	bool ExistData() const { return !m_rawData.empty(); }
+	bool ExistRawData() const { return !m_rawData.empty(); }
 
 	// Serialization
 	template<bool SwapBytesOrder>

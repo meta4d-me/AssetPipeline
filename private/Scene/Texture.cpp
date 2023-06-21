@@ -164,9 +164,9 @@ void Texture::ClearRawData()
     m_pTextureImpl->ClearRawData();
 }
 
-bool Texture::ExistData() const
+bool Texture::ExistRawData() const
 {
-    return m_pTextureImpl->ExistData();
+    return m_pTextureImpl->ExistRawData();
 }
 
 Texture& Texture::operator<<(InputArchive& inputArchive)

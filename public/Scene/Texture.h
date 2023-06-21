@@ -67,7 +67,7 @@ public:
 	const std::vector<std::byte>& GetRawData() const;
 	void SetRawData(std::vector<std::byte> rawData);
 	void ClearRawData();
-	bool ExistData() const;
+	bool ExistRawData() const;
 	
 	Texture& operator<<(InputArchive& inputArchive);
 	Texture& operator<<(InputArchiveSwapBytes& inputArchive);
