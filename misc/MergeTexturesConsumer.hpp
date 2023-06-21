@@ -60,12 +60,6 @@ struct Texture2D
 		data[(i * channel * rect.x()) + (j * channel) + colorIndex] = value;
 	}
 
-	void MemsetPixData(stbi_uc value)
-	{
-		assert(data != nullptr && size > 0);
-		memset(data, value, size);
-	}
-
 	bool Save(const char* pFilePath)
 	{
 		return 1 == stbi_write_png(pFilePath, rect.x(), rect.y(), channel, data, rect.x() * channel);
@@ -139,7 +133,9 @@ public:
 			for (const auto& [textureFilePath, textureTypes] : textureFileSupportTypes)
 			{
 				Texture2D& texture2D = texture2DStorage.emplace_back();
-				texture2D.data = stbi_load(textureFilePath.c_str(), &texture2D.rect.x(), &texture2D.rect.y(), &texture2D.channel, RequestChannelCount);
+				texture2D.channel = RequestChannelCount;
+				texture2D.data = stbi_load(textureFilePath.c_str(), &texture2D.rect.x(), &texture2D.rect.y(), nullptr, RequestChannelCount);
+				texture2D.size = texture2D.rect.x() * texture2D.rect.y() * texture2D.channel;
 				if (!texture2D.data)
 				{
 					// Failed to load texture file.
@@ -181,7 +177,15 @@ public:
 				if (!loadedTexturesData.contains(textureType))
 				{
 					assert(m_textureColorDefaultValue.contains(textureType));
-					mergedTexture.MemsetPixData(m_textureColorDefaultValue[textureType]);
+					int colorIndex = static_cast<int>(m_textureColorIndex[textureType]);
+					uint8_t defaultValue = m_textureColorDefaultValue[textureType];
+					for (int i = 0; i < mergedTexture.rect.x(); ++i)
+					{
+						for (int j = 0; j < mergedTexture.rect.y(); ++j)
+						{
+							mergedTexture.SetPixelData(i, j, colorIndex, defaultValue);
+						}
+					}
 				}
 			}
 
