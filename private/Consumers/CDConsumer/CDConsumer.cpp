@@ -38,9 +38,9 @@ void CDConsumer::ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, cd::E
 	m_pCDConsumerImpl->ExportPureBinary(pSceneDatabase, targetEndian);
 }
 
-void CDConsumer::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase)
+void CDConsumer::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase, cd::EndianType targetEndian)
 {
-	m_pCDConsumerImpl->ExportXmlBinary(pSceneDatabase);
+	m_pCDConsumerImpl->ExportXmlBinary(pSceneDatabase, targetEndian);
 }
 
 }

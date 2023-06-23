@@ -19,6 +19,70 @@ using XmlAttribute = rapidxml::xml_attribute<char>;
 #include <memory>
 #include <string>
 
+namespace
+{
+
+XmlNode* WriteNode(XmlDocument* pDocument, const char* pNodeName, const char* pNodeData = nullptr)
+{
+	return pDocument->allocate_node(rapidxml::node_element, pDocument->allocate_string(pNodeName),
+		!!pNodeData ? pDocument->allocate_string(pNodeData) : nullptr);
+}
+
+template<typename T>
+void WriteNodeAttribute(XmlDocument* pDocument, XmlNode* pNode, const char* pAttributeName, const T& attributeValue)
+{
+	if constexpr (std::is_same_v<T, std::string>)
+	{
+		pNode->append_attribute(pDocument->allocate_attribute(pDocument->allocate_string(pAttributeName),
+			pDocument->allocate_string(attributeValue.c_str())));
+	}
+	else if constexpr (std::is_arithmetic_v<T>)
+	{
+		pNode->append_attribute(pDocument->allocate_attribute(pDocument->allocate_string(pAttributeName),
+			pDocument->allocate_string(std::to_string(attributeValue).c_str())));
+	}
+	else if constexpr (std::is_same_v<T, const char*> || std::is_same_v<T, char*>)
+	{
+		pNode->append_attribute(pDocument->allocate_attribute(pDocument->allocate_string(pAttributeName),
+			pDocument->allocate_string(attributeValue)));
+	}
+	else
+	{
+		static_assert("WriteNodeAttribute : unsupported type.");
+	}
+}
+
+std::unique_ptr<XmlDocument> CreateXmlDocumentWithDeclaration()
+{
+	std::unique_ptr<XmlDocument> pDocument = std::make_unique<XmlDocument>();
+	XmlNode* pDeclaration = pDocument->allocate_node(rapidxml::node_declaration);
+	WriteNodeAttribute<std::string>(pDocument.get(), pDeclaration, "version", "1.0");
+	WriteNodeAttribute<std::string>(pDocument.get(), pDeclaration, "encoding", "utf-8");
+	pDocument->append_node(pDeclaration);
+	return pDocument;
+}
+
+template<typename T>
+void SaveBinaryFile(std::string filePath, const T& data, cd::EndianType targetEndian)
+{
+	std::ofstream fout(filePath, std::ios::out | std::ios::binary);
+	uint8_t target = static_cast<uint8_t>(targetEndian);
+	fout.write(reinterpret_cast<const char*>(&target), sizeof(uint8_t));
+	if (targetEndian == cd::Endian::GetNative())
+	{
+		cd::OutputArchive outputArchive(&fout);
+		data >> outputArchive;
+	}
+	else
+	{
+		cd::OutputArchiveSwapBytes outputArchive(&fout);
+		data >> outputArchive;
+	}
+	fout.close();
+}
+
+}
+
 namespace cdtools
 {
 
@@ -35,166 +99,73 @@ void CDConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
 
 void CDConsumerImpl::ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, cd::EndianType targetEndian)
 {
-	std::ofstream foutBin(m_filePath, std::ios::out | std::ios::binary);
-	uint8_t target = static_cast<uint8_t>(targetEndian);
-	foutBin.write(reinterpret_cast<const char*>(&target), sizeof(uint8_t));
-
-	if (targetEndian == cd::Endian::GetNative())
-	{
-		cd::OutputArchive outputArchive(&foutBin);
-		*pSceneDatabase >> outputArchive;
-	}
-	else
-	{
-		cd::OutputArchiveSwapBytes outputArchive(&foutBin);
-		*pSceneDatabase >> outputArchive;
-	}
-
-	foutBin.close();
+	SaveBinaryFile(m_filePath, *pSceneDatabase, targetEndian);
 }
 
-void CDConsumerImpl::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase)
+void CDConsumerImpl::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase, cd::EndianType targetEndian)
 {
-	std::filesystem::path xmlFilePath = m_filePath;
-	xmlFilePath.replace_extension(".cdxml");
+	std::filesystem::path exportFolderPath = m_filePath;
+	exportFolderPath = exportFolderPath.parent_path();
 
-	// XmlDocument will allocate many strings so we need to use heap memory to avoid overflow.
-	std::unique_ptr<XmlDocument> pDocument = std::make_unique<XmlDocument>();
-
-	auto WriteNode = [&pDocument](const char* pNodeName, const char* pNodeData = nullptr)
-	{
-		return pDocument->allocate_node(rapidxml::node_element, pDocument->allocate_string(pNodeName),
-			!!pNodeData ? pDocument->allocate_string(pNodeData) : nullptr);
-	};
-	
-	auto WriteNodeU32Attribute = [&pDocument](XmlNode* pNode, const char* pAttributeName, uint32_t attributeValue)
-	{
-		pNode->append_attribute(pDocument->allocate_attribute(pDocument->allocate_string(pAttributeName),
-			pDocument->allocate_string(std::to_string(attributeValue).c_str())));
-	};
-
-	auto WriteNodeStringAttribute = [&pDocument](XmlNode* pNode, const char* pAttributeName, const std::string& attributeValue)
-	{
-		pNode->append_attribute(pDocument->allocate_attribute(pDocument->allocate_string(pAttributeName),
-			pDocument->allocate_string(attributeValue.c_str())));
-	};
-
-	XmlNode* pDeclaration = pDocument->allocate_node(rapidxml::node_declaration);
-	WriteNodeStringAttribute(pDeclaration, "version", "1.0");
-	WriteNodeStringAttribute(pDeclaration, "encoding", "utf-8");
-	pDocument->append_node(pDeclaration);
-
-	XmlNode* pSceneNode = WriteNode("SceneDatabase");
-	WriteNodeStringAttribute(pSceneNode, "Name", pSceneDatabase->GetName());
-	XmlNode* pSceneDataNode = WriteNode("Data");
-	WriteNodeU32Attribute(pSceneDataNode, "MeshCount", pSceneDatabase->GetMeshCount());
-	WriteNodeU32Attribute(pSceneDataNode, "MaterialCount", pSceneDatabase->GetMaterialCount());
-	WriteNodeU32Attribute(pSceneDataNode, "TextureCount", pSceneDatabase->GetTextureCount());
-	pSceneNode->append_node(pSceneDataNode);
-	pDocument->append_node(pSceneNode);
-
+	std::string sceneTypeName("Scene");
+	std::string materialTypeName("Material");
 	for (const auto& mesh : pSceneDatabase->GetMeshes())
 	{
 		std::string meshFileName = mesh.GetName();
 		// replace "." in filename with "_" so that extension can be parsed easily.
 		std::replace(meshFileName.begin(), meshFileName.end(), '.', '_');
-		std::filesystem::path meshBinaryDataPath = xmlFilePath.parent_path().generic_string();
-		meshBinaryDataPath += "/" + meshFileName + ".cdgeom";
+		std::filesystem::path meshFilePath = exportFolderPath / meshFileName;
 
-		std::ofstream foutBin(meshBinaryDataPath, std::ios::out | std::ios::binary);
-		cd::OutputArchive outputArchive(&foutBin);
-		mesh >> outputArchive;
-		foutBin.close();
+		// export binary file.
+		std::filesystem::path meshBinaryFilePath = meshFilePath.replace_extension(".cdbin");
+		SaveBinaryFile(meshBinaryFilePath.string(), mesh, targetEndian);
 
-		XmlNode* pMeshNode = WriteNode("Mesh");
-		WriteNodeU32Attribute(pMeshNode, "ID", mesh.GetID().Data());
-		WriteNodeStringAttribute(pMeshNode, "Name", mesh.GetName());
+		// export xml readable file which contains file information and metadata.
+		// XmlDocument will allocate many strings so we need to use heap memory to avoid overflow.
+		std::unique_ptr<XmlDocument> pXMLDocument = CreateXmlDocumentWithDeclaration();
+		XmlDocument* pDocument = pXMLDocument.get();
+		XmlNode* pMeshNode = WriteNode(pDocument, "Mesh");
 
-		XmlNode* pFilePathNode = WriteNode("FilePath", meshBinaryDataPath.generic_string().c_str());
-
-		XmlNode* pGeometryNode = WriteNode("Geometry");
-		XmlNode* pGeometryDataNode = WriteNode("Data");
-		WriteNodeU32Attribute(pGeometryDataNode, "VertexCount", mesh.GetVertexCount());
-		WriteNodeU32Attribute(pGeometryDataNode, "TriangleCount", mesh.GetPolygonCount());
-		pGeometryNode->append_node(pGeometryDataNode);
-
-		XmlNode* pShadingNode = WriteNode("Shading");
-		XmlNode* pShadingDataNode = WriteNode("Data");
-		WriteNodeU32Attribute(pShadingDataNode, "MaterialID", mesh.GetMaterialID().Data());
-		pShadingNode->append_node(pShadingDataNode);
-
-		pMeshNode->append_node(pFilePathNode);
-		pMeshNode->append_node(pGeometryNode);
-		pMeshNode->append_node(pShadingNode);
-		pDocument->append_node(pMeshNode);
-	}
-
-	// Write remain materials + textures to binary file.
-	// TODO : we should add texture compiling process to AssetPipeline.
-	std::ofstream foutBin(m_filePath, std::ios::out | std::ios::binary);
-	cd::OutputArchive outputArchive(&foutBin);
-
-	for (const auto& material : pSceneDatabase->GetMaterials())
-	{
-		XmlNode* pMaterialNode = WriteNode("Material");
-		WriteNodeU32Attribute(pMaterialNode, "ID", material.GetID().Data());
-		WriteNodeStringAttribute(pMaterialNode, "Name", material.GetName());
-
-		XmlNode* pMaterialDataNode = WriteNode("Data");
-		XmlNode *pTextureListNode = WriteNode("TextureList");
-
-		std::vector<cd::MaterialTextureType> textureTypes = {
-			cd::MaterialTextureType::BaseColor,
-			cd::MaterialTextureType::Occlusion,
-			cd::MaterialTextureType::Roughness,
-			cd::MaterialTextureType::Metallic,
-			cd::MaterialTextureType::Emissive,
-			cd::MaterialTextureType::Normal,
-		};
-
-		for (const auto &type : textureTypes)
 		{
-			if (material.IsTextureSetup(type))
-			{
-				std::stringstream ss;
-				ss << material.GetTextureID(type).value().Data();
-				XmlNode *pTextureNode = WriteNode(GetMaterialPropertyGroupName(type), ss.str().c_str());
-				pTextureListNode->append_node(pTextureNode);
-			}
+			XmlNode* pAssetNode = WriteNode(pDocument, "AssetInfo");
+			WriteNodeAttribute(pDocument, pAssetNode, "ID", mesh.GetID().Data());
+			WriteNodeAttribute(pDocument, pAssetNode, "Name", meshFileName.c_str());
+			pMeshNode->append_node(pAssetNode);
 		}
 
-		pMaterialNode->append_node(pMaterialDataNode);
-		pMaterialNode->append_node(pTextureListNode);
-		pDocument->append_node(pMaterialNode);
+		{
+			XmlNode* pMetaDataNode = WriteNode(pDocument, "MetaData");
+			WriteNodeAttribute(pDocument, pMetaDataNode, "VertexCount", mesh.GetVertexCount());
+			WriteNodeAttribute(pDocument, pMetaDataNode, "TriangleCount", mesh.GetPolygonCount());
+			pMeshNode->append_node(pMetaDataNode);
+		}
 
-		material >> outputArchive;
+		{
+			XmlNode* pLinksNode = WriteNode(pDocument, "Links");
+			{
+				XmlNode* pLinkNode = WriteNode(pDocument, "Link");
+				WriteNodeAttribute(pDocument, pLinkNode, "Type", sceneTypeName);
+				WriteNodeAttribute(pDocument, pLinkNode, "Name", pSceneDatabase->GetName());
+				pLinksNode->append_node(pLinkNode);
+			}
+			{
+				XmlNode* pLinkNode = WriteNode(pDocument, "Link");
+				WriteNodeAttribute(pDocument, pLinkNode, "Type", materialTypeName);
+				uint32_t materialID = mesh.GetMaterialID().Data();
+				WriteNodeAttribute(pDocument, pLinkNode, "ID", materialID);
+				WriteNodeAttribute(pDocument, pLinkNode, "Name", pSceneDatabase->GetMaterial(materialID).GetName());
+				pLinksNode->append_node(pLinkNode);
+			}
+			pMeshNode->append_node(pLinksNode);
+		}
+
+		pDocument->append_node(pMeshNode);
+
+		std::filesystem::path meshInfoFilePath = meshFilePath.replace_extension(".cdinfo");
+		std::ofstream foutXml(meshInfoFilePath, std::ios::out);
+		foutXml << *pDocument;
+		foutXml.close();
 	}
-
-	for (const auto& texture : pSceneDatabase->GetTextures())
-	{
-		XmlNode* pTextureNode = WriteNode("Texture");
-		WriteNodeU32Attribute(pTextureNode, "ID", texture.GetID().Data());
-		WriteNodeStringAttribute(pTextureNode, "FilePath", texture.GetPath());
-		pDocument->append_node(pTextureNode);
-
-		texture >> outputArchive;
-	}
-
-	for (const auto& light : pSceneDatabase->GetLights())
-	{
-		XmlNode* pLightNode = WriteNode("Light");
-		WriteNodeU32Attribute(pLightNode, "ID", light.GetID().Data());
-		WriteNodeU32Attribute(pLightNode, "LightType", static_cast<uint32_t>(light.GetType()));
-		pDocument->append_node(pLightNode);
-
-		light >> outputArchive;
-	}
-
-	foutBin.close();
-
-	std::ofstream foutXml(xmlFilePath, std::ios::out);
-	foutXml << *pDocument;
-	foutXml.close();
 }
 
 }

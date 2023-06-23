@@ -26,7 +26,7 @@ public:
 
 private:
 	void ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, cd::EndianType targetEndian = cd::Endian::GetNative());
-	void ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase);
+	void ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase, cd::EndianType targetEndian = cd::Endian::GetNative());
 
 private:
 	CDConsumerImpl* m_pCDConsumerImpl;
