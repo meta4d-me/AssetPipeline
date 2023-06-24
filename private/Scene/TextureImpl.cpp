@@ -3,9 +3,9 @@
 namespace cd
 {
 
-TextureImpl::TextureImpl(TextureID textureID, MaterialTextureType textureType)
+TextureImpl::TextureImpl(TextureID textureID, const char* pName, MaterialTextureType textureType)
 {
-	Init(textureID, textureType);
+	Init(textureID, pName, textureType);
 }
 
 void TextureImpl::ClearRawData()
@@ -17,9 +17,10 @@ void TextureImpl::ClearRawData()
 	m_depth = 0;
 }
 
-void TextureImpl::Init(TextureID textureID, MaterialTextureType textureType)
+void TextureImpl::Init(TextureID textureID, std::string name, MaterialTextureType textureType)
 {
 	m_id = textureID;
+	m_name = cd::MoveTemp(name);
 	m_type = textureType;
 
 	// Assign default values

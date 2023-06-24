@@ -24,9 +24,12 @@ public:
 	ExportMode GetExportMode() const;
 	void SetExportMode(ExportMode mode);
 
+	cd::EndianType GetTargetEndian() const;
+	void SetTargetEndian(cd::EndianType endian);
+
 private:
-	void ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, cd::EndianType targetEndian = cd::Endian::GetNative());
-	void ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase, cd::EndianType targetEndian = cd::Endian::GetNative());
+	void ExportPureBinary(const cd::SceneDatabase* pSceneDatabase);
+	void ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase);
 
 private:
 	CDConsumerImpl* m_pCDConsumerImpl;

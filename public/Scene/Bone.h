@@ -16,6 +16,9 @@ class BoneImpl;
 class CORE_API Bone final
 {
 public:
+	static const char* GetClassName() { return "Bone"; }
+
+public:
 	Bone() = delete;
 	explicit Bone(InputArchive& inputArchive);
 	explicit Bone(InputArchiveSwapBytes& inputArchive);

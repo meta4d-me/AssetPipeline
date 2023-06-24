@@ -18,6 +18,9 @@ class MeshImpl;
 class CORE_API Mesh final
 {
 public:
+	static const char* GetClassName() { return "Mesh"; }
+
+public:
 	Mesh() = delete;
 	explicit Mesh(InputArchive& inputArchive);
 	explicit Mesh(InputArchiveSwapBytes & inputArchive);

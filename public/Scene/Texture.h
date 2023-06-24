@@ -17,10 +17,13 @@ class TextureImpl;
 class CORE_API Texture final
 {
 public:
+	static const char* GetClassName() { return "Texture"; }
+
+public:
 	Texture() = delete;
 	explicit Texture(InputArchive& inputArchive);
 	explicit Texture(InputArchiveSwapBytes& inputArchive);
-	explicit Texture(TextureID textureID, MaterialTextureType textureType);
+	explicit Texture(TextureID textureID, const char* pName, MaterialTextureType textureType);
 	Texture(const Texture&) = delete;
 	Texture& operator=(const Texture&) = delete;
 	Texture(Texture&&) noexcept;
@@ -28,6 +31,11 @@ public:
 	~Texture();
 
 	TextureID GetID() const;
+	
+	const std::string& GetName() const;
+	std::string& GetName();
+	void SetName(std::string name);
+
 	cd::MaterialTextureType GetType() const;
 
 	// Texture sampler data

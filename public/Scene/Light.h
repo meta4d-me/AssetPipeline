@@ -15,6 +15,9 @@ class LightImpl;
 class CORE_API Light final
 {
 public:
+	static const char* GetClassName() { return "Light"; }
+
+public:
 	Light() = delete;
 	explicit Light(InputArchive& inputArchive);
 	explicit Light(InputArchiveSwapBytes & inputArchive);

@@ -1,6 +1,7 @@
 #include "CDConsumerImpl.h"
 
 #include "IO/OutputArchive.hpp"
+#include "Hashers/FileHash.hpp"
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
 #include "Scene/ObjectID.h"
@@ -81,6 +82,49 @@ void SaveBinaryFile(std::string filePath, const T& data, cd::EndianType targetEn
 	fout.close();
 }
 
+template<typename T>
+void SaveInformationFile(std::string filePath, const std::filesystem::path& binaryFilePath, const T& data)
+{
+	// export xml readable file which contains file information and metadata.
+	// XmlDocument will allocate many strings so we need to use heap memory to avoid overflow.
+	std::unique_ptr<XmlDocument> pXMLDocument = CreateXmlDocumentWithDeclaration();
+	XmlDocument* pDocument = pXMLDocument.get();
+	XmlNode* pNode = WriteNode(pDocument, data.GetClassName());
+
+	{
+		XmlNode* pAssetNode = WriteNode(pDocument, "AssetInfo");
+		WriteNodeAttribute(pDocument, pAssetNode, "ID", data.GetID().Data());
+		WriteNodeAttribute(pDocument, pAssetNode, "Type", data.GetClassName());
+		WriteNodeAttribute(pDocument, pAssetNode, "Name", data.GetName());
+		WriteNodeAttribute(pDocument, pAssetNode, "BinaryFile", binaryFilePath.filename().string());
+		WriteNodeAttribute(pDocument, pAssetNode, "BinaryHash", cd::FileHash(binaryFilePath.string().c_str()));
+		pNode->append_node(pAssetNode);
+	}
+
+	XmlNode* pMetaDataNode = WriteNode(pDocument, "MetaData");
+	if constexpr (std::is_same_v<cd::Mesh, T>)
+	{
+		WriteNodeAttribute(pDocument, pMetaDataNode, "VertexCount", data.GetVertexCount());
+		WriteNodeAttribute(pDocument, pMetaDataNode, "TriangleCount", data.GetPolygonCount());
+	}
+	else if constexpr (std::is_same_v<cd::Material, T>)
+	{
+
+	}
+	else if constexpr (std::is_same_v<cd::Texture, T>)
+	{
+
+	}
+	pNode->append_node(pMetaDataNode);
+
+	pDocument->append_node(pNode);
+
+
+	std::ofstream foutXml(filePath, std::ios::out);
+	foutXml << *pDocument;
+	foutXml.close();
+}
+
 }
 
 namespace cdtools
@@ -97,74 +141,44 @@ void CDConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
 	}
 }
 
-void CDConsumerImpl::ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, cd::EndianType targetEndian)
+void CDConsumerImpl::ExportPureBinary(const cd::SceneDatabase* pSceneDatabase)
 {
-	SaveBinaryFile(m_filePath, *pSceneDatabase, targetEndian);
+	SaveBinaryFile(m_filePath, *pSceneDatabase, m_targetEndian);
 }
 
-void CDConsumerImpl::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase, cd::EndianType targetEndian)
+void CDConsumerImpl::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase)
 {
 	std::filesystem::path exportFolderPath = m_filePath;
 	exportFolderPath = exportFolderPath.parent_path();
 
-	std::string sceneTypeName("Scene");
-	std::string materialTypeName("Material");
-	for (const auto& mesh : pSceneDatabase->GetMeshes())
+	auto ExportSceneObject = [&exportFolderPath](const auto& object, cd::EndianType targetEndian)
 	{
-		std::string meshFileName = mesh.GetName();
+		std::string fileName = std::format("{}_{}", object.GetClassName(), object.GetName());
 		// replace "." in filename with "_" so that extension can be parsed easily.
-		std::replace(meshFileName.begin(), meshFileName.end(), '.', '_');
-		std::filesystem::path meshFilePath = exportFolderPath / meshFileName;
+		std::replace(fileName.begin(), fileName.end(), '.', '_');
+		std::filesystem::path filePath = exportFolderPath / fileName;
 
 		// export binary file.
-		std::filesystem::path meshBinaryFilePath = meshFilePath.replace_extension(".cdbin");
-		SaveBinaryFile(meshBinaryFilePath.string(), mesh, targetEndian);
+		std::filesystem::path binaryFilePath = filePath.replace_extension(".cdbin");
+		SaveBinaryFile(binaryFilePath.string(), object, targetEndian);
 
-		// export xml readable file which contains file information and metadata.
-		// XmlDocument will allocate many strings so we need to use heap memory to avoid overflow.
-		std::unique_ptr<XmlDocument> pXMLDocument = CreateXmlDocumentWithDeclaration();
-		XmlDocument* pDocument = pXMLDocument.get();
-		XmlNode* pMeshNode = WriteNode(pDocument, "Mesh");
+		std::filesystem::path meshInfoFilePath = filePath.replace_extension(".cdinfo");
+		SaveInformationFile(meshInfoFilePath.string(), binaryFilePath, object);
+	};
 
-		{
-			XmlNode* pAssetNode = WriteNode(pDocument, "AssetInfo");
-			WriteNodeAttribute(pDocument, pAssetNode, "ID", mesh.GetID().Data());
-			WriteNodeAttribute(pDocument, pAssetNode, "Name", meshFileName.c_str());
-			pMeshNode->append_node(pAssetNode);
-		}
+	for (const auto& mesh : pSceneDatabase->GetMeshes())
+	{
+		ExportSceneObject(mesh, m_targetEndian);
+	}
 
-		{
-			XmlNode* pMetaDataNode = WriteNode(pDocument, "MetaData");
-			WriteNodeAttribute(pDocument, pMetaDataNode, "VertexCount", mesh.GetVertexCount());
-			WriteNodeAttribute(pDocument, pMetaDataNode, "TriangleCount", mesh.GetPolygonCount());
-			pMeshNode->append_node(pMetaDataNode);
-		}
+	for (const auto& material : pSceneDatabase->GetMaterials())
+	{
+		ExportSceneObject(material, m_targetEndian);
+	}
 
-		{
-			XmlNode* pLinksNode = WriteNode(pDocument, "Links");
-			{
-				XmlNode* pLinkNode = WriteNode(pDocument, "Link");
-				WriteNodeAttribute(pDocument, pLinkNode, "Type", sceneTypeName);
-				WriteNodeAttribute(pDocument, pLinkNode, "Name", pSceneDatabase->GetName());
-				pLinksNode->append_node(pLinkNode);
-			}
-			{
-				XmlNode* pLinkNode = WriteNode(pDocument, "Link");
-				WriteNodeAttribute(pDocument, pLinkNode, "Type", materialTypeName);
-				uint32_t materialID = mesh.GetMaterialID().Data();
-				WriteNodeAttribute(pDocument, pLinkNode, "ID", materialID);
-				WriteNodeAttribute(pDocument, pLinkNode, "Name", pSceneDatabase->GetMaterial(materialID).GetName());
-				pLinksNode->append_node(pLinkNode);
-			}
-			pMeshNode->append_node(pLinksNode);
-		}
-
-		pDocument->append_node(pMeshNode);
-
-		std::filesystem::path meshInfoFilePath = meshFilePath.replace_extension(".cdinfo");
-		std::ofstream foutXml(meshInfoFilePath, std::ios::out);
-		foutXml << *pDocument;
-		foutXml.close();
+	for (const auto& texture : pSceneDatabase->GetTextures())
+	{
+		ExportSceneObject(texture, m_targetEndian);
 	}
 }
 

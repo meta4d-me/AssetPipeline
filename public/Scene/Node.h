@@ -17,6 +17,9 @@ class NodeImpl;
 class CORE_API Node final
 {
 public:
+	static const char* GetClassName() { return "Node"; }
+
+public:
 	Node() = delete;
 	explicit Node(InputArchive& inputArchive);
 	explicit Node(InputArchiveSwapBytes& inputArchive);
