@@ -2,6 +2,7 @@
 
 #include "Base/Export.h"
 
+#include <cinttypes>
 #include <optional>
 #include <vector>
 

@@ -101,11 +101,19 @@ void SaveInformationFile(std::string filePath, const std::filesystem::path& bina
 		pNode->append_node(pAssetNode);
 	}
 
+	auto WriteMetaDataItem = [&pDocument](XmlNode* pParentNode, std::string key, auto value)
+	{
+		XmlNode* pNewNode = WriteNode(pDocument, "Item");
+		WriteNodeAttribute(pDocument, pNewNode, "Key", key);
+		WriteNodeAttribute(pDocument, pNewNode, "Value", value);
+		pParentNode->append_node(pNewNode);
+	};
+
 	XmlNode* pMetaDataNode = WriteNode(pDocument, "MetaData");
 	if constexpr (std::is_same_v<cd::Mesh, T>)
 	{
-		WriteNodeAttribute(pDocument, pMetaDataNode, "VertexCount", data.GetVertexCount());
-		WriteNodeAttribute(pDocument, pMetaDataNode, "TriangleCount", data.GetPolygonCount());
+		WriteMetaDataItem(pMetaDataNode, "VertexCount", data.GetVertexCount());
+		WriteMetaDataItem(pMetaDataNode, "TriangleCount", data.GetPolygonCount());
 	}
 	else if constexpr (std::is_same_v<cd::Material, T>)
 	{
@@ -113,12 +121,11 @@ void SaveInformationFile(std::string filePath, const std::filesystem::path& bina
 	}
 	else if constexpr (std::is_same_v<cd::Texture, T>)
 	{
-
+		WriteMetaDataItem(pMetaDataNode, "FilePath", data.GetPath());
 	}
 	pNode->append_node(pMetaDataNode);
 
 	pDocument->append_node(pNode);
-
 
 	std::ofstream foutXml(filePath, std::ios::out);
 	foutXml << *pDocument;
@@ -153,7 +160,7 @@ void CDConsumerImpl::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase)
 
 	auto ExportSceneObject = [&exportFolderPath](const auto& object, cd::EndianType targetEndian)
 	{
-		std::string fileName = std::format("{}_{}", object.GetClassName(), object.GetName());
+		std::string fileName = object.GetName();
 		// replace "." in filename with "_" so that extension can be parsed easily.
 		std::replace(fileName.begin(), fileName.end(), '.', '_');
 		std::filesystem::path filePath = exportFolderPath / fileName;
@@ -162,7 +169,10 @@ void CDConsumerImpl::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase)
 		std::filesystem::path binaryFilePath = filePath.replace_extension(".cdbin");
 		SaveBinaryFile(binaryFilePath.string(), object, targetEndian);
 
-		std::filesystem::path meshInfoFilePath = filePath.replace_extension(".cdinfo");
+		std::string extensionName = ".cd";
+		extensionName += object.GetClassName();
+		std::transform(extensionName.begin(), extensionName.end(), extensionName.begin(), [](unsigned char c) { return std::tolower(c); });
+		std::filesystem::path meshInfoFilePath = filePath.replace_extension(extensionName);
 		SaveInformationFile(meshInfoFilePath.string(), binaryFilePath, object);
 	};
 
