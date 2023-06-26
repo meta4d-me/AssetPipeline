@@ -6,6 +6,16 @@
 
 3D resources build tool for graphics applications.
 
+# ThirdParty
+* Hash
+  * [PicoSHA2](https://github.com/okdshin/PicoSHA2)
+* Image
+  * [stb](https://github.com/nothings/stb) 
+* Pipeline
+  * [assimp](https://github.com/assimp/assimp)
+* Serialization
+  * [rapidxml](https://github.com/discord/rapidxml)
+
 # Examples
 
 [AssetPipeline + OpenGL](https://github.com/Hinageshi01/CDSDK_Example)
