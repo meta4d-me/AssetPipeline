@@ -15,6 +15,9 @@ class CameraImpl;
 class CORE_API Camera final
 {
 public:
+	static const char* GetClassName() { return "Camera"; }
+
+public:
 	Camera() = delete;
 	explicit Camera(InputArchive& inputArchive);
 	explicit Camera(InputArchiveSwapBytes& inputArchive);

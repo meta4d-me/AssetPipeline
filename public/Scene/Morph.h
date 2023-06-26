@@ -16,6 +16,9 @@ class MorphImpl;
 class CORE_API Morph final
 {
 public:
+	static const char* GetClassName() { return "Morph"; }
+
+public:
 	Morph() = delete;
 	explicit Morph(InputArchive& inputArchive);
 	explicit Morph(InputArchiveSwapBytes & inputArchive);

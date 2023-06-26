@@ -26,6 +26,9 @@ class SceneDatabaseImpl;
 class CORE_API SceneDatabase final
 {
 public:
+	static const char* GetClassName() { return "SceneDatabase"; }
+
+public:
 	explicit SceneDatabase();
 	SceneDatabase(const SceneDatabase&) = default;
 	SceneDatabase& operator=(const SceneDatabase&) = default;

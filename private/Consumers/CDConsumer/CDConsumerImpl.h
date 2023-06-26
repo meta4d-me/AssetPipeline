@@ -31,13 +31,15 @@ public:
 	ExportMode GetExportMode() const { return m_exportMode; }
 	void SetExportMode(ExportMode mode) { m_exportMode = mode; }
 
-	void ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, cd::EndianType targetEndian = cd::Endian::GetNative());
+	cd::EndianType GetTargetEndian() const { return m_targetEndian; }
+	void SetTargetEndian(cd::EndianType endian) { m_targetEndian = endian; }
 
-	// WIP : 1.Xml/Json in a same way to export. 2.endianess
+	void ExportPureBinary(const cd::SceneDatabase* pSceneDatabase);
 	void ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase);
 
 private:
 	ExportMode m_exportMode;
+	cd::EndianType m_targetEndian = cd::Endian::GetNative();
 	std::string m_filePath;
 };
 

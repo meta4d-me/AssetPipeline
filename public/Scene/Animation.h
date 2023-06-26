@@ -17,6 +17,9 @@ class AnimationImpl;
 class CORE_API Animation final
 {
 public:
+	static const char* GetClassName() { return "Animation"; }
+
+public:
 	Animation() = delete;
 	explicit Animation(InputArchive& inputArchive);
 	explicit Animation(InputArchiveSwapBytes& inputArchive);

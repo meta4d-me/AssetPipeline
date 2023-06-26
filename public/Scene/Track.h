@@ -17,6 +17,9 @@ class TrackImpl;
 class CORE_API Track final
 {
 public:
+	static const char* GetClassName() { return "Track"; }
+
+public:
 	Track() = delete;
 	explicit Track(InputArchive& inputArchive);
 	explicit Track(InputArchiveSwapBytes& inputArchive);

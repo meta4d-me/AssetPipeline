@@ -37,7 +37,7 @@ constexpr T StringHashSeed(T seed, const char* str, std::size_t n) noexcept
 	T value = seed;
 	for (std::size_t i = 0; i < n; ++i)
 	{
-		value = (value ^ static_cast<Traits::T>(str[i])) * Traits::Prime;
+		value = (value ^ static_cast<typename Traits::T>(str[i])) * Traits::Prime;
 	}
 
 	return value;

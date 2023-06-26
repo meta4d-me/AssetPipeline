@@ -28,14 +28,24 @@ void CDConsumer::SetExportMode(ExportMode mode)
 	m_pCDConsumerImpl->SetExportMode(mode);
 }
 
+cd::EndianType CDConsumer::GetTargetEndian() const
+{
+	return m_pCDConsumerImpl->GetTargetEndian();
+}
+
+void CDConsumer::SetTargetEndian(cd::EndianType endian)
+{
+	m_pCDConsumerImpl->SetTargetEndian(endian);
+}
+
 void CDConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 {
 	m_pCDConsumerImpl->Execute(pSceneDatabase);
 }
 
-void CDConsumer::ExportPureBinary(const cd::SceneDatabase* pSceneDatabase, cd::EndianType targetEndian)
+void CDConsumer::ExportPureBinary(const cd::SceneDatabase* pSceneDatabase)
 {
-	m_pCDConsumerImpl->ExportPureBinary(pSceneDatabase, targetEndian);
+	m_pCDConsumerImpl->ExportPureBinary(pSceneDatabase);
 }
 
 void CDConsumer::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase)

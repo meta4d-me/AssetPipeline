@@ -14,9 +14,9 @@ Texture::Texture(InputArchiveSwapBytes& inputArchive)
     m_pTextureImpl = new TextureImpl(inputArchive);
 }
 
-Texture::Texture(TextureID textureID, MaterialTextureType textureType)
+Texture::Texture(TextureID textureID, const char* pName, MaterialTextureType textureType)
 {
-    m_pTextureImpl = new TextureImpl(textureID, textureType);
+    m_pTextureImpl = new TextureImpl(textureID, pName, textureType);
 }
 
 Texture::Texture(Texture&& rhs) noexcept
@@ -47,6 +47,21 @@ TextureID Texture::GetID() const
 cd::MaterialTextureType Texture::GetType() const
 {
     return m_pTextureImpl->GetType();
+}
+
+const std::string& Texture::GetName() const
+{
+    return m_pTextureImpl->GetName();
+}
+
+std::string& Texture::GetName()
+{
+    return m_pTextureImpl->GetName();
+}
+
+void Texture::SetName(std::string name)
+{
+    m_pTextureImpl->SetName(cd::MoveTemp(name));
 }
 
 cd::TextureMapMode Texture::GetUMapMode() const

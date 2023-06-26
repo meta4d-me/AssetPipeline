@@ -441,7 +441,7 @@ MaterialID TerrainProducerImpl::GenerateMaterialAndTextures(cd::SceneDatabase* p
 	TextureID::ValueType textureHash = StringHash<TextureID::ValueType>(textureName);
 	TextureID textureID = TextureID(kNextTextureId++);
 	terrainSectorMaterial.AddTextureID(MaterialTextureType::Elevation, textureID);
-	Texture elevationTexture(textureID, MaterialTextureType::Elevation);
+	Texture elevationTexture(textureID, textureName.c_str(), MaterialTextureType::Elevation);
 	elevationTexture.SetPath(textureName.c_str());
 	elevationTexture.SetFormat(TextureFormat::R32I);
 	elevationTexture.SetWidth(m_sectorLenInX + 1);
@@ -455,7 +455,7 @@ MaterialID TerrainProducerImpl::GenerateMaterialAndTextures(cd::SceneDatabase* p
 		textureHash = StringHash<TextureID::ValueType>(textureName);
 		textureID = TextureID(kNextTextureId++);
 		terrainSectorMaterial.AddTextureID(MaterialTextureType::AlphaMap, textureID);
-		Texture alphaTexture(textureID, MaterialTextureType::AlphaMap);
+		Texture alphaTexture(textureID, textureName.c_str(), MaterialTextureType::AlphaMap);
 		alphaTexture.SetPath(textureName.c_str());
 		alphaTexture.SetFormat(TextureFormat::RGBA8);
 		alphaTexture.SetWidth(m_sectorLenInX + 1);

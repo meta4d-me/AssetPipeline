@@ -19,6 +19,9 @@ class MaterialImpl;
 class CORE_API Material final
 {
 public:
+	static const char* GetClassName() { return "Material"; }
+
+public:
 	Material() = delete;
 	explicit Material(InputArchive& inputArchive);
 	explicit Material(InputArchiveSwapBytes& inputArchive);
@@ -33,6 +36,7 @@ public:
 
 	const MaterialID& GetID() const;
 	const char* GetName() const;
+
 	void AddTextureID(MaterialPropertyGroup textureType, TextureID textureID);
 	std::optional<TextureID> GetTextureID(MaterialPropertyGroup textureType) const;
 	const PropertyMap &GetPropertyGroups() const;
