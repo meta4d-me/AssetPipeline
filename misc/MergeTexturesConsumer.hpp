@@ -106,7 +106,7 @@ public:
 					continue;
 				}
 
-				cd::TextureID textureID = material.GetTextureID(textureType).value();
+				cd::TextureID textureID = material.GetTextureID(textureType);
 				const auto& texture = pSceneDatabase->GetTexture(textureID.Data());
 				textureFileSupportTypes[texture.GetPath()].push_back(textureType);
 			}

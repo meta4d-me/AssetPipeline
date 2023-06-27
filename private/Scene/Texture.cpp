@@ -49,19 +49,19 @@ cd::MaterialTextureType Texture::GetType() const
     return m_pTextureImpl->GetType();
 }
 
-const std::string& Texture::GetName() const
+void Texture::SetType(MaterialTextureType type)
 {
-    return m_pTextureImpl->GetName();
+    m_pTextureImpl->SetType(type);
 }
 
-std::string& Texture::GetName()
+const char* Texture::GetName() const
 {
-    return m_pTextureImpl->GetName();
+    return m_pTextureImpl->GetName().c_str();
 }
 
-void Texture::SetName(std::string name)
+void Texture::SetName(const char* pName)
 {
-    m_pTextureImpl->SetName(cd::MoveTemp(name));
+    m_pTextureImpl->SetName(pName);
 }
 
 cd::TextureMapMode Texture::GetUMapMode() const

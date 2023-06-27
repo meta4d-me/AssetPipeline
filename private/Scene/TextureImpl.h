@@ -38,6 +38,7 @@ public:
 	void SetName(std::string name) { m_name = MoveTemp(name); }
 
 	cd::MaterialTextureType GetType() const { return m_type; }
+	void SetType(cd::MaterialTextureType type) { m_type = type; }
 
 	// Texture sampler data
 	cd::TextureMapMode GetUMapMode() const { return m_uvMapMode[0]; }
