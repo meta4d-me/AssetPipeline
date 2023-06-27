@@ -66,23 +66,25 @@ public:
 			{
 				return m_stringProperty.at(key);
 			}
-			else if constexpr (std::is_same_v<T, uint32_t> || std::is_same_v<T, bool> || std::is_same_v<T, int> || std::is_same_v<T, float>)
+			else if constexpr (4 <= sizeof(T))
 			{
 				return reinterpret_cast<const T &>(m_byte4Property.at(key));
 			}
-			else if constexpr (std::is_same_v<T, uint64_t> || std::is_same_v<T, double> || std::is_same_v<T, cd::Vec2f>)
+			else if constexpr (8 == sizeof(T))
 			{
 				return reinterpret_cast<const T &>(m_byte8Property.at(key));
 			}
-			else if constexpr (std::is_same_v<T, cd::Vec3f>)
+			else if constexpr (12 == sizeof(T))
 			{
 				return m_byte12Property.at(key);
 			}
+			else
+			{
+				static_assert("Overflows the max byte limit.");
+			}
 		}
-		else
-		{
-			return std::nullopt;
-		}
+		
+		return std::nullopt;
 	}
 
 	bool Exist(const PropertyMapKeyType &key) const
@@ -148,13 +150,13 @@ private:
 	{
 		static_assert((
 			std::is_same_v<T, std::string> ||
+			std::is_same_v<T, int32_t> ||
 			std::is_same_v<T, uint32_t> ||
 			std::is_same_v<T, bool> ||
-			std::is_same_v<T, int> ||
 			std::is_same_v<T, float> ||
 			std::is_same_v<T, double> ||
+			std::is_same_v<T, int64_t> ||
 			std::is_same_v<T, uint64_t> ||
-			std::is_same_v<T, double> ||
 			std::is_same_v<T, cd::Vec2f> ||
 			std::is_same_v<T, cd::Vec3f>) &&
 			"PropertyMap unsupport type!"

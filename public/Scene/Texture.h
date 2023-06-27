@@ -32,11 +32,11 @@ public:
 
 	TextureID GetID() const;
 	
-	const std::string& GetName() const;
-	std::string& GetName();
-	void SetName(std::string name);
+	const char* GetName() const;
+	void SetName(const char* pName);
 
 	cd::MaterialTextureType GetType() const;
+	void SetType(MaterialTextureType type);
 
 	// Texture sampler data
 	cd::TextureMapMode GetUMapMode() const;
@@ -53,7 +53,7 @@ public:
 
 	// File texture data
 	const char* GetPath() const;
-	void SetPath(const char* filePath);
+	void SetPath(const char* pFilePath);
 
 	// Texture performance data
 	bool UseMipMap() const;

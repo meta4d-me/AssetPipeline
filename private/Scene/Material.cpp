@@ -44,9 +44,14 @@ void Material::Init(MaterialID materialID, const char* pMaterialName, MaterialTy
 	m_pMaterialImpl->Init(materialID, pMaterialName, type);
 }
 
-const MaterialID& Material::GetID() const
+MaterialID Material::GetID() const
 {
 	return m_pMaterialImpl->GetID();
+}
+
+void Material::SetID(MaterialID id)
+{
+	m_pMaterialImpl->SetID(id);
 }
 
 const char* Material::GetName() const
@@ -54,23 +59,170 @@ const char* Material::GetName() const
 	return m_pMaterialImpl->GetName().c_str();
 }
 
+void Material::SetName(const char* pName)
+{
+	m_pMaterialImpl->SetName(pName);
+}
+
+MaterialType Material::GetType() const
+{
+	return m_pMaterialImpl->GetType();
+}
+
+void Material::SetType(MaterialType type)
+{
+	m_pMaterialImpl->SetType(type);
+}
+
+const PropertyMap& Material::GetPropertyGroups() const
+{
+	return m_pMaterialImpl->GetPropertyGroups();
+}
+
 void Material::AddTextureID(MaterialTextureType textureType, TextureID textureID)
 {
-	m_pMaterialImpl->AddTextureID(textureType, textureID);
+	m_pMaterialImpl->AddProperty(textureType, MaterialProperty::Texture, textureID.Data());
 }
 
-std::optional<TextureID> Material::GetTextureID(MaterialTextureType textureType) const
+void Material::SetTextureID(MaterialTextureType textureType, TextureID textureID)
 {
-	return m_pMaterialImpl->GetTextureID(textureType);
+	m_pMaterialImpl->SetProperty(textureType, MaterialProperty::Texture, textureID.Data());
 }
 
-const PropertyMap& Material::GetPropertyGroups() const {
-	return m_pMaterialImpl->GetPropertyGroups();
+TextureID Material::GetTextureID(MaterialTextureType textureType) const
+{
+	auto textureID = m_pMaterialImpl->GetProperty<uint32_t>(textureType, MaterialProperty::Texture);
+	return textureID.has_value() ? TextureID(textureID.value()) : TextureID(cd::TextureID::InvalidID);
+}
+
+void Material::RemoveTexture(MaterialTextureType textureType)
+{
+	m_pMaterialImpl->RemoveProperty(textureType, MaterialProperty::Texture);
 }
 
 bool Material::IsTextureSetup(MaterialTextureType textureType) const
 {
-	return m_pMaterialImpl->IsTextureSetup(textureType);
+	return m_pMaterialImpl->ExistProperty(textureType, MaterialProperty::Texture);
+}
+
+void Material::AddI32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, int32_t value)
+{
+	m_pMaterialImpl->AddProperty(propertyGroup, property, value);
+}
+
+void Material::AddI64Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, int64_t value)
+{
+	m_pMaterialImpl->AddProperty(propertyGroup, property, value);
+}
+
+void Material::AddU32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, uint32_t value)
+{
+	m_pMaterialImpl->AddProperty(propertyGroup, property, value);
+}
+
+void Material::AddU64Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, uint64_t value)
+{
+	m_pMaterialImpl->AddProperty(propertyGroup, property, value);
+}
+
+void Material::AddFloatProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, float value)
+{
+	m_pMaterialImpl->AddProperty(propertyGroup, property, value);
+}
+
+void Material::AddDoubleProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, double value)
+{
+	m_pMaterialImpl->AddProperty(propertyGroup, property, value);
+}
+
+void Material::AddStringProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, std::string value)
+{
+	m_pMaterialImpl->AddProperty(propertyGroup, property, value);
+}
+
+void Material::RemoveProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property)
+{
+	m_pMaterialImpl->RemoveProperty(propertyGroup, property);
+}
+
+void Material::SetI32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, int32_t value)
+{
+	m_pMaterialImpl->SetProperty(propertyGroup, property, value);
+}
+
+void Material::SetI64Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, int64_t value)
+{
+	m_pMaterialImpl->SetProperty(propertyGroup, property, value);
+}
+
+void Material::SetU32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, uint32_t value)
+{
+	m_pMaterialImpl->SetProperty(propertyGroup, property, value);
+}
+
+void Material::SetU64Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, uint64_t value)
+{
+	m_pMaterialImpl->SetProperty(propertyGroup, property, value);
+}
+
+void Material::SetFloatProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, float value)
+{
+	m_pMaterialImpl->SetProperty(propertyGroup, property, value);
+}
+
+void Material::SetDoubleProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, double value)
+{
+	m_pMaterialImpl->SetProperty(propertyGroup, property, value);
+}
+
+void Material::SetStringProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, std::string value)
+{
+	m_pMaterialImpl->SetProperty(propertyGroup, property, value);
+}
+
+std::optional<bool> Material::GetBoolProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
+{
+	return m_pMaterialImpl->GetProperty<bool>(propertyGroup, property);
+}
+
+std::optional<int32_t> Material::GetI32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
+{
+	return m_pMaterialImpl->GetProperty<int32_t>(propertyGroup, property);
+}
+
+std::optional<int64_t> Material::GetI64Property(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
+{
+	return m_pMaterialImpl->GetProperty<int64_t>(propertyGroup, property);
+}
+
+std::optional<uint32_t> Material::GetU32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
+{
+	return m_pMaterialImpl->GetProperty<uint32_t>(propertyGroup, property);
+}
+
+std::optional<uint64_t> Material::GetU64Property(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
+{
+	return m_pMaterialImpl->GetProperty<uint64_t>(propertyGroup, property);
+}
+
+std::optional<float> Material::GetFloatProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
+{
+	return m_pMaterialImpl->GetProperty<float>(propertyGroup, property);
+}
+
+std::optional<double> Material::GetDoubleProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
+{
+	return m_pMaterialImpl->GetProperty<double>(propertyGroup, property);
+}
+
+std::optional<std::string> Material::GetStringProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
+{
+	return m_pMaterialImpl->GetProperty<std::string>(propertyGroup, property);
+}
+
+bool Material::ExistProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
+{
+	return m_pMaterialImpl->ExistProperty(propertyGroup, property);
 }
 
 Material& Material::operator<<(InputArchive& inputArchive)

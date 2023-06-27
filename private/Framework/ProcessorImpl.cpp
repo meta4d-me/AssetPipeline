@@ -280,9 +280,9 @@ void ProcessorImpl::DumpSceneDatabase()
 				cd::MaterialTextureType textureType = static_cast<cd::MaterialTextureType>(textureTypeValue);
 				if (material.IsTextureSetup(textureType))
 				{
-					const auto& textureID = material.GetTextureID(textureType);
-					const auto& texture = m_pCurrentSceneDatabase->GetTexture(textureID.value().Data());
-					printf("\t[Associated Texture %u] Type = %s\n", textureID.value().Data(), cd::GetMaterialPropertyGroupName(textureType));
+					auto textureID = material.GetTextureID(textureType);
+					const auto& texture = m_pCurrentSceneDatabase->GetTexture(textureID.Data());
+					printf("\t[Associated Texture %u] Type = %s\n", textureID.Data(), cd::GetMaterialPropertyGroupName(textureType));
 					printf("\t\tPath = %s\n", texture.GetPath());
 				}
 			}
@@ -305,6 +305,7 @@ void ProcessorImpl::DumpSceneDatabase()
 		for (const auto& texture : m_pCurrentSceneDatabase->GetTextures())
 		{
 			printf("[Texture %u] Type = %s\n", texture.GetID().Data(), cd::GetMaterialPropertyGroupName(texture.GetType()));
+			printf("\tName = %s\n", texture.GetName());
 			printf("\tPath = %s\n", texture.GetPath());
 			printf("\tUVMapMode = (%s, %s)\n", GetTextureMapModeName(texture.GetUMapMode()), GetTextureMapModeName(texture.GetVMapMode()));
 			details::Dump("\tUVOffset", texture.GetUVOffset());

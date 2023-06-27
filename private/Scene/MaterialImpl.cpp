@@ -53,29 +53,4 @@ void MaterialImpl::InitBasePBR()
 	AddProperty(MaterialPropertyGroup::General, MaterialProperty::EnableIBL, true);
 }
 
-void MaterialImpl::AddTextureID(MaterialPropertyGroup propertyGroup, TextureID textureID)
-{
-	static_assert(sizeof(TextureID) == sizeof(uint32_t));
-	AddProperty(propertyGroup, MaterialProperty::Texture, textureID.Data());
-}
-
-std::optional<TextureID> MaterialImpl::GetTextureID(MaterialPropertyGroup propertyGroup) const
-{
-	static_assert(sizeof(TextureID) == sizeof(uint32_t));
-	auto textureID = GetProperty<uint32_t>(propertyGroup, MaterialProperty::Texture);
-	if (textureID.has_value())
-	{
-		return TextureID(textureID.value());
-	}
-	else
-	{
-		return std::nullopt;
-	}
-}
-
-bool MaterialImpl::IsTextureSetup(MaterialPropertyGroup propertyGroup) const
-{
-	return ExistProperty(propertyGroup, MaterialProperty::Texture);
-}
-
 }
