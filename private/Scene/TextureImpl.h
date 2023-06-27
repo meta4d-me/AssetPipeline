@@ -107,7 +107,7 @@ public:
 		SetFormat(static_cast<TextureFormat>(textureFormat));
 		SetUseMipMap(useMipmap);
 
-		uint32_t rawDataSize;
+		size_t rawDataSize;
 		inputArchive >> GetPath() >> GetWidth() >> GetHeight() >> GetDepth() >> rawDataSize;
 		m_rawData.resize(rawDataSize);
 		inputArchive.ImportBuffer(m_rawData.data());
