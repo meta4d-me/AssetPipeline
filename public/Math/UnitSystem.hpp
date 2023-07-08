@@ -8,9 +8,18 @@ enum class Unit
 	None,
 	CenterMeter,
 	Meter,
+
 	Degree,
 	Angle,
-	Lumen
+
+	Joule,
+	Watt,
+	Lumen,
+	Candela,
+	Lux,
+	Nit,
+
+	EV,
 };
 
 constexpr const char* UnitNames[] =
@@ -20,7 +29,13 @@ constexpr const char* UnitNames[] =
 	"m",
 	"deg",
 	"rad",
-	"lm"
+	"J",
+	"W",
+	"lm",
+	"cd",
+	"lx",
+	"nt",
+	"ev",
 };
 
 constexpr const char* GetUnitName(Unit unit)
