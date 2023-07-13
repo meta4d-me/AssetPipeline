@@ -79,6 +79,7 @@ enum class MaterialProperty
 	Color,
 
 	// Just for General Settings
+	TwoSided,
 	EnableDirectionalLights,
 	EnablePunctualLights,
 	EnableAreaLights,
@@ -94,6 +95,7 @@ constexpr const char *MaterialPropertyName[] =
 	"Texture",
 	"UseTexture",
 	"Color",
+	"TwoSided",
 	"EnableDirectionalLights",
 	"EnablePunctualLights",
 	"EnableAreaLights",

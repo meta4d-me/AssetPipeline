@@ -275,6 +275,11 @@ void ProcessorImpl::DumpSceneDatabase()
 		{
 			printf("[MaterialID %u] Name = %s\n", material.GetID().Data(), material.GetName());
 
+			if (auto optTwoSided = material.GetBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided); optTwoSided.has_value())
+			{
+				printf("\t%s = %d\n", cd::GetMaterialPropertyName(cd::MaterialProperty::TwoSided), optTwoSided.value());
+			}
+
 			for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
 			{
 				cd::MaterialTextureType textureType = static_cast<cd::MaterialTextureType>(textureTypeValue);

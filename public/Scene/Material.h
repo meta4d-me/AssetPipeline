@@ -51,6 +51,7 @@ public:
 	void RemoveTexture(MaterialPropertyGroup textureType);
 	bool IsTextureSetup(MaterialPropertyGroup textureType) const;
 
+	void AddBoolProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, bool value);
 	void AddI32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, int32_t value);
 	void AddI64Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, int64_t value);
 	void AddU32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, uint32_t value);
@@ -61,6 +62,7 @@ public:
 
 	void RemoveProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property);
 
+	void SetBoolProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, bool value);
 	void SetI32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, int32_t value);
 	void SetI64Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, int64_t value);
 	void SetU32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, uint32_t value);

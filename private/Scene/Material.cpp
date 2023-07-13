@@ -105,6 +105,11 @@ bool Material::IsTextureSetup(MaterialTextureType textureType) const
 	return m_pMaterialImpl->ExistProperty(textureType, MaterialProperty::Texture);
 }
 
+void Material::AddBoolProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, bool value)
+{
+	m_pMaterialImpl->AddProperty(propertyGroup, property, static_cast<int32_t>(value));
+}
+
 void Material::AddI32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, int32_t value)
 {
 	m_pMaterialImpl->AddProperty(propertyGroup, property, value);
@@ -145,6 +150,11 @@ void Material::RemoveProperty(MaterialPropertyGroup propertyGroup, MaterialPrope
 	m_pMaterialImpl->RemoveProperty(propertyGroup, property);
 }
 
+void Material::SetBoolProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, bool value)
+{
+	m_pMaterialImpl->SetProperty(propertyGroup, property, static_cast<int32_t>(value));
+}
+
 void Material::SetI32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, int32_t value)
 {
 	m_pMaterialImpl->SetProperty(propertyGroup, property, value);
@@ -182,7 +192,13 @@ void Material::SetStringProperty(MaterialPropertyGroup propertyGroup, MaterialPr
 
 std::optional<bool> Material::GetBoolProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
 {
-	return m_pMaterialImpl->GetProperty<bool>(propertyGroup, property);
+	auto optBool = m_pMaterialImpl->GetProperty<int32_t>(propertyGroup, property);
+	if (optBool.has_value())
+	{
+		return optBool.value() == 1;
+	}
+
+	return std::nullopt;
 }
 
 std::optional<int32_t> Material::GetI32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
