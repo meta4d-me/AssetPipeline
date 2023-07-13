@@ -169,6 +169,11 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 	// Create a base PBR material type by default.
 	cd::Material material(materialID, finalMaterialName.c_str(), cd::MaterialType::BasePBR);
 
+	// Process all parameters
+	int twoSided = 0;
+	aiGetMaterialInteger(pSourceMaterial, AI_MATKEY_TWOSIDED, &twoSided);
+	material.AddBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided, twoSided == 1);
+
 	// Process all textures
 	for (const auto& [textureType, materialTextureType] : materialTextureMapping)
 	{
@@ -185,9 +190,6 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			continue;
 		}
 
-		aiUVTransform uvTransform;
-		unsigned int maxBytes = sizeof(aiUVTransform);
-		aiReturn result = aiGetMaterialFloatArray(pSourceMaterial, AI_MATKEY_UVTRANSFORM(textureType, 0), (float*)&uvTransform, &maxBytes);
 		assert(textureCount == 1U && "Need to support multiple textures per type?");
 		for (uint32_t textureIndex = 0; textureIndex < textureCount; ++textureIndex)
 		{
@@ -216,6 +218,11 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			textureAbsolutePath.append(textureFilePath.C_Str());
 
 			material.AddTextureID(materialTextureType, textureID);
+
+			// Parse tiling parameters.
+			aiUVTransform uvTransform;
+			unsigned int maxBytes = sizeof(aiUVTransform);
+			aiGetMaterialFloatArray(pSourceMaterial, AI_MATKEY_UVTRANSFORM(textureType, textureIndex), (float*)&uvTransform, &maxBytes);
 
 			// Reused textures don't need to add to SceneDatabase again.
 			if (!isTextureReused)
