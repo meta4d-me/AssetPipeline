@@ -7,6 +7,7 @@
 
 //#define ASSIMP_BUILD_NO_ARMATUREPOPULATE_PROCESS
 #include <assimp/cimport.h>
+#include <assimp/GltfMaterial.h>
 #include <assimp/material.h>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -174,6 +175,27 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 	aiGetMaterialInteger(pSourceMaterial, AI_MATKEY_TWOSIDED, &twoSided);
 	material.AddBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided, twoSided == 1);
 
+	// TODO : only valid for gltf, actually it is generic producer.
+	cd::BlendMode blendMode = cd::BlendMode::Opaque;
+	if (std::filesystem::path filePath = m_filePath; ".gltf" == filePath.extension())
+	{
+		aiString blendModeName;
+		aiGetMaterialString(pSourceMaterial, AI_MATKEY_GLTF_ALPHAMODE, &blendModeName);
+		if (0 == strcmp("OPAQUE", blendModeName.C_Str()))
+		{
+			blendMode = cd::BlendMode::Opaque;
+		}
+		else if (0 == strcmp("MASK", blendModeName.C_Str()))
+		{
+			blendMode = cd::BlendMode::Mask;
+
+			float alphaCutOff = 1.0f;
+			aiGetMaterialFloat(pSourceMaterial, AI_MATKEY_GLTF_ALPHACUTOFF, &alphaCutOff);
+			material.AddFloatProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::OpacityMaskClipValue, alphaCutOff);
+		}
+	}
+	material.AddI32Property(cd::MaterialPropertyGroup::General, cd::MaterialProperty::BlendMode, static_cast<int>(blendMode));
+	
 	// Process all textures
 	for (const auto& [textureType, materialTextureType] : materialTextureMapping)
 	{
