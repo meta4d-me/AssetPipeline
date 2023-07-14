@@ -23,7 +23,7 @@ static_assert(static_cast<int>(MaterialType::Count) == sizeof(MaterialTypeName) 
 
 CD_FORCEINLINE const char *GetMaterialTypeName(MaterialType materialType)
 {
-	return MaterialTypeName[static_cast<size_t>(materialType)];
+	return MaterialTypeName[static_cast<int>(materialType)];
 }
 
 enum class MaterialPropertyGroup
@@ -79,6 +79,8 @@ enum class MaterialProperty
 	Color,
 
 	// Just for General Settings
+	BlendMode,
+	OpacityMaskClipValue, // BlendMode_Mask
 	TwoSided,
 	EnableDirectionalLights,
 	EnablePunctualLights,
@@ -95,6 +97,8 @@ constexpr const char *MaterialPropertyName[] =
 	"Texture",
 	"UseTexture",
 	"Color",
+	"BlendMode",
+	"OpacityMaskClipValue",
 	"TwoSided",
 	"EnableDirectionalLights",
 	"EnablePunctualLights",
@@ -106,7 +110,7 @@ static_assert(static_cast<int>(MaterialProperty::Count) == sizeof(MaterialProper
 	"Material property and names mismatch.");
 
 CD_FORCEINLINE const char *GetMaterialPropertyName(MaterialProperty property) {
-	return MaterialPropertyName[static_cast<size_t>(property)];
+	return MaterialPropertyName[static_cast<int>(property)];
 }
 
 CD_FORCEINLINE std::string GetMaterialPropertyKey(MaterialPropertyGroup propertyGroup, MaterialProperty property)
@@ -144,7 +148,28 @@ static_assert(static_cast<int>(TextureMapMode::Count) == sizeof(TextureMapModeNa
 
 static constexpr const char* GetTextureMapModeName(cd::TextureMapMode mapMode)
 {
-	return TextureMapModeNames[static_cast<uint8_t>(mapMode)];
+	return TextureMapModeNames[static_cast<int>(mapMode)];
+}
+
+enum class BlendMode
+{
+	Opaque,
+	Mask,
+	Count
+};
+
+constexpr const char* BlendModeNames[] =
+{
+	"Opaque",
+	"Mask",
+};
+
+static_assert(static_cast<int>(BlendMode::Count) == sizeof(BlendModeNames) / sizeof(char*),
+	"Material blend modes and names mismatch.");
+
+static constexpr const char* GetBlendModeName(cd::BlendMode blendMode)
+{
+	return BlendModeNames[static_cast<int>(blendMode)];
 }
 
 }
