@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 namespace cd
 {
@@ -27,7 +27,7 @@ constexpr const char* UnitNames[] =
 	"",
 	"cm",
 	"m",
-	"deg",
+	"°",
 	"rad",
 	"J",
 	"W",
