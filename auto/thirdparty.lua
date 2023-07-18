@@ -43,10 +43,12 @@ local function DeclareExternalProject(projectName, projectKind, projectPath)
 		location(projectPath)
 end
 
-if not os.istarget("linux") then
+if BUILD_ASSIMP then
 	group "ThirdParty/assimp"
 		DeclareExternalProject("assimp", "StaticLib", path.join(RootPath, "build/assimp/code"))
 			dependson { "zlibstatic" }
 		DeclareExternalProject("zlibstatic", "StaticLib", path.join(RootPath, "build/assimp/contrib/zlib"))
 	group ""
+else
+	print("[Skip] assimp.")
 end

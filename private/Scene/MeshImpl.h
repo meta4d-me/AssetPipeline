@@ -28,8 +28,8 @@ public:
 	explicit MeshImpl(uint32_t vertexCount, uint32_t polygonCount);
 	explicit MeshImpl(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount);
 
-	MeshImpl(const MeshImpl&) = default;
-	MeshImpl& operator=(const MeshImpl&) = default;
+	MeshImpl(const MeshImpl&) = delete;
+	MeshImpl& operator=(const MeshImpl&) = delete;
 	MeshImpl(MeshImpl&&) = default;
 	MeshImpl& operator=(MeshImpl&&) = default;
 	~MeshImpl() = default;
