@@ -177,8 +177,8 @@ public:
 
 public:
 	TQuaternion() = default;
-	explicit TQuaternion(T s, T vx, T vy, T vz) : m_scalar(s), m_vector(vx, vy, vz) {}
-	explicit TQuaternion(T s, TVector<T, 3> v) : m_scalar(s), m_vector(cd::MoveTemp(v)) {}
+	explicit TQuaternion(T s, T vx, T vy, T vz) : m_vector(vx, vy, vz), m_scalar(s) {}
+	explicit TQuaternion(T s, TVector<T, 3> v) : m_vector(cd::MoveTemp(v)), m_scalar(s) {}
 	TQuaternion(const TQuaternion&) = default;
 	TQuaternion& operator=(const TQuaternion&) = default;
 	TQuaternion(TQuaternion&&) = default;

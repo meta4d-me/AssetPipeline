@@ -18,7 +18,6 @@ std::optional<Mesh> MeshGenerator::Generate(const Box& box, const VertexFormat& 
 
 	const auto& min = box.Min();
 	const auto& max = box.Max();
-	const auto extent = max - min;
 
 	//          0 --- 1 (max)
 	//        / |   / |

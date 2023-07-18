@@ -5,13 +5,13 @@ namespace {
 
     constexpr int64_t PRIME_X = 0x5205402B9270C86FL;
     constexpr int64_t PRIME_Y = 0x598CD327003817B5L;
-    constexpr int64_t PRIME_Z = 0x5BCC226E9FA0BACBL;
-    constexpr int64_t PRIME_W = 0x56CC5227E58F554BL;
+    //constexpr int64_t PRIME_Z = 0x5BCC226E9FA0BACBL;
+    //constexpr int64_t PRIME_W = 0x56CC5227E58F554BL;
     constexpr int64_t HASH_MULTIPLIER = 0x53A3F72DEEC546F5L;
-    constexpr int64_t SEED_FLIP_3D = -0x52D547B2E96ED629L;
-    constexpr int64_t SEED_OFFSET_4D = 0xE83DC3E0DA7164DL;
+    //constexpr int64_t SEED_FLIP_3D = -0x52D547B2E96ED629L;
+    //constexpr int64_t SEED_OFFSET_4D = 0xE83DC3E0DA7164DL;
 
-    constexpr double ROOT2OVER2 = 0.7071067811865476;
+    //constexpr double ROOT2OVER2 = 0.7071067811865476;
     constexpr double SKEW_2D = 0.366025403784439;
     constexpr double UNSKEW_2D = -0.21132486540518713;
 
@@ -68,9 +68,9 @@ namespace {
         return i < iAsInt ? iAsInt - 1 : iAsInt;
     }	// namespace Details
 
-    int32_t FastRound(double i) {
-        return i < 0 ? static_cast<int32_t>(i - 0.5) : static_cast<int32_t>(i + 0.5);
-    }
+    //int32_t FastRound(double i) {
+    //    return i < 0 ? static_cast<int32_t>(i - 0.5) : static_cast<int32_t>(i + 0.5);
+    //}
 
     float Gradient(int64_t seed, int64_t xsvp, int64_t ysvp, float dx, float dy) {
         int64_t hash = seed ^ xsvp ^ ysvp;

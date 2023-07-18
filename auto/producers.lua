@@ -1,15 +1,19 @@
 group("Producers")
 dofile("producers/cd_producer.lua")
 
-if not os.istarget("linux") then
+if BUILD_ASSIMP then
 	dofile("producers/generic_producer.lua")
 else
-	print("For linux build, skip generic_producer.")
+	print("[Skip] generic_producer.")
 end
 
-dofile("producers/terrain_producer.lua")
+if BUILD_TERRAIN then
+	dofile("producers/terrain_producer.lua")
+else
+	print("[Skip] generic_producer.")
+end
 
-if CheckSDKExists("FBX_SDK_DIR") then
+if CheckSDKExists("FBX_SDK_DIR") and BUILD_FBX then
 	dofile("producers/fbx_producer.lua")
 end
 if CheckSDKExists("PHYSX_SDK_DIR") then

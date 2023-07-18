@@ -25,8 +25,8 @@ public:
 		*this << inputArchive;
 	}
 	explicit MaterialImpl(MaterialID materialID, std::string materialName, MaterialType materialType);
-	MaterialImpl(const MaterialImpl&) = default;
-	MaterialImpl& operator=(const MaterialImpl&) = default;
+	MaterialImpl(const MaterialImpl&) = delete;
+	MaterialImpl& operator=(const MaterialImpl&) = delete;
 	MaterialImpl(MaterialImpl&&) = default;
 	MaterialImpl& operator=(MaterialImpl&&) = default;
 	~MaterialImpl() = default;

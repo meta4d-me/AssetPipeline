@@ -2,13 +2,13 @@ group("Consumers")
 
 dofile("consumers/cd_consumer.lua")
 
-if not os.istarget("linux") then
+if BUILD_ASSIMP then
 	dofile("consumers/generic_consumer.lua")
 else
-	print("For linux build, skip generic_consumer.")
+	print("[Skip] generic_consumer.")
 end
 
-if CheckSDKExists("FBX_SDK_DIR") then
+if CheckSDKExists("FBX_SDK_DIR") and BUILD_FBX then
 	dofile("consumers/fbx_consumer.lua")
 end
 if CheckSDKExists("PHYSX_SDK_DIR") then
