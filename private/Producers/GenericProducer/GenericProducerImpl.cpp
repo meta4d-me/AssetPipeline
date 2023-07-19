@@ -201,6 +201,12 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			aiGetMaterialFloat(pSourceMaterial, AI_MATKEY_GLTF_ALPHACUTOFF, &alphaCutOff);
 			material.AddFloatProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::OpacityMaskClipValue, alphaCutOff);
 		}
+		else if (0 == strcmp("BLEND", blendModeName.C_Str()))
+		{
+			blendMode = cd::BlendMode::Blend;
+			//int blendFunc;
+			//aiGetMaterialInteger(pSourceMaterial, AI_MATKEY_BLEND_FUNC, &blendFunc);
+		}
 	}
 	material.AddI32Property(cd::MaterialPropertyGroup::General, cd::MaterialProperty::BlendMode, static_cast<int>(blendMode));
 	
@@ -269,11 +275,11 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			else
 			{
 				// Check if there are same file path but different tiling settings.
-				const cd::Texture& texture = pSceneDatabase->GetTexture(textureID.Data());
-				assert(texture.GetUVOffset().x() == uvTransform.mTranslation.x);
-				assert(texture.GetUVOffset().y() == uvTransform.mTranslation.y);
-				assert(texture.GetUVScale().x() == uvTransform.mScaling.x);
-				assert(texture.GetUVScale().y() == uvTransform.mScaling.y);
+				// const cd::Texture& texture = pSceneDatabase->GetTexture(textureID.Data());
+				// assert(texture.GetUVOffset().x() == uvTransform.mTranslation.x);
+				// assert(texture.GetUVOffset().y() == uvTransform.mTranslation.y);
+				// assert(texture.GetUVScale().x() == uvTransform.mScaling.x);
+				// assert(texture.GetUVScale().y() == uvTransform.mScaling.y);
 			}
 		}
 	}

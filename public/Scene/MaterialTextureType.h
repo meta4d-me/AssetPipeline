@@ -155,6 +155,7 @@ enum class BlendMode
 {
 	Opaque,
 	Mask,
+	Blend,
 	Count
 };
 
@@ -162,6 +163,7 @@ constexpr const char* BlendModeNames[] =
 {
 	"Opaque",
 	"Mask",
+	"Blend"
 };
 
 static_assert(static_cast<int>(BlendMode::Count) == sizeof(BlendModeNames) / sizeof(char*),
