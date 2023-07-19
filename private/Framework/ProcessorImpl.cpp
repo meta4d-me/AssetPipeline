@@ -275,9 +275,32 @@ void ProcessorImpl::DumpSceneDatabase()
 		{
 			printf("[MaterialID %u] Name = %s\n", material.GetID().Data(), material.GetName());
 
+			if (auto optMetallic = material.GetFloatProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::Factor); optMetallic.has_value())
+			{
+				printf("\tMetallic = %f\n", optMetallic.value());
+			}
+
+			if (auto optRoughness = material.GetFloatProperty(cd::MaterialPropertyGroup::Roughness, cd::MaterialProperty::Factor); optRoughness.has_value())
+			{
+				printf("\tRoughness = %f\n", optRoughness.value());
+			}
+
 			if (auto optTwoSided = material.GetBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided); optTwoSided.has_value())
 			{
 				printf("\t%s = %d\n", cd::GetMaterialPropertyName(cd::MaterialProperty::TwoSided), optTwoSided.value());
+			}
+
+			if (auto optBlendMode = material.GetI32Property(cd::MaterialPropertyGroup::General, cd::MaterialProperty::BlendMode); optBlendMode.has_value())
+			{
+				cd::BlendMode blendMode = static_cast<cd::BlendMode>(optBlendMode.value());
+				printf("\tBlendMode = %s\n", cd::GetBlendModeName(blendMode));
+
+				if (cd::BlendMode::Mask == blendMode)
+				{
+					auto optAlphaTestValue = material.GetFloatProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::OpacityMaskClipValue);
+					assert(optAlphaTestValue.has_value());
+					printf("\t\tAlphaCutOff = %f\n", optAlphaTestValue.value());
+				}
 			}
 
 			for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
