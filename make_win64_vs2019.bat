@@ -1,7 +1,7 @@
 @echo on
 
 cd /d %~dp0
-Set CMAKE_EXE=%~dp0auto\CMake\bin\cmake.exe
+Set CMAKE_EXE=cmake.exe
 
 if not exist build\. mkdir build
 cd build
