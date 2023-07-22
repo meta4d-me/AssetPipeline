@@ -2,7 +2,7 @@
 
 #include "Base/Export.h"
 
-#include <inttypes.h>
+#include <cstdint>
 #include <optional>
 #include <vector>
 
