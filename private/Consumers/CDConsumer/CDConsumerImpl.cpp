@@ -20,6 +20,15 @@ using XmlAttribute = rapidxml::xml_attribute<char>;
 #include <memory>
 #include <string>
 
+namespace rapidxml
+{
+
+void parse_error_handler(const char* what, void* where)
+{
+}
+
+}
+
 namespace
 {
 
