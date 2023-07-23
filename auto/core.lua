@@ -19,6 +19,18 @@ project("AssetPipelineCore")
 		"CORE_BUILD_SHARED"
 	}
 
+	if ChoosePlatform == "Android" then
+		defines {
+			"CD_PLATFORM_ANDROID"
+		}
+		
+		linkoptions("-lm")
+	else
+		defines {
+			"CD_PLATFORM_WINDOWS"
+		}		
+	end
+
 	files {
 		path.join(RootPath, "public/**.*"),
 		path.join(RootPath, "private/**.*"),

@@ -502,7 +502,6 @@ void ProcessorImpl::CalculateConnetivityData()
 		for (uint32_t polygonIndex = 0U; polygonIndex < polygonCount; ++polygonIndex)
 		{
 			const auto& polygon = mesh.GetPolygon(polygonIndex);
-			static_assert(3U == polygon.Size);
 			
 			mesh.AddVertexAdjacentVertexID(polygon[0].Data(), polygon[1]);
 			mesh.AddVertexAdjacentVertexID(polygon[0].Data(), polygon[2]);

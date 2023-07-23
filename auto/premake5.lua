@@ -5,6 +5,9 @@
 CurrentWorkingPath = os.getcwd()
 RootPath = string.sub(CurrentWorkingPath, 0, string.len(CurrentWorkingPath) - string.len("auto") - 1)
 
+ChoosePlatform = os.getenv("CD_PLATFORM") or "Windows"
+print("ChoosePlatform = "..ChoosePlatform)
+
 local USE_CLANG_TOOLSET = os.getenv("USE_CLANG_TOOLSET") or "0"
 BUILD_ASSIMP = not os.istarget("linux") and USE_CLANG_TOOLSET == "0"
 BUILD_FBX = not os.istarget("linux") and USE_CLANG_TOOLSET == "0"
@@ -15,7 +18,16 @@ local BUILD_EXAMPLES = not os.istarget("linux") and USE_CLANG_TOOLSET == "0"
 -- Define solution
 workspace("AssetPipeline")
 	location(RootPath)
-	architecture "x64"
+
+	filter "system:Windows"
+		architecture "x64"
+		system("windows")
+	filter "system:Android"
+		architecture "ARM64"
+		androidapilevel(21)
+		system("android")
+	filter {}
+
 	configurations { "Debug", "Release" }
 	filter "configurations:Debug"
 		defines { "_DEBUG" }
@@ -76,6 +88,28 @@ function Platform_SetCppDialect()
 		toolset("clang")
 		cppdialect("c++17")
 	end
+end
+
+function Platform_LinkSettings()
+	filter { "configurations:Debug" }
+		objdir(path.join(RootPath, "build/obj/Debug"))
+		targetdir(path.join(RootPath, "build/bin/Debug"))
+		
+		filter { "system:Windows" }
+			libdirs(path.join(RootPath, "build/bin/Debug"))
+		filter { "system:Android" }
+			libdirs(path.join(RootPath, "ARM64/Debug"))
+		filter {}			
+	filter { "configurations:Release" }
+		objdir(path.join(RootPath, "build/obj/Release"))
+		targetdir(path.join(RootPath, "build/bin/Release"))
+		
+		filter { "system:Windows" }
+			libdirs(path.join(RootPath, "build/bin/Release"))
+		filter { "system:Android" }
+			libdirs(path.join(RootPath, "ARM64/Release"))
+		filter {}
+	filter {}
 end
 
 dofile("thirdparty.lua")
