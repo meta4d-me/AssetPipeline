@@ -8,6 +8,7 @@
 #include "Scene/VertexFormat.h"
 
 #include <array>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -55,7 +56,7 @@ public:
 	const AABB& GetAABB() const { return m_aabb; }
 
 	void SetMaterialID(uint32_t materialIndex) { m_materialID = materialIndex; }
-	const MaterialID& GetMaterialID() const { return m_materialID; }
+	MaterialID GetMaterialID() const { return m_materialID; }
 
 	uint32_t GetMorphCount() const { return static_cast<uint32_t>(m_morphTargets.size()); }
 	Morph& GetMorph(uint32_t morphIndex) { return m_morphTargets[morphIndex]; }
@@ -133,8 +134,21 @@ public:
 	void SetPolygon(uint32_t polygonIndex, cd::Polygon polygon);
 	std::vector<Polygon>& GetPolygons() { return m_polygons; }
 	const std::vector<Polygon>& GetPolygons() const { return m_polygons; }
+	Polygon& GetPolygon(uint32_t polygonIndex) { return m_polygons[polygonIndex]; }
 	const Polygon& GetPolygon(uint32_t polygonIndex) const { return m_polygons[polygonIndex]; }
 	cd::VertexID GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const;
+
+	void MarkVertexInvalid(VertexID v);
+	bool IsVertexValid(VertexID v) const;
+	void SwapVertexData(VertexID v0, VertexID v1);
+	void RemoveVertexData(VertexID v);
+
+	void MarkPolygonInvalid(PolygonID p);
+	bool IsPolygonValid(PolygonID p) const;
+	void RemovePolygonData(PolygonID p);
+
+	// After unify, all IDs cached by users should clean up.
+	void Unify();
 
 	template<bool SwapBytesOrder>
 	MeshImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
@@ -261,6 +275,12 @@ private:
 	// For geometry processing algorithms, it is common to query connectivity data.
 	std::vector<VertexIDArray>	m_vertexAdjacentVertexArrays;
 	std::vector<PolygonIDArray>	m_vertexAdjacentPolygonArrays;
+
+	// editing data
+	// During the process of removing vertices/polygons, it is difficult to maintain the relationship
+	// which means id is same to index.
+	std::map<VertexID, uint32_t> m_mapChaosVertexIDToIndex;
+	std::map<PolygonID, uint32_t> m_mapChaosPolygonIDToIndex;
 
 	// polygon data
 	std::vector<Polygon>		m_polygons;

@@ -31,21 +31,33 @@ public:
 
 		for (cd::Mesh& mesh : pSceneDatabase->GetMeshes())
 		{
-			uint32_t vertexCount = mesh.GetVertexCount();
-			uint32_t polygonCount = mesh.GetPolygonCount();
+			ProcessMesh(mesh);
+		}
+	}
 
-			std::vector<float> vertexEdgeCollapseCosts;
-			vertexEdgeCollapseCosts.resize(vertexCount);
+private:
+	void ProcessMesh(cd::Mesh& mesh)
+	{
+		// Query mesh basic information.
+		uint32_t originVertexCount = mesh.GetVertexCount();
+		uint32_t originPolygonCount = mesh.GetPolygonCount();
+
+		// Prepare for vertex data.
+		std::vector<float> vertexEdgeCollapseCosts;
+		std::vector<cd::VertexID> vertexEdgeCollapseTargets;
+		{
+			vertexEdgeCollapseCosts.resize(originVertexCount);
 			std::fill(vertexEdgeCollapseCosts.begin(), vertexEdgeCollapseCosts.end(), FLT_MAX);
 
-			std::vector<cd::VertexID> vertexEdgeCollapseTargets;
-			vertexEdgeCollapseTargets.resize(vertexCount);
+			vertexEdgeCollapseTargets.resize(originVertexCount);
 			std::fill(vertexEdgeCollapseTargets.begin(), vertexEdgeCollapseTargets.end(), cd::VertexID::InvalidID);
+		}
 
-			// Calculate face normals.
-			std::vector<cd::Direction> polygonNormals;
-			polygonNormals.resize(polygonCount);
-			for (uint32_t polygonIndex = 0U; polygonIndex < polygonCount; ++polygonIndex)
+		// Prepare for polygon data.
+		std::vector<cd::Direction> polygonNormals;
+		{
+			polygonNormals.resize(originPolygonCount);
+			for (uint32_t polygonIndex = 0U; polygonIndex < originPolygonCount; ++polygonIndex)
 			{
 				const cd::Polygon& polygon = mesh.GetPolygon(polygonIndex);
 				cd::Point v0 = mesh.GetVertexPosition(polygon[0].Data());
@@ -53,87 +65,123 @@ public:
 				cd::Point v2v0 = mesh.GetVertexPosition(polygon[2].Data()) - v0;
 				polygonNormals[polygonIndex] = v1v0.Cross(v2v0).Normalize();
 			}
+		}
 
-			// Calculate edge collapse data.
-			for (uint32_t vertexIndex = 0U; vertexIndex < vertexCount; ++vertexIndex)
+		// Calculate edge collapse data.
+		for (uint32_t vertexIndex = 0U; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
+		{
+			if (0U == mesh.GetVertexAdjacentVertexCount(vertexIndex))
 			{
-				if (0U == mesh.GetVertexAdjacentVertexCount(vertexIndex))
-				{
-					// Nothing to collapse.
-					continue;
-				}
+				// Orphan vertex, nothing to collapse.
+				continue;
+			}
 
-				// Loop every edge to calculate the min collapse cost.
-				for (cd::VertexID adjVertexID : mesh.GetVertexAdjacentVertexArray(vertexIndex))
+			// Loop every edge to calculate the min collapse cost.
+			for (cd::VertexID adjVertexID : mesh.GetVertexAdjacentVertexArray(vertexIndex))
+			{
+				float collapseCost = CalculateEdgeCollapseCost(mesh, vertexIndex, adjVertexID.Data(), polygonNormals);
+				if (collapseCost < vertexEdgeCollapseCosts[vertexIndex])
 				{
-					float collapseCost = CalculateEdgeCollapseCost(mesh, vertexIndex, adjVertexID.Data(), polygonNormals);
-					if (collapseCost < vertexEdgeCollapseCosts[vertexIndex])
-					{
-						vertexEdgeCollapseCosts[vertexIndex] = collapseCost;
-						vertexEdgeCollapseTargets[vertexIndex] = adjVertexID;
-					}
+					vertexEdgeCollapseCosts[vertexIndex] = collapseCost;
+					vertexEdgeCollapseTargets[vertexIndex] = adjVertexID;
+				}
+			}
+		}
+
+		// Start to collapse edge.
+		auto GetMinCollapseCostVertexIndex = [&vertexEdgeCollapseCosts, &mesh]()
+		{
+			float minCost = FLT_MAX;
+			uint32_t minCostVertexIndex = cd::VertexID::InvalidID;
+			for (uint32_t vertexIndex = 0U, vertexCount = mesh.GetVertexCount(); vertexIndex < vertexCount; ++vertexIndex)
+			{
+				if (vertexEdgeCollapseCosts[vertexIndex] < minCost)
+				{
+					minCost = vertexEdgeCollapseCosts[vertexIndex];
+					minCostVertexIndex = vertexIndex;
 				}
 			}
 
-			// Start to collapse edge.
-			auto GetMinCollapseCostVertexIndex = [&vertexEdgeCollapseCosts, &mesh]()
-			{
-				float minCost = FLT_MAX;
-				uint32_t minCostVertexIndex = cd::VertexID::InvalidID;
-				for (uint32_t vertexIndex = 0U, vertexCount = mesh.GetVertexCount(); vertexIndex < vertexCount; ++vertexIndex)
-				{
-					if (vertexEdgeCollapseCosts[vertexIndex] < minCost)
-					{
-						minCost = vertexEdgeCollapseCosts[vertexIndex];
-						minCostVertexIndex = vertexIndex;
-					}
-				}
+			return minCostVertexIndex;
+		};
 
-				return minCostVertexIndex;
-			};
+		for (int collapseIndex = originVertexCount - 1; collapseIndex >= 0; --collapseIndex)
+		{
+			uint32_t v0 = GetMinCollapseCostVertexIndex();
+			uint32_t v1 = vertexEdgeCollapseTargets[v0].Data();
 
-			for (int collapseIndex = vertexCount - 1; collapseIndex >= 0; --collapseIndex)
-			{
-				uint32_t v0 = GetMinCollapseCostVertexIndex();
-				uint32_t v1 = vertexEdgeCollapseTargets[v0].Data();
-
-				printf("Collapse Edge (%u, %u)\n", v0, v1);
-				CollapseEdge(mesh, v0, v1, polygonNormals);
-			}
+			printf("Collapse Edge (%u, %u)\n", v0, v1);
+			CollapseEdge(mesh, v0, v1);
+			break;
 		}
 	}
 
-private:
-	void CollapseEdge(cd::Mesh& mesh, uint32_t v0, uint32_t v1, const std::vector<cd::Direction>& polygonNormals)
+	void CollapseEdge(cd::Mesh& mesh, uint32_t v0, uint32_t v1)
 	{
 		assert(v0 != cd::VertexID::InvalidID);
 		assert(v1 != cd::VertexID::InvalidID);
 
-		// Polygons prepared to remove.
-		std::vector<cd::PolygonID> removePolygonIDs;
-
-		uint32_t adjPolygonCount = mesh.GetVertexAdjacentPolygonCount(v0);
-		const cd::PolygonIDArray& adjPolygons = mesh.GetVertexAdjacentPolygonArray(v0);
-		for (uint32_t polygonIndex = 0U; polygonIndex < adjPolygonCount; ++polygonIndex)
+		// Delete polygons
 		{
-			cd::PolygonID adjacentPolygonID = adjPolygons[polygonIndex];
-			const cd::Polygon& adjacentPolygon = mesh.GetPolygon(adjacentPolygonID.Data());
-			if (adjacentPolygon.Contains(cd::VertexID(v1)))
+			uint32_t adjPolygonCount = mesh.GetVertexAdjacentPolygonCount(v0);
+			const cd::PolygonIDArray& adjPolygons = mesh.GetVertexAdjacentPolygonArray(v0);
+			for (uint32_t polygonIndex = 0U; polygonIndex < adjPolygonCount; ++polygonIndex)
 			{
-				// Delete Edge (v0, v1) adjacent polygons
-				removePolygonIDs.push_back(adjacentPolygonID);
+				cd::PolygonID adjacentPolygonID = adjPolygons[polygonIndex];
+				const cd::Polygon& adjacentPolygon = mesh.GetPolygon(adjacentPolygonID.Data());
+				if (adjacentPolygon.Contains(cd::VertexID(v1)))
+				{
+					// Delete Edge (v0, v1) adjacent polygons
+					mesh.RemovePolygonData(adjacentPolygonID);
+
+					// 1. Loop through polygon's every vertex which maintains adjacent polygon id.
+					{
+						const auto& polygons = mesh.GetPolygons();
+						for (size_t vertexIndex = 0U; vertexIndex < adjacentPolygon.Size; ++vertexIndex)
+						{
+							auto polygonVertexID = adjacentPolygon[vertexIndex];
+							auto& adjPolygons = mesh.GetVertexAdjacentPolygonArray(polygonVertexID.Data());
+							adjPolygons.erase(std::remove(adjPolygons.begin(), adjPolygons.end(), polygonVertexID.Data()), adjPolygons.end());
+						}
+					}
+				}
 			}
 		}
 
-		std::sort(removePolygonIDs.begin(), removePolygonIDs.end(), [](cd::PolygonID lhs, cd::PolygonID rhs) { return lhs > rhs; });
-		for (cd::PolygonID removePolygonID : removePolygonIDs)
+		// Replace v1 with v0.
 		{
-			// 1. Delete polygon in the mesh polygon array
-			// 2. Loop through polygon's every vertex which maintains adjacent polygon id. Need to update.
-			// 
-		}
+			// 1. Loop through v1's adjacent polygons and maintain polygon's adjacent vertex ids.
+			for (auto v1AdjPolygonID : mesh.GetVertexAdjacentPolygonArray(v1))
+			{
+				auto& v1AdjPolygon = mesh.GetPolygon(v1);
+				for (size_t vertexIndex = 0U; vertexIndex < v1AdjPolygon.Size; ++vertexIndex)
+				{
+					auto polygonVertexID = v1AdjPolygon[vertexIndex];
+					if (polygonVertexID.Data() == v1)
+					{
+						v1AdjPolygon[vertexIndex] = cd::VertexID(v0);
+					}
+				}
+			}
 
-		// Some unused vertices may appear. Check to remove them.
+			// 2. Loop through v1's adjacent vertices and maintain vertex adjacent vertex ids.
+			for (auto v1AdjVertexID : mesh.GetVertexAdjacentVertexArray(v1))
+			{
+				auto& v1AdjVertexAdjVertexIDs = mesh.GetVertexAdjacentVertexArray(v1AdjVertexID.Data());
+				for (size_t vertexIndex = 0U; vertexIndex < v1AdjVertexAdjVertexIDs.size(); ++vertexIndex)
+				{
+					auto v1AdjVertexAdjVertexID = v1AdjVertexAdjVertexIDs[vertexIndex];
+					if (v1AdjVertexAdjVertexID.Data() == v1)
+					{
+						v1AdjVertexAdjVertexIDs[vertexIndex] = cd::VertexID(v0);
+					}
+				}
+			}
+			
+			// Replace v1 with v0.
+			mesh.SwapVertexData(cd::VertexID(v0), cd::VertexID(v1));
+			mesh.RemoveVertexData(cd::VertexID(v1));
+		}
 	}
 
 	float CalculateEdgeCollapseCost(const cd::Mesh& mesh, uint32_t v0, uint32_t v1, const std::vector<cd::Direction>& polygonNormals)

@@ -52,7 +52,7 @@ public:
 	const AABB& GetAABB() const;
 
 	void SetMaterialID(uint32_t materialIndex);
-	const MaterialID& GetMaterialID() const;
+	MaterialID GetMaterialID() const;
 
 	uint32_t GetMorphCount() const;
 	Morph& GetMorph(uint32_t morphIndex);
@@ -130,8 +130,18 @@ public:
 	void SetPolygon(uint32_t polygonIndex, Polygon polygon);
 	std::vector<Polygon>& GetPolygons();
 	const std::vector<Polygon>& GetPolygons() const;
+	Polygon& GetPolygon(uint32_t polygonIndex);
 	const Polygon& GetPolygon(uint32_t polygonIndex) const;
 	cd::VertexID GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const;
+
+	void MarkVertexInvalid(VertexID v);
+	bool IsVertexValid(VertexID v) const;
+	void SwapVertexData(VertexID v0, VertexID v1);
+	void RemoveVertexData(VertexID v);
+
+	void MarkPolygonInvalid(PolygonID p);
+	bool IsPolygonValid(PolygonID p) const;
+	void RemovePolygonData(PolygonID p);
 
 	Mesh& operator<<(InputArchive& inputArchive);
 	Mesh& operator<<(InputArchiveSwapBytes& inputArchive);
