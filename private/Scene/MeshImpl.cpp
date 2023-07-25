@@ -2,6 +2,27 @@
 
 #include <cassert>
 
+namespace
+{
+
+template<typename T>
+void SwapArrayElement(std::vector<T>& data, uint32_t v0, uint32_t v1)
+{
+	T temp = cd::MoveTemp(data[v0]);
+	data[v0] = cd::MoveTemp(data[v1]);
+	data[v1] = cd::MoveTemp(temp);
+};
+
+template<typename T>
+void RemoveArrayElement(std::vector<T>& data, uint32_t v0)
+{
+	T temp = cd::MoveTemp(data.back());
+	data[v0] = cd::MoveTemp(temp);
+	data.pop_back();
+};
+
+}
+
 namespace cd
 {
 
@@ -260,6 +281,122 @@ void MeshImpl::SetPolygon(uint32_t polygonIndex, cd::Polygon polygon)
 cd::VertexID MeshImpl::GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const
 {
 	return m_polygons[polygonIndex][vertexIndex];
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////
+// Editing
+////////////////////////////////////////////////////////////////////////////////////
+void MeshImpl::MarkVertexInvalid(VertexID v)
+{
+	m_mapChaosVertexIDToIndex[v] = cd::VertexID::InvalidID;
+}
+
+bool MeshImpl::IsVertexValid(VertexID v) const
+{
+	auto itVertex = m_mapChaosVertexIDToIndex.find(v);
+	return itVertex != m_mapChaosVertexIDToIndex.end() && itVertex->second == cd::VertexID::InvalidID;
+}
+
+//void MeshImpl::SwapVertex(VertexID v0, VertexID v1)
+//{
+//	m_mapChaosVertexIDToIndex[v0] = v1.Data();
+//	m_mapChaosVertexIDToIndex[v1] = v0.Data();
+//}
+
+void MeshImpl::SwapVertexData(VertexID v0, VertexID v1)
+{
+	SwapArrayElement<Point>(m_vertexPositions, v0.Data(), v1.Data());
+	SwapArrayElement<Direction>(m_vertexNormals, v0.Data(), v1.Data());
+	SwapArrayElement<Direction>(m_vertexTangents, v0.Data(), v1.Data());
+	SwapArrayElement<Direction>(m_vertexBiTangents, v0.Data(), v1.Data());
+
+	for (uint32_t m_colorSetIndex = 0; m_colorSetIndex < m_vertexColorSetCount; ++m_colorSetIndex)
+	{
+		SwapArrayElement<Color>(m_vertexColorSets[m_colorSetIndex], v0.Data(), v1.Data());
+	}
+
+	for (uint32_t m_uvSetIndex = 0; m_uvSetIndex < m_vertexUVSetCount; ++m_uvSetIndex)
+	{
+		SwapArrayElement<UV>(m_vertexUVSets[m_uvSetIndex], v0.Data(), v1.Data());
+	}
+
+	for (uint32_t m_influenceIndex = 0; m_influenceIndex < m_vertexInfluenceCount; ++m_influenceIndex)
+	{
+		SwapArrayElement<BoneID>(m_vertexBoneIDs[m_influenceIndex], v0.Data(), v1.Data());
+		SwapArrayElement<VertexWeight>(m_vertexWeights[m_influenceIndex], v0.Data(), v1.Data());
+	}
+
+	SwapArrayElement<VertexIDArray>(m_vertexAdjacentVertexArrays, v0.Data(), v1.Data());
+	SwapArrayElement<PolygonIDArray>(m_vertexAdjacentPolygonArrays, v0.Data(), v1.Data());
+}
+
+void MeshImpl::RemoveVertexData(VertexID v0)
+{
+	RemoveArrayElement<Point>(m_vertexPositions, v0.Data());
+	RemoveArrayElement<Direction>(m_vertexNormals, v0.Data());
+	RemoveArrayElement<Direction>(m_vertexTangents, v0.Data());
+	RemoveArrayElement<Direction>(m_vertexBiTangents, v0.Data());
+
+	for (uint32_t m_colorSetIndex = 0; m_colorSetIndex < m_vertexColorSetCount; ++m_colorSetIndex)
+	{
+		RemoveArrayElement<Color>(m_vertexColorSets[m_colorSetIndex], v0.Data());
+	}
+
+	for (uint32_t m_uvSetIndex = 0; m_uvSetIndex < m_vertexUVSetCount; ++m_uvSetIndex)
+	{
+		RemoveArrayElement<UV>(m_vertexUVSets[m_uvSetIndex], v0.Data());
+	}
+
+	for (uint32_t m_influenceIndex = 0; m_influenceIndex < m_vertexInfluenceCount; ++m_influenceIndex)
+	{
+		RemoveArrayElement<BoneID>(m_vertexBoneIDs[m_influenceIndex], v0.Data());
+		RemoveArrayElement<VertexWeight>(m_vertexWeights[m_influenceIndex], v0.Data());
+	}
+
+	RemoveArrayElement<VertexIDArray>(m_vertexAdjacentVertexArrays, v0.Data());
+	RemoveArrayElement<PolygonIDArray>(m_vertexAdjacentPolygonArrays, v0.Data());
+
+	--m_vertexCount;
+}
+
+void MeshImpl::MarkPolygonInvalid(PolygonID p)
+{
+	m_mapChaosPolygonIDToIndex[p] = cd::VertexID::InvalidID;
+}
+
+bool MeshImpl::IsPolygonValid(PolygonID p) const
+{
+	auto itPolygon = m_mapChaosPolygonIDToIndex.find(p);
+	return itPolygon != m_mapChaosPolygonIDToIndex.end() && itPolygon->second == cd::PolygonID::InvalidID;
+}
+
+void MeshImpl::RemovePolygonData(PolygonID p)
+{
+	RemoveArrayElement<Polygon>(m_polygons, p.Data());
+
+	--m_polygonCount;
+}
+
+void MeshImpl::Unify()
+{
+	for (const auto& [vertexID, vertexIndex] : m_mapChaosVertexIDToIndex)
+	{
+		if (cd::VertexID::InvalidID == vertexIndex)
+		{
+			RemoveVertexData(vertexID);
+			m_mapChaosVertexIDToIndex.erase(vertexID);
+		}
+	}
+
+	for (const auto& [polygonID, polygonIndex] : m_mapChaosPolygonIDToIndex)
+	{
+		if (cd::VertexID::InvalidID == polygonIndex)
+		{
+			RemovePolygonData(polygonID);
+			m_mapChaosPolygonIDToIndex.erase(polygonID);
+		}
+	}
 }
 
 }

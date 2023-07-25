@@ -121,7 +121,7 @@ void Mesh::SetMaterialID(uint32_t materialIndex)
 	return m_pMeshImpl->SetMaterialID(materialIndex);
 }
 
-const MaterialID& Mesh::GetMaterialID() const
+MaterialID Mesh::GetMaterialID() const
 {
 	return m_pMeshImpl->GetMaterialID();
 }
@@ -476,6 +476,11 @@ const std::vector<Polygon>& Mesh::GetPolygons() const
 	return m_pMeshImpl->GetPolygons();
 }
 
+Polygon& Mesh::GetPolygon(uint32_t polygonIndex)
+{
+	return m_pMeshImpl->GetPolygon(polygonIndex);
+}
+
 const Polygon& Mesh::GetPolygon(uint32_t polygonIndex) const
 {
 	return m_pMeshImpl->GetPolygon(polygonIndex);
@@ -484,6 +489,44 @@ const Polygon& Mesh::GetPolygon(uint32_t polygonIndex) const
 cd::VertexID Mesh::GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const
 {
 	return m_pMeshImpl->GetPolygonVertexID(polygonIndex, vertexIndex);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Editing
+//////////////////////////////////////////////////////////////////////////
+void Mesh::MarkVertexInvalid(VertexID v)
+{
+	m_pMeshImpl->MarkVertexInvalid(v);
+}
+
+bool Mesh::IsVertexValid(VertexID v) const
+{
+	return m_pMeshImpl->IsVertexValid(v);
+}
+
+void Mesh::RemoveVertexData(VertexID v)
+{
+	m_pMeshImpl->RemoveVertexData(v);
+}
+
+void Mesh::SwapVertexData(VertexID v0, VertexID v1)
+{
+	m_pMeshImpl->SwapVertexData(v0, v1);
+}
+
+void Mesh::MarkPolygonInvalid(PolygonID p)
+{
+	m_pMeshImpl->MarkPolygonInvalid(p);
+}
+
+bool Mesh::IsPolygonValid(PolygonID p) const
+{
+	return m_pMeshImpl->IsPolygonValid(p);
+}
+
+void Mesh::RemovePolygonData(PolygonID p)
+{
+	m_pMeshImpl->RemovePolygonData(p);
 }
 
 Mesh& Mesh::operator<<(InputArchive& inputArchive)
