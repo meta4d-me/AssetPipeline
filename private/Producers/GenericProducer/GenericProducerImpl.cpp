@@ -173,15 +173,15 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 	// Process all parameters
 	float metallic = 0.5f;
 	aiGetMaterialFloat(pSourceMaterial, AI_MATKEY_METALLIC_FACTOR, &metallic);
-	material.AddFloatProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::Factor, metallic);
+	material.SetFloatProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::Factor, metallic);
 
 	float roughness = 0.5f;
 	aiGetMaterialFloat(pSourceMaterial, AI_MATKEY_ROUGHNESS_FACTOR, &roughness);
-	material.AddFloatProperty(cd::MaterialPropertyGroup::Roughness, cd::MaterialProperty::Factor, roughness);
+	material.SetFloatProperty(cd::MaterialPropertyGroup::Roughness, cd::MaterialProperty::Factor, roughness);
 
 	int twoSided = 0;
 	aiGetMaterialInteger(pSourceMaterial, AI_MATKEY_TWOSIDED, &twoSided);
-	material.AddBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided, twoSided == 1);
+	material.SetBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided, twoSided == 1);
 
 	// TODO : only valid for gltf, actually it is generic producer.
 	cd::BlendMode blendMode = cd::BlendMode::Opaque;
@@ -199,7 +199,7 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 
 			float alphaCutOff = 1.0f;
 			aiGetMaterialFloat(pSourceMaterial, AI_MATKEY_GLTF_ALPHACUTOFF, &alphaCutOff);
-			material.AddFloatProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::OpacityMaskClipValue, alphaCutOff);
+			material.SetFloatProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::OpacityMaskClipValue, alphaCutOff);
 		}
 		else if (0 == strcmp("BLEND", blendModeName.C_Str()))
 		{
@@ -208,7 +208,7 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			//aiGetMaterialInteger(pSourceMaterial, AI_MATKEY_BLEND_FUNC, &blendFunc);
 		}
 	}
-	material.AddI32Property(cd::MaterialPropertyGroup::General, cd::MaterialProperty::BlendMode, static_cast<int>(blendMode));
+	material.SetI32Property(cd::MaterialPropertyGroup::General, cd::MaterialProperty::BlendMode, static_cast<int>(blendMode));
 	
 	// Process all textures
 	for (const auto& [textureType, materialTextureType] : materialTextureMapping)
@@ -253,7 +253,7 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			std::filesystem::path textureAbsolutePath = m_folderPath;
 			textureAbsolutePath.append(textureFilePath.C_Str());
 
-			material.AddTextureID(materialTextureType, textureID);
+			material.SetTextureID(materialTextureType, textureID);
 
 			// Parse tiling parameters.
 			aiUVTransform uvTransform;

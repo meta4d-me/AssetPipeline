@@ -2,23 +2,25 @@
 
 #include "Math/Vector.hpp"
 #include "Scene/ObjectID.h"
+#include "IO/InputArchive.hpp"
+#include "IO/OutputArchive.hpp"
 
-#include <optional>
 #include <cstdint>
+#include <map>
+#include <optional>
+#include <set>
 #include <string>
 #include <type_traits>
-#include <map>
-#include <set>
 #include <vector>
 
-namespace cd {
-
-namespace {
-using PropertyMapKeyType = std::string;
-}
+namespace cd
+{
 
 class PropertyMap final
 {
+public:
+	using PropertyMapKeyType = std::string;
+
 public:
 	PropertyMap() = default;
 	PropertyMap(const PropertyMap &) = delete;
@@ -28,32 +30,11 @@ public:
 	~PropertyMap() = default;
 
 	template<typename T>
-	void Add(const PropertyMapKeyType &key, const T &value)
-	{
-		CheckType<T>();
-		if (!Exist(key))
-		{
-			SetValue(key, value);
-			m_keySet.insert(key);
-		}
-		else
-		{
-			printf("PropertyMap key alerady exists!\n");
-		}
-	}
-
-	template<typename T>
 	void Set(const PropertyMapKeyType &key, const T &value)
 	{
 		CheckType<T>();
-		if (Exist(key))
-		{
-			SetValue(key, value);
-		}
-		else
-		{
-			printf("PropertyMap key does not exists!\n");
-		}
+		SetValue(key, value);
+		m_keySet.insert(key);
 	}
 
 	template<typename T>
@@ -123,6 +104,80 @@ public:
 	const std::map<PropertyMapKeyType, cd::Vec3f> &GetByte12Property() const { return m_byte12Property; }
 	const std::set<PropertyMapKeyType> &GetKeySetProperty() const { return m_keySet; }
 
+	template<bool SwapBytesOrder>
+	PropertyMap& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
+	{
+		uint16_t stringCount, byte4Count, byte8Count, byte12Count;
+		inputArchive >> stringCount >> byte4Count >> byte8Count >> byte12Count;
+		for (uint16_t index = 0; index < stringCount; ++index)
+		{
+			PropertyMapKeyType key;
+			std::string value;
+			inputArchive >> key >> value;
+			Set(key, value);
+		}
+
+		for (uint16_t index = 0; index < byte4Count; ++index)
+		{
+			PropertyMapKeyType key;
+			uint32_t value;
+			inputArchive >> key >> value;
+			Set(key, value);
+		}
+
+		for (uint16_t index = 0; index < byte8Count; ++index)
+		{
+			PropertyMapKeyType key;
+			uint64_t value;
+			inputArchive >> key >> value;
+			Set(key, value);
+		}
+
+		for (uint16_t index = 0; index < byte12Count; ++index)
+		{
+			PropertyMapKeyType key;
+			cd::Vec3f value;
+			inputArchive >> key >> value;
+			Set(key, value);
+		}
+
+		return *this;
+	}
+
+	template<bool SwapBytesOrder>
+	const PropertyMap& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
+	{
+		const auto& stringProperty = GetStringProperty();
+		const auto& byte4Property = GetByte4Property();
+		const auto& byte8Property = GetByte8Property();
+		const auto& byte12Property = GetByte12Property();
+
+		outputArchive <<
+			static_cast<uint16_t>(stringProperty.size()) <<
+			static_cast<uint16_t>(byte4Property.size()) <<
+			static_cast<uint16_t>(byte8Property.size()) <<
+			static_cast<uint16_t>(byte12Property.size());
+
+		for (const auto& [key, value] : stringProperty)
+		{
+			outputArchive << key << value;
+		}
+		for (const auto& [key, value] : byte4Property)
+		{
+			outputArchive << key << value;
+		}
+		for (const auto& [key, value] : byte8Property)
+		{
+			outputArchive << key << value;
+		}
+		for (const auto& [key, value] : byte12Property)
+		{
+			outputArchive << key << value;
+		}
+
+		return *this;
+	}
+
 private:
 	template<typename T>
 	void SetValue(const PropertyMapKeyType &key, const T &value)
@@ -163,6 +218,7 @@ private:
 			);
 	}
 
+private:
 	std::map<PropertyMapKeyType, std::string> m_stringProperty;
 	std::map<PropertyMapKeyType, uint32_t>    m_byte4Property;
 	std::map<PropertyMapKeyType, uint64_t>    m_byte8Property;
@@ -176,4 +232,4 @@ static_assert(sizeof(float) == sizeof(uint32_t));
 static_assert(sizeof(double) == sizeof(uint64_t));
 static_assert(sizeof(cd::Vec2f) == sizeof(uint64_t));
 
-} // namespace cd
+}

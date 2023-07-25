@@ -30,27 +30,27 @@ void MaterialImpl::Init(MaterialID materialID, std::string materialName, Materia
 
 void MaterialImpl::InitBasePBR()
 {
-	AddProperty(MaterialPropertyGroup::BaseColor, MaterialProperty::Color, Vec3f(1.0f, 1.0f, 1.0f));
+	SetProperty(MaterialPropertyGroup::BaseColor, MaterialProperty::Color, Vec3f(1.0f, 1.0f, 1.0f));
 	// Factor for blending Color and Texture.
 	// Or if there is no Texture, then this simply scales the Color value.
-	AddProperty(MaterialPropertyGroup::BaseColor, MaterialProperty::Factor, 0.0f);
-	AddProperty(MaterialPropertyGroup::BaseColor, MaterialProperty::UseTexture, true);
+	SetProperty(MaterialPropertyGroup::BaseColor, MaterialProperty::Factor, 0.0f);
+	SetProperty(MaterialPropertyGroup::BaseColor, MaterialProperty::UseTexture, true);
 
-	AddProperty(MaterialPropertyGroup::Occlusion, MaterialProperty::Factor, 0.0f);
-	AddProperty(MaterialPropertyGroup::Occlusion, MaterialProperty::UseTexture, true);
+	SetProperty(MaterialPropertyGroup::Occlusion, MaterialProperty::Factor, 0.0f);
+	SetProperty(MaterialPropertyGroup::Occlusion, MaterialProperty::UseTexture, true);
 
-	AddProperty(MaterialPropertyGroup::Roughness, MaterialProperty::Factor, 0.9f);
-	AddProperty(MaterialPropertyGroup::Roughness, MaterialProperty::UseTexture, true);
+	SetProperty(MaterialPropertyGroup::Roughness, MaterialProperty::Factor, 0.9f);
+	SetProperty(MaterialPropertyGroup::Roughness, MaterialProperty::UseTexture, true);
 
-	AddProperty(MaterialPropertyGroup::Metallic, MaterialProperty::Factor, 0.1f);
-	AddProperty(MaterialPropertyGroup::Metallic, MaterialProperty::UseTexture, true);
+	SetProperty(MaterialPropertyGroup::Metallic, MaterialProperty::Factor, 0.1f);
+	SetProperty(MaterialPropertyGroup::Metallic, MaterialProperty::UseTexture, true);
 
-	AddProperty(MaterialPropertyGroup::Normal, MaterialProperty::UseTexture, true);
+	SetProperty(MaterialPropertyGroup::Normal, MaterialProperty::UseTexture, true);
 
-	AddProperty(MaterialPropertyGroup::General, MaterialProperty::EnableDirectionalLights, true);
-	AddProperty(MaterialPropertyGroup::General, MaterialProperty::EnablePunctualLights, true);
-	AddProperty(MaterialPropertyGroup::General, MaterialProperty::EnableAreaLights, false);
-	AddProperty(MaterialPropertyGroup::General, MaterialProperty::EnableIBL, true);
+	SetProperty(MaterialPropertyGroup::General, MaterialProperty::EnableDirectionalLights, true);
+	SetProperty(MaterialPropertyGroup::General, MaterialProperty::EnablePunctualLights, true);
+	SetProperty(MaterialPropertyGroup::General, MaterialProperty::EnableAreaLights, false);
+	SetProperty(MaterialPropertyGroup::General, MaterialProperty::EnableIBL, true);
 }
 
 }
