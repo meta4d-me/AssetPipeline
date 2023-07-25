@@ -692,7 +692,7 @@ void FbxProducerImpl::AddMaterialTexture(const fbxsdk::FbxProperty& sdkProperty,
 			texture.SetPath(textureFileName.c_str());
 			pSceneDatabase->AddTexture(cd::MoveTemp(texture));
 		}
-		material.AddTextureID(textureType, textureID);
+		material.SetTextureID(textureType, textureID);
 	}
 }
 

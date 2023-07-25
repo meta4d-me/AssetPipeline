@@ -79,11 +79,6 @@ const PropertyMap& Material::GetPropertyGroups() const
 	return m_pMaterialImpl->GetPropertyGroups();
 }
 
-void Material::AddTextureID(MaterialTextureType textureType, TextureID textureID)
-{
-	m_pMaterialImpl->AddProperty(textureType, MaterialProperty::Texture, textureID.Data());
-}
-
 void Material::SetTextureID(MaterialTextureType textureType, TextureID textureID)
 {
 	m_pMaterialImpl->SetProperty(textureType, MaterialProperty::Texture, textureID.Data());
@@ -103,46 +98,6 @@ void Material::RemoveTexture(MaterialTextureType textureType)
 bool Material::IsTextureSetup(MaterialTextureType textureType) const
 {
 	return m_pMaterialImpl->ExistProperty(textureType, MaterialProperty::Texture);
-}
-
-void Material::AddBoolProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, bool value)
-{
-	m_pMaterialImpl->AddProperty(propertyGroup, property, static_cast<int32_t>(value));
-}
-
-void Material::AddI32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, int32_t value)
-{
-	m_pMaterialImpl->AddProperty(propertyGroup, property, value);
-}
-
-void Material::AddI64Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, int64_t value)
-{
-	m_pMaterialImpl->AddProperty(propertyGroup, property, value);
-}
-
-void Material::AddU32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, uint32_t value)
-{
-	m_pMaterialImpl->AddProperty(propertyGroup, property, value);
-}
-
-void Material::AddU64Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, uint64_t value)
-{
-	m_pMaterialImpl->AddProperty(propertyGroup, property, value);
-}
-
-void Material::AddFloatProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, float value)
-{
-	m_pMaterialImpl->AddProperty(propertyGroup, property, value);
-}
-
-void Material::AddDoubleProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, double value)
-{
-	m_pMaterialImpl->AddProperty(propertyGroup, property, value);
-}
-
-void Material::AddStringProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, std::string value)
-{
-	m_pMaterialImpl->AddProperty(propertyGroup, property, value);
 }
 
 void Material::RemoveProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property)
@@ -185,7 +140,17 @@ void Material::SetDoubleProperty(MaterialPropertyGroup propertyGroup, MaterialPr
 	m_pMaterialImpl->SetProperty(propertyGroup, property, value);
 }
 
-void Material::SetStringProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, std::string value)
+void Material::SetStringProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, const std::string& value)
+{
+	m_pMaterialImpl->SetProperty(propertyGroup, property, value);
+}
+
+void Material::SetVec2fProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, const cd::Vec2f& value)
+{
+	m_pMaterialImpl->SetProperty(propertyGroup, property, value);
+}
+
+void Material::SetVec3fProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, const cd::Vec3f& value)
 {
 	m_pMaterialImpl->SetProperty(propertyGroup, property, value);
 }

@@ -45,20 +45,10 @@ public:
 
 	const PropertyMap& GetPropertyGroups() const;
 
-	void AddTextureID(MaterialPropertyGroup textureType, TextureID textureID);
 	void SetTextureID(MaterialPropertyGroup textureType, TextureID textureID);
 	TextureID GetTextureID(MaterialPropertyGroup textureType) const;
 	void RemoveTexture(MaterialPropertyGroup textureType);
 	bool IsTextureSetup(MaterialPropertyGroup textureType) const;
-
-	void AddBoolProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, bool value);
-	void AddI32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, int32_t value);
-	void AddI64Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, int64_t value);
-	void AddU32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, uint32_t value);
-	void AddU64Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, uint64_t value);
-	void AddFloatProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, float value);
-	void AddDoubleProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, double value);
-	void AddStringProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, std::string value);
 
 	void RemoveProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property);
 
@@ -69,7 +59,9 @@ public:
 	void SetU64Property(MaterialPropertyGroup propertyGroup, MaterialProperty property, uint64_t value);
 	void SetFloatProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, float value);
 	void SetDoubleProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, double value);
-	void SetStringProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, std::string value);
+	void SetStringProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, const std::string& value);
+	void SetVec2fProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, const cd::Vec2f& value);
+	void SetVec3fProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property, const cd::Vec3f& value);
 
 	std::optional<bool> GetBoolProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const;
 	std::optional<int32_t> GetI32Property(MaterialPropertyGroup propertyGroup, MaterialProperty property) const;
