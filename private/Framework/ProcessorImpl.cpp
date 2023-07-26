@@ -396,8 +396,6 @@ void ProcessorImpl::DumpSceneDatabase()
 			printf("\tName = %s\n", texture.GetName());
 			printf("\tPath = %s\n", texture.GetPath());
 			printf("\tUVMapMode = (%s, %s)\n", GetTextureMapModeName(texture.GetUMapMode()), GetTextureMapModeName(texture.GetVMapMode()));
-			details::Dump("\tUVOffset", texture.GetUVOffset());
-			details::Dump("\tUVScale", texture.GetUVScale());
 		}
 	}
 
