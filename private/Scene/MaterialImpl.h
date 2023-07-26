@@ -60,7 +60,6 @@ public:
 	template<typename T>
 	std::optional<T> GetProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
 	{
-		int a = sizeof(T);
 		return m_propertyGroups.Get<T>(GetMaterialPropertyKey(propertyGroup, property));
 	}
 

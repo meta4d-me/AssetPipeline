@@ -71,7 +71,7 @@ public:
 	std::optional<float> GetFloatProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const;
 	std::optional<double> GetDoubleProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const;
 	std::optional<std::string> GetStringProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const;
-	std::optional <Vec2f> GetVec2fProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const;
+	std::optional<cd::Vec2f> GetVec2fProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const;
 
 	bool ExistProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const;
 

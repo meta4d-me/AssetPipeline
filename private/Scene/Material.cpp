@@ -201,9 +201,9 @@ std::optional<std::string> Material::GetStringProperty(MaterialPropertyGroup pro
 	return m_pMaterialImpl->GetProperty<std::string>(propertyGroup, property);
 }
 
-std::optional<Vec2f> Material::GetVec2fProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
+std::optional<cd::Vec2f> Material::GetVec2fProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
 {
-	return m_pMaterialImpl->GetProperty<Vec2f>(propertyGroup, property);
+	return m_pMaterialImpl->GetProperty<cd::Vec2f>(propertyGroup, property);
 }
 
 bool Material::ExistProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
