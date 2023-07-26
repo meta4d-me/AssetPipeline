@@ -317,22 +317,22 @@ void ProcessorImpl::DumpSceneDatabase()
 				{
 					if (auto optUVOScale = material.GetVec2fProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::UVScale); optUVOScale.has_value())
 					{
-						details::Dump("\t\tUVScale", optUVOScale.value());
+						details::Dump("\t\tMetallicUVScale", optUVOScale.value());
 					}
 					if (auto optUVOScale = material.GetVec2fProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::UVOffset); optUVOScale.has_value())
 					{
-						details::Dump("\t\tUVOffset", optUVOScale.value());
+						details::Dump("\t\tMetallicUVOffset", optUVOScale.value());
 					}
 				}
 				else if (textureType == cd::MaterialPropertyGroup::Normal)
 				{
 					if (auto optUVOScale = material.GetVec2fProperty(cd::MaterialPropertyGroup::Normal, cd::MaterialProperty::UVScale); optUVOScale.has_value())
 					{
-						details::Dump("\t\tUVScale", optUVOScale.value());
+						details::Dump("\t\tNormalUVScale", optUVOScale.value());
 					}
 					if (auto optUVOScale = material.GetVec2fProperty(cd::MaterialPropertyGroup::Normal, cd::MaterialProperty::UVOffset); optUVOScale.has_value())
 					{
-						details::Dump("\t\tUVOffset", optUVOScale.value());
+						details::Dump("\t\tNormalUVOffset", optUVOScale.value());
 					}
 
 				}
@@ -340,11 +340,11 @@ void ProcessorImpl::DumpSceneDatabase()
 				{
 					if (auto optUVOScale = material.GetVec2fProperty(cd::MaterialPropertyGroup::BaseColor, cd::MaterialProperty::UVScale); optUVOScale.has_value())
 					{
-						details::Dump("\t\tUVScale", optUVOScale.value());
+						details::Dump("\t\tBaseColorUVScale", optUVOScale.value());
 					}
 					if (auto optUVOScale = material.GetVec2fProperty(cd::MaterialPropertyGroup::BaseColor, cd::MaterialProperty::UVOffset); optUVOScale.has_value())
 					{
-						details::Dump("\t\tUVOffset", optUVOScale.value());
+						details::Dump("\t\tBaseColorUVOffset", optUVOScale.value());
 					}
 
 				}
@@ -352,11 +352,11 @@ void ProcessorImpl::DumpSceneDatabase()
 				{
 					if (auto optUVOScale = material.GetVec2fProperty(cd::MaterialPropertyGroup::Emissive, cd::MaterialProperty::UVScale); optUVOScale.has_value())
 					{
-						details::Dump("\t\tUVScale", optUVOScale.value());
+						details::Dump("\t\tEmissiveUVScale", optUVOScale.value());
 					}
 					if (auto optUVOScale = material.GetVec2fProperty(cd::MaterialPropertyGroup::Emissive, cd::MaterialProperty::UVOffset); optUVOScale.has_value())
 					{
-						details::Dump("\t\tUVOffset", optUVOScale.value());
+						details::Dump("\t\tEmissiveUVOffset", optUVOScale.value());
 					}
 
 				}
@@ -364,11 +364,11 @@ void ProcessorImpl::DumpSceneDatabase()
 				{
 					if (auto optUVOScale = material.GetVec2fProperty(cd::MaterialPropertyGroup::Occlusion, cd::MaterialProperty::UVScale); optUVOScale.has_value())
 					{
-						details::Dump("\t\tUVScale", optUVOScale.value());
+						details::Dump("\t\tOcclusionUVScale", optUVOScale.value());
 					}
 					if (auto optUVOScale = material.GetVec2fProperty(cd::MaterialPropertyGroup::Occlusion, cd::MaterialProperty::UVOffset); optUVOScale.has_value())
 					{
-						details::Dump("\t\tUVOffset", optUVOScale.value());
+						details::Dump("\t\tOcclusionUVOffset", optUVOScale.value());
 					}
 
 				}
