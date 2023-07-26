@@ -183,6 +183,12 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 	aiGetMaterialInteger(pSourceMaterial, AI_MATKEY_TWOSIDED, &twoSided);
 	material.SetBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided, twoSided == 1);
 
+	aiUVTransform uvTransform;
+	unsigned int maxBytes = sizeof(aiUVTransform);
+	aiGetMaterialFloatArray(pSourceMaterial, AI_MATKEY_UVTRANSFORM(aiTextureType_DIFFUSE, 0), (float*)&uvTransform, &maxBytes);
+	material.SetVec2fProperty(cd::MaterialPropertyGroup::BaseColor, cd::MaterialProperty::BaseColorUVScale, cd::Vec2f(uvTransform.mScaling.x, uvTransform.mScaling.y));
+	material.SetVec2fProperty(cd::MaterialPropertyGroup::BaseColor, cd::MaterialProperty::BaseColorUVOffset, cd::Vec2f(uvTransform.mTranslation.x, uvTransform.mTranslation.y));
+
 	// TODO : only valid for gltf, actually it is generic producer.
 	cd::BlendMode blendMode = cd::BlendMode::Opaque;
 	if (std::filesystem::path filePath = m_filePath; ".gltf" == filePath.extension())

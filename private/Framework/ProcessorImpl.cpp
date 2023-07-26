@@ -303,6 +303,11 @@ void ProcessorImpl::DumpSceneDatabase()
 				}
 			}
 
+			if (auto optUVOffset = material.GetVec2fProperty(cd::MaterialPropertyGroup::BaseColor, cd::MaterialProperty::BaseColorUVOffset); optUVOffset.has_value())
+			{
+				
+			}
+
 			for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
 			{
 				cd::MaterialTextureType textureType = static_cast<cd::MaterialTextureType>(textureTypeValue);
