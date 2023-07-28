@@ -94,7 +94,7 @@ namespace cd
 			mesh.SetVertexPosition(i, positions[i]);
 		}
 
-		for (uint32_t i = 0; i < polygons.size(); ++i)
+		for (uint32_t i = 0U; i < polygons.size(); ++i)
 		{
 			mesh.SetPolygon(i, polygons[i]);
 		}
