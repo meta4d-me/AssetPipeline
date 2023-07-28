@@ -11,6 +11,7 @@
 
 namespace cd
 {
+
 std::optional<Mesh> MeshGenerator::Generate(const Box& box, const VertexFormat& vertexFormat, bool useCounterWiseForFrontFace)
 {
 	assert(vertexFormat.Contains(VertexAttributeType::Position));
