@@ -89,7 +89,7 @@ namespace cd
 
 		cd::Mesh mesh(static_cast<uint32_t>(positions.size()), static_cast<uint32_t>(polygons.size()));
 
-		for (uint32_t i = 0; i < positions.size(); ++i)
+		for (uint32_t i = 0U; i < positions.size(); ++i)
 		{
 			mesh.SetVertexPosition(i, positions[i]);
 		}
