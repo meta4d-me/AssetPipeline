@@ -313,66 +313,16 @@ void ProcessorImpl::DumpSceneDatabase()
 					printf("\t[Associated Texture %u] Type = %s\n", textureID.Data(), cd::GetMaterialPropertyGroupName(textureType));
 					printf("\t\tPath = %s\n", texture.GetPath());
 				}
-				if (textureType == cd::MaterialPropertyGroup::Metallic)
+			
+				if (auto optUVScale = material.GetVec2fProperty(textureType, cd::MaterialProperty::UVScale); optUVScale.has_value())
 				{
-					if (auto optUVScale = material.GetVec2fProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::UVScale); optUVScale.has_value())
-					{
-						details::Dump("\t\tMetallicUVScale", optUVScale.value());
-					}
-					if (auto optUVOffset = material.GetVec2fProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::UVOffset); optUVOffset.has_value())
-					{
-						details::Dump("\t\tMetallicUVOffset", optUVOffset.value());
-					}
+					details::Dump("\t\tMetallicUVScale", optUVScale.value());
 				}
-				else if (textureType == cd::MaterialPropertyGroup::Normal)
+				if (auto optUVOffset = material.GetVec2fProperty(textureType, cd::MaterialProperty::UVOffset); optUVOffset.has_value())
 				{
-					if (auto optUVScale = material.GetVec2fProperty(cd::MaterialPropertyGroup::Normal, cd::MaterialProperty::UVScale); optUVScale.has_value())
-					{
-						details::Dump("\t\tNormalUVScale", optUVScale.value());
-					}
-					if (auto optUVOffset = material.GetVec2fProperty(cd::MaterialPropertyGroup::Normal, cd::MaterialProperty::UVOffset); optUVOffset.has_value())
-					{
-						details::Dump("\t\tNormalUVOffset", optUVOffset.value());
-					}
-
+					details::Dump("\t\tMetallicUVOffset", optUVOffset.value());
 				}
-				else if (textureType == cd::MaterialPropertyGroup::BaseColor)
-				{
-					if (auto optUVScale = material.GetVec2fProperty(cd::MaterialPropertyGroup::BaseColor, cd::MaterialProperty::UVScale); optUVScale.has_value())
-					{
-						details::Dump("\t\tBaseColorUVScale", optUVScale.value());
-					}
-					if (auto optUVOffset = material.GetVec2fProperty(cd::MaterialPropertyGroup::BaseColor, cd::MaterialProperty::UVOffset); optUVOffset.has_value())
-					{
-						details::Dump("\t\tBaseColorUVOffset", optUVOffset.value());
-					}
-
-				}
-				else if (textureType == cd::MaterialPropertyGroup::Emissive)
-				{
-					if (auto optUVScale = material.GetVec2fProperty(cd::MaterialPropertyGroup::Emissive, cd::MaterialProperty::UVScale); optUVScale.has_value())
-					{
-						details::Dump("\t\tEmissiveUVScale", optUVScale.value());
-					}
-					if (auto optUVOffset = material.GetVec2fProperty(cd::MaterialPropertyGroup::Emissive, cd::MaterialProperty::UVOffset); optUVOffset.has_value())
-					{
-						details::Dump("\t\tEmissiveUVOffset", optUVOffset.value());
-					}
-
-				}
-				else if (textureType == cd::MaterialPropertyGroup::Occlusion)
-				{
-					if (auto optUVScale = material.GetVec2fProperty(cd::MaterialPropertyGroup::Occlusion, cd::MaterialProperty::UVScale); optUVScale.has_value())
-					{
-						details::Dump("\t\tOcclusionUVScale", optUVScale.value());
-					}
-					if (auto optUVOffset = material.GetVec2fProperty(cd::MaterialPropertyGroup::Occlusion, cd::MaterialProperty::UVOffset); optUVOffset.has_value())
-					{
-						details::Dump("\t\tOcclusionUVOffset", optUVOffset.value());
-					}
-
-				}
-
+				
 			}
 
 			if (auto itDrawMeshes = materialDrawMeshIDs.find(material.GetID().Data());

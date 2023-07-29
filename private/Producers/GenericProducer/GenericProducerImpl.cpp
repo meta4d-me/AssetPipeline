@@ -259,32 +259,10 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			aiUVTransform uvTransform;
 			unsigned int maxBytes = sizeof(aiUVTransform);
 			aiGetMaterialFloatArray(pSourceMaterial, AI_MATKEY_UVTRANSFORM(textureType, textureIndex), (float*)&uvTransform, &maxBytes);
-			if (cd::MaterialPropertyGroup::BaseColor == materialTextureType)
-			{
-				material.SetVec2fProperty(cd::MaterialPropertyGroup::BaseColor, cd::MaterialProperty::UVScale, cd::Vec2f(uvTransform.mScaling.x, uvTransform.mScaling.y));
-				material.SetVec2fProperty(cd::MaterialPropertyGroup::BaseColor, cd::MaterialProperty::UVOffset, cd::Vec2f(uvTransform.mTranslation.x, uvTransform.mTranslation.y));
-			}
-			if (cd::MaterialPropertyGroup::Emissive == materialTextureType)
-			{
-				material.SetVec2fProperty(cd::MaterialPropertyGroup::Emissive, cd::MaterialProperty::UVScale, cd::Vec2f(uvTransform.mScaling.x, uvTransform.mScaling.y));
-				material.SetVec2fProperty(cd::MaterialPropertyGroup::Emissive, cd::MaterialProperty::UVOffset, cd::Vec2f(uvTransform.mTranslation.x, uvTransform.mTranslation.y));
-			}
-			if (cd::MaterialPropertyGroup::Metallic == materialTextureType)
-			{
-				material.SetVec2fProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::UVScale, cd::Vec2f(uvTransform.mScaling.x, uvTransform.mScaling.y));
-				material.SetVec2fProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::UVOffset, cd::Vec2f(uvTransform.mTranslation.x, uvTransform.mTranslation.y));
-			}
-			if (cd::MaterialPropertyGroup::Normal == materialTextureType)
-			{
-				material.SetVec2fProperty(cd::MaterialPropertyGroup::Normal, cd::MaterialProperty::UVScale, cd::Vec2f(uvTransform.mScaling.x, uvTransform.mScaling.y));
-				material.SetVec2fProperty(cd::MaterialPropertyGroup::Normal, cd::MaterialProperty::UVOffset, cd::Vec2f(uvTransform.mTranslation.x, uvTransform.mTranslation.y));
-			}
-			if (cd::MaterialPropertyGroup::Occlusion == materialTextureType)
-			{
-				material.SetVec2fProperty(cd::MaterialPropertyGroup::Occlusion, cd::MaterialProperty::UVScale, cd::Vec2f(uvTransform.mScaling.x, uvTransform.mScaling.y));
-				material.SetVec2fProperty(cd::MaterialPropertyGroup::Occlusion, cd::MaterialProperty::UVOffset, cd::Vec2f(uvTransform.mTranslation.x, uvTransform.mTranslation.y));
-			}
-
+	
+			material.SetVec2fProperty(materialTextureType, cd::MaterialProperty::UVScale, cd::Vec2f(uvTransform.mScaling.x, uvTransform.mScaling.y));
+			material.SetVec2fProperty(materialTextureType, cd::MaterialProperty::UVOffset, cd::Vec2f(uvTransform.mTranslation.x, uvTransform.mTranslation.y));
+			
 			// Reused textures don't need to add to SceneDatabase again.
 			if (!isTextureReused)
 			{
