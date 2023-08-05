@@ -259,7 +259,10 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			aiUVTransform uvTransform;
 			unsigned int maxBytes = sizeof(aiUVTransform);
 			aiGetMaterialFloatArray(pSourceMaterial, AI_MATKEY_UVTRANSFORM(textureType, textureIndex), (float*)&uvTransform, &maxBytes);
-
+		
+			material.SetVec2fProperty(materialTextureType, cd::MaterialProperty::UVScale, cd::Vec2f(uvTransform.mScaling.x, uvTransform.mScaling.y));
+			material.SetVec2fProperty(materialTextureType, cd::MaterialProperty::UVOffset, cd::Vec2f(uvTransform.mTranslation.x, uvTransform.mTranslation.y));
+		
 			// Reused textures don't need to add to SceneDatabase again.
 			if (!isTextureReused)
 			{
@@ -268,8 +271,6 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 				cd::Texture materialTexture(textureID, textureName.string().c_str(), materialTextureType);
 				materialTexture.SetPath(textureAbsolutePath.string().c_str());
 				ConvertAssimpTextureMapMode(textureMapMode[0]), ConvertAssimpTextureMapMode(textureMapMode[1]);
-				materialTexture.SetUVOffset(cd::Vec2f(uvTransform.mTranslation.x, uvTransform.mTranslation.y));
-				materialTexture.SetUVScale(cd::Vec2f(uvTransform.mScaling.x, uvTransform.mScaling.y));
 				pSceneDatabase->AddTexture(cd::MoveTemp(materialTexture));
 			}
 			else

@@ -74,6 +74,8 @@ enum class MaterialProperty
 	Factor,
 	Texture,
 	UseTexture,
+	UVOffset,
+	UVScale,
 
 	// Just for BaseColor
 	Color,
@@ -96,6 +98,8 @@ constexpr const char *MaterialPropertyName[] =
 	"Factor",
 	"Texture",
 	"UseTexture",
+	"UVOffset",
+	"UVScale",
 	"Color",
 	"BlendMode",
 	"OpacityMaskClipValue",

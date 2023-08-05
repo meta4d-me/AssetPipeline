@@ -47,7 +47,7 @@ public:
 			{
 				return m_stringProperty.at(key);
 			}
-			else if constexpr (4 <= sizeof(T))
+			else if constexpr (4 >= sizeof(T))
 			{
 				return reinterpret_cast<const T &>(m_byte4Property.at(key));
 			}

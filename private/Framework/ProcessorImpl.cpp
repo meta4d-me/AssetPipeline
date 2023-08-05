@@ -313,6 +313,16 @@ void ProcessorImpl::DumpSceneDatabase()
 					printf("\t[Associated Texture %u] Type = %s\n", textureID.Data(), cd::GetMaterialPropertyGroupName(textureType));
 					printf("\t\tPath = %s\n", texture.GetPath());
 				}
+			
+				if (auto optUVScale = material.GetVec2fProperty(textureType, cd::MaterialProperty::UVScale); optUVScale.has_value())
+				{
+					details::Dump("\t\tMetallicUVScale", optUVScale.value());
+				}
+				if (auto optUVOffset = material.GetVec2fProperty(textureType, cd::MaterialProperty::UVOffset); optUVOffset.has_value())
+				{
+					details::Dump("\t\tMetallicUVOffset", optUVOffset.value());
+				}
+				
 			}
 
 			if (auto itDrawMeshes = materialDrawMeshIDs.find(material.GetID().Data());
@@ -336,8 +346,6 @@ void ProcessorImpl::DumpSceneDatabase()
 			printf("\tName = %s\n", texture.GetName());
 			printf("\tPath = %s\n", texture.GetPath());
 			printf("\tUVMapMode = (%s, %s)\n", GetTextureMapModeName(texture.GetUMapMode()), GetTextureMapModeName(texture.GetVMapMode()));
-			details::Dump("\tUVOffset", texture.GetUVOffset());
-			details::Dump("\tUVScale", texture.GetUVScale());
 		}
 	}
 
