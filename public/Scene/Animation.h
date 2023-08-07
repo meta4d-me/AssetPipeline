@@ -32,7 +32,8 @@ public:
 
 	void Init(AnimationID id, std::string name);
 
-	const AnimationID& GetID() const;
+	void SetID(AnimationID id);
+	AnimationID GetID() const;
 
 	void SetName(std::string name);
 	const char* GetName() const;

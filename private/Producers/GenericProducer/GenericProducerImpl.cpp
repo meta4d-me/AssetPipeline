@@ -304,7 +304,7 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 	cd::MeshID::ValueType meshHash = cd::StringHash<cd::MeshID::ValueType>(meshHashString.str());
 	cd::MeshID meshID = m_meshIDGenerator.AllocateID(meshHash);
 	cd::Mesh mesh(meshID, pSourceMesh->mName.C_Str(), numVertices, pSourceMesh->mNumFaces);
-	mesh.SetMaterialID(m_materialIDGenerator.GetCurrentID() + pSourceMesh->mMaterialIndex);
+	mesh.SetMaterialID(cd::MaterialID(m_materialIDGenerator.GetCurrentID() + pSourceMesh->mMaterialIndex));
 
 	// By default, aabb will be empty.
 	if (IsBoundingBoxServiceActive())
@@ -527,7 +527,7 @@ void GenericProducerImpl::AddNodeRecursively(cd::SceneDatabase* pSceneDatabase, 
 		// Parent node ID should be queried because we are doing Depth-First search.
 		const auto itParentNodeID = m_aiNodeToNodeIDLookup.find(pSourceNode->mParent);
 		assert(itParentNodeID != m_aiNodeToNodeIDLookup.end() && "Failed to query parent node ID in scene database.");
-		sceneNode.SetParentID(itParentNodeID->second);
+		sceneNode.SetParentID(cd::NodeID(itParentNodeID->second));
 	}
 
 	// Add meshes from node.
@@ -535,14 +535,14 @@ void GenericProducerImpl::AddNodeRecursively(cd::SceneDatabase* pSceneDatabase, 
 	{
 		uint32_t sceneMeshIndex = pSourceNode->mMeshes[meshIndex];
 		cd::MeshID meshID = AddMesh(pSceneDatabase, pSourceScene->mMeshes[sceneMeshIndex]);
-		sceneNode.AddMeshID(meshID.Data());
+		sceneNode.AddMeshID(meshID);
 	}
 
 	std::vector<uint32_t> childNodeIDs;
 	for (uint32_t childIndex = 0U; childIndex < pSourceNode->mNumChildren; ++childIndex)
 	{
 		cd::NodeID childNodeID = m_nodeIDGenerator.AllocateID();
-		sceneNode.AddChildID(childNodeID.Data());
+		sceneNode.AddChildID(cd::NodeID(childNodeID.Data()));
 		childNodeIDs.push_back(childNodeID.Data());
 	}
 
@@ -819,8 +819,8 @@ void GenericProducerImpl::RemoveBoneReferenceNodes(cd::SceneDatabase* pSceneData
 			}
 			if (cd::Bone* pParentBone = const_cast<cd::Bone*>(pSceneDatabase->GetBoneByName(parentBoneShortName.c_str())))
 			{
-				bone.SetParentID(pParentBone->GetID().Data());
-				pParentBone->AddChildID(bone.GetID().Data());
+				bone.SetParentID(pParentBone->GetID());
+				pParentBone->AddChildID(bone.GetID());
 			}
 		}
 	}
@@ -875,7 +875,7 @@ void GenericProducerImpl::KeepNodeIDAndIndexSame(cd::SceneDatabase* pSceneDataba
 			auto itModifiedIDNode = oldToNewNodeID.find(parentID);
 			if (itModifiedIDNode != oldToNewNodeID.end())
 			{
-				sceneNode.SetParentID(itModifiedIDNode->second);
+				sceneNode.SetParentID(cd::NodeID(itModifiedIDNode->second));
 			}
 
 			auto& childIDs = sceneNode.GetChildIDs();

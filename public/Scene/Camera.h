@@ -28,7 +28,8 @@ public:
 	Camera& operator=(Camera&&);
 	~Camera();
 	
-	const CameraID& GetID() const;
+	void SetID(CameraID id);
+	CameraID GetID() const;
 
 	void SetName(const char* pName);
 	const char* GetName() const;

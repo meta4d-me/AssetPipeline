@@ -351,7 +351,7 @@ void TerrainProducerImpl::GenerateAllSectors(cd::SceneDatabase* pSceneDatabase)
 			std::vector<std::byte> elevationMap = GenerateElevationMap(sector_col, sector_row, elevationMinMax);
 			Mesh generatedTerrain = GenerateSectorAt(sector_col, sector_row, elevationMinMax);
 			MaterialID meshMaterialID = GenerateMaterialAndTextures(pSceneDatabase, sector_col, sector_row, cd::MoveTemp(elevationMap));
-			generatedTerrain.SetMaterialID(meshMaterialID.Data());
+			generatedTerrain.SetMaterialID(meshMaterialID);
 			pSceneDatabase->AddMesh(std::move(generatedTerrain));
 		}
 	}

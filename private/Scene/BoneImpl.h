@@ -29,18 +29,17 @@ public:
 
 	void Init(BoneID id, std::string name);
 
-	void SetID(uint32_t id) { m_id = BoneID(id); }
-	const BoneID& GetID() const { return m_id; }
+	void SetID(BoneID id) { m_id = BoneID(id); }
+	BoneID GetID() const { return m_id; }
 
 	void SetName(std::string name) { m_name = MoveTemp(name); }
 	std::string& GetName() { return m_name; }
 	const std::string& GetName() const { return m_name; }
 
-	void SetParentID(uint32_t parentID) { m_parentID.Set(parentID); }
-	BoneID& GetParentID() { return m_parentID; }
-	const BoneID& GetParentID() const { return m_parentID; }
+	void SetParentID(BoneID parentID) { m_parentID = parentID; }
+	BoneID GetParentID() const { return m_parentID; }
 
-	void AddChildID(uint32_t childID) { m_childIDs.push_back(BoneID(childID)); }
+	void AddChildID(BoneID childID) { m_childIDs.push_back(childID); }
 	uint32_t GetChildCount() const { return static_cast<uint32_t>(m_childIDs.size()); }
 	std::vector<BoneID>& GetChildIDs() { return m_childIDs; }
 	const std::vector<BoneID>& GetChildIDs() const { return m_childIDs; }
@@ -65,7 +64,7 @@ public:
 			>> boneParentID >> boneChildIDCount;
 
 		Init(BoneID(boneID), cd::MoveTemp(boneName));
-		SetParentID(boneParentID);
+		SetParentID(BoneID(boneParentID));
 
 		m_childIDs.resize(boneChildIDCount);
 		inputArchive.ImportBuffer(GetChildIDs().data());

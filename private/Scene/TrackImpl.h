@@ -30,7 +30,8 @@ public:
 
 	void Init(TrackID id, std::string name);
 
-	const TrackID& GetID() const { return m_id; }
+	void SetID(TrackID id) { m_id = id; }
+	TrackID GetID() const { return m_id; }
 
 	void SetName(std::string name) { m_name = cd::MoveTemp(name); }
 	const std::string& GetName() const { return m_name; }

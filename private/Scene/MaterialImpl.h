@@ -83,7 +83,7 @@ public:
 	}
 
 	template<bool SwapBytesOrder>
-	const MaterialImpl &operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
+	const MaterialImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
 		outputArchive << GetID().Data() << GetName() << static_cast<uint8_t>(GetType());
 		GetPropertyGroups() >> outputArchive;

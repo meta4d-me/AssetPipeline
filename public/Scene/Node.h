@@ -33,20 +33,20 @@ public:
 	void Init(NodeID nodeID, std::string name);
 
 	void SetID(NodeID nodeID);
-	const NodeID& GetID() const;
+	NodeID GetID() const;
 
 	void SetName(std::string name);
 	const char* GetName() const;
 
-	void SetParentID(uint32_t parentID);
-	const NodeID& GetParentID() const;
+	void SetParentID(NodeID parentID);
+	NodeID GetParentID() const;
 
-	void AddChildID(uint32_t childID);
+	void AddChildID(NodeID childID);
 	uint32_t GetChildCount() const;
 	std::vector<NodeID>& GetChildIDs();
 	const std::vector<NodeID>& GetChildIDs() const;
 
-	void AddMeshID(uint32_t meshID);
+	void AddMeshID(MeshID meshID);
 	uint32_t GetMeshCount() const;
 	std::vector<MeshID>& GetMeshIDs();
 	const std::vector<MeshID>& GetMeshIDs() const;

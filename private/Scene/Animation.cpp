@@ -44,7 +44,12 @@ void Animation::Init(AnimationID id, std::string name)
     m_pAnimationImpl->Init(id, cd::MoveTemp(name));
 }
 
-const AnimationID& Animation::GetID() const
+void Animation::SetID(AnimationID id)
+{
+    return m_pAnimationImpl->SetID(id);
+}
+
+AnimationID Animation::GetID() const
 {
     return m_pAnimationImpl->GetID();
 }

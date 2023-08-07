@@ -51,7 +51,7 @@ public:
 	AABB& GetAABB();
 	const AABB& GetAABB() const;
 
-	void SetMaterialID(uint32_t materialIndex);
+	void SetMaterialID(MaterialID materialID);
 	MaterialID GetMaterialID() const;
 
 	uint32_t GetMorphCount() const;
@@ -106,26 +106,11 @@ public:
 	void SetVertexBoneWeight(uint32_t boneIndex, uint32_t vertexIndex, BoneID boneID, VertexWeight weight);
 	std::vector<BoneID>& GetVertexBoneIDs(uint32_t boneIndex);
 	const std::vector<BoneID>& GetVertexBoneIDs(uint32_t boneIndex) const;
-	BoneID& GetVertexBoneID(uint32_t boneIndex, uint32_t vertexIndex);
-	const BoneID& GetVertexBoneID(uint32_t boneIndex, uint32_t vertexIndex) const;
+	BoneID GetVertexBoneID(uint32_t boneIndex, uint32_t vertexIndex) const;
 	std::vector<VertexWeight>& GetVertexWeights(uint32_t boneIndex);
 	const std::vector<VertexWeight>& GetVertexWeights(uint32_t boneIndex) const;
 	VertexWeight& GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex);
 	const VertexWeight& GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex) const;
-
-	uint32_t GetVertexAdjacentVertexCount(uint32_t vertexIndex) const;
-	void AddVertexAdjacentVertexID(uint32_t vertexIndex, VertexID vertexID);
-	VertexIDArray& GetVertexAdjacentVertexArray(uint32_t vertexIndex);
-	const VertexIDArray& GetVertexAdjacentVertexArray(uint32_t vertexIndex) const;
-	std::vector<VertexIDArray>& GetVertexAdjacentVertexArrays();
-	const std::vector<VertexIDArray>& GetVertexAdjacentVertexArrays() const;
-
-	uint32_t GetVertexAdjacentPolygonCount(uint32_t vertexIndex) const;
-	void AddVertexAdjacentPolygonID(uint32_t vertexIndex, PolygonID polygonID);
-	PolygonIDArray& GetVertexAdjacentPolygonArray(uint32_t vertexIndex);
-	const PolygonIDArray& GetVertexAdjacentPolygonArray(uint32_t vertexIndex) const;
-	std::vector<PolygonIDArray>& GetVertexAdjacentPolygonArrays();
-	const std::vector<PolygonIDArray>& GetVertexAdjacentPolygonArrays() const;
 
 	void SetPolygon(uint32_t polygonIndex, Polygon polygon);
 	std::vector<Polygon>& GetPolygons();
@@ -133,15 +118,6 @@ public:
 	Polygon& GetPolygon(uint32_t polygonIndex);
 	const Polygon& GetPolygon(uint32_t polygonIndex) const;
 	cd::VertexID GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const;
-
-	void MarkVertexInvalid(VertexID v);
-	bool IsVertexValid(VertexID v) const;
-	void SwapVertexData(VertexID v0, VertexID v1);
-	void RemoveVertexData(VertexID v);
-
-	void MarkPolygonInvalid(PolygonID p);
-	bool IsPolygonValid(PolygonID p) const;
-	void RemovePolygonData(PolygonID p);
 
 	Mesh& operator<<(InputArchive& inputArchive);
 	Mesh& operator<<(InputArchiveSwapBytes& inputArchive);
