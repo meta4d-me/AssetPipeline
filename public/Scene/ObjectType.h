@@ -6,6 +6,9 @@ namespace cd
 enum class ObjectType
 {
 	Vertex,
+	Edge,
+	HalfEdge,
+	Face,
 	Polygon,
 	Mesh,
 	Material,
