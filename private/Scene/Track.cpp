@@ -44,7 +44,12 @@ void Track::Init(TrackID id, std::string name)
     m_pTrackImpl->Init(id, cd::MoveTemp(name));
 }
 
-const TrackID& Track::GetID() const
+void Track::SetID(TrackID id)
+{
+    m_pTrackImpl->SetID(id);
+}
+
+TrackID Track::GetID() const
 {
     return m_pTrackImpl->GetID();
 }

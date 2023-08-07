@@ -22,3 +22,11 @@
 #	define CD_FORCEINLINE inline __attribute__((always_inline))
 #	define CD_NOINLINE __attribute__((noinline))
 #endif
+
+// novtable can avoid generating initialization codes for virtual tables in class.
+// Note that it will not save memory for objects. The virtual pointer still exists.
+#ifdef _MSC_VER
+#	define CD_NO_VTABLE __declspec(novtable)
+#else
+#	define CD_NO_VTABLE
+#endif

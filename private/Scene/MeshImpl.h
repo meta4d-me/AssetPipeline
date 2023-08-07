@@ -55,7 +55,7 @@ public:
 	AABB& GetAABB() { return m_aabb; }
 	const AABB& GetAABB() const { return m_aabb; }
 
-	void SetMaterialID(uint32_t materialIndex) { m_materialID = materialIndex; }
+	void SetMaterialID(MaterialID materialID) { m_materialID = materialID; }
 	MaterialID GetMaterialID() const { return m_materialID; }
 
 	uint32_t GetMorphCount() const { return static_cast<uint32_t>(m_morphTargets.size()); }
@@ -108,8 +108,7 @@ public:
 	void SetVertexInfluenceCount(uint32_t influenceCount);
 	uint32_t GetVertexInfluenceCount() const { return m_vertexInfluenceCount; }
 	void SetVertexBoneWeight(uint32_t boneIndex, uint32_t vertexIndex, BoneID boneID, VertexWeight weight);
-	BoneID& GetVertexBoneID(uint32_t boneIndex, uint32_t vertexIndex) { return m_vertexBoneIDs[boneIndex][vertexIndex]; }
-	const BoneID& GetVertexBoneID(uint32_t boneIndex, uint32_t vertexIndex) const { return m_vertexBoneIDs[boneIndex][vertexIndex]; }
+	BoneID GetVertexBoneID(uint32_t boneIndex, uint32_t vertexIndex) const { return m_vertexBoneIDs[boneIndex][vertexIndex]; }
 	std::vector<BoneID>& GetVertexBoneIDs(uint32_t boneIndex) { return m_vertexBoneIDs[boneIndex]; }
 	const std::vector<BoneID>& GetVertexBoneIDs(uint32_t boneIndex) const { return m_vertexBoneIDs[boneIndex]; }
 	VertexWeight& GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex) { return m_vertexWeights[boneIndex][vertexIndex]; }
@@ -117,38 +116,12 @@ public:
 	std::vector<VertexWeight>& GetVertexWeights(uint32_t boneIndex) { return m_vertexWeights[boneIndex]; }
 	const std::vector<VertexWeight>& GetVertexWeights(uint32_t boneIndex) const { return m_vertexWeights[boneIndex]; }
 
-	uint32_t GetVertexAdjacentVertexCount(uint32_t vertexIndex) const { return static_cast<uint32_t>(m_vertexAdjacentVertexArrays[vertexIndex].size()); }
-	void AddVertexAdjacentVertexID(uint32_t vertexIndex, VertexID vertexID);
-	VertexIDArray& GetVertexAdjacentVertexArray(uint32_t vertexIndex) { return m_vertexAdjacentVertexArrays[vertexIndex]; }
-	const VertexIDArray& GetVertexAdjacentVertexArray(uint32_t vertexIndex) const { return m_vertexAdjacentVertexArrays[vertexIndex]; }
-	std::vector<VertexIDArray>& GetVertexAdjacentVertexArrays() { return m_vertexAdjacentVertexArrays; }
-	const std::vector<VertexIDArray>& GetVertexAdjacentVertexArrays() const { return m_vertexAdjacentVertexArrays; }
-
-	uint32_t GetVertexAdjacentPolygonCount(uint32_t vertexIndex) const { return static_cast<uint32_t>(m_vertexAdjacentPolygonArrays[vertexIndex].size()); }
-	void AddVertexAdjacentPolygonID(uint32_t vertexIndex, PolygonID polygonID);
-	PolygonIDArray& GetVertexAdjacentPolygonArray(uint32_t vertexIndex) { return m_vertexAdjacentPolygonArrays[vertexIndex]; }
-	const PolygonIDArray& GetVertexAdjacentPolygonArray(uint32_t vertexIndex) const { return m_vertexAdjacentPolygonArrays[vertexIndex]; }
-	std::vector<PolygonIDArray>& GetVertexAdjacentPolygonArrays() { return m_vertexAdjacentPolygonArrays; }
-	const std::vector<PolygonIDArray>& GetVertexAdjacentPolygonArrays() const { return m_vertexAdjacentPolygonArrays; }
-
 	void SetPolygon(uint32_t polygonIndex, cd::Polygon polygon);
 	std::vector<Polygon>& GetPolygons() { return m_polygons; }
 	const std::vector<Polygon>& GetPolygons() const { return m_polygons; }
 	Polygon& GetPolygon(uint32_t polygonIndex) { return m_polygons[polygonIndex]; }
 	const Polygon& GetPolygon(uint32_t polygonIndex) const { return m_polygons[polygonIndex]; }
 	cd::VertexID GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const;
-
-	void MarkVertexInvalid(VertexID v);
-	bool IsVertexValid(VertexID v) const;
-	void SwapVertexData(VertexID v0, VertexID v1);
-	void RemoveVertexData(VertexID v);
-
-	void MarkPolygonInvalid(PolygonID p);
-	bool IsPolygonValid(PolygonID p) const;
-	void RemovePolygonData(PolygonID p);
-
-	// After unify, all IDs cached by users should clean up.
-	void Unify();
 
 	template<bool SwapBytesOrder>
 	MeshImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
@@ -169,7 +142,7 @@ public:
 			>> polygonCount;
 
 		Init(MeshID(meshID), MoveTemp(meshName), vertexCount, polygonCount);
-		SetMaterialID(meshMaterialID);
+		SetMaterialID(MaterialID(meshMaterialID));
 		SetVertexUVSetCount(vertexUVSetCount);
 		SetVertexColorSetCount(vertexColorSetCount);
 		SetVertexInfluenceCount(vertexInfluenceCount);
@@ -259,9 +232,9 @@ private:
 	// We can generate VertexFormat immediately based on current vertex data types.
 	VertexFormat				m_vertexFormat;
 	std::vector<Point>			m_vertexPositions;
-	std::vector<Direction>		m_vertexNormals;		// Maybe we wants to use face normals? Or we can help to calculate it.
-	std::vector<Direction>		m_vertexTangents;		// Ditto.
-	std::vector<Direction>		m_vertexBiTangents;		// If not stored in model file, we can help to calculate it.
+	std::vector<Direction>		m_vertexNormals;
+	std::vector<Direction>		m_vertexTangents;
+	std::vector<Direction>		m_vertexBiTangents;
 
 	// vertex texture data
 	std::vector<UV>				m_vertexUVSets[MaxUVSetCount];
@@ -270,17 +243,6 @@ private:
 	// vertex skin data
 	std::vector<BoneID>			m_vertexBoneIDs[MaxBoneInfluenceCount];
 	std::vector<VertexWeight>	m_vertexWeights[MaxBoneInfluenceCount];
-
-	// vertex connectivity data
-	// For geometry processing algorithms, it is common to query connectivity data.
-	std::vector<VertexIDArray>	m_vertexAdjacentVertexArrays;
-	std::vector<PolygonIDArray>	m_vertexAdjacentPolygonArrays;
-
-	// editing data
-	// During the process of removing vertices/polygons, it is difficult to maintain the relationship
-	// which means id is same to index.
-	std::map<VertexID, uint32_t> m_mapChaosVertexIDToIndex;
-	std::map<PolygonID, uint32_t> m_mapChaosPolygonIDToIndex;
 
 	// polygon data
 	std::vector<Polygon>		m_polygons;

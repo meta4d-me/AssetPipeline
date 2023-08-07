@@ -29,8 +29,8 @@ public:
 
 	void Init(CameraID id, std::string name);
 
-	void SetID(uint32_t id) { m_id = CameraID(id); }
-	const CameraID& GetID() const { return m_id; }
+	void SetID(CameraID id) { m_id = id; }
+	CameraID GetID() const { return m_id; }
 
 	void SetName(std::string name) { m_name = cd::MoveTemp(name); }
 	std::string& GetName() { return m_name; }

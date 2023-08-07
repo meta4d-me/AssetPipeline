@@ -49,7 +49,7 @@ void Node::SetID(NodeID nodeID)
     m_pNodeImpl->SetID(nodeID);
 }
 
-const NodeID& Node::GetID() const
+NodeID Node::GetID() const
 {
     return m_pNodeImpl->GetID();
 }
@@ -64,17 +64,17 @@ const char* Node::GetName() const
     return m_pNodeImpl->GetName().c_str();
 }
 
-void Node::SetParentID(uint32_t parentID)
+void Node::SetParentID(NodeID parentID)
 {
     m_pNodeImpl->SetParentID(parentID);
 }
 
-const NodeID& Node::GetParentID() const
+NodeID Node::GetParentID() const
 {
     return m_pNodeImpl->GetParentID();
 }
 
-void Node::AddChildID(uint32_t childID)
+void Node::AddChildID(NodeID childID)
 {
     m_pNodeImpl->AddChildID(childID);
 }
@@ -94,7 +94,7 @@ const std::vector<NodeID>& Node::GetChildIDs() const
     return m_pNodeImpl->GetChildIDs();
 }
 
-void Node::AddMeshID(uint32_t meshID)
+void Node::AddMeshID(MeshID meshID)
 {
     m_pNodeImpl->AddMeshID(meshID);
 }

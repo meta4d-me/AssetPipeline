@@ -27,7 +27,7 @@ public:
 	ObjectID(ObjectID&&) = default;
 	ObjectID& operator=(ObjectID&&) = default;
 	~ObjectID() = default;
-	const T& Data() const { return m_id; }
+	T Data() const { return m_id; }
 	void Set(T id) { m_id = id; }
 
 	ObjectID& operator=(T id) { m_id = id; return *this; } 

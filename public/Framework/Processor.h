@@ -43,9 +43,6 @@ public:
 	void SetFlattenSceneDatabaseEnable(bool enable);
 	bool IsFlattenSceneDatabaseEnabled() const;
 
-	void SetCalculateConnetivityDataEnable(bool enable);
-	bool IsCalculateConnetivityDataEnabled() const;
-
 	void AddExtraTextureSearchFolder(const char* pFolderPath);
 	bool IsSearchMissingTexturesEnabled() const;
 

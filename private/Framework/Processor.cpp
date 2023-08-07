@@ -68,16 +68,6 @@ bool Processor::IsFlattenSceneDatabaseEnabled() const
 	return m_pProcessorImpl->IsFlattenSceneDatabaseEnabled();
 }
 
-void Processor::SetCalculateConnetivityDataEnable(bool enable)
-{
-	m_pProcessorImpl->SetCalculateConnetivityDataEnable(enable);
-}
-
-bool Processor::IsCalculateConnetivityDataEnabled() const
-{
-	return m_pProcessorImpl->IsCalculateConnetivityDataEnabled();
-}
-
 void Processor::AddExtraTextureSearchFolder(const char* pFolderPath)
 {
 	m_pProcessorImpl->AddExtraTextureSearchFolder(pFolderPath);

@@ -39,7 +39,12 @@ Camera::~Camera()
     }
 }
 
-const CameraID& Camera::GetID() const
+void Camera::SetID(CameraID id)
+{
+    m_pCameraImpl->SetID(id);
+}
+
+CameraID Camera::GetID() const
 {
     return m_pCameraImpl->GetID();
 }

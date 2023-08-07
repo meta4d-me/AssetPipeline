@@ -44,7 +44,7 @@ void Bone::Init(BoneID id, std::string name)
     m_pBoneImpl->Init(id, MoveTemp(name));
 }
 
-const BoneID& Bone::GetID() const
+BoneID Bone::GetID() const
 {
     return m_pBoneImpl->GetID();
 }
@@ -59,17 +59,17 @@ const char* Bone::GetName() const
     return m_pBoneImpl->GetName().c_str();
 }
 
-void Bone::SetParentID(uint32_t parentID)
+void Bone::SetParentID(BoneID parentID)
 {
     m_pBoneImpl->SetParentID(parentID);
 }
 
-const BoneID& Bone::GetParentID() const
+BoneID Bone::GetParentID() const
 {
     return m_pBoneImpl->GetParentID();
 }
 
-void Bone::AddChildID(uint32_t childID)
+void Bone::AddChildID(BoneID childID)
 {
     m_pBoneImpl->AddChildID(childID);
 }

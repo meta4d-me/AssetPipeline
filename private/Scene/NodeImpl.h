@@ -31,21 +31,21 @@ public:
 	void Init(NodeID nodeID, std::string name);
 
 	void SetID(NodeID nodeID) { m_id = nodeID; }
-	const NodeID& GetID() const { return m_id; }
+	NodeID GetID() const { return m_id; }
 
 	void SetName(std::string name) { m_name = cd::MoveTemp(name); }
 	std::string& GetName() { return m_name; }
 	const std::string& GetName() const { return m_name; }
 
-	void SetParentID(uint32_t parentID) { m_parentID.Set(parentID); }
-	const NodeID& GetParentID() const { return m_parentID; }
+	void SetParentID(NodeID parentID) { m_parentID = parentID; }
+	NodeID GetParentID() const { return m_parentID; }
 
-	void AddChildID(uint32_t childID) { m_childIDs.push_back(NodeID(childID)); }
+	void AddChildID(NodeID childID) { m_childIDs.push_back(childID); }
 	uint32_t GetChildCount() const { return static_cast<uint32_t>(m_childIDs.size()); }
 	std::vector<NodeID>& GetChildIDs() { return m_childIDs; }
 	const std::vector<NodeID>& GetChildIDs() const { return m_childIDs; }
 
-	void AddMeshID(uint32_t meshID) { m_meshIDs.push_back(MeshID(meshID)); }
+	void AddMeshID(MeshID meshID) { m_meshIDs.push_back(meshID); }
 	uint32_t GetMeshCount() const { return static_cast<uint32_t>(m_meshIDs.size()); }
 	std::vector<MeshID>& GetMeshIDs() { return m_meshIDs; }
 	const std::vector<MeshID>& GetMeshIDs() const { return m_meshIDs; }
@@ -69,7 +69,7 @@ public:
 		inputArchive >> childCount >> meshCount;
 
 		Init(NodeID(nodeID), cd::MoveTemp(nodeName));
-		SetParentID(parentID);
+		SetParentID(NodeID(parentID));
 		SetTransform(cd::MoveTemp(transform));
 
 		m_childIDs.resize(childCount);

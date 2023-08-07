@@ -31,15 +31,15 @@ public:
 	
 	void Init(BoneID id, std::string name);
 
-	const BoneID& GetID() const;
+	BoneID GetID() const;
 
 	void SetName(std::string name);
 	const char* GetName() const;
 
-	void SetParentID(uint32_t parentID);
-	const BoneID& GetParentID() const;
+	void SetParentID(BoneID parentID);
+	BoneID GetParentID() const;
 
-	void AddChildID(uint32_t childID);
+	void AddChildID(BoneID childID);
 	uint32_t GetChildCount() const;
 	std::vector<BoneID>& GetChildIDs();
 	const std::vector<BoneID>& GetChildIDs() const;

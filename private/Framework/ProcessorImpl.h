@@ -43,9 +43,6 @@ public:
 	void SetFlattenSceneDatabaseEnable(bool enable) { m_enableFlattenSceneDatabase = enable; }
 	bool IsFlattenSceneDatabaseEnabled() const { return m_enableFlattenSceneDatabase; }
 
-	void SetCalculateConnetivityDataEnable(bool enable) { m_enableCalculateConnetivityData = enable; }
-	bool IsCalculateConnetivityDataEnabled() const { return m_enableCalculateConnetivityData; }
-
 	void AddExtraTextureSearchFolder(const char* pFolderPath) { m_textureSearchFolders.push_back(pFolderPath); }
 	bool IsSearchMissingTexturesEnabled() const { return !m_textureSearchFolders.empty(); }
 
@@ -56,7 +53,6 @@ public:
 	void ValidateSceneDatabase();
 	void CalculateAABBForSceneDatabase();
 	void FlattenSceneDatabase();
-	void CalculateConnetivityData();
 	void SearchMissingTextures();
 	void EmbedTextureFiles();
 
@@ -72,7 +68,6 @@ private:
 	bool m_enableValidateSceneDatabase = true;
 	bool m_enableCalculateAABBForSceneDatabase = true;
 	bool m_enableFlattenSceneDatabase = false;
-	bool m_enableCalculateConnetivityData = false;
 	bool m_enableEmbedTextureFiles = false;
 };
 

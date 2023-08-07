@@ -32,7 +32,8 @@ public:
 
 	void Init(TrackID id, std::string name);
 
-	const TrackID& GetID() const;
+	void SetID(TrackID id);
+	TrackID GetID() const;
 
 	void SetName(std::string name);
 	const char* GetName() const;

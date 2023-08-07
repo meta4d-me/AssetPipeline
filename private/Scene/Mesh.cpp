@@ -116,9 +116,9 @@ const AABB& Mesh::GetAABB() const
 	return m_pMeshImpl->GetAABB();
 }
 
-void Mesh::SetMaterialID(uint32_t materialIndex)
+void Mesh::SetMaterialID(MaterialID materialID)
 {
-	return m_pMeshImpl->SetMaterialID(materialIndex);
+	return m_pMeshImpl->SetMaterialID(materialID);
 }
 
 MaterialID Mesh::GetMaterialID() const
@@ -365,12 +365,7 @@ const std::vector<BoneID>& Mesh::GetVertexBoneIDs(uint32_t boneIndex) const
 	return m_pMeshImpl->GetVertexBoneIDs(boneIndex);
 }
 
-BoneID& Mesh::GetVertexBoneID(uint32_t boneIndex, uint32_t vertexIndex)
-{
-	return m_pMeshImpl->GetVertexBoneID(boneIndex, vertexIndex);
-}
-
-const BoneID& Mesh::GetVertexBoneID(uint32_t boneIndex, uint32_t vertexIndex) const
+BoneID Mesh::GetVertexBoneID(uint32_t boneIndex, uint32_t vertexIndex) const
 {
 	return m_pMeshImpl->GetVertexBoneID(boneIndex, vertexIndex);
 }
@@ -393,69 +388,6 @@ VertexWeight& Mesh::GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex)
 const VertexWeight& Mesh::GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex) const
 {
 	return m_pMeshImpl->GetVertexWeight(boneIndex, vertexIndex);
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Vertex connectivity data
-//////////////////////////////////////////////////////////////////////////
-uint32_t Mesh::GetVertexAdjacentVertexCount(uint32_t vertexIndex) const
-{
-	return m_pMeshImpl->GetVertexAdjacentVertexCount(vertexIndex);
-}
-
-void Mesh::AddVertexAdjacentVertexID(uint32_t vertexIndex, VertexID vertexID)
-{
-	return m_pMeshImpl->AddVertexAdjacentVertexID(vertexIndex, vertexID);
-}
-
-VertexIDArray& Mesh::GetVertexAdjacentVertexArray(uint32_t vertexIndex)
-{
-	return m_pMeshImpl->GetVertexAdjacentVertexArray(vertexIndex);
-}
-
-const VertexIDArray& Mesh::GetVertexAdjacentVertexArray(uint32_t vertexIndex) const
-{
-	return m_pMeshImpl->GetVertexAdjacentVertexArray(vertexIndex);
-}
-
-std::vector<VertexIDArray>& Mesh::GetVertexAdjacentVertexArrays()
-{
-	return m_pMeshImpl->GetVertexAdjacentVertexArrays();
-}
-
-const std::vector<VertexIDArray>& Mesh::GetVertexAdjacentVertexArrays() const
-{
-	return m_pMeshImpl->GetVertexAdjacentVertexArrays();
-}
-
-uint32_t Mesh::GetVertexAdjacentPolygonCount(uint32_t vertexIndex) const
-{
-	return m_pMeshImpl->GetVertexAdjacentPolygonCount(vertexIndex);
-}
-
-void Mesh::AddVertexAdjacentPolygonID(uint32_t vertexIndex, PolygonID polygonID)
-{
-	return m_pMeshImpl->AddVertexAdjacentPolygonID(vertexIndex, polygonID);
-}
-
-PolygonIDArray& Mesh::GetVertexAdjacentPolygonArray(uint32_t vertexIndex)
-{
-	return m_pMeshImpl->GetVertexAdjacentPolygonArray(vertexIndex);
-}
-
-const PolygonIDArray& Mesh::GetVertexAdjacentPolygonArray(uint32_t vertexIndex) const
-{
-	return m_pMeshImpl->GetVertexAdjacentPolygonArray(vertexIndex);
-}
-
-std::vector<PolygonIDArray>& Mesh::GetVertexAdjacentPolygonArrays()
-{
-	return m_pMeshImpl->GetVertexAdjacentPolygonArrays();
-}
-
-const std::vector<PolygonIDArray>& Mesh::GetVertexAdjacentPolygonArrays() const
-{
-	return m_pMeshImpl->GetVertexAdjacentPolygonArrays();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -492,43 +424,8 @@ cd::VertexID Mesh::GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexInde
 }
 
 //////////////////////////////////////////////////////////////////////////
-// Editing
+// Serialization
 //////////////////////////////////////////////////////////////////////////
-void Mesh::MarkVertexInvalid(VertexID v)
-{
-	m_pMeshImpl->MarkVertexInvalid(v);
-}
-
-bool Mesh::IsVertexValid(VertexID v) const
-{
-	return m_pMeshImpl->IsVertexValid(v);
-}
-
-void Mesh::RemoveVertexData(VertexID v)
-{
-	m_pMeshImpl->RemoveVertexData(v);
-}
-
-void Mesh::SwapVertexData(VertexID v0, VertexID v1)
-{
-	m_pMeshImpl->SwapVertexData(v0, v1);
-}
-
-void Mesh::MarkPolygonInvalid(PolygonID p)
-{
-	m_pMeshImpl->MarkPolygonInvalid(p);
-}
-
-bool Mesh::IsPolygonValid(PolygonID p) const
-{
-	return m_pMeshImpl->IsPolygonValid(p);
-}
-
-void Mesh::RemovePolygonData(PolygonID p)
-{
-	m_pMeshImpl->RemovePolygonData(p);
-}
-
 Mesh& Mesh::operator<<(InputArchive& inputArchive)
 {
 	*m_pMeshImpl << inputArchive;
