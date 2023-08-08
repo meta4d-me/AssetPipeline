@@ -50,6 +50,9 @@ private:
 };
 
 using VertexID = ObjectID<uint32_t, ObjectType::Vertex>;
+using EdgeID = ObjectID<uint32_t, ObjectType::Edge>;
+using HalfEdgeID = ObjectID<uint32_t, ObjectType::HalfEdge>;
+using FaceID = ObjectID<uint32_t, ObjectType::Face>;
 using PolygonID = ObjectID<uint32_t, ObjectType::Polygon>;
 using MeshID = ObjectID<uint32_t, ObjectType::Mesh>;
 using MaterialID = ObjectID<uint32_t, ObjectType::Material>;
