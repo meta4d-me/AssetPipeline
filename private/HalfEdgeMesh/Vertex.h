@@ -10,6 +10,10 @@ class Vertex
 public:
 	Vertex() = delete;
 	explicit Vertex(VertexID id) : m_id(id) { }
+	Vertex(const Vertex&) = default;
+	Vertex& operator=(const Vertex&) = default;
+	Vertex(Vertex&&) = default;
+	Vertex& operator=(Vertex&&) = default;
 	~Vertex() = default;
 
 	void SetID(VertexID id) { m_id = id; }
@@ -23,6 +27,8 @@ public:
 	void SetHalfEdge(HalfEdgeRef ref) { m_halfEdgeRef = ref; }
 
 	bool IsOnBoundary() const;
+	Point NeighborCenter() const;
+	Direction Normal() const;
 	uint32_t Degree() const;
 
 private:

@@ -10,6 +10,10 @@ class Edge
 public:
 	Edge() = delete;
 	explicit Edge(EdgeID id) : m_id(id) { }
+	Edge(const Edge&) = default;
+	Edge& operator=(const Edge&) = default;
+	Edge(Edge&&) = default;
+	Edge& operator=(Edge&&) = default;
 	~Edge() = default;
 
 	void SetID(EdgeID id) { m_id = id; }
@@ -20,6 +24,7 @@ public:
 
 	bool IsOnBoundary() const;
 	Point Center() const;
+	Direction Normal() const;
 	float Length() const;
 
 private:
