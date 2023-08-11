@@ -19,9 +19,13 @@ public:
 	static constexpr T MinID = static_cast<T>(0);
 	static constexpr T MaxID = std::numeric_limits<T>().max() - 1;
 
+	static constexpr ObjectID Invalid() { return ObjectID(InvalidID); }
+	static constexpr ObjectID Min() { return ObjectID(MinID); }
+	static constexpr ObjectID Max() { return ObjectID(MaxID); }
+
 public:
 	ObjectID() = default;
-	explicit ObjectID(T id) : m_id(id) {}
+	ObjectID(T id) : m_id(id) {}
 	ObjectID(const ObjectID&) = default;
 	ObjectID& operator=(const ObjectID&) = default;
 	ObjectID(ObjectID&&) = default;

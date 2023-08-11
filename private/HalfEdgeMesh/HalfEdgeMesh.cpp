@@ -27,7 +27,7 @@ VertexRef HalfEdgeMesh::EmplaceVertex()
 	VertexRef vertex;
 	if (m_freeVertices.empty())
 	{
-		vertex = m_vertices.emplace_back(Vertex(m_nextVertexID++));
+		vertex = m_vertices.emplace(m_vertices.end(), Vertex(m_nextVertexID++));
 	}
 	else
 	{
@@ -45,7 +45,7 @@ EdgeRef HalfEdgeMesh::EmplaceEdge()
 	EdgeRef edge;
 	if (m_freeEdges.empty())
 	{
-		edge = m_edges.emplace_back(Edge(m_nextEdgeID++));
+		edge = m_edges.emplace(m_edges.end(), Edge(m_nextEdgeID++));
 	}
 	else
 	{
@@ -63,7 +63,7 @@ FaceRef HalfEdgeMesh::EmplaceFace(bool isBoundary)
 	FaceRef face;
 	if (m_freeFaces.empty())
 	{
-		face = m_faces.emplace_back(Edge(m_nextFaceID++));
+		face = m_faces.emplace(m_faces.end(), Face(m_nextFaceID++, isBoundary));
 	}
 	else
 	{
@@ -81,7 +81,7 @@ HalfEdgeRef HalfEdgeMesh::EmplaceHalfEdge()
 	HalfEdgeRef halfEdge;
 	if (m_freeHalfEdges.empty())
 	{
-		halfEdge = m_halfEdges.emplace_back(HalfEdge(m_nextHalfEdgeID++));
+		halfEdge = m_halfEdges.emplace(m_halfEdges.end(), HalfEdge(m_nextHalfEdgeID++));
 	}
 	else
 	{
@@ -101,7 +101,7 @@ HalfEdgeRef HalfEdgeMesh::EmplaceHalfEdge()
 void HalfEdgeMesh::EraseVertex(VertexRef vertex)
 {
 	// clear data
-	vertex->SetID(VertexID::InvalidID);
+	vertex->SetID(VertexID::Invalid());
 	vertex->SetPosition(Point::Nan());
 
 	// clear connectivity
@@ -113,7 +113,7 @@ void HalfEdgeMesh::EraseVertex(VertexRef vertex)
 void HalfEdgeMesh::EraseEdge(EdgeRef edge)
 {
 	// clear data
-	edge->SetID(EdgeID::InvalidID);
+	edge->SetID(EdgeID::Invalid());
 
 	// clear connectivity
 	edge->SetHalfEdge(m_halfEdges.end());
@@ -124,7 +124,7 @@ void HalfEdgeMesh::EraseEdge(EdgeRef edge)
 void HalfEdgeMesh::EraseFace(FaceRef face)
 {
 	// clear data
-	face->SetID(FaceID::InvalidID);
+	face->SetID(FaceID::Invalid());
 	face->SetIsBoundary(false);
 
 	// clear connectivity
@@ -136,7 +136,7 @@ void HalfEdgeMesh::EraseFace(FaceRef face)
 void HalfEdgeMesh::EraseHalfEdge(HalfEdgeRef halfEdge)
 {
 	// clear data
-	halfEdge->SetID(HalfEdgeID::InvalidID);
+	halfEdge->SetID(HalfEdgeID::Invalid());
 
 	// clear connectivity
 	halfEdge->SetTwin(m_halfEdges.end());

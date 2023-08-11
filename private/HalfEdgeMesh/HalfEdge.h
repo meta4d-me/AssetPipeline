@@ -28,7 +28,7 @@ public:
 	void SetVertex(VertexRef ref) { m_vertexRef = ref; }
 	VertexRef GetVertex() const { return m_vertexRef; }
 
-	void SetEdege(EdgeRef ref) { m_edgeRef = ref; }
+	void SetEdge(EdgeRef ref) { m_edgeRef = ref; }
 	EdgeRef GetEdge() const { return m_edgeRef; }
 
 	void SetFace(FaceRef ref) { m_faceRef = ref; }
