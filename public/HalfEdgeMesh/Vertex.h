@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ForwardDecls.h"
+#include "HalfEdgeMesh/ForwardDecls.h"
 
 namespace cd::hem
 {
@@ -9,7 +9,7 @@ class Vertex
 {
 public:
 	Vertex() = delete;
-	explicit Vertex(VertexID id) : m_id(id) { }
+	explicit Vertex(VertexID id) : m_id(id), m_position(Point::Nan()) { }
 	Vertex(const Vertex&) = default;
 	Vertex& operator=(const Vertex&) = default;
 	Vertex(Vertex&&) = default;
@@ -30,6 +30,8 @@ public:
 	Point NeighborCenter() const;
 	Direction Normal() const;
 	uint32_t Degree() const;
+
+	bool Validate() const;
 
 private:
 	// data

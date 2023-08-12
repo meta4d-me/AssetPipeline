@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ForwardDecls.h"
+#include "HalfEdgeMesh/ForwardDecls.h"
 
 namespace cd::hem
 {
@@ -33,6 +33,8 @@ public:
 
 	void SetFace(FaceRef ref) { m_faceRef = ref; }
 	FaceRef GetFace() const { return m_faceRef; }
+
+	bool Validate() const;
 
 private:
 	// data

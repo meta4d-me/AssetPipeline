@@ -1,7 +1,7 @@
-#include "Face.h"
+#include "HalfEdgeMesh/Face.h"
 
-#include "HalfEdge.h"
-#include "Vertex.h"
+#include "HalfEdgeMesh/HalfEdge.h"
+#include "HalfEdgeMesh/Vertex.h"
 
 namespace cd::hem
 {
@@ -58,6 +58,11 @@ float Face::Area() const
 	} while (h != m_halfEdgeRef);
 
 	return area;
+}
+
+bool Face::Validate() const
+{
+	return true;
 }
 
 }

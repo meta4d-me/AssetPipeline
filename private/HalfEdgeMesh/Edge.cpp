@@ -1,8 +1,8 @@
-#include "Edge.h"
+#include "HalfEdgeMesh/Edge.h"
 
-#include "Face.h"
-#include "HalfEdge.h"
-#include "Vertex.h"
+#include "HalfEdgeMesh/Face.h"
+#include "HalfEdgeMesh/HalfEdge.h"
+#include "HalfEdgeMesh/Vertex.h"
 
 namespace cd::hem
 {
@@ -25,6 +25,11 @@ Direction Edge::Normal() const
 float Edge::Length() const
 {
 	return (m_halfEdgeRef->GetVertex()->GetPosition() - m_halfEdgeRef->GetTwin()->GetVertex()->GetPosition()).Length();
+}
+
+bool Edge::Validate() const
+{
+	return true;
 }
 
 }

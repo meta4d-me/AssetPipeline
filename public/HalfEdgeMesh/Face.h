@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ForwardDecls.h"
+#include "HalfEdgeMesh/ForwardDecls.h"
 
 namespace cd::hem
 {
@@ -29,6 +29,8 @@ public:
 	Direction Normal() const;
 	uint32_t Degree() const;
 	float Area() const;
+
+	bool Validate() const;
 
 private:
 	// data

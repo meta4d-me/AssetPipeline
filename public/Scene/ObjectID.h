@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Base/Export.h"
+#include "Math/Vector.hpp"
 #include "Scene/ObjectType.h"
 
 #include <cstdint>
@@ -73,5 +74,46 @@ static_assert(sizeof(VertexID) == sizeof(uint32_t));
 
 using VertexIDArray = std::vector<VertexID>;
 using PolygonIDArray = std::vector<PolygonID>;
+
+using EdgePair = std::pair<VertexID, VertexID>;
+
+using Triangle = TVector<VertexID, 3>;
+using Quad = TVector<VertexID, 4>;
+using Polygon = std::vector<VertexID>;
+
+}
+
+namespace std
+{
+
+// Support to use ObjectID as HashKey.
+template<typename T, cd::ObjectType N>
+struct hash<cd::ObjectID<T, N>>
+{
+	uint64_t operator()(const cd::ObjectID<T, N>& objectID) const
+	{
+		return objectID.Data();
+	}
+};
+
+// Support to use std::pair<ObjectID, ObjectID> as HashKey.
+template<typename T, cd::ObjectType N>
+struct hash<std::pair<cd::ObjectID<T, N>, cd::ObjectID<T, N>>>
+{
+	using OT = cd::ObjectID<T, N>;
+	uint64_t operator()(const std::pair<OT, OT>& pair) const
+	{
+		if constexpr (std::is_same_v<T, uint32_t>)
+		{
+			uint64_t a = static_cast<uint64_t>(pair.first.Data()) << 31;
+			uint64_t b = static_cast<uint64_t>(pair.second.Data());
+			return a + b;
+		}
+		else
+		{
+			static_assert("Unsupported std::pair<ObjectID, ObjectID> hash.");
+		}
+	}
+};
 
 }

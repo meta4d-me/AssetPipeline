@@ -3,8 +3,10 @@
 #include "Math/Vector.hpp"
 #include "Scene/ObjectID.h"
 
+#include <cassert>
 #include <functional>
 #include <list>
+#include <vector>
 
 namespace cd::hem
 {

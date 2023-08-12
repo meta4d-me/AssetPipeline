@@ -1,7 +1,7 @@
-#include "Vertex.h"
+#include "HalfEdgeMesh/Vertex.h"
 
-#include "Face.h"
-#include "HalfEdge.h"
+#include "HalfEdgeMesh/Face.h"
+#include "HalfEdgeMesh/HalfEdge.h"
 
 namespace cd::hem
 {
@@ -55,6 +55,11 @@ uint32_t Vertex::Degree() const
 	} while (h != m_halfEdgeRef);
 
 	return degree;
+}
+
+bool Vertex::Validate() const
+{
+	return cd::Math::Validate(m_position.x()) && cd::Math::Validate(m_position.y()) && cd::Math::Validate(m_position.z());
 }
 
 }
