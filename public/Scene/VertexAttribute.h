@@ -14,9 +14,6 @@ static constexpr uint32_t MaxColorSetCount = 4U;
 static constexpr uint32_t MaxBoneInfluenceCount = 8U;
 using VertexWeight = float;
 
-// We expect to use triangulated mesh data in game engine.
-using Polygon = TVector<VertexID, 3>;
-
 enum class VertexAttributeType : uint8_t
 {
 	Position,

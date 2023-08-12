@@ -143,5 +143,11 @@ public:
 	{
 		return comparand >= static_cast<T>(0) ? a : b;
 	}
+
+	template<typename T>
+	static constexpr bool Validate(T value)
+	{
+		return !std::isfinite(value) && !std::isnan(value);
+	}
 };
 }

@@ -218,7 +218,7 @@ std::optional<Mesh> MeshGenerator::Generate(const Sphere& sphere, uint32_t numSt
 	uint32_t stackEnd = stackStart + numSlices + 1;
 	for (uint32_t sliceIndex = 0U; sliceIndex < numSlices; ++sliceIndex)
 	{
-		mesh.SetPolygon(polygonIndex++, cd::Polygon(stackStart + sliceIndex, stackEnd + sliceIndex, stackEnd + sliceIndex + 1));
+		mesh.SetPolygon(polygonIndex++, { stackStart + sliceIndex, stackEnd + sliceIndex, stackEnd + sliceIndex + 1 });
 	}
 
 	for (stackIndex = 1U; stackIndex < numStacks - 1; ++stackIndex)
@@ -228,8 +228,8 @@ std::optional<Mesh> MeshGenerator::Generate(const Sphere& sphere, uint32_t numSt
 
 		for (uint32_t sliceIndex = 0U; sliceIndex < numSlices; ++sliceIndex)
 		{
-			mesh.SetPolygon(polygonIndex++, cd::Polygon(stackStart + sliceIndex, stackEnd + sliceIndex, stackEnd + sliceIndex + 1));
-			mesh.SetPolygon(polygonIndex++, cd::Polygon(stackStart + sliceIndex, stackEnd + sliceIndex + 1, stackStart + sliceIndex + 1));
+			mesh.SetPolygon(polygonIndex++, { stackStart + sliceIndex, stackEnd + sliceIndex, stackEnd + sliceIndex + 1 });
+			mesh.SetPolygon(polygonIndex++, { stackStart + sliceIndex, stackEnd + sliceIndex + 1, stackStart + sliceIndex + 1 });
 		}
 	}
 
@@ -237,7 +237,7 @@ std::optional<Mesh> MeshGenerator::Generate(const Sphere& sphere, uint32_t numSt
 	stackEnd = stackStart + numSlices + 1;
 	for (uint32_t sliceIndex = 0U; sliceIndex < numSlices; ++sliceIndex)
 	{
-		mesh.SetPolygon(polygonIndex++, cd::Polygon(stackStart + sliceIndex, stackEnd + sliceIndex, stackStart + sliceIndex + 1));
+		mesh.SetPolygon(polygonIndex++, { stackStart + sliceIndex, stackEnd + sliceIndex, stackStart + sliceIndex + 1 });
 	}
 
 	// Add other vertex attributes.

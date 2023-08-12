@@ -319,7 +319,7 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 		const aiFace& face = pSourceMesh->mFaces[faceIndex];
 		assert(face.mNumIndices == 3 && "Do you forget to open importer's triangulate flag?");
 
-		mesh.SetPolygon(faceIndex, cd::Polygon(face.mIndices[0], face.mIndices[1], face.mIndices[2]));
+		mesh.SetPolygon(faceIndex, { face.mIndices[0], face.mIndices[1], face.mIndices[2] });
 	}
 
 	cd::VertexFormat meshVertexFormat;
