@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Base/Export.h"
+#include "Math/Vector.hpp"
 #include "Scene/ObjectType.h"
 
 #include <cstdint>
@@ -19,9 +20,13 @@ public:
 	static constexpr T MinID = static_cast<T>(0);
 	static constexpr T MaxID = std::numeric_limits<T>().max() - 1;
 
+	static constexpr ObjectID Invalid() { return ObjectID(InvalidID); }
+	static constexpr ObjectID Min() { return ObjectID(MinID); }
+	static constexpr ObjectID Max() { return ObjectID(MaxID); }
+
 public:
 	ObjectID() = default;
-	explicit ObjectID(T id) : m_id(id) {}
+	ObjectID(T id) : m_id(id) {}
 	ObjectID(const ObjectID&) = default;
 	ObjectID& operator=(const ObjectID&) = default;
 	ObjectID(ObjectID&&) = default;
@@ -50,6 +55,9 @@ private:
 };
 
 using VertexID = ObjectID<uint32_t, ObjectType::Vertex>;
+using EdgeID = ObjectID<uint32_t, ObjectType::Edge>;
+using HalfEdgeID = ObjectID<uint32_t, ObjectType::HalfEdge>;
+using FaceID = ObjectID<uint32_t, ObjectType::Face>;
 using PolygonID = ObjectID<uint32_t, ObjectType::Polygon>;
 using MeshID = ObjectID<uint32_t, ObjectType::Mesh>;
 using MaterialID = ObjectID<uint32_t, ObjectType::Material>;
@@ -66,5 +74,46 @@ static_assert(sizeof(VertexID) == sizeof(uint32_t));
 
 using VertexIDArray = std::vector<VertexID>;
 using PolygonIDArray = std::vector<PolygonID>;
+
+using EdgePair = std::pair<VertexID, VertexID>;
+
+using Triangle = TVector<VertexID, 3>;
+using Quad = TVector<VertexID, 4>;
+using Polygon = std::vector<VertexID>;
+
+}
+
+namespace std
+{
+
+// Support to use ObjectID as HashKey.
+template<typename T, cd::ObjectType N>
+struct hash<cd::ObjectID<T, N>>
+{
+	uint64_t operator()(const cd::ObjectID<T, N>& objectID) const
+	{
+		return objectID.Data();
+	}
+};
+
+// Support to use std::pair<ObjectID, ObjectID> as HashKey.
+template<typename T, cd::ObjectType N>
+struct hash<std::pair<cd::ObjectID<T, N>, cd::ObjectID<T, N>>>
+{
+	using OT = cd::ObjectID<T, N>;
+	uint64_t operator()(const std::pair<OT, OT>& pair) const
+	{
+		if constexpr (std::is_same_v<T, uint32_t>)
+		{
+			uint64_t a = static_cast<uint64_t>(pair.first.Data()) << 31;
+			uint64_t b = static_cast<uint64_t>(pair.second.Data());
+			return a + b;
+		}
+		else
+		{
+			static_assert("Unsupported std::pair<ObjectID, ObjectID> hash.");
+		}
+	}
+};
 
 }
