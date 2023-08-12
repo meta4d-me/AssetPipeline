@@ -504,7 +504,7 @@ void GenericProducerImpl::AddAnimation(cd::SceneDatabase* pSceneDatabase, const 
 			scaleKey.SetValue(cd::Vec3f(scaleValue.x, scaleValue.y, scaleValue.z));
 		}
 
-		animation.AddBoneTrackID(trackID.Data());
+ 		animation.AddBoneTrackID(trackID.Data());
 		pSceneDatabase->AddTrack(cd::MoveTemp(boneTrack));
 	}
 

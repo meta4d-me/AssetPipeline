@@ -20,6 +20,7 @@ class FbxNode;
 class FbxProperty;
 class FbxScene;
 class FbxSurfaceMaterial;
+class FbxGeometryConverter;
 
 }
 
@@ -68,8 +69,8 @@ private:
 	int GetSceneNodeCount(const fbxsdk::FbxNode* pSceneNode);
 	void TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase);
 
-	int GetSceneBoneCount(const fbxsdk::FbxNode* pSceneNode);
-	//void TraverseBoneRecursively(fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxScene* pSDKScene, cd::Bone* pParentNode, cd::SceneDatabase* pSceneDatabase);
+	int GetSceneBoneCount(fbxsdk::FbxNode* pSceneNode, cd::SceneDatabase* pSceneDatabase);
+	void TraverseBoneRecursively(fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxScene* pSDKScene, cd::Bone* pParentNode, cd::SceneDatabase* pSceneDatabase);
 
 	void AddMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial);
 	void AddMaterialTexture(const fbxsdk::FbxProperty& sdkProperty, cd::MaterialTextureType textureType, cd::Material& material, cd::SceneDatabase* pSceneDatabase);
@@ -92,6 +93,7 @@ private:
 
 	std::string m_filePath;
 	fbxsdk::FbxManager* m_pSDKManager = nullptr;
+	fbxsdk::FbxGeometryConverter* m_pGeometryConverter = nullptr;
 
 	std::map<int32_t, uint32_t> m_fbxMaterialIndexToMaterialID;
 
