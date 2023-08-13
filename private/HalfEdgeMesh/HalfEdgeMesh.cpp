@@ -135,7 +135,32 @@ HalfEdgeMesh HalfEdgeMesh::FromIndexedFaces(const std::vector<cd::Point>& vertic
 
 HalfEdgeMesh HalfEdgeMesh::FromIndexedMesh(const cd::Mesh& mesh)
 {
-	return HalfEdgeMesh::FromIndexedFaces(mesh.GetVertexPositions(), mesh.GetPolygons());
+	auto halfEdgeMesh = HalfEdgeMesh::FromIndexedFaces(mesh.GetVertexPositions(), mesh.GetPolygons());
+
+	// Fill corner uv/normal data.
+	uint32_t vertexIndex = 0U;
+	for (const auto& vertex : halfEdgeMesh.GetVertices())
+	{
+		assert(vertexIndex < mesh.GetVertexCount());
+		HalfEdgeRef h = vertex.GetHalfEdge();
+
+		do
+		{
+			if (!h->GetFace()->IsBoundary())
+			{
+				// Only copy base uv.
+				h->SetCornerUV(mesh.GetVertexUV(0U, vertexIndex));
+				h->SetCornerNormal(mesh.GetVertexNormal(vertexIndex));
+			}
+
+			h = h->GetTwin()->GetNext();
+		} while (h != vertex.GetHalfEdge());
+
+		++vertexIndex;
+	}
+	assert(vertexIndex == mesh.GetVertexCount());
+
+	return halfEdgeMesh;
 }
 
 VertexRef HalfEdgeMesh::EmplaceVertex()

@@ -72,6 +72,4 @@ private:
 
 }
 
-using HalfEdgeMesh = hem::HalfEdgeMesh;
-
 }

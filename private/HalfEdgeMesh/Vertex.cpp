@@ -40,7 +40,26 @@ Point Vertex::NeighborCenter() const
 
 Direction Vertex::Normal() const
 {
-	return Direction::Zero();
+	Direction normal(0.0f);
+	
+	HalfEdgeCRef h = m_halfEdgeRef;
+	do
+	{
+		const Point& v1 = h->GetNext()->GetVertex()->GetPosition();
+
+		h = h->GetTwin()->GetNext();
+
+		const Point& v2 = h->GetNext()->GetVertex()->GetPosition();
+
+		if (!h->GetFace()->IsBoundary())
+		{
+			normal += (v1 - m_position).Cross(v2 - m_position);
+		}
+
+	} while (h != m_halfEdgeRef);
+
+	normal.Normalize();
+	return normal;
 }
 
 uint32_t Vertex::Degree() const

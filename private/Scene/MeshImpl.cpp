@@ -1,20 +1,117 @@
 #include "MeshImpl.h"
 
-#include <cassert>
-
 namespace cd
 {
 
-MeshImpl::MeshImpl(uint32_t vertexCount, uint32_t polygonCount)
+void MeshImpl::FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy)
 {
-	Init(vertexCount, polygonCount);
-}
+	m_vertexUVSetCount = 1U;
 
-MeshImpl::MeshImpl(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount) :
-	m_id(meshID),
-	m_name(MoveTemp(meshName))
-{
-	Init(vertexCount, polygonCount);
+	if (ConvertStrategy::ShadingFirst == strategy)
+	{
+		uint32_t vertexIndex = 0U;
+		for (const auto& face : halfEdgeMesh.GetFaces())
+		{
+			if (face.IsBoundary())
+			{
+				continue;
+			}
+
+			uint32_t beginVertexIndex = vertexIndex;
+			hem::HalfEdgeCRef h = face.GetHalfEdge();
+			do
+			{
+				m_vertexPositions.emplace_back(h->GetVertex()->GetPosition());
+				m_vertexNormals.emplace_back(h->GetCornerNormal());
+				m_vertexUVSets[0].emplace_back(h->GetCornerUV());
+
+				++vertexIndex;
+				h = h->GetNext();
+			} while (h != face.GetHalfEdge());
+
+			uint32_t endVertexIndex = vertexIndex;
+			for (uint32_t cornerIndex = beginVertexIndex + 1; cornerIndex < endVertexIndex - 1; ++cornerIndex)
+			{
+				m_polygons.emplace_back(cd::Polygon{beginVertexIndex, cornerIndex, cornerIndex + 1 });
+			}
+		}
+	}
+	else if (ConvertStrategy::TopologyFirst == strategy)
+	{
+		std::unordered_map<hem::VertexCRef, uint32_t> vertexRefToIndex;
+
+		const auto& vertices = halfEdgeMesh.GetVertices();
+		for (hem::VertexCRef vertex = vertices.begin(); vertex != vertices.end(); ++vertex)
+		{
+			m_vertexPositions.emplace_back(vertex->GetPosition());
+
+			// Fill normal/uv data later by looping through half edges.
+			m_vertexNormals.emplace_back(0.0f);
+			m_vertexUVSets[0].emplace_back(0.0f);
+
+			auto result = vertexRefToIndex.emplace(vertex, static_cast<uint32_t>(m_vertexPositions.size() - 1));
+			assert(result.second); // Make sure it is unique.
+		}
+
+		std::vector<uint32_t> cornerCountInVertex;
+		cornerCountInVertex.resize(vertexRefToIndex.size(), 0U);
+
+		for (const auto& face : halfEdgeMesh.GetFaces())
+		{
+			if (face.IsBoundary())
+			{
+				continue;
+			}
+
+			std::vector<uint32_t> faceIndexes;
+			hem::HalfEdgeCRef h = face.GetHalfEdge();
+			do
+			{
+				auto itIndex = vertexRefToIndex.find(h->GetVertex());
+				assert(itIndex != vertexRefToIndex.end());
+
+				uint32_t vertexIndex = itIndex->second;
+				faceIndexes.emplace_back(vertexIndex);
+
+				// Add corners' normal/uv data to previously created vertex.
+				m_vertexNormals[vertexIndex] += h->GetCornerNormal();
+				m_vertexUVSets[0][vertexIndex] += h->GetCornerUV();
+				cornerCountInVertex[vertexIndex] += 1U;
+
+				h = h->GetNext();
+			} while (h != face.GetHalfEdge());
+
+			assert(faceIndexes.size() >= 3);
+			for (uint32_t cornerIndex = 1; cornerIndex < faceIndexes.size() - 1; ++cornerIndex)
+			{
+				m_polygons.emplace_back(cd::Polygon{faceIndexes[0], faceIndexes[cornerIndex], faceIndexes[cornerIndex + 1]});
+			}
+		}
+
+		// Average normal/uv data per vertex.
+		for (uint32_t vertexIndex = 0U; vertexIndex < cornerCountInVertex.size(); ++vertexIndex)
+		{
+			uint32_t cornerCount = cornerCountInVertex[vertexIndex];
+			if (cornerCount > 1U)
+			{
+				m_vertexNormals[vertexIndex].Normalize();
+				m_vertexUVSets[0][vertexIndex] /= static_cast<float>(cornerCount);
+			}
+		}
+	}
+	else
+	{
+		assert("Unsupported convert strategy.");
+	}
+
+	// Make capcity same with actual size.
+	m_vertexPositions.shrink_to_fit();
+	m_vertexNormals.shrink_to_fit();
+	m_vertexUVSets[0].shrink_to_fit();
+	m_polygons.shrink_to_fit();
+
+	m_vertexCount = static_cast<uint32_t>(m_vertexPositions.size());
+	m_polygonCount = static_cast<uint32_t>(m_polygons.size());
 }
 
 void MeshImpl::Init(uint32_t vertexCount, uint32_t polygonCount)
@@ -25,20 +122,18 @@ void MeshImpl::Init(uint32_t vertexCount, uint32_t polygonCount)
 	assert(vertexCount > 0 && "No need to create an empty mesh.");
 	assert(polygonCount > 0 && "Expect to generate index buffer by ourselves?");
 
-	// pre-construct for attributes which almost all model files will have.
+	// TODO : You may get confused why use resize, not reserve.
+	// The reason is that std::vector doesn't support operator[] access to read/write data if the real size not increases.
+	// So it will be very convenient for binary stream read/write.
+	// For example, you already get a byte stream and would like to use it to init Mesh's vertex buffers and index buffer.
+	// You can't write data directly to std::vector as its size is 0.
+	// The solution is to write a customized template dynamic array.
 	m_vertexPositions.resize(vertexCount);
 	m_vertexNormals.resize(vertexCount);
 	m_vertexTangents.resize(vertexCount);
 	m_vertexBiTangents.resize(vertexCount);
 
 	m_polygons.resize(polygonCount);
-}
-
-void MeshImpl::Init(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount)
-{
-	m_id = meshID;
-	m_name = MoveTemp(meshName);
-	Init(vertexCount, polygonCount);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

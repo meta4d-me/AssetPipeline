@@ -5,7 +5,7 @@
 namespace cd::hem
 {
 
-class HalfEdge
+class CORE_API HalfEdge
 {
 public:
 	HalfEdge() = delete;
@@ -34,11 +34,21 @@ public:
 	void SetFace(FaceRef ref) { m_faceRef = ref; }
 	FaceRef GetFace() const { return m_faceRef; }
 
+	void SetCornerUV(cd::UV uv) { m_cornerUV = cd::MoveTemp(uv); }
+	cd::UV& GetCornerUV() { return m_cornerUV; }
+	const cd::UV& GetCornerUV() const { return m_cornerUV; }
+
+	void SetCornerNormal(cd::Direction normal) { m_cornorNormal = cd::MoveTemp(normal); }
+	cd::Direction& GetCornerNormal() { return m_cornorNormal; }
+	const cd::Direction& GetCornerNormal() const { return m_cornorNormal; }
+
 	bool Validate() const;
 
 private:
 	// data
 	HalfEdgeID m_id;
+	cd::UV m_cornerUV = cd::UV::Zero();
+	cd::Direction m_cornorNormal = cd::Direction::Zero();
 
 	// connectivity
 	HalfEdgeRef m_twinRef;
@@ -46,6 +56,29 @@ private:
 	VertexRef m_vertexRef;
 	EdgeRef m_edgeRef;
 	FaceRef m_faceRef;
+};
+
+}
+
+namespace std
+{
+
+template<>
+struct hash<cd::hem::HalfEdgeRef>
+{
+	uint64_t operator()(const cd::hem::HalfEdgeRef& value) const
+	{
+		return reinterpret_cast<uint64_t>(&value);
+	}
+};
+
+template<>
+struct hash<cd::hem::HalfEdgeCRef>
+{
+	uint64_t operator()(const cd::hem::HalfEdgeCRef& value) const
+	{
+		return reinterpret_cast<uint64_t>(&value);
+	}
 };
 
 }

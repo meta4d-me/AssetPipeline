@@ -5,7 +5,7 @@
 namespace cd::hem
 {
 
-class Face
+class CORE_API Face
 {
 public:
 	Face() = delete;
@@ -39,6 +39,29 @@ private:
 
 	// connectivity
 	HalfEdgeRef m_halfEdgeRef;
+};
+
+}
+
+namespace std
+{
+
+template<>
+struct hash<cd::hem::FaceRef>
+{
+	uint64_t operator()(const cd::hem::FaceRef& value) const
+	{
+		return reinterpret_cast<uint64_t>(&value);
+	}
+};
+
+template<>
+struct hash<cd::hem::FaceCRef>
+{
+	uint64_t operator()(const cd::hem::FaceCRef& value) const
+	{
+		return reinterpret_cast<uint64_t>(&value);
+	}
 };
 
 }

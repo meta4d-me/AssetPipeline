@@ -5,7 +5,7 @@
 namespace cd::hem
 {
 
-class Vertex
+class CORE_API Vertex
 {
 public:
 	Vertex() = delete;
@@ -40,6 +40,29 @@ private:
 
 	// connectivity
 	HalfEdgeRef m_halfEdgeRef;
+};
+
+}
+
+namespace std
+{
+
+template<>
+struct hash<cd::hem::VertexRef>
+{
+	uint64_t operator()(const cd::hem::VertexRef& value) const
+	{
+		return reinterpret_cast<uint64_t>(&value);
+	}
+};
+
+template<>
+struct hash<cd::hem::VertexCRef>
+{
+	uint64_t operator()(const cd::hem::VertexCRef& value) const
+	{
+		return reinterpret_cast<uint64_t>(&value);
+	}
 };
 
 }
