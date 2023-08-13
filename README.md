@@ -8,6 +8,7 @@
 3D resources build tool for graphics applications.
 
 # ThirdParty
+
 * Hash
   * [PicoSHA2](https://github.com/okdshin/PicoSHA2)
 * Image
@@ -20,3 +21,7 @@
 # Examples
 
 [AssetPipeline + OpenGL](https://github.com/Hinageshi01/CDSDK_Example)
+
+# Learning Resources
+
+[Scotty3D](https://github.com/CMU-Graphics/Scotty3D)
