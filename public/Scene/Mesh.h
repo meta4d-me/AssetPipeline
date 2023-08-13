@@ -26,7 +26,7 @@ class CORE_API Mesh final
 {
 public:
 	static const char* GetClassName() { return "Mesh"; }
-	static Mesh FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh);
+	static Mesh FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy);
 
 public:
 	Mesh() = default;

@@ -12,6 +12,7 @@
 #include <cassert>
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace cd
@@ -20,7 +21,7 @@ namespace cd
 class MeshImpl final
 {
 public:
-	void FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh);
+	void FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy);
 
 public:
 	MeshImpl() = default;

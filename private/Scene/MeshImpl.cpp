@@ -3,36 +3,112 @@
 namespace cd
 {
 
-void MeshImpl::FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh)
+void MeshImpl::FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy)
 {
-	SetVertexUVSetCount(1U);
+	m_vertexUVSetCount = 1U;
 
-	uint32_t vertexIndex = 0U;
-	for (const auto& face : halfEdgeMesh.GetFaces())
+	if (ConvertStrategy::ShadingFirst == strategy)
 	{
-		if (face.IsBoundary())
+		uint32_t vertexIndex = 0U;
+		for (const auto& face : halfEdgeMesh.GetFaces())
 		{
-			continue;
-		}
+			if (face.IsBoundary())
+			{
+				continue;
+			}
 
-		uint32_t beginVertexIndex = vertexIndex;
-		hem::HalfEdgeCRef h = face.GetHalfEdge();
-		do
-		{
-			m_vertexPositions.emplace_back(h->GetVertex()->GetPosition());
-			m_vertexNormals.emplace_back(h->GetCornerNormal());
-			m_vertexUVSets[0].emplace_back(h->GetCornerUV());
+			uint32_t beginVertexIndex = vertexIndex;
+			hem::HalfEdgeCRef h = face.GetHalfEdge();
+			do
+			{
+				m_vertexPositions.emplace_back(h->GetVertex()->GetPosition());
+				m_vertexNormals.emplace_back(h->GetCornerNormal());
+				m_vertexUVSets[0].emplace_back(h->GetCornerUV());
 
-			++vertexIndex;
-			h = h->GetNext();
-		} while (h != face.GetHalfEdge());
+				++vertexIndex;
+				h = h->GetNext();
+			} while (h != face.GetHalfEdge());
 
-		uint32_t endVertexIndex = vertexIndex;
-		for (uint32_t cornerIndex = beginVertexIndex + 1; cornerIndex < endVertexIndex - 1; ++cornerIndex)
-		{
-			m_polygons.emplace_back(cd::Polygon{beginVertexIndex, cornerIndex, cornerIndex + 1 });
+			uint32_t endVertexIndex = vertexIndex;
+			for (uint32_t cornerIndex = beginVertexIndex + 1; cornerIndex < endVertexIndex - 1; ++cornerIndex)
+			{
+				m_polygons.emplace_back(cd::Polygon{beginVertexIndex, cornerIndex, cornerIndex + 1 });
+			}
 		}
 	}
+	else if (ConvertStrategy::TopologyFirst == strategy)
+	{
+		std::unordered_map<hem::VertexCRef, uint32_t> vertexRefToIndex;
+
+		const auto& vertices = halfEdgeMesh.GetVertices();
+		for (hem::VertexCRef vertex = vertices.begin(); vertex != vertices.end(); ++vertex)
+		{
+			m_vertexPositions.emplace_back(vertex->GetPosition());
+
+			// Fill normal/uv data later by looping through half edges.
+			m_vertexNormals.emplace_back(0.0f);
+			m_vertexUVSets[0].emplace_back(0.0f);
+
+			auto result = vertexRefToIndex.emplace(vertex, static_cast<uint32_t>(m_vertexPositions.size() - 1));
+			assert(result.second); // Make sure it is unique.
+		}
+
+		std::vector<uint32_t> cornerCountInVertex;
+		cornerCountInVertex.resize(vertexRefToIndex.size(), 0U);
+
+		for (const auto& face : halfEdgeMesh.GetFaces())
+		{
+			if (face.IsBoundary())
+			{
+				continue;
+			}
+
+			std::vector<uint32_t> faceIndexes;
+			hem::HalfEdgeCRef h = face.GetHalfEdge();
+			do
+			{
+				auto itIndex = vertexRefToIndex.find(h->GetVertex());
+				assert(itIndex != vertexRefToIndex.end());
+
+				uint32_t vertexIndex = itIndex->second;
+				faceIndexes.emplace_back(vertexIndex);
+
+				// Add corners' normal/uv data to previously created vertex.
+				m_vertexNormals[vertexIndex] += h->GetCornerNormal();
+				m_vertexUVSets[0][vertexIndex] += h->GetCornerUV();
+				cornerCountInVertex[vertexIndex] += 1U;
+
+				h = h->GetNext();
+			} while (h != face.GetHalfEdge());
+
+			assert(faceIndexes.size() >= 3);
+			for (uint32_t cornerIndex = 1; cornerIndex < faceIndexes.size() - 1; ++cornerIndex)
+			{
+				m_polygons.emplace_back(cd::Polygon{faceIndexes[0], faceIndexes[cornerIndex], faceIndexes[cornerIndex + 1]});
+			}
+		}
+
+		// Average normal/uv data per vertex.
+		for (uint32_t vertexIndex = 0U; vertexIndex < cornerCountInVertex.size(); ++vertexIndex)
+		{
+			uint32_t cornerCount = cornerCountInVertex[vertexIndex];
+			if (cornerCount > 1U)
+			{
+				m_vertexNormals[vertexIndex].Normalize();
+				m_vertexUVSets[0][vertexIndex] /= static_cast<float>(cornerCount);
+			}
+		}
+	}
+	else
+	{
+		assert("Unsupported convert strategy.");
+	}
+
+	// Make capcity same with actual size.
+	m_vertexPositions.shrink_to_fit();
+	m_vertexNormals.shrink_to_fit();
+	m_vertexUVSets[0].shrink_to_fit();
+	m_polygons.shrink_to_fit();
 
 	m_vertexCount = static_cast<uint32_t>(m_vertexPositions.size());
 	m_polygonCount = static_cast<uint32_t>(m_polygons.size());

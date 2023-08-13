@@ -43,3 +43,26 @@ private:
 };
 
 }
+
+namespace std
+{
+
+template<>
+struct hash<cd::hem::VertexRef>
+{
+	uint64_t operator()(const cd::hem::VertexRef& value) const
+	{
+		return reinterpret_cast<uint64_t>(&value);
+	}
+};
+
+template<>
+struct hash<cd::hem::VertexCRef>
+{
+	uint64_t operator()(const cd::hem::VertexCRef& value) const
+	{
+		return reinterpret_cast<uint64_t>(&value);
+	}
+};
+
+}

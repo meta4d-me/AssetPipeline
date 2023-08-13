@@ -6,11 +6,11 @@
 namespace cd
 {
 
-Mesh Mesh::FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh)
+Mesh Mesh::FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy)
 {
 	Mesh mesh;
 	mesh.m_pMeshImpl = new MeshImpl();
-	mesh.m_pMeshImpl->FromHalfEdgeMesh(halfEdgeMesh);
+	mesh.m_pMeshImpl->FromHalfEdgeMesh(halfEdgeMesh, strategy);
 	return mesh;
 }
 

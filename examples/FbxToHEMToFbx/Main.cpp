@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 		{
 			auto halfEdgeMesh = cd::hem::HalfEdgeMesh::FromIndexedMesh(mesh);
 			assert(halfEdgeMesh.Validate());
-			auto newMesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh);
+			auto newMesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, cd::ConvertStrategy::TopologyFirst);
 			assert(newMesh.GetVertexCount() > 0U);
 		}
 	}

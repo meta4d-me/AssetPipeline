@@ -59,3 +59,26 @@ private:
 };
 
 }
+
+namespace std
+{
+
+template<>
+struct hash<cd::hem::HalfEdgeRef>
+{
+	uint64_t operator()(const cd::hem::HalfEdgeRef& value) const
+	{
+		return reinterpret_cast<uint64_t>(&value);
+	}
+};
+
+template<>
+struct hash<cd::hem::HalfEdgeCRef>
+{
+	uint64_t operator()(const cd::hem::HalfEdgeCRef& value) const
+	{
+		return reinterpret_cast<uint64_t>(&value);
+	}
+};
+
+}
