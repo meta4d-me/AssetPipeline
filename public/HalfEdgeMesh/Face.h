@@ -5,7 +5,7 @@
 namespace cd::hem
 {
 
-class Face
+class CORE_API Face
 {
 public:
 	Face() = delete;

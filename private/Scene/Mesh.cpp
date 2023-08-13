@@ -6,6 +6,14 @@
 namespace cd
 {
 
+Mesh Mesh::FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh)
+{
+	Mesh mesh;
+	mesh.m_pMeshImpl = new MeshImpl();
+	mesh.m_pMeshImpl->FromHalfEdgeMesh(halfEdgeMesh);
+	return mesh;
+}
+
 Mesh::Mesh(InputArchive& inputArchive)
 {
 	m_pMeshImpl = new MeshImpl(inputArchive);
@@ -18,12 +26,15 @@ Mesh::Mesh(InputArchiveSwapBytes& inputArchive)
 
 Mesh::Mesh(uint32_t vertexCount, uint32_t polygonCount)
 {
-	m_pMeshImpl = new MeshImpl(vertexCount, polygonCount);
+	m_pMeshImpl = new MeshImpl();
+	m_pMeshImpl->Init(vertexCount, polygonCount);
 }
 
-Mesh::Mesh(MeshID meshID, const char* pMeshName, uint32_t vertexCount, uint32_t polygonCount)
+Mesh::Mesh(MeshID id, const char* pName, uint32_t vertexCount, uint32_t polygonCount) :
+	Mesh(vertexCount, polygonCount)
 {
-	m_pMeshImpl = new MeshImpl(meshID, pMeshName, vertexCount, polygonCount);
+	m_pMeshImpl->SetID(id);
+	m_pMeshImpl->SetName(pName);
 }
 
 Mesh::Mesh(Mesh&& rhs)
@@ -49,11 +60,6 @@ Mesh::~Mesh()
 void Mesh::Init(uint32_t vertexCount, uint32_t polygonCount)
 {
 	m_pMeshImpl->Init(vertexCount, polygonCount);
-}
-
-void Mesh::Init(MeshID meshID, const char* pMeshName, uint32_t vertexCount, uint32_t polygonCount)
-{
-	m_pMeshImpl->Init(meshID, pMeshName, vertexCount, polygonCount);
 }
 
 void Mesh::SetID(MeshID id)

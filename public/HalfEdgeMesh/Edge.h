@@ -5,7 +5,7 @@
 namespace cd::hem
 {
 
-class Edge
+class CORE_API Edge
 {
 public:
 	Edge() = delete;

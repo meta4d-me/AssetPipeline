@@ -5,7 +5,7 @@
 namespace cd::hem
 {
 
-class Vertex
+class CORE_API Vertex
 {
 public:
 	Vertex() = delete;

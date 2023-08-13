@@ -34,8 +34,10 @@ int main(int argc, char** argv)
 	{
 		for (const auto& mesh : pSceneDatabase->GetMeshes())
 		{
-			auto halfEdgeMesh = cd::HalfEdgeMesh::FromIndexedMesh(mesh);
+			auto halfEdgeMesh = cd::hem::HalfEdgeMesh::FromIndexedMesh(mesh);
 			assert(halfEdgeMesh.Validate());
+			auto newMesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh);
+			assert(newMesh.GetVertexCount() > 0U);
 		}
 	}
 

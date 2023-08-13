@@ -1,20 +1,41 @@
 #include "MeshImpl.h"
 
-#include <cassert>
-
 namespace cd
 {
 
-MeshImpl::MeshImpl(uint32_t vertexCount, uint32_t polygonCount)
+void MeshImpl::FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh)
 {
-	Init(vertexCount, polygonCount);
-}
+	SetVertexUVSetCount(1U);
 
-MeshImpl::MeshImpl(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount) :
-	m_id(meshID),
-	m_name(MoveTemp(meshName))
-{
-	Init(vertexCount, polygonCount);
+	uint32_t vertexIndex = 0U;
+	for (const auto& face : halfEdgeMesh.GetFaces())
+	{
+		if (face.IsBoundary())
+		{
+			continue;
+		}
+
+		uint32_t beginVertexIndex = vertexIndex;
+		hem::HalfEdgeCRef h = face.GetHalfEdge();
+		do
+		{
+			m_vertexPositions.emplace_back(h->GetVertex()->GetPosition());
+			m_vertexNormals.emplace_back(h->GetCornerNormal());
+			m_vertexUVSets[0].emplace_back(h->GetCornerUV());
+
+			++vertexIndex;
+			h = h->GetNext();
+		} while (h != face.GetHalfEdge());
+
+		uint32_t endVertexIndex = vertexIndex;
+		for (uint32_t cornerIndex = beginVertexIndex + 1; cornerIndex < endVertexIndex - 1; ++cornerIndex)
+		{
+			m_polygons.emplace_back(cd::Polygon{beginVertexIndex, cornerIndex, cornerIndex + 1 });
+		}
+	}
+
+	m_vertexCount = static_cast<uint32_t>(m_vertexPositions.size());
+	m_polygonCount = static_cast<uint32_t>(m_polygons.size());
 }
 
 void MeshImpl::Init(uint32_t vertexCount, uint32_t polygonCount)
@@ -25,20 +46,18 @@ void MeshImpl::Init(uint32_t vertexCount, uint32_t polygonCount)
 	assert(vertexCount > 0 && "No need to create an empty mesh.");
 	assert(polygonCount > 0 && "Expect to generate index buffer by ourselves?");
 
-	// pre-construct for attributes which almost all model files will have.
+	// TODO : You may get confused why use resize, not reserve.
+	// The reason is that std::vector doesn't support operator[] access to read/write data if the real size not increases.
+	// So it will be very convenient for binary stream read/write.
+	// For example, you already get a byte stream and would like to use it to init Mesh's vertex buffers and index buffer.
+	// You can't write data directly to std::vector as its size is 0.
+	// The solution is to write a customized template dynamic array.
 	m_vertexPositions.resize(vertexCount);
 	m_vertexNormals.resize(vertexCount);
 	m_vertexTangents.resize(vertexCount);
 	m_vertexBiTangents.resize(vertexCount);
 
 	m_polygons.resize(polygonCount);
-}
-
-void MeshImpl::Init(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount)
-{
-	m_id = meshID;
-	m_name = MoveTemp(meshName);
-	Init(vertexCount, polygonCount);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

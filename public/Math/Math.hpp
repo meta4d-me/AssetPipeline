@@ -147,7 +147,7 @@ public:
 	template<typename T>
 	static constexpr bool Validate(T value)
 	{
-		return !std::isfinite(value) && !std::isnan(value);
+		return std::isfinite(value) && !std::isnan(value);
 	}
 };
 }
