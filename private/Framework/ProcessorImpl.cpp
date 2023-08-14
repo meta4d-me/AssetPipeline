@@ -282,13 +282,13 @@ void ProcessorImpl::DumpSceneDatabase()
 
 			if (auto optTwoSided = material.GetBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided); optTwoSided.has_value())
 			{
-				printf("\t%s = %d\n", cd::GetMaterialPropertyName(cd::MaterialProperty::TwoSided), optTwoSided.value());
+				printf("\t%s = %d\n", nameof::nameof_enum(cd::MaterialProperty::TwoSided).data(), optTwoSided.value());
 			}
 
 			if (auto optBlendMode = material.GetI32Property(cd::MaterialPropertyGroup::General, cd::MaterialProperty::BlendMode); optBlendMode.has_value())
 			{
 				cd::BlendMode blendMode = static_cast<cd::BlendMode>(optBlendMode.value());
-				printf("\tBlendMode = %s\n", cd::GetBlendModeName(blendMode));
+				printf("\tBlendMode = %s\n", nameof::nameof_enum(blendMode).data());
 
 				if (cd::BlendMode::Mask == blendMode)
 				{
@@ -305,7 +305,7 @@ void ProcessorImpl::DumpSceneDatabase()
 				{
 					auto textureID = material.GetTextureID(textureType);
 					const auto& texture = m_pCurrentSceneDatabase->GetTexture(textureID.Data());
-					printf("\t[Associated Texture %u] Type = %s\n", textureID.Data(), cd::GetMaterialPropertyGroupName(textureType));
+					printf("\t[Associated Texture %u] Type = %s\n", textureID.Data(), nameof::nameof_enum(textureType).data());
 					printf("\t\tPath = %s\n", texture.GetPath());
 				}
 			
@@ -337,10 +337,10 @@ void ProcessorImpl::DumpSceneDatabase()
 		printf("\n");
 		for (const auto& texture : m_pCurrentSceneDatabase->GetTextures())
 		{
-			printf("[Texture %u] Type = %s\n", texture.GetID().Data(), cd::GetMaterialPropertyGroupName(texture.GetType()));
+			printf("[Texture %u] Type = %s\n", texture.GetID().Data(), nameof::nameof_enum(texture.GetType()).data());
 			printf("\tName = %s\n", texture.GetName());
 			printf("\tPath = %s\n", texture.GetPath());
-			printf("\tUVMapMode = (%s, %s)\n", GetTextureMapModeName(texture.GetUMapMode()), GetTextureMapModeName(texture.GetVMapMode()));
+			printf("\tUVMapMode = (%s, %s)\n", nameof::nameof_enum(texture.GetUMapMode()).data(), nameof::nameof_enum(texture.GetVMapMode()).data());
 		}
 	}
 
