@@ -41,6 +41,16 @@ private:
 	HalfEdgeRef m_halfEdgeRef;
 };
 
+inline bool operator<(const FaceRef& lhs, const FaceRef& rhs)
+{
+	return &*lhs < &*rhs;
+}
+
+inline bool operator<(const FaceCRef& lhs, const FaceCRef& rhs)
+{
+	return &*lhs < &*rhs;
+}
+
 }
 
 namespace std
@@ -49,18 +59,20 @@ namespace std
 template<>
 struct hash<cd::hem::FaceRef>
 {
-	uint64_t operator()(const cd::hem::FaceRef& value) const
+	uint64_t operator()(const cd::hem::FaceRef& key) const
 	{
-		return reinterpret_cast<uint64_t>(&value);
+		static const std::hash<decltype(&*key)> h;
+		return h(&*key);
 	}
 };
 
 template<>
 struct hash<cd::hem::FaceCRef>
 {
-	uint64_t operator()(const cd::hem::FaceCRef& value) const
+	uint64_t operator()(const cd::hem::FaceCRef& key) const
 	{
-		return reinterpret_cast<uint64_t>(&value);
+		static const std::hash<decltype(&*key)> h;
+		return h(&*key);
 	}
 };
 

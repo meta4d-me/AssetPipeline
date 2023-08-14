@@ -3,8 +3,8 @@
 #include "HalfEdgeMesh/Edge.h"
 #include "HalfEdgeMesh/Face.h"
 #include "HalfEdgeMesh/HalfEdge.h"
-#include "Scene/Mesh.h"
 #include "HalfEdgeMesh/Vertex.h"
+#include "Scene/Mesh.h"
 
 #include <map>
 #include <unordered_map>
@@ -30,6 +30,11 @@ static std::unordered_set<const T*> ElementAddresses(const std::list<T>& list)
 
 namespace cd::hem
 {
+
+HalfEdgeMesh::HalfEdgeMesh() = default;
+HalfEdgeMesh::HalfEdgeMesh(HalfEdgeMesh&&) = default;
+HalfEdgeMesh& HalfEdgeMesh::operator=(HalfEdgeMesh&&) = default;
+HalfEdgeMesh::~HalfEdgeMesh() = default;
 
 HalfEdgeMesh HalfEdgeMesh::FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons)
 {
@@ -103,12 +108,14 @@ HalfEdgeMesh HalfEdgeMesh::FromIndexedFaces(const std::vector<cd::Point>& vertic
 
 			if (vertexIndex != 0)
 			{
+				halfEdge->SetPrev(prev);
 				prev->SetNext(halfEdge);
 			}
 			prev = halfEdge;
 		}
 
 		// Connect last half edge to first half edge to be a loop.
+		face->GetHalfEdge()->SetPrev(prev);
 		prev->SetNext(face->GetHalfEdge());
 	};
 
@@ -157,27 +164,27 @@ HalfEdgeMesh HalfEdgeMesh::FromIndexedMesh(const cd::Mesh& mesh)
 	auto halfEdgeMesh = HalfEdgeMesh::FromIndexedFaces(mesh.GetVertexPositions(), mesh.GetPolygons());
 
 	// Fill corner uv/normal data.
-	uint32_t vertexIndex = 0U;
-	for (const auto& vertex : halfEdgeMesh.GetVertices())
-	{
-		assert(vertexIndex < mesh.GetVertexCount());
-		HalfEdgeRef h = vertex.GetHalfEdge();
-
-		do
-		{
-			if (!h->GetFace()->IsBoundary())
-			{
-				// Only copy base uv.
-				h->SetCornerUV(mesh.GetVertexUV(0U, vertexIndex));
-				h->SetCornerNormal(mesh.GetVertexNormal(vertexIndex));
-			}
-
-			h = h->GetTwin()->GetNext();
-		} while (h != vertex.GetHalfEdge());
-
-		++vertexIndex;
-	}
-	assert(vertexIndex == mesh.GetVertexCount());
+	//uint32_t vertexIndex = 0U;
+	//for (const auto& vertex : halfEdgeMesh.GetVertices())
+	//{
+	//	assert(vertexIndex < mesh.GetVertexCount());
+	//	HalfEdgeRef h = vertex.GetHalfEdge();
+	//
+	//	do
+	//	{
+	//		if (!h->GetFace()->IsBoundary())
+	//		{
+	//			// Only copy base uv.
+	//			h->SetCornerUV(mesh.GetVertexUV(0U, vertexIndex));
+	//			h->SetCornerNormal(mesh.GetVertexNormal(vertexIndex));
+	//		}
+	//
+	//		h = h->GetTwin()->GetNext();
+	//	} while (h != vertex.GetHalfEdge());
+	//
+	//	++vertexIndex;
+	//}
+	//assert(vertexIndex == mesh.GetVertexCount());
 
 	return halfEdgeMesh;
 }
@@ -251,6 +258,7 @@ HalfEdgeRef HalfEdgeMesh::EmplaceHalfEdge()
 	}
 
 	halfEdge->SetTwin(m_halfEdges.end());
+	halfEdge->SetPrev(m_halfEdges.end());
 	halfEdge->SetNext(m_halfEdges.end());
 	halfEdge->SetVertex(m_vertices.end());
 	halfEdge->SetEdge(m_edges.end());
@@ -300,6 +308,7 @@ void HalfEdgeMesh::EraseHalfEdge(HalfEdgeRef halfEdge)
 
 	// clear connectivity
 	halfEdge->SetTwin(m_halfEdges.end());
+	halfEdge->SetPrev(m_halfEdges.end());
 	halfEdge->SetNext(m_halfEdges.end());
 	halfEdge->SetVertex(m_vertices.end());
 	halfEdge->SetEdge(m_edges.end());
@@ -393,6 +402,11 @@ bool HalfEdgeMesh::Validate() const
 			return false;
 		}
 
+		if (!inHalfEdges.count(&*halfEdge.GetPrev()))
+		{
+			return false;
+		}
+
 		if (!inHalfEdges.count(&*halfEdge.GetNext()))
 		{
 			return false;
@@ -404,15 +418,23 @@ bool HalfEdgeMesh::Validate() const
 	std::unordered_map<FaceCRef, std::unordered_set<HalfEdgeCRef>> faceHalfEdges;
 	for (HalfEdgeCRef h = GetHalfEdges().begin(); h != GetHalfEdges().end(); ++h)
 	{
-		assert(vertexHalfEdges[h->GetVertex()].emplace(h).second);
-		assert(edgeHalfEdges[h->GetEdge()].emplace(h).second);
-		assert(faceHalfEdges[h->GetFace()].emplace(h).second);
+		VertexCRef v = h->GetVertex();
+		auto vresult = vertexHalfEdges[v].emplace(h);
+		assert(vresult.second);
+
+		EdgeCRef e = h->GetEdge();
+		auto eresult = edgeHalfEdges[e].emplace(h);
+		assert(eresult.second);
+
+		FaceCRef f = h->GetFace();
+		auto fresult = faceHalfEdges[f].emplace(h);
+		assert(fresult.second);
 	}
 
 	for (VertexCRef v = GetVertices().begin(); v != GetVertices().end(); ++v)
 	{
 		auto toVisit = vertexHalfEdges[v];
-		HalfEdgeRef h = v->GetHalfEdge();
+		HalfEdgeCRef h = v->GetHalfEdge();
 		do
 		{
 			if (h->GetVertex() != v)
@@ -427,7 +449,7 @@ bool HalfEdgeMesh::Validate() const
 			}
 			toVisit.erase(itHalfEdge);
 
-			h = h->GetTwin();
+			h = h->GetTwin()->GetNext();
 		} while (h != v->GetHalfEdge());
 
 		if (!toVisit.empty())
@@ -444,7 +466,7 @@ bool HalfEdgeMesh::Validate() const
 	for (EdgeCRef e = GetEdges().begin(); e != GetEdges().end(); ++e)
 	{
 		auto toVisit = edgeHalfEdges[e];
-		HalfEdgeRef h = e->GetHalfEdge();
+		HalfEdgeCRef h = e->GetHalfEdge();
 		do
 		{
 			if (h->GetEdge() != e)
@@ -476,7 +498,7 @@ bool HalfEdgeMesh::Validate() const
 	for (FaceCRef f = GetFaces().begin(); f != GetFaces().end(); ++f)
 	{
 		auto toVisit = faceHalfEdges[f];
-		HalfEdgeRef h = f->GetHalfEdge();
+		HalfEdgeCRef h = f->GetHalfEdge();
 		do
 		{
 			if (h->GetFace() != f)
@@ -491,7 +513,7 @@ bool HalfEdgeMesh::Validate() const
 			}
 			toVisit.erase(itHalfEdge);
 
-			h = h->GetTwin();
+			h = h->GetNext();
 		} while (h != f->GetHalfEdge());
 
 		if (!toVisit.empty())
@@ -506,6 +528,21 @@ bool HalfEdgeMesh::Validate() const
 	}
 
 	return true;
+}
+
+std::optional<VertexRef> HalfEdgeMesh::CollapseEdge(EdgeRef edge, float t)
+{
+	HalfEdgeRef v0v1 = edge->GetHalfEdge();
+	HalfEdgeRef v1v0 = v0v1->GetTwin();
+
+	VertexRef v0 = v0v1->GetVertex();
+	VertexRef v1 = v1v0->GetVertex();
+	
+	// Keep v0 and move it to a new position between v0 and v1.  
+	v0->SetPosition(v0->GetPosition() * t + v1->GetPosition() * (1 - t));
+	v0->SetHalfEdge(v0v1->GetNext());
+
+	return std::nullopt;
 }
 
 }
