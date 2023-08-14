@@ -404,15 +404,23 @@ bool HalfEdgeMesh::Validate() const
 	std::unordered_map<FaceCRef, std::unordered_set<HalfEdgeCRef>> faceHalfEdges;
 	for (HalfEdgeCRef h = GetHalfEdges().begin(); h != GetHalfEdges().end(); ++h)
 	{
-		assert(vertexHalfEdges[h->GetVertex()].emplace(h).second);
-		assert(edgeHalfEdges[h->GetEdge()].emplace(h).second);
-		assert(faceHalfEdges[h->GetFace()].emplace(h).second);
+		VertexCRef v = h->GetVertex();
+		auto vresult = vertexHalfEdges[v].emplace(h);
+		assert(vresult.second);
+
+		EdgeCRef e = h->GetEdge();
+		auto eresult = edgeHalfEdges[e].emplace(h);
+		assert(eresult.second);
+
+		FaceCRef f = h->GetFace();
+		auto fresult = faceHalfEdges[f].emplace(h);
+		assert(fresult.second);
 	}
 
 	for (VertexCRef v = GetVertices().begin(); v != GetVertices().end(); ++v)
 	{
 		auto toVisit = vertexHalfEdges[v];
-		HalfEdgeRef h = v->GetHalfEdge();
+		HalfEdgeCRef h = v->GetHalfEdge();
 		do
 		{
 			if (h->GetVertex() != v)
@@ -427,7 +435,7 @@ bool HalfEdgeMesh::Validate() const
 			}
 			toVisit.erase(itHalfEdge);
 
-			h = h->GetTwin();
+			h = h->GetTwin()->GetNext();
 		} while (h != v->GetHalfEdge());
 
 		if (!toVisit.empty())
@@ -444,7 +452,7 @@ bool HalfEdgeMesh::Validate() const
 	for (EdgeCRef e = GetEdges().begin(); e != GetEdges().end(); ++e)
 	{
 		auto toVisit = edgeHalfEdges[e];
-		HalfEdgeRef h = e->GetHalfEdge();
+		HalfEdgeCRef h = e->GetHalfEdge();
 		do
 		{
 			if (h->GetEdge() != e)
@@ -476,7 +484,7 @@ bool HalfEdgeMesh::Validate() const
 	for (FaceCRef f = GetFaces().begin(); f != GetFaces().end(); ++f)
 	{
 		auto toVisit = faceHalfEdges[f];
-		HalfEdgeRef h = f->GetHalfEdge();
+		HalfEdgeCRef h = f->GetHalfEdge();
 		do
 		{
 			if (h->GetFace() != f)
@@ -491,7 +499,7 @@ bool HalfEdgeMesh::Validate() const
 			}
 			toVisit.erase(itHalfEdge);
 
-			h = h->GetTwin();
+			h = h->GetNext();
 		} while (h != f->GetHalfEdge());
 
 		if (!toVisit.empty())
