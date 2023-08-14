@@ -4,8 +4,6 @@
 #include "Framework/IProducer.h"
 #include "Scene/SceneDatabase.h"
 
-#include <nameof.hpp>
-
 #include <cassert>
 #include <cfloat>
 #include <filesystem>

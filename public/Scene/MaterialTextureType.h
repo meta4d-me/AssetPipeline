@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nameof.hpp>
+#include "Base/NameOf.h"
 
 #include <cstdint>
 #include <sstream>
