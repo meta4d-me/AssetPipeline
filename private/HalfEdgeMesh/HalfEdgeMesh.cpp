@@ -8,6 +8,25 @@
 
 #include <map>
 #include <unordered_map>
+#include <unordered_set>
+
+namespace
+{
+
+//helper used to get set of pointers in a list (used by validate and describe):
+template<typename T>
+static std::unordered_set<const T*> ElementAddresses(const std::list<T>& list)
+{
+	std::unordered_set<const T*> addressSet;
+	for (const auto& element : list)
+	{
+		auto result = addressSet.emplace(&element);
+		assert(result.second);
+	}
+	return addressSet;
+}
+
+}
 
 namespace cd::hem
 {
@@ -318,6 +337,169 @@ bool HalfEdgeMesh::Validate() const
 	for (const auto& halfEdge : GetHalfEdges())
 	{
 		if (!halfEdge.Validate())
+		{
+			return false;
+		}
+	}
+
+	auto inVertices = ElementAddresses(GetVertices());
+	auto inEdges = ElementAddresses(GetEdges());
+	auto inFaces = ElementAddresses(GetFaces());
+	auto inHalfEdges = ElementAddresses(GetHalfEdges());
+
+	for (const auto& vertex : GetVertices())
+	{
+		if (!inHalfEdges.count(&*vertex.GetHalfEdge()))
+		{
+			return false;
+		}
+	}
+
+	for (const auto& edge : GetEdges())
+	{
+		if (!inHalfEdges.count(&*edge.GetHalfEdge()))
+		{
+			return false;
+		}
+	}
+
+	for (const auto& face : GetFaces())
+	{
+		if (!inHalfEdges.count(&*face.GetHalfEdge()))
+		{
+			return false;
+		}
+	}
+
+	for (const auto& halfEdge : GetHalfEdges())
+	{
+		if (!inVertices.count(&*halfEdge.GetVertex()))
+		{
+			return false;
+		}
+
+		if (!inEdges.count(&*halfEdge.GetEdge()))
+		{
+			return false;
+		}
+
+		if (!inFaces.count(&*halfEdge.GetFace()))
+		{
+			return false;
+		}
+
+		if (!inHalfEdges.count(&*halfEdge.GetTwin()))
+		{
+			return false;
+		}
+
+		if (!inHalfEdges.count(&*halfEdge.GetNext()))
+		{
+			return false;
+		}
+	}
+
+	std::unordered_map<VertexCRef, std::unordered_set<HalfEdgeCRef>> vertexHalfEdges;
+	std::unordered_map<EdgeCRef, std::unordered_set<HalfEdgeCRef>> edgeHalfEdges;
+	std::unordered_map<FaceCRef, std::unordered_set<HalfEdgeCRef>> faceHalfEdges;
+	for (HalfEdgeCRef h = GetHalfEdges().begin(); h != GetHalfEdges().end(); ++h)
+	{
+		assert(vertexHalfEdges[h->GetVertex()].emplace(h).second);
+		assert(edgeHalfEdges[h->GetEdge()].emplace(h).second);
+		assert(faceHalfEdges[h->GetFace()].emplace(h).second);
+	}
+
+	for (VertexCRef v = GetVertices().begin(); v != GetVertices().end(); ++v)
+	{
+		auto toVisit = vertexHalfEdges[v];
+		HalfEdgeRef h = v->GetHalfEdge();
+		do
+		{
+			if (h->GetVertex() != v)
+			{
+				return false;
+			}
+
+			auto itHalfEdge = toVisit.find(h);
+			if (itHalfEdge == toVisit.end())
+			{
+				return false;
+			}
+			toVisit.erase(itHalfEdge);
+
+			h = h->GetTwin();
+		} while (h != v->GetHalfEdge());
+
+		if (!toVisit.empty())
+		{
+			return false;
+		}
+
+		if (vertexHalfEdges[v].size() < 2)
+		{
+			return false;
+		}
+	}
+
+	for (EdgeCRef e = GetEdges().begin(); e != GetEdges().end(); ++e)
+	{
+		auto toVisit = edgeHalfEdges[e];
+		HalfEdgeRef h = e->GetHalfEdge();
+		do
+		{
+			if (h->GetEdge() != e)
+			{
+				return false;
+			}
+
+			auto itHalfEdge = toVisit.find(h);
+			if (itHalfEdge == toVisit.end())
+			{
+				return false;
+			}
+			toVisit.erase(itHalfEdge);
+
+			h = h->GetTwin();
+		} while (h != e->GetHalfEdge());
+
+		if (!toVisit.empty())
+		{
+			return false;
+		}
+
+		if (edgeHalfEdges[e].size() != 2)
+		{
+			return false;
+		}
+	}
+
+	for (FaceCRef f = GetFaces().begin(); f != GetFaces().end(); ++f)
+	{
+		auto toVisit = faceHalfEdges[f];
+		HalfEdgeRef h = f->GetHalfEdge();
+		do
+		{
+			if (h->GetFace() != f)
+			{
+				return false;
+			}
+
+			auto itHalfEdge = toVisit.find(h);
+			if (itHalfEdge == toVisit.end())
+			{
+				return false;
+			}
+			toVisit.erase(itHalfEdge);
+
+			h = h->GetTwin();
+		} while (h != f->GetHalfEdge());
+
+		if (!toVisit.empty())
+		{
+			return false;
+		}
+
+		if (faceHalfEdges[f].size() < 3)
 		{
 			return false;
 		}

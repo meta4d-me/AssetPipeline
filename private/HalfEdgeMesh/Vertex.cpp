@@ -78,7 +78,7 @@ uint32_t Vertex::Degree() const
 
 bool Vertex::Validate() const
 {
-	return cd::Math::Validate(m_position.x()) && cd::Math::Validate(m_position.y()) && cd::Math::Validate(m_position.z());
+	return m_position.Validate();
 }
 
 }

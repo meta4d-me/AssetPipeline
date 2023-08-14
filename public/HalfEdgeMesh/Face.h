@@ -9,7 +9,7 @@ class CORE_API Face
 {
 public:
 	Face() = delete;
-	explicit Face(FaceID id, bool boundary) : m_id(id) { }
+	explicit Face(FaceID id, bool boundary) : m_id(id), m_isBoundary(boundary) { }
 	Face(const Face&) = default;
 	Face& operator=(const Face&) = default;
 	Face(Face&&) = default;

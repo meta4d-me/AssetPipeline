@@ -38,9 +38,9 @@ public:
 	cd::UV& GetCornerUV() { return m_cornerUV; }
 	const cd::UV& GetCornerUV() const { return m_cornerUV; }
 
-	void SetCornerNormal(cd::Direction normal) { m_cornorNormal = cd::MoveTemp(normal); }
-	cd::Direction& GetCornerNormal() { return m_cornorNormal; }
-	const cd::Direction& GetCornerNormal() const { return m_cornorNormal; }
+	void SetCornerNormal(cd::Direction normal) { m_cornerNormal = cd::MoveTemp(normal); }
+	cd::Direction& GetCornerNormal() { return m_cornerNormal; }
+	const cd::Direction& GetCornerNormal() const { return m_cornerNormal; }
 
 	bool Validate() const;
 
@@ -48,7 +48,7 @@ private:
 	// data
 	HalfEdgeID m_id;
 	cd::UV m_cornerUV = cd::UV::Zero();
-	cd::Direction m_cornorNormal = cd::Direction::Zero();
+	cd::Direction m_cornerNormal = cd::Direction::Zero();
 
 	// connectivity
 	HalfEdgeRef m_twinRef;
