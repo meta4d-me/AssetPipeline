@@ -27,7 +27,6 @@ int main(int argc, char** argv)
 	{
 		FbxProducer producer(pInputFilePath);
 		Processor processor(&producer, nullptr, pSceneDatabase.get());
-		processor.SetDumpSceneDatabaseEnable(false);
 		processor.Run();
 	}
 	
