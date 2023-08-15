@@ -22,7 +22,7 @@ public:
 	TRay& operator=(TRay&& rhs) = default;
 	~TRay() = default;
 
-	bool IsValid() const { return !m_direction.SameWith(0.0f) && !m_direction.IsNaN(); }
+	bool IsValid() const { return !m_direction.SameWith(0.0f) && !m_direction.SameWith(); }
 	TPoint GetPointAt(T parameter) const { return m_origin + m_direction * parameter; }
 	T GetParameter(const TPoint& point) const { return (point - m_origin).Dot(m_direction); }
 	const TDirection& Direction() const { return m_direction; }

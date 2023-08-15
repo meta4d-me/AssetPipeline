@@ -5,7 +5,6 @@
 #include "Math/Math.hpp"
 
 #include <cstring> // std::memset
-#include <limits>
 
 namespace cd
 {
@@ -28,7 +27,7 @@ public:
 public:
 	static constexpr VectorType Zero() { return VectorType(static_cast<T>(0)); }
 	static constexpr VectorType One() { return VectorType(static_cast<T>(1)); }
-	static constexpr VectorType Nan() { return VectorType(std::numeric_limits<T>::quiet_NaN()); }
+	static constexpr VectorType Nan() { return VectorType(cd::Math::FLOAT_NAN); }
 
 	static VectorType Lerp(const VectorType& a, const VectorType& b, T factor)
 	{

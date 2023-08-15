@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <climits>
 #include <type_traits>
 
 #include "AxisSystem.hpp"
@@ -31,6 +32,7 @@ public:
 	static constexpr float SQRT_3 = 1.7320508075688772935274463415059f;
 	static constexpr float HALF_SQRT_3 = SQRT_3 / 2.0f;
 	static constexpr float INVERSE_SQRT_3 = 1.0f / SQRT_3;
+	static constexpr float FLOAT_NAN = std::numeric_limits<float>::quiet_NaN();
 
 	template<typename T>
 	static constexpr T DegreeToRadian(T degree) { return degree * DEGREE_TO_RADIAN; }
