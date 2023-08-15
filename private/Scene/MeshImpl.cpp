@@ -1,5 +1,10 @@
 #include "MeshImpl.h"
 
+#include "HalfEdgeMesh/Edge.h"
+#include "HalfEdgeMesh/Face.h"
+#include "HalfEdgeMesh/HalfEdge.h"
+#include "HalfEdgeMesh/Vertex.h"
+
 namespace cd
 {
 

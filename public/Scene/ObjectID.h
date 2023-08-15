@@ -105,7 +105,7 @@ struct hash<std::pair<cd::ObjectID<T, N>, cd::ObjectID<T, N>>>
 	{
 		if constexpr (std::is_same_v<T, uint32_t>)
 		{
-			uint64_t a = static_cast<uint64_t>(pair.first.Data()) << (sizeof(uint32_t) * 4);
+			uint64_t a = static_cast<uint64_t>(pair.first.Data()) << (sizeof(uint32_t) * 8);
 			uint64_t b = static_cast<uint64_t>(pair.second.Data());
 			return a | b;
 		}

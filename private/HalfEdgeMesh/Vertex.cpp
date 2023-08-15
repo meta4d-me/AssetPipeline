@@ -8,16 +8,19 @@ namespace cd::hem
 
 bool Vertex::IsOnBoundary() const
 {
-	bool isOnBoundary = false;
 	HalfEdgeCRef h = m_halfEdgeRef;
 
 	do
 	{
-		isOnBoundary = isOnBoundary || h->GetFace()->IsBoundary();
+		if (h->GetFace()->IsBoundary())
+		{
+			return true;
+		}
+
 		h = h->GetTwin()->GetNext();
-	} while (!isOnBoundary && h != m_halfEdgeRef);
+	} while (h != m_halfEdgeRef);
 	
-	return isOnBoundary;
+	return false;
 }
 
 Point Vertex::NeighborCenter() const
@@ -78,7 +81,7 @@ uint32_t Vertex::Degree() const
 
 bool Vertex::Validate() const
 {
-	return cd::Math::Validate(m_position.x()) && cd::Math::Validate(m_position.y()) && cd::Math::Validate(m_position.z());
+	return m_position.Validate();
 }
 
 }

@@ -42,6 +42,16 @@ private:
 	HalfEdgeRef m_halfEdgeRef;
 };
 
+inline bool operator<(const VertexRef& lhs, const VertexRef& rhs)
+{
+	return &*lhs < &*rhs;
+}
+
+inline bool operator<(const VertexCRef& lhs, const VertexCRef& rhs)
+{
+	return &*lhs < &*rhs;
+}
+
 }
 
 namespace std
@@ -50,18 +60,20 @@ namespace std
 template<>
 struct hash<cd::hem::VertexRef>
 {
-	uint64_t operator()(const cd::hem::VertexRef& value) const
+	uint64_t operator()(const cd::hem::VertexRef& key) const
 	{
-		return reinterpret_cast<uint64_t>(&value);
+		static const std::hash<decltype(&*key)> h;
+		return h(&*key);
 	}
 };
 
 template<>
 struct hash<cd::hem::VertexCRef>
 {
-	uint64_t operator()(const cd::hem::VertexCRef& value) const
+	uint64_t operator()(const cd::hem::VertexCRef& key) const
 	{
-		return reinterpret_cast<uint64_t>(&value);
+		static const std::hash<decltype(&*key)> h;
+		return h(&*key);
 	}
 };
 
