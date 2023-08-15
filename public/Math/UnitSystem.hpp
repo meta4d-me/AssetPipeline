@@ -8,6 +8,7 @@ enum class Unit
 	None,
 	CenterMeter,
 	Meter,
+	Kilometre,
 
 	Degree,
 	Angle,
@@ -27,6 +28,7 @@ constexpr const char* UnitNames[] =
 	"",
 	"cm",
 	"m",
+	"km",
 	"°",
 	"rad",
 	"J",
