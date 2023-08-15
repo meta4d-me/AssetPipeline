@@ -171,11 +171,11 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 	cd::Material material(materialID, finalMaterialName.c_str(), cd::MaterialType::BasePBR);
 
 	// Process all parameters
-	float metallic = 0.5f;
+	float metallic = 0.1f;
 	aiGetMaterialFloat(pSourceMaterial, AI_MATKEY_METALLIC_FACTOR, &metallic);
 	material.SetFloatProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::Factor, metallic);
 
-	float roughness = 0.5f;
+	float roughness = 0.9f;
 	aiGetMaterialFloat(pSourceMaterial, AI_MATKEY_ROUGHNESS_FACTOR, &roughness);
 	material.SetFloatProperty(cd::MaterialPropertyGroup::Roughness, cd::MaterialProperty::Factor, roughness);
 

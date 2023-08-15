@@ -21,7 +21,10 @@ public:
 
 	void SetTwin(HalfEdgeRef ref) { m_twinRef = ref; }
 	HalfEdgeRef GetTwin() const { return m_twinRef; }
-	
+
+	void SetPrev(HalfEdgeRef ref) { m_prevRef = ref; }
+	HalfEdgeRef GetPrev() const { return m_prevRef; }
+
 	void SetNext(HalfEdgeRef ref) { m_nextRef = ref; }
 	HalfEdgeRef GetNext() const { return m_nextRef; }
 
@@ -53,6 +56,7 @@ private:
 	// connectivity
 	HalfEdgeRef m_twinRef;
 	HalfEdgeRef m_nextRef;
+	HalfEdgeRef m_prevRef;
 	VertexRef m_vertexRef;
 	EdgeRef m_edgeRef;
 	FaceRef m_faceRef;
