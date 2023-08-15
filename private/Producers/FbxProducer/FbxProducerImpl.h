@@ -93,7 +93,7 @@ private:
 
 	std::string m_filePath;
 	fbxsdk::FbxManager* m_pSDKManager = nullptr;
-	fbxsdk::FbxGeometryConverter* m_pGeometryConverter = nullptr;
+	std::unique_ptr<fbxsdk::FbxGeometryConverter> m_pGeometryConverter;
 
 	std::map<int32_t, uint32_t> m_fbxMaterialIndexToMaterialID;
 
