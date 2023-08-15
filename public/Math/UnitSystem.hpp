@@ -8,7 +8,7 @@ enum class Unit
 	None,
 	CenterMeter,
 	Meter,
-	Kilometre,
+	Kilometer,
 
 	Degree,
 	Angle,
