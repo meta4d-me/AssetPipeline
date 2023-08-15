@@ -7,6 +7,7 @@ namespace fbxsdk
 
 class FbxManager;
 class FbxNode;
+class FbxGeometryConverter;
 
 }
 
