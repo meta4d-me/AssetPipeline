@@ -2,6 +2,8 @@
 
 #include "HalfEdgeMesh/ForwardDecls.h"
 
+#include <optional>
+
 namespace cd
 {
 
