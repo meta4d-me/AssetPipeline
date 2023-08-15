@@ -169,6 +169,19 @@ public:
 		}
 	}
 
+	CD_FORCEINLINE bool SameWith(T value) const
+	{
+		for (size_t index = 0; index < N; ++index)
+		{
+			if (!Math::IsEqualTo(data[index], value))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	CD_FORCEINLINE bool Contains(T value) const
 	{
 		for (size_t index = 0; index < N; ++index)

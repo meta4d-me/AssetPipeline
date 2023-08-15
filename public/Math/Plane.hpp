@@ -27,7 +27,7 @@ public:
 	TPlane& operator=(TPlane && rhs) = default;
 	~TPlane() = default;
 
-	bool IsValid() const { return !m_normal.IsZero() && !m_normal.IsNaN(); }
+	bool IsValid() const { return !m_normal.SameWith(0.0f) && !m_normal.IsNaN(); }
 	const Vec& GetNormal() const { return m_normal; }
 	T GetDistance() const { return m_distance; }
 	Vec GetOrigin() const { return m_normal * m_distance; }
