@@ -12,20 +12,28 @@
 namespace cd
 {
 
-class VertexFormat;
+namespace hem
+{
+
+class HalfEdgeMesh;
+
+}
+
 class MeshImpl;
+class VertexFormat;
 
 class CORE_API Mesh final
 {
 public:
 	static const char* GetClassName() { return "Mesh"; }
+	static Mesh FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy);
 
 public:
-	Mesh() = delete;
+	Mesh() = default;
 	explicit Mesh(InputArchive& inputArchive);
 	explicit Mesh(InputArchiveSwapBytes & inputArchive);
 	explicit Mesh(uint32_t vertexCount, uint32_t polygonCount);
-	explicit Mesh(MeshID meshID, const char* pMeshName, uint32_t vertexCount, uint32_t polygonCount);
+	explicit Mesh(MeshID id, const char* pName, uint32_t vertexCount, uint32_t polygonCount);
 	Mesh(const Mesh&) = delete;
 	Mesh& operator=(const Mesh&) = delete;
 	Mesh(Mesh&&);
@@ -33,8 +41,7 @@ public:
 	~Mesh();
 
 	void Init(uint32_t vertexCount, uint32_t polygonCount);
-	void Init(MeshID meshID, const char* pMeshName, uint32_t vertexCount, uint32_t polygonCount);
-	
+
 	void SetID(MeshID id);
 	MeshID GetID() const;
 	void SetName(const char* pName);

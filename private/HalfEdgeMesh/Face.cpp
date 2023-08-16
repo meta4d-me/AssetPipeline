@@ -25,7 +25,20 @@ Point Face::Center() const
 
 Direction Face::Normal() const
 {
-	return Direction::Zero();
+	Direction normal(0.0f);
+
+	HalfEdgeCRef h = m_halfEdgeRef;
+	do
+	{
+		Direction v1 = h->GetVertex()->GetPosition();
+		Direction v2 = h->GetNext()->GetVertex()->GetPosition();
+		normal += v1.Cross(v2);
+
+		h = h->GetNext();
+	} while (h != m_halfEdgeRef);
+
+	normal.Normalize();
+	return normal;
 }
 
 uint32_t Face::Degree() const

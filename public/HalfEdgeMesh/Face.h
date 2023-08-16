@@ -5,11 +5,11 @@
 namespace cd::hem
 {
 
-class Face
+class CORE_API Face
 {
 public:
 	Face() = delete;
-	explicit Face(FaceID id, bool boundary) : m_id(id) { }
+	explicit Face(FaceID id, bool boundary) : m_id(id), m_isBoundary(boundary) { }
 	Face(const Face&) = default;
 	Face& operator=(const Face&) = default;
 	Face(Face&&) = default;
@@ -39,6 +39,41 @@ private:
 
 	// connectivity
 	HalfEdgeRef m_halfEdgeRef;
+};
+
+inline bool operator<(const FaceRef& lhs, const FaceRef& rhs)
+{
+	return &*lhs < &*rhs;
+}
+
+inline bool operator<(const FaceCRef& lhs, const FaceCRef& rhs)
+{
+	return &*lhs < &*rhs;
+}
+
+}
+
+namespace std
+{
+
+template<>
+struct hash<cd::hem::FaceRef>
+{
+	uint64_t operator()(const cd::hem::FaceRef& key) const
+	{
+		static const std::hash<decltype(&*key)> h;
+		return h(&*key);
+	}
+};
+
+template<>
+struct hash<cd::hem::FaceCRef>
+{
+	uint64_t operator()(const cd::hem::FaceCRef& key) const
+	{
+		static const std::hash<decltype(&*key)> h;
+		return h(&*key);
+	}
 };
 
 }

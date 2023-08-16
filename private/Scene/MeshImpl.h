@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Base/Template.h"
+#include "HalfEdgeMesh/HalfEdgeMesh.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
 #include "Math/Box.hpp"
@@ -8,8 +9,10 @@
 #include "Scene/VertexFormat.h"
 
 #include <array>
+#include <cassert>
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace cd
@@ -18,16 +21,16 @@ namespace cd
 class MeshImpl final
 {
 public:
-	MeshImpl() = delete;
+	void FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy);
+
+public:
+	MeshImpl() = default;
 
 	template<bool SwapBytesOrder>
 	explicit MeshImpl(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
 		*this << inputArchive;
 	}
-
-	explicit MeshImpl(uint32_t vertexCount, uint32_t polygonCount);
-	explicit MeshImpl(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount);
 
 	MeshImpl(const MeshImpl&) = delete;
 	MeshImpl& operator=(const MeshImpl&) = delete;
@@ -36,7 +39,6 @@ public:
 	~MeshImpl() = default;
 
 	void Init(uint32_t vertexCount, uint32_t polygonCount);
-	void Init(MeshID meshID, std::string meshName, uint32_t vertexCount, uint32_t polygonCount);
 	
 	void SetID(MeshID id) { m_id = id; }
 	MeshID GetID() const { return m_id; }
@@ -141,7 +143,9 @@ public:
 			>> vertexInfluenceCount
 			>> polygonCount;
 
-		Init(MeshID(meshID), MoveTemp(meshName), vertexCount, polygonCount);
+		SetID(meshID);
+		SetName(MoveTemp(meshName));
+		Init(vertexCount, polygonCount);
 		SetMaterialID(MaterialID(meshMaterialID));
 		SetVertexUVSetCount(vertexUVSetCount);
 		SetVertexColorSetCount(vertexColorSetCount);
