@@ -83,7 +83,6 @@ private:
 	cd::BoneID AddBone(const fbxsdk::FbxNode* pSDKNode, cd::Bone* pParentNode, cd::SceneDatabase* pSceneDatabase);
 	//cd::TrackID AddTrack(const fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase);
 	cd::AnimationID AddAnimation(fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxScene* pSDKScene, cd::SceneDatabase* pSceneDatabase);
-
 private:
 	bool m_importMaterial = true;
 	bool m_importTexture = true;
@@ -96,6 +95,7 @@ private:
 	fbxsdk::FbxGeometryConverter* m_pGeometryConverter = nullptr;
 
 	std::map<int32_t, uint32_t> m_fbxMaterialIndexToMaterialID;
+	std::vector<fbxsdk::FbxNode*> m_pBones;
 
 	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
 	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;

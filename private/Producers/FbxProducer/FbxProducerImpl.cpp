@@ -205,7 +205,7 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 
 	if (WantImportAnimation())
 	{
-
+		
 	}
 }
 
@@ -459,6 +459,8 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 	const fbxsdk::FbxLayerElementBinormal* pLayerElementBinormalData = pMeshBaseLayer->GetBinormals();
 	const fbxsdk::FbxLayerElementVertexColor* pLayerElementColorData = pMeshBaseLayer->GetVertexColors();
 
+	//meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneIndex, cd::AttributeValueType::Int16, cd::MaxBoneInfluenceCount);
+	//meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneWeight, cd::AttributeValueType::Float, cd::MaxBoneInfluenceCount);
 	// For uv data, we need to query other layers to get uv sets for lightmap, shadowmap, decay...
 	std::vector<const fbxsdk::FbxLayerElementUV*> layerElementUVDatas;
 	for (int32_t layerIndex = 0; layerIndex < pFbxMesh->GetLayerCount(); ++layerIndex)
@@ -505,7 +507,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 	// Associate mesh id to its parent transform node.
 	if (pParentNode)
 	{
-		//pParentNode->AddMeshID(meshID.Data());
+		pParentNode->AddMeshID(meshID.Data());
 	}
 
 	if (optMaterialIndex.has_value())
@@ -681,10 +683,9 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 	}
 
 	//
-
-	int deformerCount = pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eSkin);
 	for (uint32_t deformerIndex = 0; deformerIndex < pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eSkin); deformerIndex++)
 	{
+		std::map<uint32_t, uint32_t> mapVertexIndexToCurrentBoneCount;
 		fbxsdk::FbxSkin* skinDeformer = static_cast<fbxsdk::FbxSkin*>(pFbxMesh->GetDeformer(deformerIndex, fbxsdk::FbxDeformer::eSkin));
 		int clusterCount = skinDeformer->GetClusterCount();
 		for (int clusterIndex = 0; clusterIndex < clusterCount; ++clusterIndex)
@@ -699,6 +700,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 			{
 				cd::Bone bone(boneID, cd::MoveTemp(boneName));
 				FbxNode* boneNode = pCluster->GetLink();
+				m_pBones.push_back(boneNode);
 				bone.SetName(boneName);
 				FbxAMatrix transformMatrix;
 				pCluster->GetTransformMatrix(transformMatrix);
@@ -731,8 +733,18 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 			std::printf("VertexIndexCount: %d\n", VertexIndexCount);
 			for (k = 0; k < VertexIndexCount; ++k)
 			{
-				double weight = pCluster->GetControlPointWeights()[k];
-				std::printf("weight: %d\n", weight);
+				int32_t controlPointIndex = pCluster->GetControlPointIndices()[k];
+				float weight = (float)pCluster->GetControlPointWeights()[k];
+				uint32_t currentBoneCount = 0U;
+				auto itVertexBoneCount = mapVertexIndexToCurrentBoneCount.find(controlPointIndex);
+				if (itVertexBoneCount != mapVertexIndexToCurrentBoneCount.end())
+				{
+					currentBoneCount = mapVertexIndexToCurrentBoneCount[controlPointIndex] + 1;
+					assert(currentBoneCount <= cd::MaxBoneInfluenceCount);
+				}
+				std::printf("bondeIndex: %d ,controlPointIndex: %d \n", boneID.Data(), controlPointIndex);
+				mesh.SetVertexBoneWeight(currentBoneCount, controlPointIndex, boneID, weight);
+				mapVertexIndexToCurrentBoneCount[controlPointIndex] = currentBoneCount;
 			}
 			
 		
@@ -942,7 +954,7 @@ cd::AnimationID FbxProducerImpl::AddAnimation(fbxsdk::FbxNode* pSDKNode, fbxsdk:
 			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclScaling, FBXSDK_CURVENODE_COMPONENT_Z);
 			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclScaling, FBXSDK_CURVENODE_COMPONENT_Z);
 		}
-	}
+	} 
 
 	return cd::AnimationID(cd::AnimationID::InvalidID);
 }
