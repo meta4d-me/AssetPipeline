@@ -108,14 +108,12 @@ HalfEdgeMesh HalfEdgeMesh::FromIndexedFaces(const std::vector<cd::Point>& vertic
 
 			if (vertexIndex != 0)
 			{
-				halfEdge->SetPrev(prev);
 				prev->SetNext(halfEdge);
 			}
 			prev = halfEdge;
 		}
 
 		// Connect last half edge to first half edge to be a loop.
-		face->GetHalfEdge()->SetPrev(prev);
 		prev->SetNext(face->GetHalfEdge());
 	};
 
@@ -258,7 +256,6 @@ HalfEdgeRef HalfEdgeMesh::EmplaceHalfEdge()
 	}
 
 	halfEdge->SetTwin(m_halfEdges.end());
-	halfEdge->SetPrev(m_halfEdges.end());
 	halfEdge->SetNext(m_halfEdges.end());
 	halfEdge->SetVertex(m_vertices.end());
 	halfEdge->SetEdge(m_edges.end());
@@ -308,7 +305,6 @@ void HalfEdgeMesh::EraseHalfEdge(HalfEdgeRef halfEdge)
 
 	// clear connectivity
 	halfEdge->SetTwin(m_halfEdges.end());
-	halfEdge->SetPrev(m_halfEdges.end());
 	halfEdge->SetNext(m_halfEdges.end());
 	halfEdge->SetVertex(m_vertices.end());
 	halfEdge->SetEdge(m_edges.end());
@@ -530,13 +526,91 @@ bool HalfEdgeMesh::Validate() const
 	return true;
 }
 
+std::optional<EdgeRef> HalfEdgeMesh::FlipEdge(EdgeRef edge)
+{
+	if (edge->IsOnBoundary())
+	{
+		return std::nullopt;
+	}
+	
+	// Prepare data.
+	// Need to query four vertices around the edge.
+	// v0v1 and v1v0 is on the edge.
+	auto v0v1 = edge->GetHalfEdge();
+	auto v1v0 = v0v1->GetTwin();
+	auto v0v2 = v1v0->GetNext();
+	auto v1v3 = v0v1->GetNext();
+	auto v0v1Prev = v0v1->GetPrev();
+	auto v1v0Prev = v1v0->GetPrev();
+	auto v0v2Next = v0v2->GetNext();
+	auto v1v3Next = v1v3->GetNext();
+
+	// v0v1 -> v1v3 -> ... -> v3v0
+	auto v0v1Face = v0v1->GetFace();
+	// v0v2 -> v2v1 -> ... -> v1v0
+	auto v1v0Face = v1v0->GetFace();
+
+	auto v0 = v0v1->GetVertex();
+	auto v1 = v1v0->GetVertex();
+	auto v2 = v0v2->GetTwin()->GetVertex();
+	auto v3 = v1v3->GetTwin()->GetVertex();
+
+	// Reassign connectivity.
+	// If the vertex's half edge is on the fliping edge, we should update half edge's next half edge to it : v0v1 -> v0v2 -> ...
+	if (v0->GetHalfEdge() == v0v1)
+	{
+		v0->SetHalfEdge(v0v2);
+	}
+
+	if (v1->GetHalfEdge() == v1v0)
+	{
+		v1->SetHalfEdge(v1v3);
+	}
+
+	// Rename variables in advance. Rotate CCW to get expected connectivity as below.
+	auto v2v3 = v0v1;
+	auto v3v2 = v1v0;
+
+	// Change half edge's leaving vertex.
+	v2v3->SetVertex(v2);
+	v3v2->SetVertex(v3);
+
+	// v2v3 and v3v2 is new added half edge so need to update next half edge.
+	v2v3->SetNext(v1v3Next);
+	v3v2->SetNext(v0v2Next);
+
+	// The loop may contain 3 ~ n half edges. We only need to maintain the begin half edge and the end half edge.
+	// For example, v0v1 will disconnect and v0v2 will connect. As a new added half edge, v0v2 should update its next half edge.
+	v0v1Prev->SetNext(v0v2);
+	v0v2->SetNext(v2v3);
+	v0v2->SetFace(v0v1Face);
+
+	v1v0Prev->SetNext(v1v3);
+	v1v3->SetNext(v3v2);
+	v1v3->SetFace(v1v0Face);
+
+	// v0v2 and v1v3 changes its FaceRef. If face's half edge is v0v2 or v1v3, it needs to update.
+	// The most convenient way is just to use twin half edge's face in opposite direction.
+	if (v0v1Face->GetHalfEdge() == v1v3)
+	{
+		v0v1Face->SetHalfEdge(v0v2);
+	}
+
+	if (v1v0Face->GetHalfEdge() == v0v2)
+	{
+		v1v0Face->SetHalfEdge(v1v3);
+	}
+
+	// The edge connectivity data don't change.
+	return edge;
+}
+
 std::optional<VertexRef> HalfEdgeMesh::CollapseEdge(EdgeRef edge, float t)
 {
-	HalfEdgeRef v0v1 = edge->GetHalfEdge();
-	HalfEdgeRef v1v0 = v0v1->GetTwin();
-
-	VertexRef v0 = v0v1->GetVertex();
-	VertexRef v1 = v1v0->GetVertex();
+	auto v0v1 = edge->GetHalfEdge();
+	auto v1v0 = v0v1->GetTwin();
+	auto v0 = v0v1->GetVertex();
+	auto v1 = v1v0->GetVertex();
 	
 	// Keep v0 and move it to a new position between v0 and v1.  
 	v0->SetPosition(v0->GetPosition() * t + v1->GetPosition() * (1 - t));

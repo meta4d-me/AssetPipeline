@@ -50,6 +50,7 @@ public:
 
 	bool Validate() const;
 
+	std::optional<EdgeRef> FlipEdge(EdgeRef edge);
 	std::optional<VertexRef> CollapseEdge(EdgeRef edge, float t = 0.5f);
 
 private:
