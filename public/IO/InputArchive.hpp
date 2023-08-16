@@ -59,17 +59,29 @@ public:
 		return *this;
 	}
 
-	template<typename T>
-	TInputArchive& ImportBuffer(T data)
+	uint64_t FetchBufferSize()
 	{
-		static_assert(std::is_pointer_v<T> && "Data buffer should be pointer.");
 		uint64_t bufferBytes;
 		m_pIStream->read(reinterpret_cast<char*>(&bufferBytes), sizeof(uint64_t));
 		if constexpr (SwapBytesOrder)
 		{
 			bufferBytes = byte_swap<uint64_t>(bufferBytes);
 		}
-		m_pIStream->read(reinterpret_cast<char*>(data), bufferBytes);
+		return bufferBytes;
+	}
+
+	template<typename T>
+	TInputArchive& ImportBuffer(T data)
+	{
+		ImportBuffer(data, FetchBufferSize());
+		return *this;
+	}
+
+	template<typename T>
+	TInputArchive& ImportBuffer(T data, uint64_t bufferSize)
+	{
+		static_assert(std::is_pointer_v<T> && "Data buffer should be pointer.");
+		m_pIStream->read(reinterpret_cast<char*>(data), bufferSize);
 
 		return *this;
 	}
