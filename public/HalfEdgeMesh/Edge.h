@@ -5,7 +5,7 @@
 namespace cd::hem
 {
 
-class Edge
+class CORE_API Edge
 {
 public:
 	Edge() = delete;
@@ -35,6 +35,41 @@ private:
 
 	// connectivity
 	HalfEdgeRef m_halfEdgeRef;
+};
+
+inline bool operator<(const EdgeRef& lhs, const EdgeRef& rhs)
+{
+	return &*lhs < &*rhs;
+}
+
+inline bool operator<(const EdgeCRef& lhs, const EdgeCRef& rhs)
+{
+	return &*lhs < &*rhs;
+}
+
+}
+
+namespace std
+{
+
+template<>
+struct hash<cd::hem::EdgeRef>
+{
+	uint64_t operator()(const cd::hem::EdgeRef& key) const
+	{
+		static const std::hash<decltype(&*key)> h;
+		return h(&*key);
+	}
+};
+
+template<>
+struct hash<cd::hem::EdgeCRef>
+{
+	uint64_t operator()(const cd::hem::EdgeCRef& key) const
+	{
+		static const std::hash<decltype(&*key)> h;
+		return h(&*key);
+	}
 };
 
 }

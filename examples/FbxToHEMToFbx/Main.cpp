@@ -27,15 +27,16 @@ int main(int argc, char** argv)
 	{
 		FbxProducer producer(pInputFilePath);
 		Processor processor(&producer, nullptr, pSceneDatabase.get());
-		processor.SetDumpSceneDatabaseEnable(false);
 		processor.Run();
 	}
 	
 	{
 		for (const auto& mesh : pSceneDatabase->GetMeshes())
 		{
-			auto halfEdgeMesh = cd::HalfEdgeMesh::FromIndexedMesh(mesh);
+			auto halfEdgeMesh = cd::hem::HalfEdgeMesh::FromIndexedMesh(mesh);
 			assert(halfEdgeMesh.Validate());
+			auto newMesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, cd::ConvertStrategy::TopologyFirst);
+			assert(newMesh.GetVertexCount() > 0U);
 		}
 	}
 

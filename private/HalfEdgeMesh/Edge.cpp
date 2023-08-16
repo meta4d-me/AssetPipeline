@@ -19,7 +19,7 @@ Point Edge::Center() const
 
 Direction Edge::Normal() const
 {
-	return Direction::Zero();
+	return (m_halfEdgeRef->GetFace()->Normal() + m_halfEdgeRef->GetTwin()->GetFace()->Normal()).Normalize();
 }
 
 float Edge::Length() const

@@ -8,16 +8,19 @@ namespace cd::hem
 
 bool Vertex::IsOnBoundary() const
 {
-	bool isOnBoundary = false;
 	HalfEdgeCRef h = m_halfEdgeRef;
 
 	do
 	{
-		isOnBoundary = isOnBoundary || h->GetFace()->IsBoundary();
+		if (h->GetFace()->IsBoundary())
+		{
+			return true;
+		}
+
 		h = h->GetTwin()->GetNext();
-	} while (!isOnBoundary && h != m_halfEdgeRef);
+	} while (h != m_halfEdgeRef);
 	
-	return isOnBoundary;
+	return false;
 }
 
 Point Vertex::NeighborCenter() const
@@ -40,7 +43,26 @@ Point Vertex::NeighborCenter() const
 
 Direction Vertex::Normal() const
 {
-	return Direction::Zero();
+	Direction normal(0.0f);
+	
+	HalfEdgeCRef h = m_halfEdgeRef;
+	do
+	{
+		const Point& v1 = h->GetNext()->GetVertex()->GetPosition();
+
+		h = h->GetTwin()->GetNext();
+
+		const Point& v2 = h->GetNext()->GetVertex()->GetPosition();
+
+		if (!h->GetFace()->IsBoundary())
+		{
+			normal += (v1 - m_position).Cross(v2 - m_position);
+		}
+
+	} while (h != m_halfEdgeRef);
+
+	normal.Normalize();
+	return normal;
 }
 
 uint32_t Vertex::Degree() const
@@ -59,7 +81,7 @@ uint32_t Vertex::Degree() const
 
 bool Vertex::Validate() const
 {
-	return cd::Math::Validate(m_position.x()) && cd::Math::Validate(m_position.y()) && cd::Math::Validate(m_position.z());
+	return m_position.Validate();
 }
 
 }

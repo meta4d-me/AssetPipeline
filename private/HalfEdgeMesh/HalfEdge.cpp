@@ -5,7 +5,7 @@ namespace cd::hem
 
 bool HalfEdge::Validate() const
 {
-	return true;
+	return m_cornerUV.Validate() && m_cornerNormal.Validate();
 }
 
 }

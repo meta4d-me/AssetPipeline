@@ -43,8 +43,4 @@ constexpr const char* GetUnitName(Unit unit)
 	return UnitNames[static_cast<int>(unit)];
 }
 
-// TODO : UnitSystem class.
-// Currently, it seems that we only need to store unit enum is enough.
-// So need more information to decide.
-
 }

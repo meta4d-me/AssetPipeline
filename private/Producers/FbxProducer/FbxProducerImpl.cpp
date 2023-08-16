@@ -46,7 +46,7 @@ void UnrollRotationCurves(fbxsdk::FbxNode* pNode, fbxsdk::FbxAnimLayer* pAnimati
 			}
 
 			fbxsdk::FbxEuler::EOrder rotationOrder = eEulerXYZ;
-			pNode->GetRotationOrder(FbxNode::eSourcePivot, rotationOrder);
+			pNode->GetRotationOrder(fbxsdk::FbxNode::eSourcePivot, rotationOrder);
 			pUnrollFilter->SetRotationOrder(rotationOrder);
 			pUnrollFilter->Apply(rotationCurves.data(), static_cast<int32_t>(rotationCurves.size()));
 		}
@@ -73,7 +73,7 @@ FbxProducerImpl::FbxProducerImpl(std::string filePath)
 	assert(m_pSDKManager && "Failed to init sdk manager.");
 	m_pSDKManager->SetIOSettings(pIOSettings);
 
-	m_pGeometryConverter = new FbxGeometryConverter(m_pSDKManager);
+	m_pGeometryConverter = std::make_unique<fbxsdk::FbxGeometryConverter>(m_pSDKManager);
 }
 
 FbxProducerImpl::~FbxProducerImpl()
@@ -82,9 +82,6 @@ FbxProducerImpl::~FbxProducerImpl()
 	{
 		m_pSDKManager->Destroy();
 		m_pSDKManager = nullptr;
-
-		delete m_pGeometryConverter;
-		m_pGeometryConverter = NULL;
 	}
 }
 
@@ -257,21 +254,19 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 		bool hasError = false;
 		if (!fbxMesh->IsTriangleMesh())
 		{
-			printf("[Error] Mesh is not triangulated.\n");
 			hasError = true;
-			FbxNodeAttribute* ConvertedNode = m_pGeometryConverter->Triangulate(fbxMesh, true);
-			if (ConvertedNode != NULL && ConvertedNode->GetAttributeType() == FbxNodeAttribute::eMesh)
+			fbxsdk::FbxNodeAttribute* ConvertedNode = m_pGeometryConverter->Triangulate(fbxMesh, true);
+			if (ConvertedNode && ConvertedNode->GetAttributeType() == fbxsdk::FbxNodeAttribute::eMesh)
 			{
 				fbxMesh = ConvertedNode->GetNode()->GetMesh();
 				hasError = false;
-				printf("Mesh triangulated successed.\n");
 			}
 			else
 			{
-				printf("[Error] Mesh triangulated failed.\n");
+				printf("[Error] Mesh is not triangulated.\n");
 			}
-			
 		}
+
 		fbxsdk::FbxLayer* pMeshBaseLayer = fbxMesh->GetLayer(0);
 		if (!pMeshBaseLayer)
 		{
@@ -709,7 +704,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 				bone.SetTransform(details::ConvertFbxNodeTransform(const_cast<fbxsdk::FbxNode*>(pCluster->GetLink())));
 
 				// Set the parent bone
-				FbxNode* pParentNode = boneNode->GetParent();
+				fbxsdk::FbxNode* pParentNode = boneNode->GetParent();
 				fbxsdk::FbxNodeAttribute* pNodeAttribute = pParentNode->GetNodeAttribute();
 				if (pParentNode && pNodeAttribute)
 				{
@@ -860,7 +855,7 @@ int FbxProducerImpl::GetSceneBoneCount(fbxsdk::FbxNode* pSceneNode , cd::SceneDa
 	int numChildren = pSceneNode->GetChildCount();
 	for (int i = 0; i < numChildren; i++)
 	{
-		FbxNode* childNode = pSceneNode->GetChild(i);
+		fbxsdk::FbxNode* childNode = pSceneNode->GetChild(i);
 		totalCount += GetSceneBoneCount(childNode,pSceneDatabase);
 	}
 	return totalCount;

@@ -5,7 +5,6 @@
 #include "Math/Math.hpp"
 
 #include <cstring> // std::memset
-#include <limits>
 
 namespace cd
 {
@@ -28,7 +27,7 @@ public:
 public:
 	static constexpr VectorType Zero() { return VectorType(static_cast<T>(0)); }
 	static constexpr VectorType One() { return VectorType(static_cast<T>(1)); }
-	static constexpr VectorType Nan() { return VectorType(std::numeric_limits<T>::quiet_NaN()); }
+	static constexpr VectorType Nan() { return VectorType(cd::Math::FLOAT_NAN); }
 
 	static VectorType Lerp(const VectorType& a, const VectorType& b, T factor)
 	{
@@ -153,35 +152,33 @@ public:
 	CD_FORCEINLINE constexpr TVector<T, 3> xyz() const { static_assert(3 <= N); return TVector<T, 3>(x(), y(), z()); }
 
 	// Validation
-	CD_FORCEINLINE bool IsNaN() const
+	CD_FORCEINLINE bool Validate() const
 	{
 		if constexpr (2 == N)
 		{
-			return std::isnan(x()) || std::isnan(y());
+			return cd::Math::Validate(x()) && cd::Math::Validate(y());
 		}
 		else if constexpr (3 == N)
 		{
-			return std::isnan(x()) || std::isnan(y()) || std::isnan(z());
+			return cd::Math::Validate(x()) && cd::Math::Validate(y()) && cd::Math::Validate(z());
 		}
 		else if constexpr (4 == N)
 		{
-			return std::isnan(x()) || std::isnan(y()) || std::isnan(z() || std::isnan(w()));
+			return cd::Math::Validate(x()) && cd::Math::Validate(y()) && cd::Math::Validate(z()) && cd::Math::Validate(w());
 		}
 	}
-	CD_FORCEINLINE bool IsZero() const
+
+	CD_FORCEINLINE bool SameWith(T value) const
 	{
-		if constexpr (2 == N)
+		for (size_t index = 0; index < N; ++index)
 		{
-			return Math::IsEqualToZero(x()) && Math::IsEqualToZero(y());
+			if (!Math::IsEqualTo(data[index], value))
+			{
+				return false;
+			}
 		}
-		else if constexpr (3 == N)
-		{
-			return Math::IsEqualToZero(x()) && Math::IsEqualToZero(y()) && Math::IsEqualToZero(z());
-		}
-		else if constexpr (4 == N)
-		{
-			return Math::IsEqualToZero(x()) && Math::IsEqualToZero(y()) && Math::IsEqualToZero(z()) && Math::IsEqualToZero(w());
-		}
+
+		return true;
 	}
 
 	CD_FORCEINLINE bool Contains(T value) const

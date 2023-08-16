@@ -62,4 +62,12 @@ struct VertexAttributeLayout
 	uint8_t padding;
 };
 
+enum class ConvertStrategy
+{
+	// Mesh faces will split along edges so uv/normal data can be same with edited source mesh. Vertex positions maybe duplicated.
+	ShadingFirst,
+	// Mesh vertex uv/normal data will be averaged of corner uv/normal data. Topology will be preserved.
+	TopologyFirst,
+};
+
 }

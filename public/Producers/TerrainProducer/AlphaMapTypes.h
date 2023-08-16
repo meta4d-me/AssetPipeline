@@ -17,13 +17,6 @@ enum class AlphaMapType : uint8_t
 	Count
 };
 
-constexpr const char* AlphaMapTypeName[] =
-{
-	"Texture",
-	"Elevation",
-	"Simplex2D"
-};
-
 enum class AlphaMapChannel : uint8_t
 {
 	Red = 0x0,
@@ -33,16 +26,6 @@ enum class AlphaMapChannel : uint8_t
 	Count
 };
 
-constexpr const char* AlphaMapChannelName[] =
-{
-	"Red",
-	"Green",
-	"Blue",
-	"Alpha"
-};
-static_assert(static_cast<int>(AlphaMapChannel::Count) == sizeof(AlphaMapChannelName) / sizeof(char*),
-	"AlphaMapChannel and names mismatch.");
-
 enum class AlphaMapBlendFunction : uint8_t 
 {
 	Step,
@@ -51,16 +34,6 @@ enum class AlphaMapBlendFunction : uint8_t
 	SmoothStepHigh,
 	Count
 };
-
-constexpr const char* AlphaMapBlendFunctionName[] =
-{
-	"Step",
-	"Linear",
-	"SmoothStep",
-	"SmoothStepHigh"
-};
-static_assert(static_cast<int>(AlphaMapBlendFunction::Count) == sizeof(AlphaMapBlendFunctionName) / sizeof(char*),
-	"AlphaMapBlendFunction and names mismatch.");
 
 template<typename T, typename = typename std::enable_if<std::is_arithmetic_v<T>, T>::type>
 struct AlphaMapBlendRegion 

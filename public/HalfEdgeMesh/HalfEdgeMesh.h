@@ -1,11 +1,8 @@
 #pragma once
 
-#include "HalfEdgeMesh/Edge.h"
-#include "HalfEdgeMesh/Face.h"
 #include "HalfEdgeMesh/ForwardDecls.h"
-#include "HalfEdgeMesh/HalfEdge.h"
-#include "HalfEdgeMesh/Vertex.h"
-#include "Math/Vector.hpp"
+
+#include <optional>
 
 namespace cd
 {
@@ -22,12 +19,12 @@ public:
 	static HalfEdgeMesh FromIndexedMesh(const cd::Mesh& mesh);
 
 public:
-	HalfEdgeMesh() = default;
+	HalfEdgeMesh();
 	HalfEdgeMesh(const HalfEdgeMesh&) = delete;
 	HalfEdgeMesh& operator=(const HalfEdgeMesh&) = delete;
-	HalfEdgeMesh(HalfEdgeMesh&&) = default;
-	HalfEdgeMesh& operator=(HalfEdgeMesh&&) = default;
-	~HalfEdgeMesh() = default;
+	HalfEdgeMesh(HalfEdgeMesh&&);
+	HalfEdgeMesh& operator=(HalfEdgeMesh&&);
+	~HalfEdgeMesh();
 
 	std::list<Vertex>& GetVertices() { return m_vertices; }
 	const std::list<Vertex>& GetVertices() const { return m_vertices; }
@@ -53,6 +50,8 @@ public:
 
 	bool Validate() const;
 
+	std::optional<VertexRef> CollapseEdge(EdgeRef edge, float t = 0.5f);
+
 private:
 	std::list<Vertex> m_vertices;
 	std::list<Edge> m_edges;
@@ -71,7 +70,5 @@ private:
 };
 
 }
-
-using HalfEdgeMesh = hem::HalfEdgeMesh;
 
 }
