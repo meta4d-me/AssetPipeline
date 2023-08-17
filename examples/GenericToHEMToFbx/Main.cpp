@@ -38,6 +38,8 @@ int main(int argc, char** argv)
 		auto halfEdgeMesh = cd::hem::HalfEdgeMesh::FromIndexedMesh(mesh);
 		assert(halfEdgeMesh.Validate());
 
+		//halfEdgeMesh.FlipEdge();
+
 		auto convertStrategy = cd::ConvertStrategy::TopologyFirst;
 		auto newMesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, convertStrategy);
 

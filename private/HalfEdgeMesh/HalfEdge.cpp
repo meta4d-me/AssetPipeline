@@ -17,6 +17,15 @@ HalfEdgeRef HalfEdge::GetPrev() const
 	return prev;
 }
 
+void HalfEdge::SetData(HalfEdgeRef twin, HalfEdgeRef next, VertexRef v, EdgeRef e, FaceRef f)
+{
+	m_twinRef = twin;
+	m_nextRef = next;
+	m_vertexRef = v;
+	m_edgeRef = e;
+	m_faceRef = f;
+}
+
 bool HalfEdge::Validate() const
 {
 	return m_cornerUV.Validate() && m_cornerNormal.Validate();

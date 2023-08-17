@@ -36,6 +36,9 @@ public:
 	void SetFace(FaceRef ref) { m_faceRef = ref; }
 	FaceRef GetFace() const { return m_faceRef; }
 
+	// Helper to init all data at the same time.
+	void SetData(HalfEdgeRef twin, HalfEdgeRef next, VertexRef v, EdgeRef e, FaceRef f);
+
 	void SetCornerUV(cd::UV uv) { m_cornerUV = cd::MoveTemp(uv); }
 	cd::UV& GetCornerUV() { return m_cornerUV; }
 	const cd::UV& GetCornerUV() const { return m_cornerUV; }
