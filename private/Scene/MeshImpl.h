@@ -168,13 +168,19 @@ public:
 			inputArchive.ImportBuffer(GetVertexColors(colorSetIndex).data());
 		}
 
-		for(uint32_t boneIndex = 0U; boneIndex < GetVertexInfluenceCount(); ++boneIndex)
+		for (uint32_t boneIndex = 0U; boneIndex < GetVertexInfluenceCount(); ++boneIndex)
 		{
 			inputArchive.ImportBuffer(GetVertexBoneIDs(boneIndex).data());
 			inputArchive.ImportBuffer(GetVertexWeights(boneIndex).data());
 		}
 
-		inputArchive.ImportBuffer(GetPolygons().data());
+		for (uint32_t polygonIndex = 0U; polygonIndex < GetPolygonCount(); ++polygonIndex)
+		{
+			auto& polygon = GetPolygon(polygonIndex);
+			uint64_t bufferSize = inputArchive.FetchBufferSize();
+			polygon.resize(bufferSize / sizeof(uint32_t));
+			inputArchive.ImportBuffer(polygon.data(), bufferSize);
+		}
 
 		return *this;
 	}
@@ -211,7 +217,10 @@ public:
 			outputArchive.ExportBuffer(GetVertexWeights(boneIndex).data(), GetVertexWeights(boneIndex).size());
 		}
 
-		outputArchive.ExportBuffer(GetPolygons().data(), GetPolygons().size());
+		for (uint32_t polygonIndex = 0U; polygonIndex < GetPolygonCount(); ++polygonIndex)
+		{
+			outputArchive.ExportBuffer(GetPolygon(polygonIndex).data(), GetPolygon(polygonIndex).size());
+		}
 
 		return *this;
 	}
