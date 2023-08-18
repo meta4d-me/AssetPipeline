@@ -50,6 +50,8 @@ public:
 
 	bool Validate() const;
 
+	void Dump() const;
+
 	// Rotate non-boundary edge CCW inside its containing faces.
 	// Reassign connectivity data but not create or destroy mesh elements.
 	// Returns edge after rotation.

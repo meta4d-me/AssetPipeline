@@ -526,6 +526,50 @@ bool HalfEdgeMesh::Validate() const
 	return true;
 }
 
+void HalfEdgeMesh::Dump() const
+{
+	printf("\n[HalfEdgeMesh]\n");
+	printf("\tVertexCount : %llu\n", GetVertices().size());
+	printf("\tHalfEdgeCount : %llu\n", GetHalfEdges().size());
+	printf("\tEdgeCount : %llu\n", GetEdges().size());
+	printf("\tFaceCount : %llu\n", GetFaces().size());
+	printf("\n");
+
+	for (const auto& vertex : GetVertices())
+	{
+		printf("[Vertex %d]\n", vertex.GetID().Data());
+		printf("\tPosition : (%f, %f, %f)\n", vertex.GetPosition().x(), vertex.GetPosition().y(), vertex.GetPosition().z());
+		printf("\t[Associated HalfEdge %d]\n", vertex.GetHalfEdge()->GetID().Data());
+	}
+	printf("\n");
+
+	for (const auto& halfEdge : GetHalfEdges())
+	{
+		printf("[HalfEdge %d]\n", halfEdge.GetID().Data());
+		printf("\tTwin : [HalfEdge %d], Next : [HalfEdge %d]\n", halfEdge.GetTwin()->GetID().Data(), halfEdge.GetNext()->GetID().Data());
+		printf("\tv%d -> v%d\n", halfEdge.GetVertex()->GetID().Data(), halfEdge.GetTwin()->GetVertex()->GetID().Data());
+		printf("\t[Associated Vertex %d]\n", halfEdge.GetVertex()->GetID().Data());
+		printf("\t[Associated Edge %d]\n", halfEdge.GetEdge()->GetID().Data());
+		printf("\t[Associated Face %d]\n", halfEdge.GetFace()->GetID().Data());
+	}
+	printf("\n");
+
+	for (const auto& face : GetFaces())
+	{
+		printf("[Face %d]\n", face.GetID().Data());
+		printf("\tIsBoundary : %d\n", face.IsBoundary());
+
+		auto h = face.GetHalfEdge();
+		printf("\t");
+		do
+		{
+			printf("[HalfEdge %d] -> ", h->GetID().Data());
+			h = h->GetNext();
+		} while (h != face.GetHalfEdge());
+		printf("\n");
+	}
+}
+
 std::optional<EdgeRef> HalfEdgeMesh::FlipEdge(EdgeRef edge)
 {
 	// Rotate non-boundary edge in CCW : v0v1 -> v2v3, v1v0 -> v3v2
