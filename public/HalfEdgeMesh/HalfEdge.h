@@ -22,8 +22,7 @@ public:
 	void SetTwin(HalfEdgeRef ref) { m_twinRef = ref; }
 	HalfEdgeRef GetTwin() const { return m_twinRef; }
 
-	void SetPrev(HalfEdgeRef ref) { m_prevRef = ref; }
-	HalfEdgeRef GetPrev() const { return m_prevRef; }
+	HalfEdgeRef GetPrev() const;
 
 	void SetNext(HalfEdgeRef ref) { m_nextRef = ref; }
 	HalfEdgeRef GetNext() const { return m_nextRef; }
@@ -36,6 +35,9 @@ public:
 
 	void SetFace(FaceRef ref) { m_faceRef = ref; }
 	FaceRef GetFace() const { return m_faceRef; }
+
+	// Helper to init all data at the same time.
+	void SetData(HalfEdgeRef twin, HalfEdgeRef next, VertexRef v, EdgeRef e, FaceRef f);
 
 	void SetCornerUV(cd::UV uv) { m_cornerUV = cd::MoveTemp(uv); }
 	cd::UV& GetCornerUV() { return m_cornerUV; }
@@ -56,7 +58,11 @@ private:
 	// connectivity
 	HalfEdgeRef m_twinRef;
 	HalfEdgeRef m_nextRef;
-	HalfEdgeRef m_prevRef;
+	// Save prev half edge is a decision based on target device.
+	// 1. Prev is sure to save some calculations on looping half edge's next.
+	// 2. Prev also takes extra memory for mesh data storage.
+	// 3. Prev needs to maintain in geometry processing algorithm. Or you can just loop to calculate it.
+	// HalfEdgeRef m_prevRef;
 	VertexRef m_vertexRef;
 	EdgeRef m_edgeRef;
 	FaceRef m_faceRef;

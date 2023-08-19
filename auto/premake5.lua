@@ -35,7 +35,7 @@ workspace("AssetPipeline")
 		optimize("Off")
 	filter "configurations:Release"
 		defines { "NDEBUG" }
-		symbols("Off")
+		symbols("On")
 		optimize("Full")
 	filter {}
 	

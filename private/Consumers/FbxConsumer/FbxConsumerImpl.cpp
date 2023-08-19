@@ -56,7 +56,7 @@ void FbxConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
 		pNormalElement->SetReferenceMode(fbxsdk::FbxGeometryElement::eDirect);
 
 		fbxsdk::FbxGeometryElementUV* pUVElement = nullptr;
-		if(mesh.GetVertexUVSetCount() > 0)
+		if(mesh.GetVertexUVSetCount() > 0U)
 		{
 			pUVElement = pFbxMesh->CreateElementUV("BaseUV");
 			assert(pUVElement && "Failed to create fbx uv element.");
@@ -65,13 +65,13 @@ void FbxConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
 		}
 
 		fbxsdk::FbxVector4* pFbxVertices = pFbxMesh->GetControlPoints();
-		for(uint32_t vertexIndex = 0; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
+		for(uint32_t vertexIndex = 0U; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
 		{
 			const cd::Point& position = mesh.GetVertexPosition(vertexIndex);
-			pFbxVertices[vertexIndex].Set(position.x(), position.y(), position.z(), 1.0);
+			pFbxVertices[vertexIndex].Set(position.x(), position.y(), position.z(), 1.0f);
 
 			const cd::Direction& normal = mesh.GetVertexNormal(vertexIndex);
-			pNormalElement->GetDirectArray().Add(fbxsdk::FbxVector4(normal.x(), normal.y(), normal.z(), 0.0));
+			pNormalElement->GetDirectArray().Add(fbxsdk::FbxVector4(normal.x(), normal.y(), normal.z(), 0.0f));
 
 			// Only the first channel now
 			if(pUVElement)

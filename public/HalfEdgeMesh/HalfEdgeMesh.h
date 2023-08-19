@@ -50,6 +50,18 @@ public:
 
 	bool Validate() const;
 
+	void Dump() const;
+
+	// Rotate non-boundary edge CCW inside its containing faces.
+	// Reassign connectivity data but not create or destroy mesh elements.
+	// Returns edge after rotation.
+	std::optional<EdgeRef> FlipEdge(EdgeRef edge);
+
+	// Split an edge by adding a new vertex in the midpoint of edge.
+	// Reassign connectivity data and add a new vertex and edges, faces.
+	// Returns new added vertex.
+	std::optional<VertexRef> SplitEdge(EdgeRef edge);
+
 	std::optional<VertexRef> CollapseEdge(EdgeRef edge, float t = 0.5f);
 
 private:
