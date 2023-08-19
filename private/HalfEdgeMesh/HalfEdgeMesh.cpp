@@ -528,7 +528,7 @@ bool HalfEdgeMesh::Validate() const
 
 void HalfEdgeMesh::Dump() const
 {
-	printf("\n[HalfEdgeMesh]\n");
+	printf("\nHalfEdgeMesh : \n");
 	printf("\tVertexCount : %llu\n", GetVertices().size());
 	printf("\tHalfEdgeCount : %llu\n", GetHalfEdges().size());
 	printf("\tEdgeCount : %llu\n", GetEdges().size());
@@ -538,8 +538,17 @@ void HalfEdgeMesh::Dump() const
 	for (const auto& vertex : GetVertices())
 	{
 		printf("[Vertex %d]\n", vertex.GetID().Data());
+		printf("\tIsBoundary : %d\n", vertex.IsOnBoundary());
 		printf("\tPosition : (%f, %f, %f)\n", vertex.GetPosition().x(), vertex.GetPosition().y(), vertex.GetPosition().z());
 		printf("\t[Associated HalfEdge %d]\n", vertex.GetHalfEdge()->GetID().Data());
+	}
+	printf("\n");
+
+	for (const auto& edge : GetEdges())
+	{
+		printf("[Edge %d]\n", edge.GetID().Data());
+		printf("\tIsBoundary : %d\n", edge.IsOnBoundary());
+		printf("\t[Associated HalfEdge %d]\n", edge.GetHalfEdge()->GetID().Data());
 	}
 	printf("\n");
 

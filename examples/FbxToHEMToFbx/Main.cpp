@@ -40,6 +40,7 @@ int main(int argc, char** argv)
 		auto halfEdgeMesh = cd::hem::HalfEdgeMesh::FromIndexedMesh(mesh);
 		assert(halfEdgeMesh.Validate());
 	
+		halfEdgeMesh.Dump();
 		//for (auto itFace = halfEdgeMesh.GetFaces().begin(); itFace != halfEdgeMesh.GetFaces().end(); ++itFace)
 		//{
 		//	if (itFace->IsBoundary())
@@ -66,8 +67,7 @@ int main(int argc, char** argv)
 		//		break;
 		//	}
 		//}
-
-		halfEdgeMesh.Dump();
+		//halfEdgeMesh.Dump();
 
 		auto convertStrategy = cd::ConvertStrategy::TopologyFirst;
 		auto newMesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, convertStrategy);
