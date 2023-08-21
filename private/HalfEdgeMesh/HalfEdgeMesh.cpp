@@ -108,13 +108,13 @@ HalfEdgeMesh HalfEdgeMesh::FromIndexedFaces(const std::vector<cd::Point>& vertic
 
 			if (vertexIndex != 0)
 			{
-				prev->SetNext(halfEdge);
+				HalfEdge::SetNextAndPrev(prev, halfEdge);
 			}
 			prev = halfEdge;
 		}
 
 		// Connect last half edge to first half edge to be a loop.
-		prev->SetNext(face->GetHalfEdge());
+		HalfEdge::SetNextAndPrev(prev, face->GetHalfEdge());
 	};
 
 	// Init non-boundary loops.
@@ -257,6 +257,7 @@ HalfEdgeRef HalfEdgeMesh::EmplaceHalfEdge()
 
 	halfEdge->SetTwin(m_halfEdges.end());
 	halfEdge->SetNext(m_halfEdges.end());
+	halfEdge->SetPrev(m_halfEdges.end());
 	halfEdge->SetVertex(m_vertices.end());
 	halfEdge->SetEdge(m_edges.end());
 	halfEdge->SetFace(m_faces.end());
@@ -306,6 +307,7 @@ void HalfEdgeMesh::EraseHalfEdge(HalfEdgeRef halfEdge)
 	// clear connectivity
 	halfEdge->SetTwin(m_halfEdges.end());
 	halfEdge->SetNext(m_halfEdges.end());
+	halfEdge->SetPrev(m_halfEdges.end());
 	halfEdge->SetVertex(m_vertices.end());
 	halfEdge->SetEdge(m_edges.end());
 	halfEdge->SetFace(m_faces.end());
@@ -538,28 +540,29 @@ void HalfEdgeMesh::Dump() const
 	for (const auto& vertex : GetVertices())
 	{
 		printf("[Vertex %d]\n", vertex.GetID().Data());
-		printf("\tIsBoundary : %d\n", vertex.IsOnBoundary());
+		printf("\tIsOnBoundary : %d\n", vertex.IsOnBoundary());
 		printf("\tPosition : (%f, %f, %f)\n", vertex.GetPosition().x(), vertex.GetPosition().y(), vertex.GetPosition().z());
 		printf("\t[Associated HalfEdge %d]\n", vertex.GetHalfEdge()->GetID().Data());
-	}
-	printf("\n");
-
-	for (const auto& edge : GetEdges())
-	{
-		printf("[Edge %d]\n", edge.GetID().Data());
-		printf("\tIsBoundary : %d\n", edge.IsOnBoundary());
-		printf("\t[Associated HalfEdge %d]\n", edge.GetHalfEdge()->GetID().Data());
 	}
 	printf("\n");
 
 	for (const auto& halfEdge : GetHalfEdges())
 	{
 		printf("[HalfEdge %d]\n", halfEdge.GetID().Data());
-		printf("\tTwin : [HalfEdge %d], Next : [HalfEdge %d]\n", halfEdge.GetTwin()->GetID().Data(), halfEdge.GetNext()->GetID().Data());
+		printf("\tTwin : [HalfEdge %d], Prev : [HalfEdge %d], Next : [HalfEdge %d]\n", halfEdge.GetTwin()->GetID().Data(),
+			halfEdge.GetPrev()->GetID().Data(), halfEdge.GetNext()->GetID().Data());
 		printf("\tv%d -> v%d\n", halfEdge.GetVertex()->GetID().Data(), halfEdge.GetTwin()->GetVertex()->GetID().Data());
 		printf("\t[Associated Vertex %d]\n", halfEdge.GetVertex()->GetID().Data());
 		printf("\t[Associated Edge %d]\n", halfEdge.GetEdge()->GetID().Data());
 		printf("\t[Associated Face %d]\n", halfEdge.GetFace()->GetID().Data());
+	}
+	printf("\n");
+
+	for (const auto& edge : GetEdges())
+	{
+		printf("[Edge %d]\n", edge.GetID().Data());
+		printf("\tIsOnBoundary : %d\n", edge.IsOnBoundary());
+		printf("\t[Associated HalfEdge %d]\n", edge.GetHalfEdge()->GetID().Data());
 	}
 	printf("\n");
 
@@ -568,14 +571,27 @@ void HalfEdgeMesh::Dump() const
 		printf("[Face %d]\n", face.GetID().Data());
 		printf("\tIsBoundary : %d\n", face.IsBoundary());
 
-		auto h = face.GetHalfEdge();
-		printf("\t");
-		do
 		{
-			printf("[HalfEdge %d] -> ", h->GetID().Data());
-			h = h->GetNext();
-		} while (h != face.GetHalfEdge());
-		printf("\n");
+			auto h = face.GetHalfEdge();
+			printf("\t");
+			do
+			{
+				printf("[HalfEdge %d] -> ", h->GetID().Data());
+				h = h->GetNext();
+			} while (h != face.GetHalfEdge());
+			printf("[HalfEdge %d]\n", face.GetHalfEdge()->GetID().Data());
+		}
+
+		{
+			auto h = face.GetHalfEdge();
+			printf("\t");
+			do
+			{
+				printf("(v%d -> v%d) -> ", h->GetVertex()->GetID().Data(), h->GetTwin()->GetVertex()->GetID().Data());
+				h = h->GetNext();
+			} while (h != face.GetHalfEdge());
+			printf("(v%d -> v%d)\n", h->GetVertex()->GetID().Data(), h->GetTwin()->GetVertex()->GetID().Data());
+		}
 	}
 }
 
@@ -641,17 +657,17 @@ std::optional<EdgeRef> HalfEdgeMesh::FlipEdge(EdgeRef edge)
 	v3v2->SetVertex(v3);
 
 	// v2v3 and v3v2 is new added half edge so need to update next half edge.
-	v2v3->SetNext(v1v3Next);
-	v3v2->SetNext(v0v2Next);
+	HalfEdge::SetNextAndPrev(v2v3, v1v3Next);
+	HalfEdge::SetNextAndPrev(v3v2, v0v2Next);
 
 	// The loop may contain 3 ~ n half edges. We only need to maintain the begin half edge and the end half edge.
 	// For example, v0v1 will disconnect and v0v2 will connect. As a new added half edge, v0v2 should update its next half edge.
-	v0v1Prev->SetNext(v0v2);
-	v0v2->SetNext(v2v3);
+	HalfEdge::SetNextAndPrev(v0v1Prev, v0v2);
+	HalfEdge::SetNextAndPrev(v0v2, v2v3);
 	v0v2->SetFace(v0v1Face);
 
-	v1v0Prev->SetNext(v1v3);
-	v1v3->SetNext(v3v2);
+	HalfEdge::SetNextAndPrev(v1v0Prev, v1v3);
+	HalfEdge::SetNextAndPrev(v1v3, v3v2);
 	v1v3->SetFace(v1v0Face);
 
 	// v0v2 and v1v3 changes its FaceRef. If face's half edge is v0v2 or v1v3, it needs to update.
@@ -748,20 +764,21 @@ std::optional<VertexRef> HalfEdgeMesh::SplitEdge(EdgeRef edge)
 
 		// Set vertex connectivity data.
 		v3->SetHalfEdge(v3v1);
+		v3->SetPosition(v0->GetPosition() * 0.5f + v1->GetPosition() * 0.5f);
 
 		// Update connectivity to old data.
-		v1v2->SetNext(v2v3);
+		HalfEdge::SetNextAndPrev(v1v2, v2v3);
 		v1v2->SetFace(v3v1Face);
 
 		// v1v0 is on boundary so don't set face for splited v1v3 and v3v0.
-		v1v3->SetData(v3v1, v1v2, v1, v1v3Edge, m_faces.end());
-		v3v0->SetData(v0v3, v1v0Next, v3, v0v3Edge, m_faces.end());
+		HalfEdge::SetData(v1v3, v3v1, v1v2, v1, v1v3Edge, m_faces.end());
+		HalfEdge::SetData(v3v0, v0v3, v1v0Next, v3, v0v3Edge, m_faces.end());
 
 		// Set connectivity data for other boundary half edges.
-		v0v3->SetData(v3v0, v3v2, v0, v0v3Edge, v0v3Face);
-		v3v1->SetData(v1v3, v1v2, v3, v1v3Edge, v3v1Face);
-		v3v2->SetData(v2v3, v2v0, v3, v2v3Edge, v0v3Face);
-		v2v3->SetData(v3v2, v3v1, v2, v2v3Edge, v3v1Face);
+		HalfEdge::SetData(v0v3, v3v0, v3v2, v0, v0v3Edge, v0v3Face);
+		HalfEdge::SetData(v3v1, v1v3, v1v2, v3, v1v3Edge, v3v1Face);
+		HalfEdge::SetData(v3v2, v2v3, v2v0, v3, v2v3Edge, v0v3Face);
+		HalfEdge::SetData(v2v3, v3v2, v3v1, v2, v2v3Edge, v3v1Face);
 
 		// Set new edges.
 		v0v3Edge->SetHalfEdge(v0v3);
@@ -841,24 +858,25 @@ std::optional<VertexRef> HalfEdgeMesh::SplitEdge(EdgeRef edge)
 	
 	// Set vertex connectivity data.
 	v4->SetHalfEdge(v4v1);
+	v4->SetPosition(v0->GetPosition() * 0.5f + v1->GetPosition() * 0.5f);
 
 	// Update connectivity to old data.
-	v1v2->SetNext(v2v4);
+	HalfEdge::SetNextAndPrev(v1v2, v2v4);
 	v1v2->SetFace(v4v1Face);
-	v0v3->SetNext(v3v4);
+	HalfEdge::SetNextAndPrev(v0v3, v3v4);
 	v0v3->SetFace(v4v0Face);
 
 	// Set old half edges.
-	v0v4->SetData(v4v0, v4v2, v0, v0v4Edge, v0v4Face);
-	v1v4->SetData(v4v1, v4v3, v1, v1v4Edge, v1v4Face);
+	HalfEdge::SetData(v0v4, v4v0, v4v2, v0, v0v4Edge, v0v4Face);
+	HalfEdge::SetData(v1v4, v4v1, v4v3, v1, v1v4Edge, v1v4Face);
 
 	// Set new half edges.
-	v2v4->SetData(v4v2, v4v1, v2, v2v4Edge, v4v1Face);
-	v3v4->SetData(v4v3, v4v0, v3, v3v4Edge, v4v0Face);
-	v4v0->SetData(v0v4, v0v3, v4, v0v4Edge, v4v0Face);
-	v4v1->SetData(v1v4, v1v2, v4, v1v4Edge, v4v1Face);
-	v4v2->SetData(v2v4, v2v0, v4, v2v4Edge, v0v4Face);
-	v4v3->SetData(v3v4, v3v1, v4, v3v4Edge, v1v4Face);
+	HalfEdge::SetData(v2v4, v4v2, v4v1, v2, v2v4Edge, v4v1Face);
+	HalfEdge::SetData(v3v4, v4v3, v4v0, v3, v3v4Edge, v4v0Face);
+	HalfEdge::SetData(v4v0, v0v4, v0v3, v4, v0v4Edge, v4v0Face);
+	HalfEdge::SetData(v4v1, v1v4, v1v2, v4, v1v4Edge, v4v1Face);
+	HalfEdge::SetData(v4v2, v2v4, v2v0, v4, v2v4Edge, v0v4Face);
+	HalfEdge::SetData(v4v3, v3v4, v3v1, v4, v3v4Edge, v1v4Face);
 
 	// Set new edges.
 	v0v4Edge->SetHalfEdge(v0v4);
@@ -877,7 +895,7 @@ std::optional<VertexRef> HalfEdgeMesh::SplitEdge(EdgeRef edge)
 		v1v4Face->SetHalfEdge(v1v4);
 	}
 
-	v1v4Face->SetHalfEdge(v1v4);
+	v4v1Face->SetHalfEdge(v4v1);
 	v4v0Face->SetHalfEdge(v4v0);
 
 	return std::nullopt;

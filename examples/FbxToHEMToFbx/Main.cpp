@@ -41,48 +41,36 @@ int main(int argc, char** argv)
 		assert(halfEdgeMesh.Validate());
 	
 		halfEdgeMesh.Dump();
-		//for (auto itFace = halfEdgeMesh.GetFaces().begin(); itFace != halfEdgeMesh.GetFaces().end(); ++itFace)
-		//{
-		//	if (itFace->IsBoundary())
-		//	{
-		//		continue;
-		//	}
-		//
-		//	bool isDone = false;
-		//	auto h = itFace->GetHalfEdge();
-		//	do
-		//	{
-		//		if (!h->GetTwin()->GetFace()->IsBoundary())
-		//		{
-		//			halfEdgeMesh.FlipEdge(h->GetEdge());
-		//			isDone = true;
-		//			break;
-		//		}
-		//
-		//		h = h->GetNext();
-		//	} while (h != itFace->GetHalfEdge());
-		//	
-		//	if (isDone)
-		//	{
-		//		break;
-		//	}
-		//}
-		//halfEdgeMesh.Dump();
+
+		// Filp edges
+		{
+			for (auto it = halfEdgeMesh.GetEdges().begin(); it != halfEdgeMesh.GetEdges().end(); ++it)
+			{
+				if (!it->IsOnBoundary())
+				{
+					cd::Direction result = it->GetHalfEdge()->GetFace()->Normal().Cross(it->GetHalfEdge()->GetTwin()->GetFace()->Normal());
+					if (cd::Direction::Zero() == result)
+					{
+						halfEdgeMesh.SplitEdge(it);
+						break;
+					}
+				}
+			}
+			halfEdgeMesh.Dump();
+		}
 
 		auto convertStrategy = cd::ConvertStrategy::TopologyFirst;
 		auto newMesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, convertStrategy);
-		if (cd::ConvertStrategy::TopologyFirst == convertStrategy)
-		{
-			assert(newMesh.GetVertexCount() == mesh.GetVertexCount());
-			assert(newMesh.GetPolygonCount() == mesh.GetPolygonCount());
-		}
+		newMesh.SetID(cd::MeshID(1U));
+		newMesh.SetName("FlipEdgeMesh");
+		pSceneDatabase->AddMesh(cd::MoveTemp(newMesh));
 	}
 
 	// Export.
 	{
 		FbxConsumer consumer(pOutputFilePath);
 		Processor processor(nullptr, &consumer, pSceneDatabase.get());
-		processor.SetDumpSceneDatabaseEnable(false);
+		processor.SetDumpSceneDatabaseEnable(true);
 		processor.Run();
 	}
 
