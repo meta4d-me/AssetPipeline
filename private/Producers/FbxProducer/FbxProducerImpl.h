@@ -9,6 +9,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <fbxsdk/core/arch/fbxtypes.h>
 
 namespace fbxsdk
 {
@@ -69,7 +70,7 @@ private:
 	int GetSceneNodeCount(const fbxsdk::FbxNode* pSceneNode);
 	void TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase);
 
-	int GetSceneBoneCount(fbxsdk::FbxNode* pSceneNode, cd::SceneDatabase* pSceneDatabase);
+	int GetSceneBoneCount(fbxsdk::FbxNode* pSceneNode);
 	void TraverseBoneRecursively(fbxsdk::FbxNode* pSDKNode, cd::Bone* pParentNode, cd::SceneDatabase* pSceneDatabase);
 
 	void AddMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial);
@@ -83,6 +84,11 @@ private:
 	cd::BoneID AddBone(const fbxsdk::FbxNode* pSDKNode, cd::Bone* pParentNode, cd::SceneDatabase* pSceneDatabase);
 	//cd::TrackID AddTrack(const fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase);
 	cd::AnimationID AddAnimation(fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxScene* pSDKScene, cd::SceneDatabase* pSceneDatabase);
+
+	void ProcessJointsAndAnimations(fbxsdk::FbxNode* inRootNode, cd::SceneDatabase* pSceneDatabase);
+	void ProcessSkeletonHierarchyRecursively(fbxsdk::FbxNode* inNode, int inDepth, int myIndex, int inParentIndex);
+
+	void ProcessAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase);
 private:
 	bool m_importMaterial = true;
 	bool m_importTexture = true;
@@ -90,19 +96,22 @@ private:
 	bool m_importAnimation = true;
 	bool m_importLight = true;
 
+	int m_sceneBoneCount = 0;
+
 	std::string m_filePath;
 	fbxsdk::FbxManager* m_pSDKManager = nullptr;
 	std::unique_ptr<fbxsdk::FbxGeometryConverter> m_pGeometryConverter;
 
 	std::map<int32_t, uint32_t> m_fbxMaterialIndexToMaterialID;
 	std::vector<fbxsdk::FbxNode*> m_pBones;
-
 	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
 	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
 	cd::ObjectIDGenerator<cd::NodeID> m_nodeIDGenerator;
 	cd::ObjectIDGenerator<cd::BoneID> m_boneIDGenerator;
 	cd::ObjectIDGenerator<cd::MeshID> m_meshIDGenerator;
 	cd::ObjectIDGenerator<cd::LightID> m_lightIDGenerator;
+	cd::ObjectIDGenerator<cd::AnimationID> m_animationIDGenerator;
+	cd::ObjectIDGenerator<cd::TrackID> m_trackIDGenerator;
 };
 
 }
