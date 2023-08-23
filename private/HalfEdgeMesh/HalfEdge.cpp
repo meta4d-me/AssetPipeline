@@ -3,9 +3,9 @@
 namespace cd::hem
 {
 
-bool HalfEdge::Validate() const
+bool HalfEdge::IsValid() const
 {
-	return m_cornerUV.Validate() && m_cornerNormal.Validate();
+	return m_cornerUV.IsValid() && m_cornerNormal.IsValid();
 }
 
 }

@@ -79,9 +79,9 @@ uint32_t Vertex::Degree() const
 	return degree;
 }
 
-bool Vertex::Validate() const
+bool Vertex::IsValid() const
 {
-	return m_position.Validate();
+	return m_position.IsValid();
 }
 
 }

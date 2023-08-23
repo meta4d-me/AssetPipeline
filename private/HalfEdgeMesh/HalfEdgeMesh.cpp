@@ -187,139 +187,11 @@ HalfEdgeMesh HalfEdgeMesh::FromIndexedMesh(const cd::Mesh& mesh)
 	return halfEdgeMesh;
 }
 
-VertexRef HalfEdgeMesh::EmplaceVertex()
-{
-	VertexRef vertex;
-	if (m_freeVertices.empty())
-	{
-		vertex = m_vertices.emplace(m_vertices.end(), Vertex(VertexID(m_nextVertexID++)));
-	}
-	else
-	{
-		vertex = m_freeVertices.begin();
-		m_vertices.splice(m_vertices.end(), m_freeVertices, m_freeVertices.begin());
-		*vertex = Vertex(VertexID(m_nextVertexID++));
-	}
-
-	vertex->SetHalfEdge(m_halfEdges.end());
-	return vertex;
-}
-
-EdgeRef HalfEdgeMesh::EmplaceEdge()
-{
-	EdgeRef edge;
-	if (m_freeEdges.empty())
-	{
-		edge = m_edges.emplace(m_edges.end(), Edge(EdgeID(m_nextEdgeID++)));
-	}
-	else
-	{
-		edge = m_edges.begin();
-		m_edges.splice(m_edges.end(), m_freeEdges, m_freeEdges.begin());
-		*edge = Edge(EdgeID(m_nextEdgeID++));
-	}
-
-	edge->SetHalfEdge(m_halfEdges.end());
-	return edge;
-}
-
-FaceRef HalfEdgeMesh::EmplaceFace(bool isBoundary)
-{
-	FaceRef face;
-	if (m_freeFaces.empty())
-	{
-		face = m_faces.emplace(m_faces.end(), Face(FaceID(m_nextFaceID++), isBoundary));
-	}
-	else
-	{
-		face = m_faces.begin();
-		m_faces.splice(m_faces.end(), m_freeFaces, m_freeFaces.begin());
-		*face = Face(FaceID(m_nextFaceID++), isBoundary);
-	}
-
-	face->SetHalfEdge(m_halfEdges.end());
-	return face;
-}
-
-HalfEdgeRef HalfEdgeMesh::EmplaceHalfEdge()
-{
-	HalfEdgeRef halfEdge;
-	if (m_freeHalfEdges.empty())
-	{
-		halfEdge = m_halfEdges.emplace(m_halfEdges.end(), HalfEdge(HalfEdgeID(m_nextHalfEdgeID++)));
-	}
-	else
-	{
-		halfEdge = m_halfEdges.begin();
-		m_halfEdges.splice(m_halfEdges.end(), m_freeHalfEdges, m_freeHalfEdges.begin());
-		*halfEdge = HalfEdge(HalfEdgeID(m_nextHalfEdgeID++));
-	}
-
-	halfEdge->SetTwin(m_halfEdges.end());
-	halfEdge->SetNext(m_halfEdges.end());
-	halfEdge->SetPrev(m_halfEdges.end());
-	halfEdge->SetVertex(m_vertices.end());
-	halfEdge->SetEdge(m_edges.end());
-	halfEdge->SetFace(m_faces.end());
-	return halfEdge;
-}
-
-void HalfEdgeMesh::EraseVertex(VertexRef vertex)
-{
-	// clear data
-	vertex->SetID(VertexID::Invalid());
-	vertex->SetPosition(Point::Nan());
-
-	// clear connectivity
-	vertex->SetHalfEdge(m_halfEdges.end());
-
-	m_freeVertices.splice(m_freeVertices.end(), m_vertices, vertex);
-}
-
-void HalfEdgeMesh::EraseEdge(EdgeRef edge)
-{
-	// clear data
-	edge->SetID(EdgeID::Invalid());
-
-	// clear connectivity
-	edge->SetHalfEdge(m_halfEdges.end());
-
-	m_freeEdges.splice(m_freeEdges.end(), m_edges, edge);
-}
-
-void HalfEdgeMesh::EraseFace(FaceRef face)
-{
-	// clear data
-	face->SetID(FaceID::Invalid());
-	face->SetIsBoundary(false);
-
-	// clear connectivity
-	face->SetHalfEdge(m_halfEdges.end());
-
-	m_freeFaces.splice(m_freeFaces.end(), m_faces, face);
-}
-
-void HalfEdgeMesh::EraseHalfEdge(HalfEdgeRef halfEdge)
-{
-	// clear data
-	halfEdge->SetID(HalfEdgeID::Invalid());
-
-	// clear connectivity
-	halfEdge->SetTwin(m_halfEdges.end());
-	halfEdge->SetNext(m_halfEdges.end());
-	halfEdge->SetPrev(m_halfEdges.end());
-	halfEdge->SetVertex(m_vertices.end());
-	halfEdge->SetEdge(m_edges.end());
-	halfEdge->SetFace(m_faces.end());
-
-	m_freeHalfEdges.splice(m_freeHalfEdges.end(), m_halfEdges, halfEdge);
-}
-
-bool HalfEdgeMesh::Validate() const
+bool HalfEdgeMesh::IsValid() const
 {
 	for (const auto& vertex : GetVertices())
 	{
-		if (!vertex.Validate())
+		if (!vertex.IsValid())
 		{
 			return false;
 		}
@@ -327,7 +199,7 @@ bool HalfEdgeMesh::Validate() const
 
 	for (const auto& edge : GetEdges())
 	{
-		if (!edge.Validate())
+		if (!edge.IsValid())
 		{
 			return false;
 		}
@@ -335,7 +207,7 @@ bool HalfEdgeMesh::Validate() const
 
 	for (const auto& face : GetFaces())
 	{
-		if (!face.Validate())
+		if (!face.IsValid())
 		{
 			return false;
 		}
@@ -343,7 +215,7 @@ bool HalfEdgeMesh::Validate() const
 
 	for (const auto& halfEdge : GetHalfEdges())
 	{
-		if (!halfEdge.Validate())
+		if (!halfEdge.IsValid())
 		{
 			return false;
 		}
@@ -595,6 +467,249 @@ void HalfEdgeMesh::Dump() const
 	}
 }
 
+bool HalfEdgeMesh::IsTriangleMesh() const
+{
+	for (const auto& face : m_faces)
+	{
+		if (face.Degree() != 3U)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+uint32_t HalfEdgeMesh::Boundaries() const
+{
+	uint32_t count = 0U;
+	for (const auto& face : m_faces)
+	{
+		if (face.IsBoundary())
+		{
+			++count;
+		}
+	}
+	return count;
+}
+
+VertexRef HalfEdgeMesh::EmplaceVertex()
+{
+	VertexRef vertex;
+	if (m_freeVertices.empty())
+	{
+		vertex = m_vertices.emplace(m_vertices.end(), Vertex(VertexID(m_nextVertexID++)));
+	}
+	else
+	{
+		vertex = m_freeVertices.begin();
+		m_vertices.splice(m_vertices.end(), m_freeVertices, m_freeVertices.begin());
+		*vertex = Vertex(VertexID(m_nextVertexID++));
+	}
+
+	vertex->SetHalfEdge(m_halfEdges.end());
+	return vertex;
+}
+
+HalfEdgeRef HalfEdgeMesh::EmplaceHalfEdge()
+{
+	HalfEdgeRef halfEdge;
+	if (m_freeHalfEdges.empty())
+	{
+		halfEdge = m_halfEdges.emplace(m_halfEdges.end(), HalfEdge(HalfEdgeID(m_nextHalfEdgeID++)));
+	}
+	else
+	{
+		halfEdge = m_halfEdges.begin();
+		m_halfEdges.splice(m_halfEdges.end(), m_freeHalfEdges, m_freeHalfEdges.begin());
+		*halfEdge = HalfEdge(HalfEdgeID(m_nextHalfEdgeID++));
+	}
+
+	halfEdge->SetTwin(m_halfEdges.end());
+	halfEdge->SetNext(m_halfEdges.end());
+	halfEdge->SetPrev(m_halfEdges.end());
+	halfEdge->SetVertex(m_vertices.end());
+	halfEdge->SetEdge(m_edges.end());
+	halfEdge->SetFace(m_faces.end());
+	return halfEdge;
+}
+
+EdgeRef HalfEdgeMesh::EmplaceEdge()
+{
+	EdgeRef edge;
+	if (m_freeEdges.empty())
+	{
+		edge = m_edges.emplace(m_edges.end(), Edge(EdgeID(m_nextEdgeID++)));
+	}
+	else
+	{
+		edge = m_edges.begin();
+		m_edges.splice(m_edges.end(), m_freeEdges, m_freeEdges.begin());
+		*edge = Edge(EdgeID(m_nextEdgeID++));
+	}
+
+	edge->SetHalfEdge(m_halfEdges.end());
+	return edge;
+}
+
+FaceRef HalfEdgeMesh::EmplaceFace(bool isBoundary)
+{
+	FaceRef face;
+	if (m_freeFaces.empty())
+	{
+		face = m_faces.emplace(m_faces.end(), Face(FaceID(m_nextFaceID++), isBoundary));
+	}
+	else
+	{
+		face = m_faces.begin();
+		m_faces.splice(m_faces.end(), m_freeFaces, m_freeFaces.begin());
+		*face = Face(FaceID(m_nextFaceID++), isBoundary);
+	}
+
+	face->SetHalfEdge(m_halfEdges.end());
+	return face;
+}
+
+void HalfEdgeMesh::EraseVertex(VertexRef vertex)
+{
+	// clear data
+	vertex->SetID(VertexID::Invalid());
+	vertex->SetPosition(Point::Nan());
+
+	// clear connectivity
+	vertex->SetHalfEdge(m_halfEdges.end());
+
+	m_freeVertices.splice(m_freeVertices.end(), m_vertices, vertex);
+}
+
+void HalfEdgeMesh::EraseHalfEdge(HalfEdgeRef halfEdge)
+{
+	// clear data
+	halfEdge->SetID(HalfEdgeID::Invalid());
+
+	// clear connectivity
+	halfEdge->SetTwin(m_halfEdges.end());
+	halfEdge->SetNext(m_halfEdges.end());
+	halfEdge->SetPrev(m_halfEdges.end());
+	halfEdge->SetVertex(m_vertices.end());
+	halfEdge->SetEdge(m_edges.end());
+	halfEdge->SetFace(m_faces.end());
+
+	m_freeHalfEdges.splice(m_freeHalfEdges.end(), m_halfEdges, halfEdge);
+}
+
+void HalfEdgeMesh::EraseEdge(EdgeRef edge)
+{
+	// clear data
+	edge->SetID(EdgeID::Invalid());
+
+	// clear connectivity
+	edge->SetHalfEdge(m_halfEdges.end());
+
+	m_freeEdges.splice(m_freeEdges.end(), m_edges, edge);
+}
+
+void HalfEdgeMesh::EraseFace(FaceRef face)
+{
+	// clear data
+	face->SetID(FaceID::Invalid());
+	face->SetIsBoundary(false);
+
+	// clear connectivity
+	face->SetHalfEdge(m_halfEdges.end());
+
+	m_freeFaces.splice(m_freeFaces.end(), m_faces, face);
+}
+
+VertexRef HalfEdgeMesh::AddVertex()
+{
+	return m_vertices.end();
+}
+
+HalfEdgeRef HalfEdgeMesh::AddHalfEdge()
+{
+	return m_halfEdges.end();
+}
+
+EdgeRef HalfEdgeMesh::AddEdge()
+{
+	return m_edges.end();
+}
+
+FaceRef HalfEdgeMesh::AddFace(bool isBoundary)
+{
+	return m_faces.end();
+}
+
+void HalfEdgeMesh::RemoveVertex(VertexRef vertex)
+{
+}
+
+void HalfEdgeMesh::RemoveHalfEdge(HalfEdgeRef halfEdge)
+{
+}
+
+void HalfEdgeMesh::RemoveEdge(EdgeRef edge)
+{
+	HalfEdgeRef v0v1 = edge->GetHalfEdge();
+	HalfEdgeRef v1v0 = v0v1->GetTwin();
+
+	if (v0v1->GetFace() != m_faces.end())
+	{
+		RemoveFace(v0v1->GetFace());
+	}
+
+	if (v1v0->GetFace() != m_faces.end())
+	{
+		RemoveFace(v1v0->GetFace());
+	}
+
+	// Before:
+	// 
+	//    in_out
+	//    /  \
+	//   /    \
+	// v0______v1
+	//  \      /
+	//   \    /
+	//   out_in
+	//
+	auto v0 = v0v1->GetVertex();
+	auto v1 = v1v0->GetVertex();
+	auto inV0 = v0v1->GetPrev();
+	auto inV1 = v1v0->GetPrev();
+	auto outV0 = v1v0->GetNext();
+	auto outV1 = v0v1->GetNext();
+
+	if (v0->GetHalfEdge() == v0v1)
+	{
+		v0->SetHalfEdge(outV0 != v0v1 ? outV0 : m_halfEdges.end());
+	}
+	inV0->SetNext(outV0);
+
+	if (v1->GetHalfEdge() == v1v0)
+	{
+		v1->SetHalfEdge(outV1 != v1v0 ? outV1 : m_halfEdges.end());
+	}
+	inV1->SetNext(outV1);
+
+	EraseHalfEdge(v0v1);
+	EraseHalfEdge(v1v0);
+	EraseEdge(edge);
+}
+
+void HalfEdgeMesh::RemoveFace(FaceRef face)
+{
+	HalfEdgeRef h = face->GetHalfEdge();
+	do
+	{
+		h->SetFace(m_faces.end());
+		h = h->GetNext();
+	} while (h != face->GetHalfEdge());
+
+	EraseFace(face);
+}
+
 std::optional<EdgeRef> HalfEdgeMesh::FlipEdge(EdgeRef edge)
 {
 	// Rotate non-boundary edge in CCW : v0v1 -> v2v3, v1v0 -> v3v2
@@ -686,8 +801,10 @@ std::optional<EdgeRef> HalfEdgeMesh::FlipEdge(EdgeRef edge)
 	return edge;
 }
 
-std::optional<VertexRef> HalfEdgeMesh::SplitEdge(EdgeRef edge)
+std::optional<VertexRef> HalfEdgeMesh::SplitEdge(EdgeRef edge, float t)
 {
+	assert(t >= 0.0f && t <= 1.0f);
+
 	// Prepare data.
 	auto v0v1 = edge->GetHalfEdge();
 	auto v1v0 = v0v1->GetTwin();
@@ -764,7 +881,7 @@ std::optional<VertexRef> HalfEdgeMesh::SplitEdge(EdgeRef edge)
 
 		// Set vertex connectivity data.
 		v3->SetHalfEdge(v3v1);
-		v3->SetPosition(v0->GetPosition() * 0.5f + v1->GetPosition() * 0.5f);
+		v3->SetPosition(v0->GetPosition() * t + v1->GetPosition() * (1 - t));
 
 		// Update connectivity to old data.
 		HalfEdge::SetNextAndPrev(v1v2, v2v3);
@@ -858,7 +975,7 @@ std::optional<VertexRef> HalfEdgeMesh::SplitEdge(EdgeRef edge)
 	
 	// Set vertex connectivity data.
 	v4->SetHalfEdge(v4v1);
-	v4->SetPosition(v0->GetPosition() * 0.5f + v1->GetPosition() * 0.5f);
+	v4->SetPosition(v0->GetPosition() * t + v1->GetPosition() * (1 - t));
 
 	// Update connectivity to old data.
 	HalfEdge::SetNextAndPrev(v1v2, v2v4);
@@ -903,14 +1020,120 @@ std::optional<VertexRef> HalfEdgeMesh::SplitEdge(EdgeRef edge)
 
 std::optional<VertexRef> HalfEdgeMesh::CollapseEdge(EdgeRef edge, float t)
 {
+	assert(t >= 0.0f && t <= 1.0f);
+
+	// Collapse Edge between v0 and v1.
+	// Before:
+	// a:
+	//		 ____________
+	//      /\    /\    /\
+	//     /  \  /  \  /  \
+	//    /____\/____\/____\
+	//    \    /\    /\    /
+	//     \  /  \  /  \  /
+	//      \/____\/____\/
+	//
+	// b:
+	//		 ____________
+	//      /\    /\    /\
+	//     /  \  /  \  /  \
+	//    /____\/____\/____\
+	//    \    /\     \    /
+	//     \  /  \     \  /
+	//      \/____\_____\/
+	// 
+	// c:
+	//		 ____________
+	//      /\    /     /\
+	//     /  \  /     /  \
+	//    /____\/____ /____\
+	//    \    /\     \    /
+	//     \  /  \     \  /
+	//      \/____\_____\/
+	// 
+	// After:
+	//		 ______
+	//      /\    /\
+	//     /  \  /  \
+	//    /____\/____\
+	//    \    /\    /
+	//     \  /  \  /
+	//      \/____\/
+	//
 	auto v0v1 = edge->GetHalfEdge();
 	auto v1v0 = v0v1->GetTwin();
 	auto v0 = v0v1->GetVertex();
 	auto v1 = v1v0->GetVertex();
 	
-	// Keep v0 and move it to a new position between v0 and v1.  
-	v0->SetPosition(v0->GetPosition() * t + v1->GetPosition() * (1 - t));
-	v0->SetHalfEdge(v0v1->GetNext());
+	{
+		// Validate if mesh is OK to collapse.
+		uint32_t count = 2U;
+		if (v0v1->GetFace()->Degree() > 3)
+		{
+			--count;
+		}
+
+		if (v1v0->GetFace()->Degree() > 3)
+		{
+			--count;
+		}
+
+		HalfEdgeRef h0 = v0v1;
+		do
+		{
+			VertexRef v0v1End = h0->GetTwin()->GetVertex();
+			HalfEdgeRef h1 = v1v0;
+			do
+			{
+				VertexRef v1v0End = h1->GetTwin()->GetVertex();
+				if (v0v1End == v1v0End)
+				{
+					if (0U == count)
+					{
+						return std::nullopt;
+					}
+
+					--count;
+				}
+
+				h1 = h1->GetTwin()->GetNext();
+			} while (h1 != v1v0);
+
+			h0 = h0->GetTwin()->GetNext();
+		} while (h0 != v0v1);
+	}
+
+	if (v0->IsOnBoundary() && v1->IsOnBoundary() && !edge->IsOnBoundary())
+	{
+		//		 _____v0_____
+		//      /\    /\    /\
+		//     /  \  /  \  /  \
+		//    /____\/____\/____\
+		//    \    /\    /\    /
+		//     \  /  \  /  \  /
+		//      \/____v1____\/
+		return std::nullopt;
+	}
+
+	if (1U == v0->Degree())
+	{
+		//	   v0      ______
+		//       \    /\    /\
+		//        \  /  \  /  \
+		//     ____v1____\/____\
+		//    \    /\    /\    /
+		//     \  /  \  /  \  /
+		//      \/____\/____\/
+		RemoveVertex(v0);
+		return v1;
+	}
+
+	if (1U == v1->Degree())
+	{
+		// Ditto.
+		RemoveVertex(v1);
+		return v0;
+	}
 
 	return std::nullopt;
 }

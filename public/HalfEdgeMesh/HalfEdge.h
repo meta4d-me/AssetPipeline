@@ -8,6 +8,7 @@ namespace cd::hem
 class CORE_API HalfEdge
 {
 public:
+	// Helper to set next and prev at the same time.
 	static void SetNextAndPrev(HalfEdgeRef current, HalfEdgeRef next)
 	{
 		current->SetNext(next);
@@ -63,7 +64,7 @@ public:
 	cd::Direction& GetCornerNormal() { return m_cornerNormal; }
 	const cd::Direction& GetCornerNormal() const { return m_cornerNormal; }
 
-	bool Validate() const;
+	bool IsValid() const;
 
 private:
 	// data
@@ -74,12 +75,13 @@ private:
 	// connectivity
 	HalfEdgeRef m_twinRef;
 	HalfEdgeRef m_nextRef;
-	HalfEdgeRef m_prevRef;
+
 	// Save prev half edge is a decision based on target device.
 	// 1. Prev is sure to save some calculations on looping half edge's next.
 	// 2. Prev also takes extra memory for mesh data storage.
 	// 3. Prev needs to maintain in geometry processing algorithm. Or you can just loop to calculate it.
-	// HalfEdgeRef m_prevRef;
+	HalfEdgeRef m_prevRef;
+
 	VertexRef m_vertexRef;
 	EdgeRef m_edgeRef;
 	FaceRef m_faceRef;

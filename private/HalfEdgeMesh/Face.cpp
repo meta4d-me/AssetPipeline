@@ -73,7 +73,7 @@ float Face::Area() const
 	return area;
 }
 
-bool Face::Validate() const
+bool Face::IsValid() const
 {
 	return true;
 }

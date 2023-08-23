@@ -27,7 +27,7 @@ float Edge::Length() const
 	return (m_halfEdgeRef->GetVertex()->GetPosition() - m_halfEdgeRef->GetTwin()->GetVertex()->GetPosition()).Length();
 }
 
-bool Edge::Validate() const
+bool Edge::IsValid() const
 {
 	return true;
 }

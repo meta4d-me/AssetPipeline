@@ -38,12 +38,13 @@ int main(int argc, char** argv)
 	for (const auto& mesh : pSceneDatabase->GetMeshes())
 	{
 		auto halfEdgeMesh = cd::hem::HalfEdgeMesh::FromIndexedMesh(mesh);
-		assert(halfEdgeMesh.Validate());
+		assert(halfEdgeMesh.IsValid());
 	
 		halfEdgeMesh.Dump();
 
-		// Filp edges
+		// Test Filp/Split edges
 		{
+			std::vector<cd::hem::EdgeRef> edges;
 			for (auto it = halfEdgeMesh.GetEdges().begin(); it != halfEdgeMesh.GetEdges().end(); ++it)
 			{
 				if (!it->IsOnBoundary())
@@ -51,11 +52,16 @@ int main(int argc, char** argv)
 					cd::Direction result = it->GetHalfEdge()->GetFace()->Normal().Cross(it->GetHalfEdge()->GetTwin()->GetFace()->Normal());
 					if (cd::Direction::Zero() == result)
 					{
-						halfEdgeMesh.SplitEdge(it);
-						break;
+						edges.push_back(it);
 					}
 				}
 			}
+
+			for (auto edge : edges)
+			{
+				halfEdgeMesh.SplitEdge(edge);
+			}
+
 			halfEdgeMesh.Dump();
 		}
 

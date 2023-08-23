@@ -31,7 +31,7 @@ public:
 	Direction Normal() const;
 	uint32_t Degree() const;
 
-	bool Validate() const;
+	bool IsValid() const;
 
 private:
 	// data
