@@ -61,6 +61,7 @@ public:
 
 		Init(AnimationID(animationID), cd::MoveTemp(animationName));
 		SetDuration(duration);
+		SetTicksPerSecond(ticksPerSecond);
 
 		m_boneTrackIDs.resize(boneTrackCount);
 		inputArchive.ImportBuffer(m_boneTrackIDs.data());
@@ -71,7 +72,7 @@ public:
 	template<bool SwapBytesOrder>
 	const AnimationImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetID().Data() << GetName() << GetDuration() << GetTicksPerSecnod();
+		outputArchive << GetID().Data() << GetName() << GetDuration() << GetTicksPerSecnod() << GetBoneTrackCount();
 		outputArchive.ExportBuffer(GetBoneTrackIDs().data(), GetBoneTrackIDs().size());
 
 		return *this;
