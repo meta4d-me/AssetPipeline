@@ -623,30 +623,153 @@ void HalfEdgeMesh::EraseFace(FaceRef face)
 
 VertexRef HalfEdgeMesh::AddVertex()
 {
-	return m_vertices.end();
+	return EmplaceVertex();
 }
 
-HalfEdgeRef HalfEdgeMesh::AddHalfEdge()
+EdgeRef HalfEdgeMesh::AddEdge(VertexRef v0, VertexRef v1)
 {
-	return m_halfEdges.end();
+	assert(v0 != v1);
+
+	auto edge = EmplaceEdge();
+	auto v0v1 = EmplaceHalfEdge();
+	auto v1v0 = EmplaceHalfEdge();
+
+	edge->SetHalfEdge(v0v1);
+
+	HalfEdge::SetNextAndPrev(v0v1, v1v0);
+	v0v1->SetTwin(v1v0);
+	v0v1->SetVertex(v0);
+	v0v1->SetEdge(edge);
+
+	HalfEdge::SetNextAndPrev(v1v0, v0v1);
+	v1v0->SetTwin(v0v1);
+	v1v0->SetVertex(v1);
+	v1v0->SetEdge(edge);
+
+	if (v0->GetHalfEdge() == m_halfEdges.end())
+	{
+		v0->SetHalfEdge(v0v1);
+	}
+	else
+	{
+		//
+		//      in
+		//     /
+		//    /
+		//   /
+		// v0 ------- v1
+		//   \
+		//    \
+		//     \
+		//      out
+		auto optFreeIncident = FindFreeIncident(v0->GetHalfEdge()->GetTwin(), v0->GetHalfEdge()->GetTwin());
+		assert(optFreeIncident.has_value());
+		if (optFreeIncident.has_value())
+		{
+			auto inV0 = optFreeIncident.value();
+			auto outV0 = inV0->GetNext();
+			HalfEdge::SetNextAndPrev(inV0, v0v1);
+			HalfEdge::SetNextAndPrev(v1v0, outV0);
+		}
+	}
+
+	if (v1->GetHalfEdge() == m_halfEdges.end())
+	{
+		v1->SetHalfEdge(v1v0);
+	}
+	else
+	{
+		//
+		//       out
+		//         \
+		//          \
+		//           \
+		// v0 ------- v1
+		//           /
+		//          / 
+		//         /
+		//       in
+		auto optFreeIncident = FindFreeIncident(v1->GetHalfEdge()->GetTwin(), v1->GetHalfEdge()->GetTwin());
+		assert(optFreeIncident.has_value());
+		if (optFreeIncident.has_value())
+		{
+			auto inV1 = optFreeIncident.value();
+			auto outV1 = inV1->GetNext();
+			HalfEdge::SetNextAndPrev(inV1, v1v0);
+			HalfEdge::SetNextAndPrev(v0v1, outV1);
+		}
+	}
+
+	return edge;
 }
 
-EdgeRef HalfEdgeMesh::AddEdge()
+std::optional<FaceRef> HalfEdgeMesh::AddFace(const std::vector<HalfEdgeRef>& loop)
 {
-	return m_edges.end();
-}
+	assert(loop.size() > 2);
 
-FaceRef HalfEdgeMesh::AddFace(bool isBoundary)
-{
-	return m_faces.end();
+	HalfEdgeRef v0v1 = loop[0];
+
+	// Check if it is OK to add half edge's loop.
+	{
+		HalfEdgeRef prev = m_halfEdges.end();
+		for (auto h : loop)
+		{
+			if (h->GetFace() != m_faces.end())
+			{
+				return std::nullopt;
+			}
+
+			if (prev != m_halfEdges.end() && prev->GetTwin()->GetVertex() != h->GetVertex())
+			{
+				return std::nullopt;
+			}
+
+			prev = h;
+		}
+
+		if (prev->GetTwin()->GetVertex() != v0v1->GetVertex())
+		{
+			return std::nullopt;
+		}
+	}
+
+	// Make sure that it will be a loop.
+	{
+		HalfEdgeRef prev = m_halfEdges.end();
+		for (auto h : loop)
+		{
+			if (prev != m_halfEdges.end())
+			{
+				MakeAdjacent(prev, h);
+			}
+			prev = h;
+		}
+		MakeAdjacent(prev, v0v1);
+	}
+
+	// Add new face.
+	auto face = EmplaceFace();
+	face->SetHalfEdge(v0v1);
+
+	for (auto h : loop)
+	{
+		h->SetFace(face);
+	}
+
+	return face;
 }
 
 void HalfEdgeMesh::RemoveVertex(VertexRef vertex)
 {
-}
+	HalfEdgeRef h = vertex->GetHalfEdge();
+	do
+	{
+		RemoveEdge(h->GetEdge());
 
-void HalfEdgeMesh::RemoveHalfEdge(HalfEdgeRef halfEdge)
-{
+		h = h->GetTwin()->GetNext();
+	} while (h != vertex->GetHalfEdge());
+
+	EraseVertex(vertex);
 }
 
 void HalfEdgeMesh::RemoveEdge(EdgeRef edge)
@@ -691,6 +814,7 @@ void HalfEdgeMesh::RemoveEdge(EdgeRef edge)
 	{
 		v1->SetHalfEdge(outV1 != v1v0 ? outV1 : m_halfEdges.end());
 	}
+	HalfEdge::SetNextAndPrev(inV1, outV1);
 	inV1->SetNext(outV1);
 
 	EraseHalfEdge(v0v1);
@@ -708,6 +832,115 @@ void HalfEdgeMesh::RemoveFace(FaceRef face)
 	} while (h != face->GetHalfEdge());
 
 	EraseFace(face);
+}
+
+std::optional<HalfEdgeRef> HalfEdgeMesh::FindFreeIncident(HalfEdgeRef begin, HalfEdgeRef end)
+{
+	// Find an incident halfedge v1v0, v2v0, v3v0, ... which is free.
+	// Free means the halfedge is standalone which doesn't reference a face.
+	// 
+	//    v1       v2
+	//     \      /
+	//		\    /
+	//		 \  /
+	//        v0 ------- v3
+	assert(begin->GetTwin()->GetVertex() == end->GetTwin()->GetVertex());
+
+	HalfEdgeRef h = begin;
+	do
+	{
+		if (h->GetFace() == m_faces.end())
+		{
+			return h;
+		}
+
+		h = h->GetNext()->GetTwin();
+	} while (h != end);
+
+	return std::nullopt;
+}
+
+bool HalfEdgeMesh::MakeAdjacent(HalfEdgeRef in, HalfEdgeRef out)
+{
+	// Make inv0 adjacent with v0out.
+	// v1v1 is not free half edge while fiv0 is free half edge.
+	// 
+	// Before:
+	// a:
+	//    in
+	//     \      
+	//		\    
+	//		 \  
+	//		  v0 --------- fi(free incident)
+	//			\
+	//			 \
+	//			  \
+	//             \
+	//              out
+	//
+	// After:
+	// a:
+	//   fi        
+	//     \      
+	//		\    
+	//		 \  
+	//		  v0 --------- in
+	//			\
+	//			 \
+	//			  \
+	//             \
+	//              out
+	// 
+	// Before:
+	// b:
+	//    in       v1
+	//     \      /
+	//		\    /
+	//		 \  /
+	//		  v0 --------- fi(free incident)
+	//			\
+	//			 \
+	//			  \
+	//             \
+	//              out
+	//
+	// After:
+	// b:
+	//   fi        v1
+	//     \      /
+	//		\    /
+	//		 \  /
+	//		  v0 --------- in
+	//			\
+	//			 \
+	//			  \
+	//             \
+	//              out
+	assert(in->GetTwin()->GetVertex() == out->GetVertex());
+
+	if (in->GetNext() == out)
+	{
+		// Already adjacent.
+		return true;
+	}
+
+	auto optFreeIncident = FindFreeIncident(out->GetTwin(), in);
+	if (!optFreeIncident.has_value())
+	{
+		// From outv0 to inv0 in CCW. Can't find a free incident halfedge to swap.
+		return false;
+	}
+
+	auto freeIncident = optFreeIncident.value();
+	auto freeIncidentNext = freeIncident->GetNext();
+	auto inNext = in->GetNext();
+	auto outPre = out->GetPrev();
+
+	HalfEdge::SetNextAndPrev(in, out);
+	HalfEdge::SetNextAndPrev(freeIncident, inNext);
+	// OutPre will be v1v0 because these two halfedges doesn't construct a loop.
+	HalfEdge::SetNextAndPrev(outPre, freeIncidentNext);
+	return true;
 }
 
 std::optional<EdgeRef> HalfEdgeMesh::FlipEdge(EdgeRef edge)
@@ -1134,6 +1367,9 @@ std::optional<VertexRef> HalfEdgeMesh::CollapseEdge(EdgeRef edge, float t)
 		RemoveVertex(v1);
 		return v0;
 	}
+
+
+
 
 	return std::nullopt;
 }

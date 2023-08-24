@@ -9,22 +9,10 @@ class CORE_API HalfEdge
 {
 public:
 	// Helper to set next and prev at the same time.
-	static void SetNextAndPrev(HalfEdgeRef current, HalfEdgeRef next)
-	{
-		current->SetNext(next);
-		next->SetPrev(current);
-	}
+	static void SetNextAndPrev(HalfEdgeRef current, HalfEdgeRef next);
 
 	// Helper to init all data at the same time.
-	static void SetData(HalfEdgeRef current, HalfEdgeRef twin, HalfEdgeRef next, VertexRef v, EdgeRef e, FaceRef f)
-	{
-		current->SetTwin(twin);
-		current->SetNext(next);
-		next->SetPrev(current);
-		current->SetVertex(v);
-		current->SetEdge(e);
-		current->SetFace(f);
-	}
+	static void SetData(HalfEdgeRef current, HalfEdgeRef twin, HalfEdgeRef next, VertexRef v, EdgeRef e, FaceRef f);
 
 public:
 	HalfEdge() = delete;
