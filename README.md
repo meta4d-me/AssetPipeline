@@ -7,6 +7,30 @@
 
 3D resources build tool for graphics applications.
 
+## Features
+
+* SceneGraph APIs
+  
+  * Animation
+  
+  * Bone
+  
+  * Camera
+  
+  * Light
+  
+  * Material
+  
+  * Mesh
+    
+    * 
+  
+  * Node
+  
+  * Texture
+  
+  * Track
+
 # ThirdParty
 
 * Base
@@ -27,3 +51,5 @@
 # Learning Resources
 
 [Scotty3D](https://github.com/CMU-Graphics/Scotty3D)
+
+[UHEM](https://github.com/Ubpa/UHEMesh)
