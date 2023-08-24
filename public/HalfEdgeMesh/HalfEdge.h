@@ -54,6 +54,10 @@ public:
 
 	bool IsValid() const;
 
+	// Helpers
+	HalfEdgeRef GetRotateNext() const { return m_twinRef->GetNext(); }
+	VertexRef GetEndVertex() const { return m_twinRef->GetVertex(); }
+
 private:
 	// data
 	HalfEdgeID m_id;

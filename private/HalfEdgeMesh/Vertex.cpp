@@ -17,7 +17,7 @@ bool Vertex::IsOnBoundary() const
 			return true;
 		}
 
-		h = h->GetTwin()->GetNext();
+		h = h->GetRotateNext();
 	} while (h != m_halfEdgeRef);
 	
 	return false;
@@ -33,7 +33,7 @@ Point Vertex::NeighborCenter() const
 	{
 		center += h->GetNext()->GetVertex()->GetPosition();
 		neighborCount += 1.0f;
-		h = h->GetTwin()->GetNext();
+		h = h->GetRotateNext();
 	} while (h != m_halfEdgeRef);
 
 	center /= neighborCount;
@@ -50,7 +50,7 @@ Direction Vertex::Normal() const
 	{
 		const Point& v1 = h->GetNext()->GetVertex()->GetPosition();
 
-		h = h->GetTwin()->GetNext();
+		h = h->GetRotateNext();
 
 		const Point& v2 = h->GetNext()->GetVertex()->GetPosition();
 
@@ -73,7 +73,7 @@ uint32_t Vertex::Degree() const
 	do
 	{
 		++degree;
-		h = h->GetTwin()->GetNext();
+		h = h->GetRotateNext();
 	} while (h != m_halfEdgeRef);
 
 	return degree;

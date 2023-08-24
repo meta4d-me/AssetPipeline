@@ -177,7 +177,7 @@ HalfEdgeMesh HalfEdgeMesh::FromIndexedMesh(const cd::Mesh& mesh)
 				h->SetCornerNormal(mesh.GetVertexNormal(vertexIndex));
 			}
 	
-			h = h->GetTwin()->GetNext();
+			h = h->GetRotateNext();
 		} while (h != vertex.GetHalfEdge());
 	
 		++vertexIndex;
@@ -319,7 +319,7 @@ bool HalfEdgeMesh::IsValid() const
 			}
 			toVisit.erase(itHalfEdge);
 
-			h = h->GetTwin()->GetNext();
+			h = h->GetRotateNext();
 		} while (h != v->GetHalfEdge());
 
 		if (!toVisit.empty())
@@ -423,7 +423,7 @@ void HalfEdgeMesh::Dump() const
 		printf("[HalfEdge %d]\n", halfEdge.GetID().Data());
 		printf("\tTwin : [HalfEdge %d], Prev : [HalfEdge %d], Next : [HalfEdge %d]\n", halfEdge.GetTwin()->GetID().Data(),
 			halfEdge.GetPrev()->GetID().Data(), halfEdge.GetNext()->GetID().Data());
-		printf("\tv%d -> v%d\n", halfEdge.GetVertex()->GetID().Data(), halfEdge.GetTwin()->GetVertex()->GetID().Data());
+		printf("\tv%d -> v%d\n", halfEdge.GetVertex()->GetID().Data(), halfEdge.GetEndVertex()->GetID().Data());
 		printf("\t[Associated Vertex %d]\n", halfEdge.GetVertex()->GetID().Data());
 		printf("\t[Associated Edge %d]\n", halfEdge.GetEdge()->GetID().Data());
 		printf("\t[Associated Face %d]\n", halfEdge.GetFace()->GetID().Data());
@@ -459,10 +459,10 @@ void HalfEdgeMesh::Dump() const
 			printf("\t");
 			do
 			{
-				printf("(v%d -> v%d) -> ", h->GetVertex()->GetID().Data(), h->GetTwin()->GetVertex()->GetID().Data());
+				printf("(v%d -> v%d) -> ", h->GetVertex()->GetID().Data(), h->GetEndVertex()->GetID().Data());
 				h = h->GetNext();
 			} while (h != face.GetHalfEdge());
-			printf("(v%d -> v%d)\n", h->GetVertex()->GetID().Data(), h->GetTwin()->GetVertex()->GetID().Data());
+			printf("(v%d -> v%d)\n", h->GetVertex()->GetID().Data(), h->GetEndVertex()->GetID().Data());
 		}
 	}
 }
@@ -719,7 +719,7 @@ std::optional<FaceRef> HalfEdgeMesh::AddFace(const std::vector<HalfEdgeRef>& loo
 				return std::nullopt;
 			}
 
-			if (prev != m_halfEdges.end() && prev->GetTwin()->GetVertex() != h->GetVertex())
+			if (prev != m_halfEdges.end() && prev->GetEndVertex() != h->GetVertex())
 			{
 				return std::nullopt;
 			}
@@ -727,7 +727,7 @@ std::optional<FaceRef> HalfEdgeMesh::AddFace(const std::vector<HalfEdgeRef>& loo
 			prev = h;
 		}
 
-		if (prev->GetTwin()->GetVertex() != v0v1->GetVertex())
+		if (prev->GetEndVertex() != v0v1->GetVertex())
 		{
 			return std::nullopt;
 		}
@@ -766,7 +766,7 @@ void HalfEdgeMesh::RemoveVertex(VertexRef vertex)
 	{
 		RemoveEdge(h->GetEdge());
 
-		h = h->GetTwin()->GetNext();
+		h = h->GetRotateNext();
 	} while (h != vertex->GetHalfEdge());
 
 	EraseVertex(vertex);
@@ -844,7 +844,7 @@ std::optional<HalfEdgeRef> HalfEdgeMesh::FindFreeIncident(HalfEdgeRef begin, Hal
 	//		\    /
 	//		 \  /
 	//        v0 ------- v3
-	assert(begin->GetTwin()->GetVertex() == end->GetTwin()->GetVertex());
+	assert(begin->GetEndVertex() == end->GetEndVertex());
 
 	HalfEdgeRef h = begin;
 	do
@@ -916,7 +916,7 @@ bool HalfEdgeMesh::MakeAdjacent(HalfEdgeRef in, HalfEdgeRef out)
 	//			  \
 	//             \
 	//              out
-	assert(in->GetTwin()->GetVertex() == out->GetVertex());
+	assert(in->GetEndVertex() == out->GetVertex());
 
 	if (in->GetNext() == out)
 	{
@@ -981,8 +981,8 @@ std::optional<EdgeRef> HalfEdgeMesh::FlipEdge(EdgeRef edge)
 
 	auto v0 = v0v1->GetVertex();
 	auto v1 = v1v0->GetVertex();
-	auto v2 = v0v2->GetTwin()->GetVertex();
-	auto v3 = v1v3->GetTwin()->GetVertex();
+	auto v2 = v0v2->GetEndVertex();
+	auto v3 = v1v3->GetEndVertex();
 
 	// Reassign connectivity.
 	// If the vertex's half edge is on the fliping edge, we should update half edge's next half edge to it : v0v1 -> v0v2 -> ...
@@ -1314,11 +1314,11 @@ std::optional<VertexRef> HalfEdgeMesh::CollapseEdge(EdgeRef edge, float t)
 		HalfEdgeRef h0 = v0v1;
 		do
 		{
-			VertexRef v0v1End = h0->GetTwin()->GetVertex();
+			VertexRef v0v1End = h0->GetEndVertex();
 			HalfEdgeRef h1 = v1v0;
 			do
 			{
-				VertexRef v1v0End = h1->GetTwin()->GetVertex();
+				VertexRef v1v0End = h1->GetEndVertex();
 				if (v0v1End == v1v0End)
 				{
 					if (0U == count)
@@ -1329,10 +1329,10 @@ std::optional<VertexRef> HalfEdgeMesh::CollapseEdge(EdgeRef edge, float t)
 					--count;
 				}
 
-				h1 = h1->GetTwin()->GetNext();
+				h1 = h1->GetRotateNext();
 			} while (h1 != v1v0);
 
-			h0 = h0->GetTwin()->GetNext();
+			h0 = h0->GetRotateNext();
 		} while (h0 != v0v1);
 	}
 
