@@ -23,7 +23,6 @@ int main(int argc, char** argv)
 	PerformanceProfiler profiler("HEMToFbx");
 	
 	auto pSceneDatabase = std::make_unique<cd::SceneDatabase>();
-
 	// Generate halfedge mesh and convert to index mesh.
 	{
 		using namespace cd::hem;
@@ -32,29 +31,89 @@ int main(int argc, char** argv)
 		auto v1 = halfEdgeMesh.AddVertex();
 		auto v2 = halfEdgeMesh.AddVertex();
 		auto v3 = halfEdgeMesh.AddVertex();
+	
+		v0->SetPosition(cd::Point(0.0f, 0.0f, 1.0f));
+		v1->SetPosition(cd::Point(-1.0f, 0.0f, 0.0f));
+		v2->SetPosition(cd::Point(0.0f, 0.0f, -1.0f));
+		v3->SetPosition(cd::Point(1.0f, 0.0f, 0.0f));
+		
+		auto e01 = halfEdgeMesh.AddEdge(v0, v1);
+		auto e12 = halfEdgeMesh.AddEdge(v1, v2);
+		auto e20 = halfEdgeMesh.AddEdge(v2, v0);
+		auto e23 = halfEdgeMesh.AddEdge(v2, v3);
+		auto e30 = halfEdgeMesh.AddEdge(v3, v0);
+	
+		auto f0 = halfEdgeMesh.AddFace({ e01->GetHalfEdge(), e12->GetHalfEdge(), e20->GetHalfEdge() });
+		auto f1 = halfEdgeMesh.AddFace({ e20->GetHalfEdge()->GetTwin(), e23->GetHalfEdge(), e30->GetHalfEdge() });
+		auto f2 = halfEdgeMesh.AddFace({ e30->GetHalfEdge()->GetTwin(), e23->GetHalfEdge()->GetTwin(),
+			e12->GetHalfEdge()->GetTwin(), e01->GetHalfEdge()->GetTwin() });
 
-		v0->SetPosition(cd::Point(0.0f, 1.0f, 0.0f));
-		v1->SetPosition(cd::Point(0.0f, 0.0f, 1.0f));
-		v2->SetPosition(cd::Point(-1.0f, 0.0f, -1.0f));
-		v3->SetPosition(cd::Point(1.0f, 0.0f, -1.0f));
-
-		auto e0 = halfEdgeMesh.AddEdge(v0, v1);
-		auto e1 = halfEdgeMesh.AddEdge(v1, v2);
-		auto e2 = halfEdgeMesh.AddEdge(v2, v0);
-		auto e3 = halfEdgeMesh.AddEdge(v2, v3);
-		auto e4 = halfEdgeMesh.AddEdge(v3, v0);
-		auto e5 = halfEdgeMesh.AddEdge(v3, v1);
-
-		auto f0 = halfEdgeMesh.AddFace({ e0->GetHalfEdge(), e1->GetHalfEdge(), e2->GetHalfEdge() });
-		auto f1 = halfEdgeMesh.AddFace({ e2->GetHalfEdge()->GetTwin(), e3->GetHalfEdge(), e4->GetHalfEdge() });
-		auto f2 = halfEdgeMesh.AddFace({ e4->GetHalfEdge()->GetTwin(), e5->GetHalfEdge(), e0->GetHalfEdge()->GetTwin() });
-		auto f3 = halfEdgeMesh.AddFace({ e1->GetHalfEdge()->GetTwin(), e5->GetHalfEdge()->GetTwin(), e3->GetHalfEdge()->GetTwin() });
-		f3.value()->SetIsBoundary(true);
+		// Split edges to generate more vertices.
+		// Before:
+		//          v0
+		//		   /  \
+		//       v1    v3
+		//         \  /
+		//          v2
+		// 
+		// After:
+		//          v0
+		//		   / | \
+		//       v1-v4-v3
+		//         \ | /
+		//          v2
+		//
+		// After:
+		// v0 -> v5 -> v2 is hard to draw.
+		//           v0
+		//		   //| \
+		//		  / ||  \
+		//		 / / |   \
+		//		/ /  |    \
+		//	   /  |  |     \
+		//   v1--v5--v4-----v3
+		//     \  |  |     /
+		//		\ \  |    /
+		//		 \ | |   /
+		//        \ \|  /
+		//         \\| /
+		//           v2
+		auto optV4 = halfEdgeMesh.SplitEdge(e20);
+		auto v4 = optV4.value();
+		auto v4v1 = v4->GetHalfEdgeToVertex(v1).value();
+		auto v5 = halfEdgeMesh.SplitEdge(v4v1->GetEdge()).value();
 		halfEdgeMesh.Dump();
 
-		auto mesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, cd::ConvertStrategy::TopologyFirst);
-		mesh.SetID(cd::MeshID(0U));
-		pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
+		{
+			auto mesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, cd::ConvertStrategy::TopologyFirst);
+			mesh.SetID(cd::MeshID(0U));
+			pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
+		}
+
+		// Collapse edge v5v2.
+		// So v2 and v5 are removed. New v6 is created. so 
+		// After:
+		// v0 -> v6 and v3 -> v6 are hard to draw.
+		//           v0
+		//		   //| \
+		//		  / ||  \
+		//		 / / |   \
+		//		/  | |    \
+		//	   /  /  |     \
+		//   v1   | v4-----v3
+		//     \  / /    /
+		//		\ |/  /
+		//		  v6
+		//
+		auto v5v2 = v5->GetHalfEdgeToVertex(v2).value();
+		halfEdgeMesh.CollapseEdge(v5v2->GetEdge());
+		halfEdgeMesh.Dump();
+
+		{
+			auto mesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, cd::ConvertStrategy::TopologyFirst);
+			mesh.SetID(cd::MeshID(1U));
+			pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
+		}
 	}
 
 	// Export.

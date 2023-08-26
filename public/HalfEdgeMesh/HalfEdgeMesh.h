@@ -2,8 +2,6 @@
 
 #include "HalfEdgeMesh/ForwardDecls.h"
 
-#include <optional>
-
 namespace cd
 {
 
@@ -12,6 +10,15 @@ class Mesh;
 namespace hem
 {
 
+//
+// HalfEdgeMesh data structure is useful when you need to edit mesh topology, such as adjacent vertices/faces data.
+// To implement this requirement, Edge and HalfEdge concepts are added compared to cd::Mesh which is an IndexMesh data structure.
+// 
+// Features
+//		* Two-directional data conversion between cd::Mesh.
+//		* Basic mesh edit operations such as Add/Remove Vertex/Edge/Face. HalfEdge operations are internal.
+//		* Advanced mesh edit operations such as Flip/Split/CollapseEdge.
+// 
 class CORE_API HalfEdgeMesh
 {
 public:

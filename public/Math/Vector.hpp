@@ -164,7 +164,7 @@ public:
 		}
 		else if constexpr (4 == N)
 		{
-			return cd::Math::IsValid(x()) && cd::Math::IsValid(y()) && cd::Math::IsValid(z()) && cd::Math::Validate(w());
+			return cd::Math::IsValid(x()) && cd::Math::IsValid(y()) && cd::Math::IsValid(z()) && cd::Math::IsValid(w());
 		}
 	}
 

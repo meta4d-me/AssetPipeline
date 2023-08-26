@@ -6,10 +6,25 @@
 namespace cd::hem
 {
 
+std::optional<HalfEdgeRef> Vertex::GetHalfEdgeToVertex(VertexRef vertex) const
+{
+	HalfEdgeRef h = m_halfEdgeRef;
+	do
+	{
+		if (h->GetEndVertex() == vertex)
+		{
+			return h;
+		}
+
+		h = h->GetRotateNext();
+	} while (h != m_halfEdgeRef);
+
+	return std::nullopt;
+}
+
 bool Vertex::IsOnBoundary() const
 {
 	HalfEdgeCRef h = m_halfEdgeRef;
-
 	do
 	{
 		if (h->GetFace()->IsBoundary())
@@ -68,8 +83,8 @@ Direction Vertex::Normal() const
 uint32_t Vertex::Degree() const
 {
 	uint32_t degree = 0U;
-	HalfEdgeCRef h = m_halfEdgeRef;
 
+	HalfEdgeCRef h = m_halfEdgeRef;
 	do
 	{
 		++degree;

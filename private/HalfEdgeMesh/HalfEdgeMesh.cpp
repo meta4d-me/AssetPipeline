@@ -520,7 +520,7 @@ HalfEdgeRef HalfEdgeMesh::EmplaceHalfEdge()
 	}
 	else
 	{
-		halfEdge = m_halfEdges.begin();
+		halfEdge = m_freeHalfEdges.begin();
 		m_halfEdges.splice(m_halfEdges.end(), m_freeHalfEdges, m_freeHalfEdges.begin());
 		*halfEdge = HalfEdge(HalfEdgeID(m_nextHalfEdgeID++));
 	}
@@ -543,7 +543,7 @@ EdgeRef HalfEdgeMesh::EmplaceEdge()
 	}
 	else
 	{
-		edge = m_edges.begin();
+		edge = m_freeEdges.begin();
 		m_edges.splice(m_edges.end(), m_freeEdges, m_freeEdges.begin());
 		*edge = Edge(EdgeID(m_nextEdgeID++));
 	}
@@ -561,7 +561,7 @@ FaceRef HalfEdgeMesh::EmplaceFace(bool isBoundary)
 	}
 	else
 	{
-		face = m_faces.begin();
+		face = m_freeFaces.begin();
 		m_faces.splice(m_faces.end(), m_freeFaces, m_freeFaces.begin());
 		*face = Face(FaceID(m_nextFaceID++), isBoundary);
 	}
@@ -787,15 +787,14 @@ void HalfEdgeMesh::RemoveEdge(EdgeRef edge)
 		RemoveFace(v1v0->GetFace());
 	}
 
-	// Before:
-	// 
-	//    in_out
+	//
+	//    in/out
 	//    /  \
 	//   /    \
 	// v0______v1
 	//  \      /
 	//   \    /
-	//   out_in
+	//   out/in
 	//
 	auto v0 = v0v1->GetVertex();
 	auto v1 = v1v0->GetVertex();
@@ -1248,7 +1247,7 @@ std::optional<VertexRef> HalfEdgeMesh::SplitEdge(EdgeRef edge, float t)
 	v4v1Face->SetHalfEdge(v4v1);
 	v4v0Face->SetHalfEdge(v4v0);
 
-	return std::nullopt;
+	return v4;
 }
 
 std::optional<VertexRef> HalfEdgeMesh::CollapseEdge(EdgeRef edge, float t)
@@ -1368,10 +1367,82 @@ std::optional<VertexRef> HalfEdgeMesh::CollapseEdge(EdgeRef edge, float t)
 		return v0;
 	}
 
+	// Or you can reuse v0 or v1. Only Remove one vertex.
+	auto v = AddVertex();
+	if (v0v1->GetPrev()->GetTwin()->GetFace() != v1v0->GetFace())
+	{
+		v->SetHalfEdge(v0v1->GetPrev()->GetTwin());
+	}
+	else
+	{
+		v->SetHalfEdge(v1v0->GetPrev()->GetTwin());
+	}
 
+	{
+		HalfEdgeRef h = v0v1;
+		do
+		{
+			h->SetVertex(v);
+			h = h->GetRotateNext();
+		} while (h != v0v1);
+	}
 
+	{
+		HalfEdgeRef h = v1v0;
+		do
+		{
+			h->SetVertex(v);
+			h = h->GetRotateNext();
+		} while (h != v1v0);
+	}
 
-	return std::nullopt;
+	auto ProcessHalfEdge = [](HalfEdgeMesh* pHem, HalfEdgeRef v0v1)
+	{
+		auto v0v1Face = v0v1->GetFace();
+		if (3U == v0v1Face->Degree())
+		{
+			// When face degree is 3, it is time to delete non-boundary face.
+			auto v0v1Next = v0v1->GetNext();
+			auto v0v1Prev = v0v1->GetPrev();
+			auto v0v1NextTwin = v0v1Next->GetTwin();
+			auto v0v1PrevTwin = v0v1Prev->GetTwin();
+			
+			auto e = pHem->EmplaceEdge();
+			v0v1NextTwin->SetTwin(v0v1PrevTwin);
+			v0v1NextTwin->SetEdge(e);
+			v0v1PrevTwin->SetTwin(v0v1NextTwin);
+			v0v1PrevTwin->SetEdge(e);
+			e->SetHalfEdge(v0v1NextTwin);
+			
+			pHem->EraseEdge(v0v1Next->GetEdge());
+			pHem->EraseEdge(v0v1Prev->GetEdge());
+			pHem->EraseHalfEdge(v0v1Next);
+			pHem->EraseHalfEdge(v0v1Prev);
+			if (!v0v1Face->IsBoundary())
+			{
+				pHem->EraseFace(v0v1Face);
+			}
+		}
+		else
+		{
+			if (!v0v1Face->IsBoundary() && v0v1Face->GetHalfEdge() == v0v1)
+			{
+				v0v1Face->SetHalfEdge(v0v1->GetNext());
+			}
+			v0v1->GetPrev()->SetNext(v0v1->GetNext());
+		}
+	};
+
+	ProcessHalfEdge(this, v0v1);
+	ProcessHalfEdge(this, v1v0);
+
+	EraseVertex(v0);
+	EraseVertex(v1);
+	EraseHalfEdge(v0v1);
+	EraseHalfEdge(v1v0);
+	EraseEdge(edge);
+
+	return v;
 }
 
 }
