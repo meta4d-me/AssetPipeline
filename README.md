@@ -7,30 +7,6 @@
 
 3D resources build tool for graphics applications.
 
-## Features
-
-* SceneGraph APIs
-  
-  * Animation
-  
-  * Bone
-  
-  * Camera
-  
-  * Light
-  
-  * Material
-  
-  * Mesh
-    
-    * 
-  
-  * Node
-  
-  * Texture
-  
-  * Track
-
 # ThirdParty
 
 * Base
