@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 		auto f1 = halfEdgeMesh.AddFace({ e20->GetHalfEdge()->GetTwin(), e23->GetHalfEdge(), e30->GetHalfEdge() });
 		auto f2 = halfEdgeMesh.AddFace({ e30->GetHalfEdge()->GetTwin(), e23->GetHalfEdge()->GetTwin(),
 			e12->GetHalfEdge()->GetTwin(), e01->GetHalfEdge()->GetTwin() });
-
+		f2.value()->SetIsBoundary(true);
 		// Split edges to generate more vertices.
 		// Before:
 		//          v0

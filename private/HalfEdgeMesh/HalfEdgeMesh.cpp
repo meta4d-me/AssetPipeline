@@ -1369,6 +1369,7 @@ std::optional<VertexRef> HalfEdgeMesh::CollapseEdge(EdgeRef edge, float t)
 
 	// Or you can reuse v0 or v1. Only Remove one vertex.
 	auto v = AddVertex();
+	v->SetPosition(v0->GetPosition() * t + v1->GetPosition() * (1 - t));
 	if (v0v1->GetPrev()->GetTwin()->GetFace() != v1v0->GetFace())
 	{
 		v->SetHalfEdge(v0v1->GetPrev()->GetTwin());
