@@ -8,6 +8,13 @@ namespace cd::hem
 class CORE_API HalfEdge
 {
 public:
+	// Helper to set next and prev at the same time.
+	static void SetNextAndPrev(HalfEdgeRef current, HalfEdgeRef next);
+
+	// Helper to init all data at the same time.
+	static void SetData(HalfEdgeRef current, HalfEdgeRef twin, HalfEdgeRef next, VertexRef v, EdgeRef e, FaceRef f);
+
+public:
 	HalfEdge() = delete;
 	explicit HalfEdge(HalfEdgeID id) : m_id(id) { }
 	HalfEdge(const HalfEdge&) = default;
@@ -22,7 +29,8 @@ public:
 	void SetTwin(HalfEdgeRef ref) { m_twinRef = ref; }
 	HalfEdgeRef GetTwin() const { return m_twinRef; }
 
-	HalfEdgeRef GetPrev() const;
+	void SetPrev(HalfEdgeRef ref) { m_prevRef = ref; }
+	HalfEdgeRef GetPrev() const { return m_prevRef; }
 
 	void SetNext(HalfEdgeRef ref) { m_nextRef = ref; }
 	HalfEdgeRef GetNext() const { return m_nextRef; }
@@ -36,9 +44,6 @@ public:
 	void SetFace(FaceRef ref) { m_faceRef = ref; }
 	FaceRef GetFace() const { return m_faceRef; }
 
-	// Helper to init all data at the same time.
-	void SetData(HalfEdgeRef twin, HalfEdgeRef next, VertexRef v, EdgeRef e, FaceRef f);
-
 	void SetCornerUV(cd::UV uv) { m_cornerUV = cd::MoveTemp(uv); }
 	cd::UV& GetCornerUV() { return m_cornerUV; }
 	const cd::UV& GetCornerUV() const { return m_cornerUV; }
@@ -47,7 +52,11 @@ public:
 	cd::Direction& GetCornerNormal() { return m_cornerNormal; }
 	const cd::Direction& GetCornerNormal() const { return m_cornerNormal; }
 
-	bool Validate() const;
+	bool IsValid() const;
+
+	// Helpers
+	HalfEdgeRef GetRotateNext() const { return m_twinRef->GetNext(); }
+	VertexRef GetEndVertex() const { return m_twinRef->GetVertex(); }
 
 private:
 	// data
@@ -58,11 +67,13 @@ private:
 	// connectivity
 	HalfEdgeRef m_twinRef;
 	HalfEdgeRef m_nextRef;
+
 	// Save prev half edge is a decision based on target device.
 	// 1. Prev is sure to save some calculations on looping half edge's next.
 	// 2. Prev also takes extra memory for mesh data storage.
 	// 3. Prev needs to maintain in geometry processing algorithm. Or you can just loop to calculate it.
-	// HalfEdgeRef m_prevRef;
+	HalfEdgeRef m_prevRef;
+
 	VertexRef m_vertexRef;
 	EdgeRef m_edgeRef;
 	FaceRef m_faceRef;

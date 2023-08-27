@@ -152,19 +152,19 @@ public:
 	CD_FORCEINLINE constexpr TVector<T, 3> xyz() const { static_assert(3 <= N); return TVector<T, 3>(x(), y(), z()); }
 
 	// Validation
-	CD_FORCEINLINE bool Validate() const
+	CD_FORCEINLINE bool IsValid() const
 	{
 		if constexpr (2 == N)
 		{
-			return cd::Math::Validate(x()) && cd::Math::Validate(y());
+			return cd::Math::IsValid(x()) && cd::Math::IsValid(y());
 		}
 		else if constexpr (3 == N)
 		{
-			return cd::Math::Validate(x()) && cd::Math::Validate(y()) && cd::Math::Validate(z());
+			return cd::Math::IsValid(x()) && cd::Math::IsValid(y()) && cd::Math::IsValid(z());
 		}
 		else if constexpr (4 == N)
 		{
-			return cd::Math::Validate(x()) && cd::Math::Validate(y()) && cd::Math::Validate(z()) && cd::Math::Validate(w());
+			return cd::Math::IsValid(x()) && cd::Math::IsValid(y()) && cd::Math::IsValid(z()) && cd::Math::IsValid(w());
 		}
 	}
 

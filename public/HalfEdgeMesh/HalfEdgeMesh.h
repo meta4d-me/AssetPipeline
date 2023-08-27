@@ -2,8 +2,6 @@
 
 #include "HalfEdgeMesh/ForwardDecls.h"
 
-#include <optional>
-
 namespace cd
 {
 
@@ -38,19 +36,28 @@ public:
 	std::list<HalfEdge>& GetHalfEdges() { return m_halfEdges; }
 	const std::list<HalfEdge>& GetHalfEdges() const { return m_halfEdges; }
 
-	VertexRef EmplaceVertex();
-	EdgeRef EmplaceEdge();
-	FaceRef EmplaceFace(bool isBoundary = false);
-	HalfEdgeRef EmplaceHalfEdge();
-
-	void EraseVertex(VertexRef vertex);
-	void EraseEdge(EdgeRef edge);
-	void EraseFace(FaceRef face);
-	void EraseHalfEdge(HalfEdgeRef halfEdge);
-
-	bool Validate() const;
-
+	// Helpers.
+	bool IsTriangleMesh() const;
+	bool IsValid() const;
 	void Dump() const;
+
+	// Returns the count of boudary faces.
+	uint32_t Boundaries() const;
+	bool HasBoundary() const { return Boundaries() > 0U; }
+
+	// Add/Remove are basic mesh edit functions which will maintain connectivity data to make correct topology.
+	VertexRef AddVertex();
+	EdgeRef AddEdge(VertexRef v0, VertexRef v1);
+	std::optional<FaceRef> AddFace(const std::vector<HalfEdgeRef>& loop);
+	void RemoveVertex(VertexRef vertex);
+	void RemoveEdge(EdgeRef edge);
+	void RemoveFace(FaceRef face);
+
+	// Find the first free incident halfedge from begin to end in CCW loop.
+	std::optional<HalfEdgeRef> FindFreeIncident(HalfEdgeRef begin, HalfEdgeRef end);
+
+	// Make in halfedge adjacent with out halfedge.
+	bool MakeAdjacent(HalfEdgeRef in, HalfEdgeRef out);
 
 	// Rotate non-boundary edge CCW inside its containing faces.
 	// Reassign connectivity data but not create or destroy mesh elements.
@@ -60,9 +67,23 @@ public:
 	// Split an edge by adding a new vertex in the midpoint of edge.
 	// Reassign connectivity data and add a new vertex and edges, faces.
 	// Returns new added vertex.
-	std::optional<VertexRef> SplitEdge(EdgeRef edge);
+	std::optional<VertexRef> SplitEdge(EdgeRef edge, float t = 0.5f);
 
+	// Collapse an edge by removing one vertex and optional to move another vertex to a new position.
+	// It also needs to delete two adjacent faces along the edge. Then reassign connectivity data.
+	// Returns the remain vertex.
 	std::optional<VertexRef> CollapseEdge(EdgeRef edge, float t = 0.5f);
+
+private:
+	// Emplace/Erase functions are only used to allocate/free Vertex/HalfEdge/Edge/Face objects.
+	VertexRef EmplaceVertex();
+	HalfEdgeRef EmplaceHalfEdge();
+	EdgeRef EmplaceEdge();
+	FaceRef EmplaceFace(bool isBoundary = false);
+	void EraseVertex(VertexRef vertex);
+	void EraseHalfEdge(HalfEdgeRef halfEdge);
+	void EraseEdge(EdgeRef edge);
+	void EraseFace(FaceRef face);
 
 private:
 	std::list<Vertex> m_vertices;

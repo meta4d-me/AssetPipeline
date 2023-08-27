@@ -3,32 +3,25 @@
 namespace cd::hem
 {
 
-HalfEdgeRef HalfEdge::GetPrev() const
+void HalfEdge::SetNextAndPrev(HalfEdgeRef current, HalfEdgeRef next)
 {
-	HalfEdgeRef h = GetNext();
-	HalfEdgeRef prev = h;
-	
-	do
-	{
-		prev = h;
-		h = h->GetNext();
-	} while (h != GetNext());
-
-	return prev;
+	current->SetNext(next);
+	next->SetPrev(current);
 }
 
-void HalfEdge::SetData(HalfEdgeRef twin, HalfEdgeRef next, VertexRef v, EdgeRef e, FaceRef f)
+void HalfEdge::SetData(HalfEdgeRef current, HalfEdgeRef twin, HalfEdgeRef next, VertexRef v, EdgeRef e, FaceRef f)
 {
-	m_twinRef = twin;
-	m_nextRef = next;
-	m_vertexRef = v;
-	m_edgeRef = e;
-	m_faceRef = f;
+	current->SetTwin(twin);
+	current->SetNext(next);
+	next->SetPrev(current);
+	current->SetVertex(v);
+	current->SetEdge(e);
+	current->SetFace(f);
 }
 
-bool HalfEdge::Validate() const
+bool HalfEdge::IsValid() const
 {
-	return m_cornerUV.Validate() && m_cornerNormal.Validate();
+	return m_cornerUV.IsValid() && m_cornerNormal.IsValid();
 }
 
 }

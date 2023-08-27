@@ -28,7 +28,7 @@ int main(int argc, char** argv)
 
 	CDConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);
-	processor.SetFlattenSceneDatabaseEnable(true);
+	//processor.SetFlattenSceneDatabaseEnable(true);
 	processor.SetDumpSceneDatabaseEnable(true);
 	processor.SetValidateSceneDatabaseEnable(true);
 	processor.Run();

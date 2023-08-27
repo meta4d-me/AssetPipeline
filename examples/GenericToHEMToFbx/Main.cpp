@@ -35,7 +35,7 @@ int main(int argc, char** argv)
 	//for (const auto& mesh : pSceneDatabase->GetMeshes())
 	//{
 	//	auto halfEdgeMesh = cd::hem::HalfEdgeMesh::FromIndexedMesh(mesh);
-	//	assert(halfEdgeMesh.Validate());
+	//	assert(halfEdgeMesh.IsValid());
 	//
 	//	//halfEdgeMesh.FlipEdge();
 	//

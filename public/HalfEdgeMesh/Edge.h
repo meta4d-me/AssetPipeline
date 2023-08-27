@@ -27,7 +27,7 @@ public:
 	Direction Normal() const;
 	float Length() const;
 
-	bool Validate() const;
+	bool IsValid() const;
 
 private:
 	// data

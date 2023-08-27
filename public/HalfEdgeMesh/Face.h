@@ -30,7 +30,7 @@ public:
 	uint32_t Degree() const;
 	float Area() const;
 
-	bool Validate() const;
+	bool IsValid() const;
 
 private:
 	// data
