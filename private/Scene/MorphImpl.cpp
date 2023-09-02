@@ -10,9 +10,10 @@ MorphImpl::MorphImpl(uint32_t vertexCount)
 	Init(vertexCount);
 }
 
-MorphImpl::MorphImpl(MorphID id, std::string name, uint32_t vertexCount) :
+MorphImpl::MorphImpl(MorphID id, MeshID sourceMeshID, std::string name, uint32_t vertexCount) :
 	m_name(MoveTemp(name)),
-	m_id(id)
+	m_id(id),
+	m_sourceMeshID(sourceMeshID)
 {
 	Init(vertexCount);
 }

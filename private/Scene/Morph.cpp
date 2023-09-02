@@ -21,9 +21,9 @@ Morph::Morph(uint32_t vertexCount)
 	m_pMorphImpl = new MorphImpl(vertexCount);
 }
 
-Morph::Morph(MorphID id, const char* pName, uint32_t vertexCount)
+Morph::Morph(MorphID id, MeshID sourceMeshID, const char* pName, uint32_t vertexCount)
 {
-	m_pMorphImpl = new MorphImpl(id, pName, vertexCount);
+	m_pMorphImpl = new MorphImpl(id, sourceMeshID, pName, vertexCount);
 }
 
 Morph::Morph(Morph&& rhs)
@@ -64,6 +64,11 @@ MorphID Morph::GetID() const
 const char* Morph::GetName() const
 {
 	return m_pMorphImpl->GetName().c_str();
+}
+
+MeshID Morph::GetSourceMeshID() const
+{
+	return m_pMorphImpl->GetSourceMeshID();
 }
 
 void Morph::SetWeight(float weight)
