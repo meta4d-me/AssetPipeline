@@ -24,7 +24,7 @@ public:
 	}
 
 	explicit MorphImpl(uint32_t vertexCount);
-	explicit MorphImpl(MorphID id, std::string name, uint32_t vertexCount);
+	explicit MorphImpl(MorphID id, MeshID sourceMeshID, std::string name, uint32_t vertexCount);
 
 	MorphImpl(const MorphImpl&) = default;
 	MorphImpl& operator=(const MorphImpl&) = default;
@@ -36,6 +36,8 @@ public:
 	void Init(MorphID id, std::string name, uint32_t vertexCount);
 	MorphID GetID() const { return m_id; }
 	const std::string& GetName() const { return m_name; }
+
+	MeshID GetSourceMeshID() const { return m_sourceMeshID; }
 
 	void SetWeight(float weight) { m_weight = weight; }
 	float& GetWeight() { return m_weight; } 
@@ -104,6 +106,7 @@ public:
 private:
 	std::string					m_name;
 	MorphID						m_id;
+	MeshID						m_sourceMeshID;
 	float						m_weight;
 
 	uint32_t					m_vertexCount;

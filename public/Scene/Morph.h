@@ -23,7 +23,7 @@ public:
 	explicit Morph(InputArchive& inputArchive);
 	explicit Morph(InputArchiveSwapBytes & inputArchive);
 	explicit Morph(uint32_t vertexCount);
-	explicit Morph(MorphID id, const char* pName, uint32_t vertexCount);
+	explicit Morph(MorphID id, MeshID sourceMeshID, const char* pName, uint32_t vertexCount);
 	Morph(const Morph&) = delete;
 	Morph& operator=(const Morph&) = delete;
 	Morph(Morph&&);
@@ -34,6 +34,8 @@ public:
 	void Init(MorphID meshID, const char* pName, uint32_t vertexCount);
 	MorphID GetID() const;
 	const char* GetName() const;
+
+	MeshID GetSourceMeshID() const;
 
 	void SetWeight(float weight);
 	float GetWeight() const;

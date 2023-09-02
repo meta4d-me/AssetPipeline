@@ -197,6 +197,7 @@ void ProcessorImpl::DumpSceneDatabase()
 
 	printf("\tNode count : %d\n", m_pCurrentSceneDatabase->GetNodeCount());
 	printf("\tMesh count : %d\n", m_pCurrentSceneDatabase->GetMeshCount());
+	printf("\tMorph count : %d\n", m_pCurrentSceneDatabase->GetMorphCount());
 	printf("\tMaterial count : %d\n", m_pCurrentSceneDatabase->GetMaterialCount());
 	printf("\tTexture count : %d\n", m_pCurrentSceneDatabase->GetTextureCount());
 	printf("\tCamera count : %d\n", m_pCurrentSceneDatabase->GetCameraCount());
@@ -260,6 +261,21 @@ void ProcessorImpl::DumpSceneDatabase()
 			//	//	printf("\n");
 			//	//}
 			//}
+		}
+	}
+
+	if (m_pCurrentSceneDatabase->GetMorphCount() > 0U)
+	{
+		printf("\n");
+		for (const auto& morph : m_pCurrentSceneDatabase->GetMorphs())
+		{
+			printf("[Morph %u] Name = %s\n", morph.GetID().Data(), morph.GetName());
+			printf("\tVertexCount = %u\n", morph.GetVertexCount());
+			printf("\tWeight = %f\n", morph.GetWeight());
+			if (morph.GetSourceMeshID().IsValid())
+			{
+				printf("\t[Associated Mesh %u]\n", morph.GetSourceMeshID().Data());
+			}
 		}
 	}
 

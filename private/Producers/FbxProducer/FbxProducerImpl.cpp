@@ -606,51 +606,95 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 	int32_t blendShapeCount = pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eBlendShape);
 	for (int32_t blendShapeIndex = 0; blendShapeIndex < blendShapeCount; ++blendShapeIndex)
 	{
-		fbxsdk::FbxBlendShape* pBlendShape = static_cast<fbxsdk::FbxBlendShape*>(pFbxMesh->GetDeformer(blendShapeIndex, fbxsdk::FbxDeformer::eBlendShape));
+		const fbxsdk::FbxBlendShape* pBlendShape = static_cast<fbxsdk::FbxBlendShape*>(pFbxMesh->GetDeformer(blendShapeIndex, fbxsdk::FbxDeformer::eBlendShape));
 		assert(pBlendShape);
 
-		int32_t blendShapeChannelCount = pBlendShape->GetBlendShapeChannelCount();
-		for (int32_t channelIndex = 0; channelIndex < blendShapeChannelCount; ++channelIndex)
-		{
-			fbxsdk::FbxBlendShapeChannel* pChannel = static_cast<fbxsdk::FbxBlendShapeChannel*>(pBlendShape->GetBlendShapeChannel(channelIndex));
-			assert(pChannel);
-
-			int32_t targetShapeCount = pChannel->GetTargetShapeCount();
-			for (int32_t targetShapeIndex = 0; targetShapeIndex < targetShapeCount; ++targetShapeIndex)
-			{
-				fbxsdk::FbxShape* pTargetShape = pChannel->GetTargetShape(targetShapeIndex);
-				assert(pTargetShape);
-
-				uint32_t targetShapeVertexID = 0U;
-				for (uint32_t controlPointIndex = 0U; controlPointIndex < totalVertexCount; ++controlPointIndex)
-				{
-					auto itVertexID = mapControlPointToVertexID.find(controlPointIndex);
-					if (itVertexID == mapControlPointToVertexID.end())
-					{
-						// Different materials on blender shape will split it to multiple parts.
-						// Not sure if it is proper to do so.
-						continue;
-					}
-
-					uint32_t sourceVertexID = itVertexID->second;
-					const cd::Point& sourceShapePosition = mesh.GetVertexPosition(sourceVertexID);
-					fbxsdk::FbxVector4 targetShapePosition = pTargetShape->GetControlPointAt(controlPointIndex);
-					if (cd::Math::IsEqualTo(sourceShapePosition.x(), static_cast<float>(targetShapePosition[0])) &&
-						cd::Math::IsEqualTo(sourceShapePosition.y(), static_cast<float>(targetShapePosition[1])) &&
-						cd::Math::IsEqualTo(sourceShapePosition.z(), static_cast<float>(targetShapePosition[2])))
-					{
-						// No difference.
-						continue;
-					}
-					
-					targetShapeVertexID++;
-				}
-			}
-		}
+		AddMorph(pBlendShape, mesh, totalVertexCount, mapControlPointToVertexID, pSceneDatabase);
 	}
 
 	pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
 	return meshID;
+}
+
+void FbxProducerImpl::AddMorph(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, uint32_t totalVertexCount, const std::map<uint32_t, uint32_t>& mapControlPointToVertexID, cd::SceneDatabase* pSceneDatabase)
+{
+	int32_t blendShapeChannelCount = pBlendShape->GetBlendShapeChannelCount();
+	for (int32_t channelIndex = 0; channelIndex < blendShapeChannelCount; ++channelIndex)
+	{
+		const fbxsdk::FbxBlendShapeChannel* pChannel = static_cast<const fbxsdk::FbxBlendShapeChannel*>(pBlendShape->GetBlendShapeChannel(channelIndex));
+		assert(pChannel);
+
+		int32_t targetShapeCount = pChannel->GetTargetShapeCount();
+		for (int32_t targetShapeIndex = 0; targetShapeIndex < targetShapeCount; ++targetShapeIndex)
+		{
+			const fbxsdk::FbxShape* pTargetShape = pChannel->GetTargetShape(targetShapeIndex);
+			assert(pTargetShape);
+
+			uint32_t targetShapeVertexID = 0U;
+			for (uint32_t controlPointIndex = 0U; controlPointIndex < totalVertexCount; ++controlPointIndex)
+			{
+				auto itVertexID = mapControlPointToVertexID.find(controlPointIndex);
+				if (itVertexID == mapControlPointToVertexID.end())
+				{
+					// Different materials on blender shape will split it to multiple parts.
+					// Not sure if it is proper to do so.
+					continue;
+				}
+
+				uint32_t sourceVertexID = itVertexID->second;
+				const cd::Point& sourceShapePosition = sourceMesh.GetVertexPosition(sourceVertexID);
+				fbxsdk::FbxVector4 targetShapePosition = pTargetShape->GetControlPointAt(controlPointIndex);
+				if (cd::Math::IsEqualTo(sourceShapePosition.x(), static_cast<float>(targetShapePosition[0])) &&
+					cd::Math::IsEqualTo(sourceShapePosition.y(), static_cast<float>(targetShapePosition[1])) &&
+					cd::Math::IsEqualTo(sourceShapePosition.z(), static_cast<float>(targetShapePosition[2])))
+				{
+					// No difference.
+					continue;
+				}
+
+				++targetShapeVertexID;
+			}
+
+			if (0U == targetShapeVertexID)
+			{
+				// Target shape is same to source shape.
+				continue;
+			}
+
+			cd::Morph morph(m_morphIDGenerator.AllocateID(), sourceMesh.GetID(), pTargetShape->GetName(), targetShapeVertexID);
+
+			uint32_t targetShapeVertexIndex = 0U;
+			for (uint32_t controlPointIndex = 0U; controlPointIndex < totalVertexCount; ++controlPointIndex)
+			{
+				auto itVertexID = mapControlPointToVertexID.find(controlPointIndex);
+				if (itVertexID == mapControlPointToVertexID.end())
+				{
+					// Different materials on blender shape will split it to multiple parts.
+					// Not sure if it is proper to do so.
+					continue;
+				}
+
+				uint32_t sourceVertexID = itVertexID->second;
+				const cd::Point& sourceShapePosition = sourceMesh.GetVertexPosition(sourceVertexID);
+				fbxsdk::FbxVector4 targetShapePosition = pTargetShape->GetControlPointAt(controlPointIndex);
+				if (cd::Math::IsEqualTo(sourceShapePosition.x(), static_cast<float>(targetShapePosition[0])) &&
+					cd::Math::IsEqualTo(sourceShapePosition.y(), static_cast<float>(targetShapePosition[1])) &&
+					cd::Math::IsEqualTo(sourceShapePosition.z(), static_cast<float>(targetShapePosition[2])))
+				{
+					// No difference.
+					continue;
+				}
+
+				// TODO : import initial weights.
+				morph.SetWeight(0.0f);
+				morph.SetVertexSourceID(targetShapeVertexIndex, sourceVertexID);
+				morph.SetVertexPosition(targetShapeVertexIndex, sourceShapePosition);
+				++targetShapeVertexIndex;
+			}
+
+			pSceneDatabase->AddMorph(cd::MoveTemp(morph));
+		}
+	}
 }
 
 void FbxProducerImpl::AddMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial)
