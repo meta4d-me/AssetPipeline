@@ -44,20 +44,8 @@ void Bone::Init(BoneID id, std::string name)
     m_pBoneImpl->Init(id, MoveTemp(name));
 }
 
-BoneID Bone::GetID() const
-{
-    return m_pBoneImpl->GetID();
-}
-
-void Bone::SetName(std::string name)
-{
-    return m_pBoneImpl->SetName(MoveTemp(name));
-}
-
-const char* Bone::GetName() const
-{
-    return m_pBoneImpl->GetName().c_str();
-}
+PIMPL_ID_APIS(Bone);
+PIMPL_NAME_APIS(Bone);
 
 void Bone::SetParentID(BoneID parentID)
 {

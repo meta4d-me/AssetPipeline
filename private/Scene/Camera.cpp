@@ -39,25 +39,8 @@ Camera::~Camera()
     }
 }
 
-void Camera::SetID(CameraID id)
-{
-    m_pCameraImpl->SetID(id);
-}
-
-CameraID Camera::GetID() const
-{
-    return m_pCameraImpl->GetID();
-}
-
-void Camera::SetName(const char* pName)
-{
-    return m_pCameraImpl->SetName(pName);
-}
-
-const char* Camera::GetName() const
-{
-    return m_pCameraImpl->GetName().c_str();
-}
+PIMPL_ID_APIS(Camera);
+PIMPL_NAME_APIS(Camera);
 
 void Camera::SetEye(Vec3f eye)
 {

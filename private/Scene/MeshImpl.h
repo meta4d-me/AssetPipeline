@@ -40,11 +40,13 @@ public:
 
 	void Init(uint32_t vertexCount, uint32_t polygonCount);
 	
-	void SetID(MeshID id) { m_id = id; }
-	MeshID GetID() const { return m_id; }
-
-	void SetName(std::string name) { m_name = MoveTemp(name); }
-	const std::string& GetName() const { return m_name; }
+	IMPLEMENT_ID_APIS(MeshID, m_id);
+	IMPLEMENT_NAME_APIS(m_name);
+	IMPLEMENT_VECTOR_DATA_APIS(MorphID, m_morphTargetIDs);
+	IMPLEMENT_VECTOR_DATA_APIS(VertexPosition, m_vertexPositions);
+	IMPLEMENT_VECTOR_DATA_APIS(VertexNormal, m_vertexNormals);
+	IMPLEMENT_VECTOR_DATA_APIS(VertexTangent, m_vertexTangents);
+	IMPLEMENT_VECTOR_DATA_APIS(VertexBiTangent, m_vertexBiTangents);
 
 	uint32_t GetVertexCount() const { return m_vertexCount; }
 	uint32_t GetPolygonCount() const { return m_polygonCount; }
@@ -60,35 +62,7 @@ public:
 	void SetMaterialID(MaterialID materialID) { m_materialID = materialID; }
 	MaterialID GetMaterialID() const { return m_materialID; }
 
-	uint32_t GetMorphCount() const { return static_cast<uint32_t>(m_morphTargets.size()); }
-	Morph& GetMorph(uint32_t morphIndex) { return m_morphTargets[morphIndex]; }
-	const Morph& GetMorph(uint32_t morphIndex) const { return m_morphTargets[morphIndex]; }
-	std::vector<Morph>& GetMorphs() { return m_morphTargets; }
-	const std::vector<Morph>& GetMorphs() const { return m_morphTargets; }
-
-	void SetVertexPosition(uint32_t vertexIndex, const Point& position);
-	Point& GetVertexPosition(uint32_t vertexIndex) { return m_vertexPositions[vertexIndex]; }
-	const Point& GetVertexPosition(uint32_t vertexIndex) const { return m_vertexPositions[vertexIndex]; }
-	std::vector<Point>& GetVertexPositions() { return m_vertexPositions; }
-	const std::vector<Point>& GetVertexPositions() const { return m_vertexPositions; }
-
-	void SetVertexNormal(uint32_t vertexIndex, const Direction& normal);
-	Direction& GetVertexNormal(uint32_t vertexIndex) { return m_vertexNormals[vertexIndex]; }
-	const Direction& GetVertexNormal(uint32_t vertexIndex) const { return m_vertexNormals[vertexIndex]; }
-	std::vector<Direction>& GetVertexNormals() { return m_vertexNormals; }
-	const std::vector<Direction>& GetVertexNormals() const { return m_vertexNormals; }
 	void ComputeVertexNormals();
-
-	void SetVertexTangent(uint32_t vertexIndex, const Direction& tangent);
-	Direction& GetVertexTangent(uint32_t vertexIndex) { return m_vertexTangents[vertexIndex]; }
-	const Direction& GetVertexTangent(uint32_t vertexIndex) const { return m_vertexTangents[vertexIndex]; }
-	std::vector<Direction>& GetVertexTangents() { return m_vertexTangents; }
-	const std::vector<Direction>& GetVertexTangents() const { return m_vertexTangents; }
-	void SetVertexBiTangent(uint32_t vertexIndex, const Direction& biTangent);
-	Direction& GetVertexBiTangent(uint32_t vertexIndex) { return m_vertexBiTangents[vertexIndex]; }
-	const Direction& GetVertexBiTangent(uint32_t vertexIndex) const { return m_vertexBiTangents[vertexIndex]; }
-	std::vector<Direction>& GetVertexBiTangents() { return m_vertexBiTangents; }
-	const std::vector<Direction>& GetVertexBiTangents() const { return m_vertexBiTangents; }
 	void ComputeVertexTangents();
 
 	void SetVertexUVSetCount(uint32_t setCount);
@@ -238,7 +212,7 @@ private:
 	AABB						m_aabb;
 
 	// morph targets
-	std::vector<Morph>			m_morphTargets;
+	std::vector<MorphID>		m_morphTargetIDs;
 
 	// vertex geometry data
 	// TODO : Remove m_vertexFormat.

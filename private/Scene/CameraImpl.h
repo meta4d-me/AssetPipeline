@@ -29,12 +29,8 @@ public:
 
 	void Init(CameraID id, std::string name);
 
-	void SetID(CameraID id) { m_id = id; }
-	CameraID GetID() const { return m_id; }
-
-	void SetName(std::string name) { m_name = cd::MoveTemp(name); }
-	std::string& GetName() { return m_name; }
-	const std::string& GetName() const { return m_name; }
+	IMPLEMENT_ID_APIS(CameraID, m_id);
+	IMPLEMENT_NAME_APIS(m_name);
 
 	void SetEye(Vec3f eye) { m_eye = MoveTemp(eye); }
 	Vec3f& GetEye() { return m_eye; }

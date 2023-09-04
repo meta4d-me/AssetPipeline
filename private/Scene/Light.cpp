@@ -49,24 +49,12 @@ std::pair<float, float> Light::CalculateScaleAndOffset(float innerAngle, float o
 	return m_pLightImpl->CalculateScaleAndOffset(innerAngle, outerAngle);
 }
 
-LightID Light::GetID() const
-{
-	return m_pLightImpl->GetID();
-}
+PIMPL_ID_APIS(Light);
+PIMPL_NAME_APIS(Light);
 
 LightType Light::GetType() const
 {
 	return m_pLightImpl->GetType();
-}
-
-void Light::SetName(const char* pName)
-{
-	return m_pLightImpl->SetName(pName);
-}
-
-const char* Light::GetName() const
-{
-	return m_pLightImpl->GetName().c_str();
 }
 
 void Light::SetIntensity(float intensity)

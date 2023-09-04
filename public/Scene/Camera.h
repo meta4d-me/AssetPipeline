@@ -28,11 +28,8 @@ public:
 	Camera& operator=(Camera&&);
 	~Camera();
 	
-	void SetID(CameraID id);
-	CameraID GetID() const;
-
-	void SetName(const char* pName);
-	const char* GetName() const;
+	EXPORT_OBJECT_ID_APIS(CameraID);
+	EXPORT_NAME_APIS();
 
 	void SetEye(Vec3f eye);
 	Vec3f& GetEye();

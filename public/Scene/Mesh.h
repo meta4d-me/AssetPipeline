@@ -42,10 +42,13 @@ public:
 
 	void Init(uint32_t vertexCount, uint32_t polygonCount);
 
-	void SetID(MeshID id);
-	MeshID GetID() const;
-	void SetName(const char* pName);
-	const char* GetName() const;
+	EXPORT_OBJECT_ID_APIS(MeshID);
+	EXPORT_NAME_APIS();
+	EXPORT_VECTOR_DATA_APIS(MorphID);
+	EXPORT_VECTOR_DATA_APIS(VertexPosition);
+	EXPORT_VECTOR_DATA_APIS(VertexNormal);
+	EXPORT_VECTOR_DATA_APIS(VertexTangent);
+	EXPORT_VECTOR_DATA_APIS(VertexBiTangent);
 
 	uint32_t GetVertexCount() const;
 	uint32_t GetPolygonCount() const;
@@ -61,35 +64,7 @@ public:
 	void SetMaterialID(MaterialID materialID);
 	MaterialID GetMaterialID() const;
 
-	uint32_t GetMorphCount() const;
-	Morph& GetMorph(uint32_t morphIndex);
-	const Morph& GetMorph(uint32_t morphIndex) const;
-	std::vector<Morph>& GetMorphs();
-	const std::vector<Morph>& GetMorphs() const;
-
-	void SetVertexPosition(uint32_t vertexIndex, const Point& position);
-	std::vector<Point>& GetVertexPositions();
-	Point& GetVertexPosition(uint32_t vertexIndex);
-	const Point& GetVertexPosition(uint32_t vertexIndex) const;
-	const std::vector<Point>& GetVertexPositions() const;
-
-	void SetVertexNormal(uint32_t vertexIndex, const Direction& normal);
-	std::vector<Direction>& GetVertexNormals();
-	Direction& GetVertexNormal(uint32_t vertexIndex);
-	const Direction& GetVertexNormal(uint32_t vertexIndex) const;
-	const std::vector<Direction>& GetVertexNormals() const;
 	void ComputeVertexNormals();
-
-	void SetVertexTangent(uint32_t vertexIndex, const Direction& tangent);
-	std::vector<Direction>& GetVertexTangents();
-	Direction& GetVertexTangent(uint32_t vertexIndex);
-	const Direction& GetVertexTangent(uint32_t vertexIndex) const;
-	const std::vector<Direction>& GetVertexTangents() const;
-	void SetVertexBiTangent(uint32_t vertexIndex, const Direction& biTangent);
-	std::vector<Direction>& GetVertexBiTangents();
-	Direction& GetVertexBiTangent(uint32_t vertexIndex);
-	const Direction& GetVertexBiTangent(uint32_t vertexIndex) const;
-	const std::vector<Direction>& GetVertexBiTangents() const;
 	void ComputeVertexTangents();
 
 	void SetVertexUVSetCount(uint32_t setCount);

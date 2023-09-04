@@ -34,11 +34,8 @@ public:
 	void Init(MaterialID materialID, std::string materialName, MaterialType materialType);
 	void InitBasePBR();
 
-	MaterialID GetID() const { return m_id; }
-	void SetID(MaterialID id) { m_id = id; }
-
-	const std::string& GetName() const { return m_name; }
-	void SetName(std::string name) { m_name = cd::MoveTemp(name); }
+	IMPLEMENT_ID_APIS(MaterialID, m_id);
+	IMPLEMENT_NAME_APIS(m_name);
 
 	MaterialType GetType() const { return m_type; }
 	void SetType(MaterialType materialType) { m_type = materialType; }

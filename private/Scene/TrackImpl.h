@@ -30,29 +30,11 @@ public:
 
 	void Init(TrackID id, std::string name);
 
-	void SetID(TrackID id) { m_id = id; }
-	TrackID GetID() const { return m_id; }
-
-	void SetName(std::string name) { m_name = cd::MoveTemp(name); }
-	const std::string& GetName() const { return m_name; }
-
-	void SetTranslationKeyCount(uint32_t keyCount) { m_translationKeys.resize(keyCount); }
-	uint32_t GetTranslationKeyCount() const { return static_cast<uint32_t>(m_translationKeys.size()); }
-	void SetTranslationKeys(std::vector<TranslationKey> keys) { m_translationKeys = MoveTemp(keys); }
-	std::vector<TranslationKey>& GetTranslationKeys() { return m_translationKeys; }
-	const std::vector<TranslationKey>& GetTranslationKeys() const { return m_translationKeys; }
-
-	void SetRotationKeyCount(uint32_t keyCount) { m_rotationKeys.resize(keyCount); }
-	uint32_t GetRotationKeyCount() const { return static_cast<uint32_t>(m_rotationKeys.size()); }
-	void SetRotationKeys(std::vector<RotationKey> keys) { m_rotationKeys = MoveTemp(keys); }
-	std::vector<RotationKey>& GetRotationKeys() { return m_rotationKeys; }
-	const std::vector<RotationKey>& GetRotationKeys() const { return m_rotationKeys; }
-
-	void SetScaleKeyCount(uint32_t keyCount) { m_scaleKeys.resize(keyCount); }
-	uint32_t GetScaleKeyCount() const { return static_cast<uint32_t>(m_scaleKeys.size()); }
-	void SetScaleKeys(std::vector<ScaleKey> keys) { m_scaleKeys = MoveTemp(keys); }
-	std::vector<ScaleKey>& GetScaleKeys() { return m_scaleKeys; }
-	const std::vector<ScaleKey>& GetScaleKeys() const { return m_scaleKeys; }
+	IMPLEMENT_ID_APIS(TrackID, m_id);
+	IMPLEMENT_NAME_APIS(m_name);
+	IMPLEMENT_VECTOR_DATA_APIS(TranslationKey, m_translationKeys);
+	IMPLEMENT_VECTOR_DATA_APIS(RotationKey, m_rotationKeys);
+	IMPLEMENT_VECTOR_DATA_APIS(ScaleKey, m_scaleKeys);
 
 	template<bool SwapBytesOrder>
 	TrackImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)

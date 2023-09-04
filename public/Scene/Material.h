@@ -34,11 +34,8 @@ public:
 
 	void Init(MaterialID materialID, const char* pMaterialName, MaterialType type);
 
-	MaterialID GetID() const;
-	void SetID(MaterialID id);
-
-	const char* GetName() const;
-	void SetName(const char* pName);
+	EXPORT_OBJECT_ID_APIS(MaterialID);
+	EXPORT_NAME_APIS();
 	
 	MaterialType GetType() const;
 	void SetType(MaterialType type);

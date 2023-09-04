@@ -31,10 +31,8 @@ public:
 	
 	void Init(BoneID id, std::string name);
 
-	BoneID GetID() const;
-
-	void SetName(std::string name);
-	const char* GetName() const;
+	EXPORT_OBJECT_ID_APIS(BoneID);
+	EXPORT_NAME_APIS();
 
 	void SetParentID(BoneID parentID);
 	BoneID GetParentID() const;

@@ -81,6 +81,12 @@ using Triangle = TVector<VertexID, 3>;
 using Quad = TVector<VertexID, 4>;
 using Polygon = std::vector<VertexID>;
 
+using VertexSourceID = VertexID;
+using VertexPosition = cd::Point;
+using VertexNormal = cd::Direction;
+using VertexTangent = cd::Direction;
+using VertexBiTangent = cd::Direction;
+
 }
 
 namespace std
