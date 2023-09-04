@@ -307,6 +307,7 @@ public:
 	CD_FORCEINLINE TQuaternion<T> operator-(const TQuaternion<T>& rhs) const { return TQuaternion<T>(m_scalar - rhs.m_scalar, m_vector - rhs.m_vector); }
 	CD_FORCEINLINE TQuaternion<T>& operator-=(const TQuaternion<T>& rhs) { m_scalar -= rhs.m_scalar; m_vector -= rhs.m_vector; return *this; }
 
+	friend CD_FORCEINLINE TQuaternion<T> operator*(T lhs, const TQuaternion<T>& rhs) { return rhs * lhs; }
 	CD_FORCEINLINE TQuaternion<T> operator*(T scalar) const { return TQuaternion<T>(m_scalar * scalar, m_vector.x() * scalar, m_vector.y() * scalar, m_vector.z() * scalar); }
 	CD_FORCEINLINE TQuaternion<T> operator*(const TQuaternion<T>& rhs) const
 	{

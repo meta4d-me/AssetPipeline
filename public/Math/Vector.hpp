@@ -293,6 +293,7 @@ public:
 		return *this;
 	}
 
+	friend CD_FORCEINLINE TVector operator*(T lhs, const TVector& rhs) { return rhs * lhs; }
 	CD_FORCEINLINE TVector operator*(T value) const { return TVector(*this) *= value; }
 	TVector& operator*=(T value)
 	{
