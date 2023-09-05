@@ -5,7 +5,6 @@
 #include "Scene/SceneDatabase.h"
 
 #include <cassert>
-#include <cfloat>
 #include <filesystem>
 #include <fstream>
 
@@ -157,26 +156,9 @@ void ProcessorImpl::Run()
 void ProcessorImpl::CalculateAABBForSceneDatabase()
 {
 	// Update mesh AABB by its current vertex positions.
-	std::vector<cd::Mesh>& meshes = m_pCurrentSceneDatabase->GetMeshes();
-	for (uint32_t meshIndex = 0U; meshIndex < m_pCurrentSceneDatabase->GetMeshCount(); ++meshIndex)
+	for (auto& mesh : m_pCurrentSceneDatabase->GetMeshes())
 	{
-		cd::Mesh& mesh = meshes[meshIndex];
-
-		// Apply transform to vertex position.
-		cd::Point minPoint(FLT_MAX);
-		cd::Point maxPoint(-FLT_MAX);
-		for (uint32_t vertexIndex = 0U; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
-		{
-			const cd::Point& position = mesh.GetVertexPosition(vertexIndex);
-			minPoint.x() = minPoint.x() > position.x() ? position.x() : minPoint.x();
-			minPoint.y() = minPoint.y() > position.y() ? position.y() : minPoint.y();
-			minPoint.z() = minPoint.z() > position.z() ? position.z() : minPoint.z();
-			maxPoint.x() = maxPoint.x() > position.x() ? maxPoint.x() : position.x();
-			maxPoint.y() = maxPoint.y() > position.y() ? maxPoint.y() : position.y();
-			maxPoint.z() = maxPoint.z() > position.z() ? maxPoint.z() : position.z();
-		}
-
-		mesh.SetAABB(cd::AABB(cd::MoveTemp(minPoint), cd::MoveTemp(maxPoint)));
+		mesh.UpdateAABB();
 	}
 
 	// Update scene AABB by meshes' AABB.

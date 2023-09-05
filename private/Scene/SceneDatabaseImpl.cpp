@@ -1,8 +1,7 @@
 #include "SceneDatabaseImpl.h"
 
-#include "Base/Template.h"
-
 #include <cassert>
+#include <cfloat>
 
 namespace details
 {
