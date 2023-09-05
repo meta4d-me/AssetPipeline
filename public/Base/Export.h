@@ -48,11 +48,11 @@
 	void Set##ElementType##Count(uint32_t count); \
 	uint32_t Get##ElementType##Count() const; \
 	void Set##ElementType##s(std::vector<ElementType> elements); \
-	void Set##ElementType##(uint32_t index, ElementType element); \
+	void Set##ElementType(uint32_t index, ElementType element); \
 	std::vector<ElementType>& Get##ElementType##s(); \
 	const std::vector<ElementType>& Get##ElementType##s() const; \
-	ElementType& Get##ElementType##(uint32_t index); \
-	const ElementType& Get##ElementType##(uint32_t index) const;
+	ElementType& Get##ElementType(uint32_t index); \
+	const ElementType& Get##ElementType(uint32_t index) const;
 
 #define PIMPL_VECTOR_DATA_APIS(Type, ElementType) \
 	void Type::Set##ElementType##Capacity(uint32_t count) { m_p##Type##Impl->Set##ElementType##Capacity(count); } \
