@@ -38,6 +38,7 @@ public:
 	IMPLEMENT_ID_APIS(MorphID, m_id);
 	IMPLEMENT_NAME_APIS(m_name);
 
+	void SetSourceMeshID(MeshID meshID) { m_sourceMeshID = meshID; }
 	MeshID GetSourceMeshID() const { return m_sourceMeshID; }
 
 	void SetWeight(float weight) { m_weight = weight; }

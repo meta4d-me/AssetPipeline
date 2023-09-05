@@ -438,6 +438,21 @@ uint32_t SceneDatabase::GetTrackCount() const
 
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
+void SceneDatabase::Dump() const
+{
+	m_pSceneDatabaseImpl->Dump();
+}
+
+void SceneDatabase::Validate() const
+{
+	m_pSceneDatabaseImpl->Validate();
+}
+
+void SceneDatabase::Merge(cd::SceneDatabase&& scene)
+{
+	m_pSceneDatabaseImpl->Merge(cd::MoveTemp(*scene.m_pSceneDatabaseImpl));
+}
+
 void SceneDatabase::UpdateAABB()
 {
 	m_pSceneDatabaseImpl->UpdateAABB();

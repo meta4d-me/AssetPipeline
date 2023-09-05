@@ -110,6 +110,11 @@ const AABB& Mesh::GetAABB() const
 	return m_pMeshImpl->GetAABB();
 }
 
+void Mesh::UpdateAABB()
+{
+	m_pMeshImpl->UpdateAABB();
+}
+
 void Mesh::SetMaterialID(MaterialID materialID)
 {
 	return m_pMeshImpl->SetMaterialID(materialID);

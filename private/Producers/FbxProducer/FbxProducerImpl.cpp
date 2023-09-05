@@ -604,20 +604,28 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 
 	// BlendShape
 	int32_t blendShapeCount = pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eBlendShape);
+	assert(blendShapeCount <= 1 && "Why use two blendshape in a mesh?");
 	for (int32_t blendShapeIndex = 0; blendShapeIndex < blendShapeCount; ++blendShapeIndex)
 	{
 		const fbxsdk::FbxBlendShape* pBlendShape = static_cast<fbxsdk::FbxBlendShape*>(pFbxMesh->GetDeformer(blendShapeIndex, fbxsdk::FbxDeformer::eBlendShape));
 		assert(pBlendShape);
 
-		AddMorph(pBlendShape, mesh, totalVertexCount, mapControlPointToVertexID, pSceneDatabase);
+		std::vector<cd::MorphID> addedMorphIDs = AddMorphs(pBlendShape, mesh, totalVertexCount, mapControlPointToVertexID, pSceneDatabase);
+		mesh.SetMorphIDCount(static_cast<uint32_t>(addedMorphIDs.size()));
+		for (uint32_t morphIndex = 0U; morphIndex < mesh.GetMorphIDCount(); ++morphIndex)
+		{
+			mesh.SetMorphID(morphIndex, addedMorphIDs[morphIndex]);
+		}
 	}
 
 	pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
 	return meshID;
 }
 
-void FbxProducerImpl::AddMorph(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, uint32_t totalVertexCount, const std::map<uint32_t, uint32_t>& mapControlPointToVertexID, cd::SceneDatabase* pSceneDatabase)
+std::vector<cd::MorphID> FbxProducerImpl::AddMorphs(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, uint32_t totalVertexCount, const std::map<uint32_t, uint32_t>& mapControlPointToVertexID, cd::SceneDatabase* pSceneDatabase)
 {
+	std::vector<cd::MorphID> morphIDs;
+
 	int32_t blendShapeChannelCount = pBlendShape->GetBlendShapeChannelCount();
 	for (int32_t channelIndex = 0; channelIndex < blendShapeChannelCount; ++channelIndex)
 	{
@@ -662,6 +670,7 @@ void FbxProducerImpl::AddMorph(const fbxsdk::FbxBlendShape* pBlendShape, const c
 			}
 
 			cd::Morph morph(m_morphIDGenerator.AllocateID(), sourceMesh.GetID(), pTargetShape->GetName(), targetShapeVertexID);
+			morphIDs.push_back(morph.GetID());
 
 			uint32_t targetShapeVertexIndex = 0U;
 			for (uint32_t controlPointIndex = 0U; controlPointIndex < totalVertexCount; ++controlPointIndex)
@@ -695,6 +704,8 @@ void FbxProducerImpl::AddMorph(const fbxsdk::FbxBlendShape* pBlendShape, const c
 			pSceneDatabase->AddMorph(cd::MoveTemp(morph));
 		}
 	}
+
+	return morphIDs;
 }
 
 void FbxProducerImpl::AddMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial)

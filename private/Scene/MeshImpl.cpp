@@ -144,6 +144,45 @@ void MeshImpl::Init(uint32_t vertexCount, uint32_t polygonCount)
 ////////////////////////////////////////////////////////////////////////////////////
 // Vertex geometry data
 ////////////////////////////////////////////////////////////////////////////////////
+void MeshImpl::UpdateAABB()
+{
+	Point minPos(Math::FLOAT_MAX);
+	Point maxPos(Math::FLOAT_MIN);
+	for (const auto& position : GetVertexPositions())
+	{
+		if (position.x() < minPos.x())
+		{
+			minPos.x() = position.x();
+		}
+
+		if (position.y() < minPos.y())
+		{
+			minPos.y() = position.y();
+		}
+
+		if (position.z() < minPos.z())
+		{
+			minPos.z() = position.z();
+		}
+
+		if (position.x() > maxPos.x())
+		{
+			maxPos.x() = position.x();
+		}
+
+		if (position.y() > maxPos.y())
+		{
+			maxPos.y() = position.y();
+		}
+
+		if (position.z() < maxPos.z())
+		{
+			maxPos.z() = position.z();
+		}
+	}
+
+	SetAABB(cd::AABB(minPos, maxPos));
+}
 
 void MeshImpl::ComputeVertexNormals()
 {
