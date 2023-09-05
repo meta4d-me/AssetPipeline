@@ -31,11 +31,8 @@ public:
 
 	void Init(TextureID textureID, std::string name, MaterialTextureType textureType);
 
-	TextureID GetID() const { return m_id; }
-
-	const std::string& GetName() const { return m_name; }
-	std::string& GetName() { return m_name; }
-	void SetName(std::string name) { m_name = MoveTemp(name); }
+	IMPLEMENT_ID_APIS(TextureID, m_id);
+	IMPLEMENT_NAME_APIS(m_name);
 
 	cd::MaterialTextureType GetType() const { return m_type; }
 	void SetType(cd::MaterialTextureType type) { m_type = type; }

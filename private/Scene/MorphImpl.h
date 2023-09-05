@@ -34,8 +34,9 @@ public:
 
 	void Init(uint32_t vertexCount);
 	void Init(MorphID id, std::string name, uint32_t vertexCount);
-	MorphID GetID() const { return m_id; }
-	const std::string& GetName() const { return m_name; }
+	
+	IMPLEMENT_ID_APIS(MorphID, m_id);
+	IMPLEMENT_NAME_APIS(m_name);
 
 	MeshID GetSourceMeshID() const { return m_sourceMeshID; }
 
@@ -45,34 +46,11 @@ public:
 
 	uint32_t GetVertexCount() const { return m_vertexCount; }
 
-	void SetVertexSourceID(uint32_t vertexIndex, uint32_t sourceID);
-	VertexID GetVertexSourceID(uint32_t vertexIndex) const { return m_vertexSourceIDs[vertexIndex]; }
-	std::vector<VertexID>& GetVertexSourceIDs() { return m_vertexSourceIDs; }
-	const std::vector<VertexID>& GetVertexSourceIDs() const { return m_vertexSourceIDs; }
-
-	void SetVertexPosition(uint32_t vertexIndex, const Point& position);
-	Point& GetVertexPosition(uint32_t vertexIndex) { return m_vertexPositions[vertexIndex]; }
-	const Point& GetVertexPosition(uint32_t vertexIndex) const { return m_vertexPositions[vertexIndex]; }
-	std::vector<Point>& GetVertexPositions() { return m_vertexPositions; }
-	const std::vector<Point>& GetVertexPositions() const { return m_vertexPositions; }
-
-	void SetVertexNormal(uint32_t vertexIndex, const Direction& normal);
-	Direction& GetVertexNormal(uint32_t vertexIndex) { return m_vertexNormals[vertexIndex]; }
-	const Direction& GetVertexNormal(uint32_t vertexIndex) const { return m_vertexNormals[vertexIndex]; }
-	std::vector<Direction>& GetVertexNormals() { return m_vertexNormals; }
-	const std::vector<Direction>& GetVertexNormals() const { return m_vertexNormals; }
-
-	void SetVertexTangent(uint32_t vertexIndex, const Direction& tangent);
-	Direction& GetVertexTangent(uint32_t vertexIndex) { return m_vertexTangents[vertexIndex]; }
-	const Direction& GetVertexTangent(uint32_t vertexIndex) const { return m_vertexTangents[vertexIndex]; }
-	std::vector<Direction>& GetVertexTangents() { return m_vertexTangents; }
-	const std::vector<Direction>& GetVertexTangents() const { return m_vertexTangents; }
-
-	void SetVertexBiTangent(uint32_t vertexIndex, const Direction& biTangent);
-	Direction& GetVertexBiTangent(uint32_t vertexIndex) { return m_vertexBiTangents[vertexIndex]; }
-	const Direction& GetVertexBiTangent(uint32_t vertexIndex) const { return m_vertexBiTangents[vertexIndex]; }
-	std::vector<Direction>& GetVertexBiTangents() { return m_vertexBiTangents; }
-	const std::vector<Direction>& GetVertexBiTangents() const { return m_vertexBiTangents; }
+	IMPLEMENT_VECTOR_DATA_APIS(VertexSourceID, m_vertexSourceIDs);
+	IMPLEMENT_VECTOR_DATA_APIS(VertexPosition, m_vertexPositions);
+	IMPLEMENT_VECTOR_DATA_APIS(VertexNormal, m_vertexNormals);
+	IMPLEMENT_VECTOR_DATA_APIS(VertexTangent, m_vertexTangents);
+	IMPLEMENT_VECTOR_DATA_APIS(VertexBiTangent, m_vertexBiTangents);
 
 	template<bool SwapBytesOrder>
 	MorphImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)

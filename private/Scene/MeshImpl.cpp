@@ -145,16 +145,6 @@ void MeshImpl::Init(uint32_t vertexCount, uint32_t polygonCount)
 // Vertex geometry data
 ////////////////////////////////////////////////////////////////////////////////////
 
-void MeshImpl::SetVertexPosition(uint32_t vertexIndex, const Point& position)
-{
-	m_vertexPositions[vertexIndex] = position;
-}
-
-void MeshImpl::SetVertexNormal(uint32_t vertexIndex, const Direction& normal)
-{
-	m_vertexNormals[vertexIndex] = normal;
-}
-
 void MeshImpl::ComputeVertexNormals()
 {
 	const uint32_t vertexCount = GetVertexCount();
@@ -200,16 +190,6 @@ void MeshImpl::ComputeVertexNormals()
 	{
 		SetVertexNormal(i, vertexNormals[i]);
 	}
-}
-
-void MeshImpl::SetVertexTangent(uint32_t vertexIndex, const Direction& tangent)
-{
-	m_vertexTangents[vertexIndex] = tangent;
-}
-
-void MeshImpl::SetVertexBiTangent(uint32_t vertexIndex, const Direction& biTangent)
-{
-	m_vertexBiTangents[vertexIndex] = biTangent;
 }
 
 void MeshImpl::ComputeVertexTangents()

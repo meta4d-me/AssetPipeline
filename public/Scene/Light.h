@@ -30,11 +30,10 @@ public:
 
 	void Init(LightID lightID, LightType type);
 
-	LightID GetID() const;
-	LightType GetType() const;
+	EXPORT_OBJECT_ID_APIS(LightID);
+	EXPORT_NAME_APIS();
 
-	void SetName(const char* pName);
-	const char* GetName() const;
+	LightType GetType() const;
 
 	void SetIntensity(float intensity);
 	float& GetIntensity();

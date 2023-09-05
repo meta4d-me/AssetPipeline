@@ -29,12 +29,8 @@ public:
 
 	void Init(BoneID id, std::string name);
 
-	void SetID(BoneID id) { m_id = BoneID(id); }
-	BoneID GetID() const { return m_id; }
-
-	void SetName(std::string name) { m_name = MoveTemp(name); }
-	std::string& GetName() { return m_name; }
-	const std::string& GetName() const { return m_name; }
+	IMPLEMENT_ID_APIS(BoneID, m_id);
+	IMPLEMENT_NAME_APIS(m_name);
 
 	void SetParentID(BoneID parentID) { m_parentID = parentID; }
 	BoneID GetParentID() const { return m_parentID; }

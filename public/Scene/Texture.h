@@ -30,11 +30,9 @@ public:
 	Texture& operator=(Texture&&) noexcept;
 	~Texture();
 
-	TextureID GetID() const;
+	EXPORT_OBJECT_ID_APIS(TextureID);
+	EXPORT_NAME_APIS();
 	
-	const char* GetName() const;
-	void SetName(const char* pName);
-
 	cd::MaterialTextureType GetType() const;
 	void SetType(MaterialTextureType type);
 

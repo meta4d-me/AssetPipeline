@@ -27,12 +27,10 @@ public:
 
 	void Init(LightID lightID, LightType type);
 
-	LightID GetID() const { return m_id; }
-	LightType GetType() const { return m_type; }
+	IMPLEMENT_ID_APIS(LightID, m_id);
+	IMPLEMENT_NAME_APIS(m_name);
 
-	void SetName(std::string name) { m_name = cd::MoveTemp(name); }
-	std::string& GetName() { return m_name; }
-	const std::string& GetName() const { return m_name; }
+	LightType GetType() const { return m_type; }
 
 	void SetIntensity(float intensity) { m_intensity = intensity; }
 	float& GetIntensity() { return m_intensity; }

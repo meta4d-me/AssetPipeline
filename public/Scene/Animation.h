@@ -32,11 +32,8 @@ public:
 
 	void Init(AnimationID id, std::string name);
 
-	void SetID(AnimationID id);
-	AnimationID GetID() const;
-
-	void SetName(std::string name);
-	const char* GetName() const;
+	EXPORT_OBJECT_ID_APIS(AnimationID);
+	EXPORT_NAME_APIS();
 
 	void SetDuration(float duration);
 	float GetDuration() const;

@@ -30,12 +30,8 @@ public:
 
 	void Init(NodeID nodeID, std::string name);
 
-	void SetID(NodeID nodeID) { m_id = nodeID; }
-	NodeID GetID() const { return m_id; }
-
-	void SetName(std::string name) { m_name = cd::MoveTemp(name); }
-	std::string& GetName() { return m_name; }
-	const std::string& GetName() const { return m_name; }
+	IMPLEMENT_ID_APIS(NodeID, m_id);
+	IMPLEMENT_NAME_APIS(m_name);
 
 	void SetParentID(NodeID parentID) { m_parentID = parentID; }
 	NodeID GetParentID() const { return m_parentID; }

@@ -39,10 +39,8 @@ Texture::~Texture()
     }
 }
 
-TextureID Texture::GetID() const
-{
-    return m_pTextureImpl->GetID();
-}
+PIMPL_ID_APIS(Texture);
+PIMPL_NAME_APIS(Texture);
 
 cd::MaterialTextureType Texture::GetType() const
 {
@@ -52,16 +50,6 @@ cd::MaterialTextureType Texture::GetType() const
 void Texture::SetType(MaterialTextureType type)
 {
     m_pTextureImpl->SetType(type);
-}
-
-const char* Texture::GetName() const
-{
-    return m_pTextureImpl->GetName().c_str();
-}
-
-void Texture::SetName(const char* pName)
-{
-    m_pTextureImpl->SetName(pName);
 }
 
 cd::TextureMapMode Texture::GetUMapMode() const
