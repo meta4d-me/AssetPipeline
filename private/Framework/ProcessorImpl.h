@@ -49,8 +49,6 @@ public:
 	void SetEmbedTextureFilesEnable(bool enable) { m_enableEmbedTextureFiles = enable; }
 	bool IsEmbedTextureFilesEnabled() const { return m_enableEmbedTextureFiles; }
 
-	void DumpSceneDatabase();
-	void ValidateSceneDatabase();
 	void CalculateAABBForSceneDatabase();
 	void FlattenSceneDatabase();
 	void SearchMissingTextures();

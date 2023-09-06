@@ -5,6 +5,8 @@
 #include "HalfEdgeMesh/HalfEdge.h"
 #include "HalfEdgeMesh/Vertex.h"
 
+#include <cfloat>
+
 namespace cd
 {
 
@@ -144,6 +146,22 @@ void MeshImpl::Init(uint32_t vertexCount, uint32_t polygonCount)
 ////////////////////////////////////////////////////////////////////////////////////
 // Vertex geometry data
 ////////////////////////////////////////////////////////////////////////////////////
+void MeshImpl::UpdateAABB()
+{
+	cd::Point minPoint(FLT_MAX);
+	cd::Point maxPoint(-FLT_MAX);
+	for (const cd::Point& position : GetVertexPositions())
+	{
+		minPoint.x() = minPoint.x() > position.x() ? position.x() : minPoint.x();
+		minPoint.y() = minPoint.y() > position.y() ? position.y() : minPoint.y();
+		minPoint.z() = minPoint.z() > position.z() ? position.z() : minPoint.z();
+		maxPoint.x() = maxPoint.x() > position.x() ? maxPoint.x() : position.x();
+		maxPoint.y() = maxPoint.y() > position.y() ? maxPoint.y() : position.y();
+		maxPoint.z() = maxPoint.z() > position.z() ? maxPoint.z() : position.z();
+	}
+
+	SetAABB(cd::AABB(cd::MoveTemp(minPoint), cd::MoveTemp(maxPoint)));
+}
 
 void MeshImpl::ComputeVertexNormals()
 {

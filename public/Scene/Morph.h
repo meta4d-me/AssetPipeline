@@ -36,6 +36,7 @@ public:
 	EXPORT_OBJECT_ID_APIS(MorphID);
 	EXPORT_NAME_APIS();
 
+	void SetSourceMeshID(MeshID meshID);
 	MeshID GetSourceMeshID() const;
 
 	void SetWeight(float weight);

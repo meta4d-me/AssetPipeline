@@ -56,6 +56,11 @@ void Morph::Init(MorphID id, const char* pName, uint32_t vertexCount)
 	m_pMorphImpl->Init(id, pName, vertexCount);
 }
 
+void Morph::SetSourceMeshID(MeshID meshID)
+{
+	m_pMorphImpl->SetSourceMeshID(meshID);
+}
+
 MeshID Morph::GetSourceMeshID() const
 {
 	return m_pMorphImpl->GetSourceMeshID();

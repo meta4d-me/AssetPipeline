@@ -139,6 +139,10 @@ public:
 	const Track* GetTrackByName(const char* pName) const;
 	uint32_t GetTrackCount() const;
 
+	// Operations
+	void Dump() const;
+	void Validate() const;
+	void Merge(cd::SceneDatabase&& scene);
 	void UpdateAABB();
 
 	// Serialization

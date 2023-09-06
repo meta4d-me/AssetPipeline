@@ -86,6 +86,7 @@ int main(int argc, char** argv)
 
 		{
 			auto mesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, cd::ConvertStrategy::TopologyFirst);
+			mesh.SetName("orgin");
 			mesh.SetID(cd::MeshID(0U));
 			pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
 		}
@@ -111,6 +112,7 @@ int main(int argc, char** argv)
 
 		{
 			auto mesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, cd::ConvertStrategy::TopologyFirst);
+			mesh.SetName("collapsed");
 			mesh.SetID(cd::MeshID(1U));
 			pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
 		}

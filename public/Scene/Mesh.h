@@ -60,6 +60,7 @@ public:
 	void SetAABB(AABB aabb);
 	AABB& GetAABB();
 	const AABB& GetAABB() const;
+	void UpdateAABB();
 
 	void SetMaterialID(MaterialID materialID);
 	MaterialID GetMaterialID() const;

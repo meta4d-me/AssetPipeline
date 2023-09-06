@@ -136,6 +136,9 @@ public:
 	const Track* GetTrackByName(const char* pName) const;
 	uint32_t GetTrackCount() const { return static_cast<uint32_t>(m_tracks.size()); }
 
+	void Dump() const;
+	void Validate() const;
+	void Merge(cd::SceneDatabaseImpl&& sceneDatabaseImpl);
 	void UpdateAABB();
 
 	template<bool SwapBytesOrder>

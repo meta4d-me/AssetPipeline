@@ -58,6 +58,7 @@ public:
 	void SetAABB(AABB aabb) { m_aabb = MoveTemp(aabb); }
 	AABB& GetAABB() { return m_aabb; }
 	const AABB& GetAABB() const { return m_aabb; }
+	void UpdateAABB();
 
 	void SetMaterialID(MaterialID materialID) { m_materialID = materialID; }
 	MaterialID GetMaterialID() const { return m_materialID; }
