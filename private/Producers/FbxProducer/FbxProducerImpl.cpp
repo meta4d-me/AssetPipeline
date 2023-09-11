@@ -72,10 +72,18 @@ FbxProducerImpl::FbxProducerImpl(std::string filePath)
 	fbxsdk::FbxIOSettings* pIOSettings = fbxsdk::FbxIOSettings::Create(m_pSDKManager, IOSROOT);
 	assert(m_pSDKManager && "Failed to init sdk manager.");
 	m_pSDKManager->SetIOSettings(pIOSettings);
+
+	m_pSDKGeometryConverter = new fbxsdk::FbxGeometryConverter(m_pSDKManager);
 }
 
 FbxProducerImpl::~FbxProducerImpl()
 {
+	if (m_pSDKGeometryConverter)
+	{
+		delete m_pSDKGeometryConverter;
+		m_pSDKGeometryConverter = nullptr;
+	}
+	
 	if (m_pSDKManager)
 	{
 		m_pSDKManager->Destroy();
@@ -134,7 +142,6 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	cd::Handedness handedness = fileAxisSystem.GetCoorSystem() == fbxsdk::FbxAxisSystem::eRightHanded ? cd::Handedness::Right : cd::Handedness::Left;
 	auto GetUpVector = [&fileAxisSystem]()
 	{
-		cd::UpVector upVector;
 		int sign = 1;
 		switch (fileAxisSystem.GetUpVector(sign))
 		{
@@ -248,7 +255,7 @@ int FbxProducerImpl::GetSceneNodeCount(const fbxsdk::FbxNode* pSceneNode)
 
 void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase)
 {
-	const fbxsdk::FbxNodeAttribute* pNodeAttribute = pSDKNode->GetNodeAttribute();
+	fbxsdk::FbxNodeAttribute* pNodeAttribute = pSDKNode->GetNodeAttribute();
 
 	cd::Node* pNode = nullptr;
 	if (nullptr == pNodeAttribute ||
@@ -266,16 +273,21 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 	}
 	else if (fbxsdk::FbxNodeAttribute::eMesh == pNodeAttribute->GetAttributeType())
 	{
-		const fbxsdk::FbxMesh* pFbxMesh = reinterpret_cast<const fbxsdk::FbxMesh*>(pNodeAttribute);
-		assert(pFbxMesh && pFbxMesh->IsTriangleMesh());
+		fbxsdk::FbxMesh* pFbxMesh = reinterpret_cast<fbxsdk::FbxMesh*>(pNodeAttribute);
+		assert(pFbxMesh);
 		
-		bool hasError = false;
 		if (!pFbxMesh->IsTriangleMesh())
 		{
-			printf("[Error] Mesh is not triangulated.\n");
-			hasError = true;
+			const bool bReplace = true;
+			fbxsdk::FbxNodeAttribute* pConvertedNode = m_pSDKGeometryConverter->Triangulate(pFbxMesh, bReplace);
+			if (pConvertedNode && pConvertedNode->GetAttributeType() == FbxNodeAttribute::eMesh)
+			{
+				pFbxMesh = reinterpret_cast<fbxsdk::FbxMesh*>(pConvertedNode);
+			}
 		}
+		assert(pFbxMesh && pFbxMesh->IsTriangleMesh());
 
+		bool hasError = false;
 		const fbxsdk::FbxLayer* pMeshBaseLayer = pFbxMesh->GetLayer(0);
 		if (!pMeshBaseLayer)
 		{
@@ -635,12 +647,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 		const fbxsdk::FbxBlendShape* pBlendShape = static_cast<fbxsdk::FbxBlendShape*>(pFbxMesh->GetDeformer(blendShapeIndex, fbxsdk::FbxDeformer::eBlendShape));
 		assert(pBlendShape);
 
-		std::vector<cd::MorphID> addedMorphIDs = AddMorphs(pBlendShape, mesh, totalVertexCount, mapControlPointToVertexID, pSceneDatabase);
-		mesh.SetMorphIDCount(static_cast<uint32_t>(addedMorphIDs.size()));
-		for (uint32_t morphIndex = 0U; morphIndex < mesh.GetMorphIDCount(); ++morphIndex)
-		{
-			mesh.SetMorphID(morphIndex, addedMorphIDs[morphIndex]);
-		}
+		mesh.SetMorphIDs(AddMorphs(pBlendShape, mesh, totalVertexCount, mapControlPointToVertexID, pSceneDatabase));
 	}
 
 	pSceneDatabase->AddMesh(cd::MoveTemp(mesh));

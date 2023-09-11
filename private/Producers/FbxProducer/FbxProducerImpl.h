@@ -14,6 +14,7 @@ namespace fbxsdk
 {
 
 class FbxBlendShape;
+class FbxGeometryConverter;
 class FbxLight;
 class FbxManager;
 class FbxMesh;
@@ -95,6 +96,7 @@ private:
 
 	std::string m_filePath;
 	fbxsdk::FbxManager* m_pSDKManager = nullptr;
+	fbxsdk::FbxGeometryConverter* m_pSDKGeometryConverter = nullptr;
 
 	std::map<int32_t, uint32_t> m_fbxMaterialIndexToMaterialID;
 
