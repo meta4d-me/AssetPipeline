@@ -211,9 +211,12 @@ void SceneDatabaseImpl::Dump() const
 				if (material.IsTextureSetup(textureType))
 				{
 					auto textureID = material.GetTextureID(textureType);
-					const auto& texture = GetTexture(textureID.Data());
-					printf("\t[Associated Texture %u] Type = %s\n", textureID.Data(), nameof::nameof_enum(textureType).data());
-					printf("\t\tPath = %s\n", texture.GetPath());
+					if (textureID.IsValid())
+					{
+						const auto& texture = GetTexture(textureID.Data());
+						printf("\t[Associated Texture %u] Type = %s\n", textureID.Data(), nameof::nameof_enum(textureType).data());
+						printf("\t\tPath = %s\n", texture.GetPath());
+					}
 				}
 
 				if (auto optUVScale = material.GetVec2fProperty(textureType, cd::MaterialProperty::UVScale); optUVScale.has_value())
@@ -224,7 +227,6 @@ void SceneDatabaseImpl::Dump() const
 				{
 					details::Dump("\t\tMetallicUVOffset", optUVOffset.value());
 				}
-
 			}
 
 			if (auto itDrawMeshes = materialDrawMeshIDs.find(material.GetID().Data());
@@ -455,7 +457,10 @@ void SceneDatabaseImpl::Merge(cd::SceneDatabaseImpl&& sceneDatabaseImpl)
 		for (uint32_t textureTypeIndex = 0U; textureTypeIndex < static_cast<uint32_t>(cd::MaterialTextureType::Count); ++textureTypeIndex)
 		{
 			auto textureType = static_cast<cd::MaterialTextureType>(textureTypeIndex);
-			material.SetTextureID(textureType, material.GetTextureID(textureType).Data() + originTextureCount);
+			if (material.IsTextureSetup(textureType))
+			{
+				material.SetTextureID(textureType, material.GetTextureID(textureType).Data() + originTextureCount);
+			}
 		}
 		AddMaterial(cd::MoveTemp(material));
 	}
