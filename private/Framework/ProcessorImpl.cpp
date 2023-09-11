@@ -102,6 +102,8 @@ ProcessorImpl::ProcessorImpl(IProducer* pProducer, IConsumer* pConsumer, cd::Sce
 		// The SceneDatabase is from outside resource.
 		m_pCurrentSceneDatabase = pHostSceneDatabase;
 	}
+
+	m_targetAxisSystem = cd::AxisSystem::CDEngine();
 }
 
 ProcessorImpl::~ProcessorImpl()
@@ -114,6 +116,8 @@ void ProcessorImpl::Run()
 	{
 		m_pProducer->Execute(m_pCurrentSceneDatabase);
 	}
+
+	ConvertAxisSystem();
 
 	// Adding post processing here.
 	// SceneDatabaseValidator will help to validate if data is correct before and after.
@@ -151,6 +155,79 @@ void ProcessorImpl::Run()
 	{
 		m_pConsumer->Execute(m_pCurrentSceneDatabase);
 	}
+}
+
+void ProcessorImpl::ConvertAxisSystem()
+{
+	const cd::AxisSystem& sceneAxisSystem = m_pCurrentSceneDatabase->GetAxisSystem();
+	if (sceneAxisSystem == m_targetAxisSystem)
+	{
+		return;
+	}
+	
+	bool mirrorHandedness = sceneAxisSystem.GetHandedness() != m_targetAxisSystem.GetHandedness();
+	if (mirrorHandedness)
+	{
+		// TODO : convert node transform data.
+		// TODO : convert bone transform data.
+
+		// Convert mesh data.
+		for (cd::Mesh& mesh : m_pCurrentSceneDatabase->GetMeshes())
+		{
+			for (uint32_t vertexIndex = 0U; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
+			{
+				auto& position = mesh.GetVertexPosition(vertexIndex);
+				position.z() = -position.z();
+
+				for (uint32_t uvSetIndex = 0U; uvSetIndex < mesh.GetVertexUVSetCount(); ++uvSetIndex)
+				{
+					auto& uv = mesh.GetVertexUV(uvSetIndex, vertexIndex);
+					uv.y() = 1.0f - uv.y();
+				}
+
+				auto& normal = mesh.GetVertexNormal(vertexIndex);
+				normal.z() = -normal.z();
+				
+				auto& tangent = mesh.GetVertexTangent(vertexIndex);
+				tangent.z() = -tangent.z();
+				
+				auto& bitangent = mesh.GetVertexBiTangent(vertexIndex);
+				bitangent.z() = -bitangent.z();
+			}
+
+			for (uint32_t polygonIndex = 0U; polygonIndex < mesh.GetPolygonCount(); ++polygonIndex)
+			{
+				auto& polygon = mesh.GetPolygon(polygonIndex);
+				uint32_t polygonVertexCount = static_cast<uint32_t>(polygon.size());
+				uint32_t polygonVertexHalfCount = polygonVertexCount >> 1;
+				for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexHalfCount; ++polygonVertexIndex)
+				{
+					std::swap(polygon[polygonVertexIndex], polygon[polygonVertexCount - 1 - polygonVertexIndex]);
+				}
+			}
+		}
+
+		// Convert morph data.
+		for (cd::Morph& morph : m_pCurrentSceneDatabase->GetMorphs())
+		{
+			for (uint32_t vertexIndex = 0U; vertexIndex < morph.GetVertexCount(); ++vertexIndex)
+			{
+				auto& position = morph.GetVertexPosition(vertexIndex);
+				position.z() = -position.z();
+
+				auto& normal = morph.GetVertexNormal(vertexIndex);
+				normal.z() = -normal.z();
+
+				auto& tangent = morph.GetVertexTangent(vertexIndex);
+				tangent.z() = -tangent.z();
+
+				auto& bitangent = morph.GetVertexBiTangent(vertexIndex);
+				bitangent.z() = -bitangent.z();
+			}
+		}
+	}
+
+	m_pCurrentSceneDatabase->SetAxisSystem(m_targetAxisSystem);
 }
 
 void ProcessorImpl::CalculateAABBForSceneDatabase()

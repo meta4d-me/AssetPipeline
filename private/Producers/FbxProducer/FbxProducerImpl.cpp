@@ -127,6 +127,36 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		return;
 	}
 
+	// Query file axis system and unit system.
+	fbxsdk::FbxAxisSystem fileAxisSystem = pSDKScene->GetGlobalSettings().GetAxisSystem();
+	fbxsdk::FbxSystemUnit fileUnitSystem = pSDKScene->GetGlobalSettings().GetSystemUnit();
+
+	cd::Handedness handedness = fileAxisSystem.GetCoorSystem() == fbxsdk::FbxAxisSystem::eRightHanded ? cd::Handedness::Right : cd::Handedness::Left;
+	auto GetUpVector = [&fileAxisSystem]()
+	{
+		cd::UpVector upVector;
+		int sign = 1;
+		switch (fileAxisSystem.GetUpVector(sign))
+		{
+		case fbxsdk::FbxAxisSystem::eXAxis:
+			return cd::UpVector::XAxis;
+		case fbxsdk::FbxAxisSystem::eYAxis:
+			return cd::UpVector::YAxis;
+		case fbxsdk::FbxAxisSystem::eZAxis:
+			return cd::UpVector::ZAxis;
+		}
+
+		assert(sign == 1);
+		return cd::UpVector::YAxis;
+	};
+
+	int sign;
+	cd::FrontVector frontVector = fileAxisSystem.GetFrontVector(sign) == fbxsdk::FbxAxisSystem::eParityEven ? cd::FrontVector::ParityEven : cd::FrontVector::ParityOdd;
+	assert(sign == 1);
+
+	cd::AxisSystem axisSystem(handedness, GetUpVector(), frontVector);
+	pSceneDatabase->SetAxisSystem(cd::MoveTemp(axisSystem));
+
 	// Query scene information and prepare to import.
 	pSceneDatabase->SetName(m_filePath.c_str());
 	m_materialIDGenerator.SetCurrentID(pSceneDatabase->GetMaterialCount());
@@ -156,10 +186,6 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 			details::UnrollRotationCurves(pSDKScene->GetRootNode(), pAnimationBaseLayer, &unrollFilter);
 		}
 	}
-
-	// Query file axis system and unit system.
-	fbxsdk::FbxAxisSystem fileAxisSystem = pSDKScene->GetGlobalSettings().GetAxisSystem();
-	fbxsdk::FbxSystemUnit fileUnitSystem = pSDKScene->GetGlobalSettings().GetSystemUnit();
 
 	// Convert fbx materials to cd materials.
 	if (WantImportMaterial())
@@ -428,7 +454,6 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 	const fbxsdk::FbxLayerElementBinormal* pLayerElementBinormalData = pMeshBaseLayer->GetBinormals();
 	const fbxsdk::FbxLayerElementVertexColor* pLayerElementColorData = pMeshBaseLayer->GetVertexColors();
 
-	// For uv data, we need to query other layers to get uv sets for lightmap, shadowmap, decay...
 	std::vector<const fbxsdk::FbxLayerElementUV*> layerElementUVDatas;
 	for (int32_t layerIndex = 0; layerIndex < pFbxMesh->GetLayerCount(); ++layerIndex)
 	{
