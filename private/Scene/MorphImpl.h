@@ -62,6 +62,8 @@ public:
 		inputArchive >> name >> id >> vertexCount;
 
 		Init(MorphID(id), MoveTemp(name), vertexCount);
+		inputArchive >> GetWeight();
+		inputArchive.ImportBuffer(GetVertexSourceIDs().data());
 		inputArchive.ImportBuffer(GetVertexPositions().data());
 		inputArchive.ImportBuffer(GetVertexNormals().data());
 		inputArchive.ImportBuffer(GetVertexTangents().data());
@@ -73,7 +75,8 @@ public:
 	template<bool SwapBytesOrder>
 	const MorphImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetName() << GetID().Data() << GetVertexCount();
+		outputArchive << GetName() << GetID().Data() << GetVertexCount() << GetWeight();
+		outputArchive.ExportBuffer(GetVertexSourceIDs().data(), GetVertexSourceIDs().size());
 		outputArchive.ExportBuffer(GetVertexPositions().data(), GetVertexPositions().size());
 		outputArchive.ExportBuffer(GetVertexNormals().data(), GetVertexNormals().size());
 		outputArchive.ExportBuffer(GetVertexTangents().data(), GetVertexTangents().size());
