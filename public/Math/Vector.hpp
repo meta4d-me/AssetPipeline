@@ -248,7 +248,7 @@ public:
 		{
 			if constexpr (std::is_floating_point<T>())
 			{
-				if (std::abs(data[index] - rhs[index]) > Math::GetEpsilon<T>())
+				if (!cd::Math::IsEqualTo(data[index], rhs[index]))
 				{
 					return false;
 				}

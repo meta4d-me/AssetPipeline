@@ -14,6 +14,7 @@ namespace fbxsdk
 {
 
 class FbxBlendShape;
+class FbxGeometryConverter;
 class FbxLight;
 class FbxManager;
 class FbxMesh;
@@ -80,7 +81,7 @@ private:
 	cd::NodeID AddNode(const fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase);
 	cd::LightID AddLight(const fbxsdk::FbxLight* pFbxLight, const char* pLightName, cd::Transform transform, cd::SceneDatabase* pSceneDatabase);
 	cd::MeshID AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char* pMeshName, std::optional<int32_t> optMaterialIndex, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase);
-	std::vector<cd::MorphID> AddMorphs(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, uint32_t totalVertexCount, const std::map<uint32_t, uint32_t>& mapControlPointToVertexID, cd::SceneDatabase* pSceneDatabase);
+	std::vector<cd::MorphID> AddMorphs(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, const std::map<uint32_t, uint32_t>& mapVertexIDToControlPointIndex, cd::SceneDatabase* pSceneDatabase);
 
 	cd::BoneID AddBone(const fbxsdk::FbxNode* pSDKNode, cd::Bone* pParentNode, cd::SceneDatabase* pSceneDatabase);
 	//cd::TrackID AddTrack(const fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase);
@@ -95,6 +96,7 @@ private:
 
 	std::string m_filePath;
 	fbxsdk::FbxManager* m_pSDKManager = nullptr;
+	fbxsdk::FbxGeometryConverter* m_pSDKGeometryConverter = nullptr;
 
 	std::map<int32_t, uint32_t> m_fbxMaterialIndexToMaterialID;
 
