@@ -762,6 +762,8 @@ void FbxProducerImpl::AddMaterialTexture(const fbxsdk::FbxProperty& sdkProperty,
 			pSceneDatabase->AddTexture(cd::MoveTemp(texture));
 		}
 		material.SetTextureID(textureType, textureID);
+		material.SetVec2fProperty(textureType, cd::MaterialProperty::UVOffset, cd::Vec2f(0.0f, 0.0f));
+		material.SetVec2fProperty(textureType, cd::MaterialProperty::UVScale, cd::Vec2f(1.0f, 1.0f));
 	}
 }
 
