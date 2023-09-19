@@ -1,6 +1,8 @@
 --------------------------------------------------------------
 -- Define examples
-function MakeExample(exampleProject)
+local function MakeExample(exampleProjectPath)
+	exampleProject = path.getbasename(exampleProjectPath)
+
 	if string.contains(exampleProject, "Fbx") and not CheckSDKExists("FBX_SDK_DIR") then
 		print("FBX_SDK_DIR not found, Skip example "..exampleProject)
 		return
@@ -46,7 +48,7 @@ function MakeExample(exampleProject)
 		filter {}
 		
 		files {
-			path.join(RootPath, "examples/"..exampleProject.."/**.*")
+			path.join(exampleProjectPath, "**.*")
 		}
 		
 		local extraIncludeDirs = {}
@@ -121,10 +123,20 @@ function MakeExample(exampleProject)
 			}
 		filter {}
 end
-		
-group "Examples"
-exampleProjectFolders = os.matchdirs(path.join(RootPath, "examples/*"))
-for _, exampleProject in pairs(exampleProjectFolders) do
-	MakeExample(path.getbasename(exampleProject))
+
+local function CreateExamplesRecursively(folderName, parentPath)
+	exampleProjectFolders = os.matchdirs(path.join(RootPath, folderName, "*"))
+
+	group(folderName)
+	for _, exampleProject in pairs(exampleProjectFolders) do
+		local exampleFiles = os.matchfiles(path.join(exampleProject, "*.*"))
+		if exampleFiles and #exampleFiles > 0 then
+			MakeExample(exampleProject)
+		else
+			CreateExamplesRecursively(folderName.."/"..path.getbasename(exampleProject), path.join(RootPath, folderName, exampleProject))
+		end
+	end
+	group ""
 end
-group ""
+
+CreateExamplesRecursively("examples")
