@@ -181,6 +181,19 @@ public:
 		return true;
 	}
 
+	CD_FORCEINLINE bool ContainsNan() const
+	{
+		for (size_t index = 0; index < N; ++index)
+		{
+			if (std::isnan(data[index]))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	CD_FORCEINLINE bool Contains(T value) const
 	{
 		for (size_t index = 0; index < N; ++index)
