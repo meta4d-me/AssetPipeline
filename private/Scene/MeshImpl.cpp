@@ -339,7 +339,7 @@ std::pair<std::vector<uint32_t>, std::vector<uint32_t>> MeshImpl::BuildProgressi
 	uint32_t polygonCount = GetPolygonCount();
 
 	std::vector<uint32_t> indexBuffer;
-	indexBuffer.reserve(polygonCount);
+	indexBuffer.reserve(polygonCount * 3);
 	for (uint32_t polygonIndex = 0U; polygonIndex < polygonCount; ++polygonIndex)
 	{
 		const auto& polygon = GetPolygon(polygonIndex);
