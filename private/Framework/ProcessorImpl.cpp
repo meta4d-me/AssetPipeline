@@ -39,6 +39,13 @@ void Dump(const cd::Transform& transform)
 	details::Dump("\tScale", transform.GetScale());
 }
 
+void Dump(const cd::Matrix4x4& offset)
+{
+	details::Dump("\tTranslation", offset.GetTranslation());
+	details::Dump("\tRotaion", cd::Quaternion::FromMatrix(offset.GetRotation()));
+	details::Dump("\tScale", offset.GetScale());
+}
+
 void CalculateNodeTransforms(std::vector<cd::Matrix4x4>& nodeFinalTransforms, const cd::SceneDatabase* pSceneDatabase, const cd::Node& node)
 {
 	// DFS gurantees that parent node's transform will be calculated before child nodes.
@@ -382,6 +389,7 @@ void ProcessorImpl::DumpSceneDatabase()
 		{
 			printf("[Bone %u] Name : %s, ParentID : %u\n", bone.GetID().Data(), bone.GetName(), bone.GetParentID().Data());
 			details::Dump(bone.GetTransform());
+			details::Dump(bone.GetOffset().Inverse());
 
 			for (const cd::BoneID childNodeID : bone.GetChildIDs())
 			{

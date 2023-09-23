@@ -22,6 +22,9 @@ class FbxProperty;
 class FbxScene;
 class FbxSurfaceMaterial;
 class FbxGeometryConverter;
+class FbxAnimStack;
+class FbxScene;
+class FbxTime;
 
 }
 
@@ -79,16 +82,17 @@ private:
 
 	cd::NodeID AddNode(const fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase);
 	cd::LightID AddLight(const fbxsdk::FbxLight* pFbxLight, const char* pLightName, cd::Transform transform, cd::SceneDatabase* pSceneDatabase);
-	cd::MeshID AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char* pMeshName, std::optional<int32_t> optMaterialIndex, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase);
+	cd::MeshID AddMesh(const fbxsdk::FbxMesh* pFbxMesh, fbxsdk::FbxNode* pFbxNode, std::optional<int32_t> optMaterialIndex, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase);
 
 	cd::BoneID AddBone(const fbxsdk::FbxNode* pSDKNode, cd::Bone* pParentNode, cd::SceneDatabase* pSceneDatabase);
 	//cd::TrackID AddTrack(const fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase);
 	cd::AnimationID AddAnimation(fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxScene* pSDKScene, cd::SceneDatabase* pSceneDatabase);
 
 	void ProcessJointsAndAnimations(fbxsdk::FbxNode* inRootNode, cd::SceneDatabase* pSceneDatabase);
-	void ProcessSkeletonHierarchyRecursively(fbxsdk::FbxNode* inNode, int inDepth, int myIndex, int inParentIndex);
+	//void ProcessSkeletonHierarchyRecursively(fbxsdk::FbxNode* inNode, int inDepth, int myIndex, int inParentIndex);
+	void ParseAllControlPointSkinWeight();
 
-	void ProcessAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase);
+	void ProcessAnimation(fbxsdk::FbxNode* pNode, fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase);
 private:
 	bool m_importMaterial = true;
 	bool m_importTexture = true;
@@ -100,6 +104,8 @@ private:
 
 	std::string m_filePath;
 	fbxsdk::FbxManager* m_pSDKManager = nullptr;
+	fbxsdk::FbxAnimStack* m_pCurrentAnimationStack = nullptr;
+	fbxsdk::FbxScene* m_pSDKScene = nullptr;
 	std::unique_ptr<fbxsdk::FbxGeometryConverter> m_pGeometryConverter;
 
 	std::map<int32_t, uint32_t> m_fbxMaterialIndexToMaterialID;
