@@ -234,8 +234,8 @@ public:
 
 	TVector& Normalize()
 	{
-		T length = Length();
-		std::for_each(Begin(), End(), [&length](T& component) { component /= length; });
+		T invLength = 1.0f / Length();
+		std::for_each(Begin(), End(), [&invLength](T& component) { component *= invLength; });
 		return *this;
 	}
 
