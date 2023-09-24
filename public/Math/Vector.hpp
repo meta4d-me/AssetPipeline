@@ -224,7 +224,7 @@ public:
 		}
 	}
 
-	CD_FORCEINLINE T Length() const { return std::sqrt(LengthSquare()); }
+	CD_FORCEINLINE T Length() const { return std::sqrtf(LengthSquare()); }
 	T LengthSquare() const
 	{
 		T result = static_cast<T>(0);
@@ -234,8 +234,8 @@ public:
 
 	TVector& Normalize()
 	{
-		T length = Length();
-		std::for_each(Begin(), End(), [&length](T& component) { component /= length; });
+		T invLength = 1.0f / Length();
+		std::for_each(Begin(), End(), [&invLength](T& component) { component *= invLength; });
 		return *this;
 	}
 

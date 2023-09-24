@@ -1,26 +1,26 @@
-#include "ProgressiveMesh/Vertex.h"
+#include "Vertex.h"
 
 namespace cd::pm
 {
 
 void Vertex::AddAdjacentVertex(VertexID vertexID)
 {
-	if (std::find(m_adjacentVertices.begin(), m_adjacentVertices.end(), vertexID) != m_adjacentVertices.end())
+	if (m_adjacentVertices.Contains(vertexID))
 	{
 		return;
 	}
 
-	m_adjacentVertices.push_back(vertexID);
+	m_adjacentVertices.Add(vertexID);
 }
 
 void Vertex::AddAdjacentFace(FaceID faceID)
 {
-	if (std::find(m_adjacentFaces.begin(), m_adjacentFaces.end(), faceID) != m_adjacentFaces.end())
+	if (m_adjacentFaces.Contains(faceID))
 	{
 		return;
 	}
 
-	m_adjacentFaces.push_back(faceID);
+	m_adjacentFaces.Add(faceID);
 }
 
 }

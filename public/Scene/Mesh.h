@@ -102,8 +102,6 @@ public:
 	const Polygon& GetPolygon(uint32_t polygonIndex) const;
 	cd::VertexID GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const;
 
-	std::pair<std::vector<uint32_t>, std::vector<uint32_t>> BuildProgressiveMesh() const;
-
 	Mesh& operator<<(InputArchive& inputArchive);
 	Mesh& operator<<(InputArchiveSwapBytes& inputArchive);
 	const Mesh& operator>>(OutputArchive& outputArchive) const;

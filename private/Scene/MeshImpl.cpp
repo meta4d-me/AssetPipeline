@@ -4,7 +4,6 @@
 #include "HalfEdgeMesh/Face.h"
 #include "HalfEdgeMesh/HalfEdge.h"
 #include "HalfEdgeMesh/Vertex.h"
-#include "progmesh.c"
 
 #include <cfloat>
 
@@ -328,39 +327,6 @@ void MeshImpl::SetPolygon(uint32_t polygonIndex, cd::Polygon polygon)
 cd::VertexID MeshImpl::GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const
 {
 	return m_polygons[polygonIndex][vertexIndex];
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-// ProgressiveMesh
-////////////////////////////////////////////////////////////////////////////////////
-std::pair<std::vector<uint32_t>, std::vector<uint32_t>> MeshImpl::BuildProgressiveMesh() const
-{
-	uint32_t vertexCount = GetVertexCount();
-	uint32_t polygonCount = GetPolygonCount();
-
-	std::vector<uint32_t> indexBuffer;
-	indexBuffer.reserve(polygonCount * 3);
-	for (uint32_t polygonIndex = 0U; polygonIndex < polygonCount; ++polygonIndex)
-	{
-		const auto& polygon = GetPolygon(polygonIndex);
-		assert(polygon.size() == 3U && "Need to triangulate.");
-
-		for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygon.size(); ++polygonVertexIndex)
-		{
-			indexBuffer.push_back(polygon[polygonVertexIndex].Data());
-		}
-	}
-
-	std::vector<uint32_t> permutation;
-	std::vector<uint32_t> map;
-	permutation.resize(vertexCount);
-	map.resize(vertexCount);
-	constexpr uint32_t positionStride = cd::Point::Size * sizeof(cd::Point::ValueType);
-	ProgressiveMesh(static_cast<int>(vertexCount), positionStride, reinterpret_cast<const float*>(GetVertexPositions().data()),
-		static_cast<int>(polygonCount), reinterpret_cast<const int*>(indexBuffer.data()),
-		reinterpret_cast<int*>(map.data()), reinterpret_cast<int*>(permutation.data()));
-
-	return std::make_pair<std::vector<uint32_t>, std::vector<uint32_t>>(cd::MoveTemp(permutation), cd::MoveTemp(map));
 }
 
 }

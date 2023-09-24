@@ -1,6 +1,7 @@
 #include "FbxConsumer.h"
 #include "Framework/Processor.h"
 #include "GenericProducer.h"
+#include "ProgressiveMesh/ProgressiveMesh.h"
 #include "Scene/SceneDatabase.h"
 #include "Scene/VertexFormat.h"
 #include "Utilities/PerformanceProfiler.h"
@@ -54,9 +55,8 @@ int main(int argc, char** argv)
 			}
 		}
 
-		auto permutationMapPair = mesh.BuildProgressiveMesh();
-		std::vector<uint32_t> permutation = cd::MoveTemp(permutationMapPair.first);
-		std::vector<uint32_t> map = cd::MoveTemp(permutationMapPair.second);
+		auto pm = cd::ProgressiveMesh::FromIndexedMesh(mesh);
+		auto [permutation, map] = pm.BuildCollapseOperations();
 	}
 
 	// Export
