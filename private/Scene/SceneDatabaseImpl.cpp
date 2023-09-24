@@ -1,5 +1,7 @@
 #include "SceneDatabaseImpl.h"
 
+#include "Base/NameOf.h"
+
 #include <cassert>
 #include <cfloat>
 
@@ -205,7 +207,7 @@ void SceneDatabaseImpl::Dump() const
 				}
 			}
 
-			for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
+			for (int textureTypeValue = 0; textureTypeValue < nameof::enum_count<cd::MaterialTextureType>(); ++textureTypeValue)
 			{
 				cd::MaterialTextureType textureType = static_cast<cd::MaterialTextureType>(textureTypeValue);
 				if (material.IsTextureSetup(textureType))
@@ -272,7 +274,7 @@ void SceneDatabaseImpl::Dump() const
 		printf("\n");
 		for (const auto& light : GetLights())
 		{
-			printf("[Light %u] Type = %s, Name = %s\n", light.GetID().Data(), cd::GetLightTypeName(light.GetType()), light.GetName());
+			printf("[Light %u] Type = %s, Name = %s\n", light.GetID().Data(), nameof::nameof_enum(light.GetType()).data(), light.GetName());
 			printf("\tIntensity = %f\n", light.GetIntensity());
 			printf("\tRange = %f, Radius = %f\n", light.GetRange(), light.GetRadius());
 			printf("\tWidth = %f, Height = %f\n", light.GetWidth(), light.GetHeight());
@@ -454,7 +456,7 @@ void SceneDatabaseImpl::Merge(cd::SceneDatabaseImpl&& sceneDatabaseImpl)
 	for (auto& material : sceneDatabaseImpl.GetMaterials())
 	{
 		material.SetID(GetMaterialCount());
-		for (uint32_t textureTypeIndex = 0U; textureTypeIndex < static_cast<uint32_t>(cd::MaterialTextureType::Count); ++textureTypeIndex)
+		for (uint32_t textureTypeIndex = 0U; textureTypeIndex < nameof::enum_count<cd::MaterialTextureType>(); ++textureTypeIndex)
 		{
 			auto textureType = static_cast<cd::MaterialTextureType>(textureTypeIndex);
 			if (material.IsTextureSetup(textureType))

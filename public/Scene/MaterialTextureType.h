@@ -10,9 +10,7 @@ namespace cd
 
 enum class MaterialType : uint8_t
 {
-	BasePBR = 0,
-	
-	Count,
+	BasePBR = 0
 };
 
 enum class MaterialPropertyGroup
@@ -25,9 +23,7 @@ enum class MaterialPropertyGroup
 	Emissive,
 	Elevation,
 	AlphaMap,
-	General,
-
-	Count,
+	General
 };
 
 // As each MaterialPropertyGroup just has one texture,
@@ -56,9 +52,7 @@ enum class MaterialProperty
 	EnableDirectionalLights,
 	EnablePunctualLights,
 	EnableAreaLights,
-	EnableIBL,
-
-	Count,
+	EnableIBL
 };
 
 CD_FORCEINLINE std::string GetMaterialPropertyKey(MaterialPropertyGroup propertyGroup, MaterialProperty property)
@@ -79,16 +73,14 @@ enum class TextureMapMode
 	Wrap,
 	Clamp,
 	Mirror,
-	Border,
-	Count
+	Border
 };
 
 enum class BlendMode
 {
 	Opaque,
 	Mask,
-	Blend,
-	Count
+	Blend
 };
 
 }

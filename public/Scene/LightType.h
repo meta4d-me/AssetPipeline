@@ -16,26 +16,7 @@ enum class LightType : uint8_t
 	Sphere,
 	Disk,
 	Rectangle,
-	Tube,
-
-	Count,
+	Tube
 };
 
-constexpr const char *LightTypeName[] =
-{
-	"Point",
-	"Spot",
-	"Directional",
-	"Sphere",
-	"Disk",
-	"Rectangle",
-	"Tube",
-};
-
-CD_FORCEINLINE const char *GetLightTypeName(LightType lightType) {
-	return LightTypeName[static_cast<size_t>(lightType)];
 }
-
-static_assert(static_cast<int>(LightType::Count) == sizeof(LightTypeName) / sizeof(char *), "Light type and names mismatch.");
-
-} // namespace cd

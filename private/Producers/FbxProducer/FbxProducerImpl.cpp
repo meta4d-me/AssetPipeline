@@ -352,7 +352,7 @@ cd::NodeID FbxProducerImpl::AddNode(const fbxsdk::FbxNode* pSDKNode, cd::Node* p
 
 cd::LightID FbxProducerImpl::AddLight(const fbxsdk::FbxLight* pFbxLight, const char* pLightName, cd::Transform transform, cd::SceneDatabase* pSceneDatabase)
 {
-	cd::LightType lightType = cd::LightType::Count;
+	cd::LightType lightType;
 	float lightIntensity = static_cast<float>(pFbxLight->Intensity.Get());
 
 	switch (pFbxLight->LightType.Get())
@@ -391,12 +391,10 @@ cd::LightID FbxProducerImpl::AddLight(const fbxsdk::FbxLight* pFbxLight, const c
 			lightType = cd::LightType::Spot;
 			break;
 		}
-	}
-
-	if (cd::LightType::Count == lightType)
-	{
-		printf("Unknown light type.\n");
-		return cd::LightID(cd::LightID::InvalidID);
+		default:
+		{
+			assert("Unknown light source type.\n");
+		}
 	}
 
 	cd::LightID lightID = m_lightIDGenerator.AllocateID();
