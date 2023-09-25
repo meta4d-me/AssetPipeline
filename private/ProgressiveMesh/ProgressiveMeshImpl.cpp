@@ -53,6 +53,42 @@ void ProgressiveMeshImpl::FromIndexedFaces(const std::vector<cd::Point>& vertice
 	}
 }
 
+void ProgressiveMeshImpl::SetBoundaryInfo(const std::vector<cd::Point>& vertices)
+{
+	for (const auto& v : vertices)
+	{
+
+	}
+}
+
+std::pair<std::vector<uint32_t>, std::vector<uint32_t>> ProgressiveMeshImpl::BuildCollapseOperations()
+{
+	uint32_t vertexCount = GetVertexCount();
+	std::vector<uint32_t> permutation;
+	permutation.resize(vertexCount);
+
+	std::vector<uint32_t> map;
+	map.resize(vertexCount);
+
+	for (int vertexIndex = static_cast<int>(vertexCount) - 1; vertexIndex >= 0; --vertexIndex)
+	{
+		Vertex* pCandidate = GetMinimumCostVertex();
+		assert(pCandidate);
+		permutation[pCandidate->GetID().Data()] = vertexIndex;
+		map[vertexIndex] = pCandidate->GetCollapseTarget().Data();
+
+		//printf("Collapse2 [Vertex %d] - [Vertex %d]\n", pCandidate->GetID().Data(), pCandidate->GetCollapseTarget().Data());
+		Collapse(pCandidate->GetID(), pCandidate->GetCollapseTarget());
+	}
+
+	for (uint32_t vertexIndex = 0U; vertexIndex < vertexCount; ++vertexIndex)
+	{
+		map[vertexIndex] = map[vertexIndex] == cd::VertexID::InvalidID ? 0U : permutation[map[vertexIndex]];
+	}
+
+	return std::make_pair(cd::MoveTemp(permutation), cd::MoveTemp(map));
+}
+
 Vertex& ProgressiveMeshImpl::AddVertex(Point position)
 {
 	auto& vertex = m_vertices.emplace_back(Vertex(GetVertexCount()));
@@ -207,7 +243,7 @@ void ProgressiveMeshImpl::ComputeEdgeCollapseCostAtVertex(uint32_t v0Index)
 		return;
 	}
 
-	// Prevent not update after cost reduce to 0 after initialization.
+	// Prevent not update after cost becomes 0 after initialization.
 	v0.SetCollapseCost(FLT_MAX);
 	v0.SetCollapseTarget(cd::VertexID::InvalidID);
 
@@ -320,34 +356,6 @@ void ProgressiveMeshImpl::Collapse(VertexID v0ID, VertexID v1ID)
 		//printf("\t2 ComputeEdgeCostAtVertex [%d]\n", vertexID.Data());
 		ComputeEdgeCollapseCostAtVertex(vertexID.Data());
 	}
-}
-
-std::pair<std::vector<uint32_t>, std::vector<uint32_t>> ProgressiveMeshImpl::BuildCollapseOperations()
-{
-	uint32_t vertexCount = GetVertexCount();
-	std::vector<uint32_t> permutation;
-	permutation.resize(vertexCount);
-
-	std::vector<uint32_t> map;
-	map.resize(vertexCount);
-
-	for (int vertexIndex = static_cast<int>(vertexCount) - 1; vertexIndex >= 0; --vertexIndex)
-	{
-		Vertex* pCandidate = GetMinimumCostVertex();
-		assert(pCandidate);
-		permutation[pCandidate->GetID().Data()] = vertexIndex;
-		map[vertexIndex] = pCandidate->GetCollapseTarget().Data();
-	
-		//printf("Collapse2 [Vertex %d] - [Vertex %d]\n", pCandidate->GetID().Data(), pCandidate->GetCollapseTarget().Data());
-		Collapse(pCandidate->GetID(), pCandidate->GetCollapseTarget());
-	}
-
-	for (uint32_t vertexIndex = 0U; vertexIndex < vertexCount; ++vertexIndex)
-	{
-		map[vertexIndex] = map[vertexIndex] == cd::VertexID::InvalidID ? 0U : permutation[map[vertexIndex]];
-	}
-
-	return std::make_pair(cd::MoveTemp(permutation), cd::MoveTemp(map));
 }
 
 }

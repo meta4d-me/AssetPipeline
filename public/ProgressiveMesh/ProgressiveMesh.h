@@ -28,6 +28,8 @@ public:
 	ProgressiveMesh& operator=(ProgressiveMesh&&);
 	~ProgressiveMesh();
 	
+	// Simply pass boundary vertcies to check if every ProgressiveMesh vertex matches.
+	void SetBoundaryInfo(const std::vector<cd::Point>& vertices);
 	std::pair<std::vector<uint32_t>, std::vector<uint32_t>> BuildCollapseOperations();
 
 private:

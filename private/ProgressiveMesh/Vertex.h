@@ -25,6 +25,9 @@ public:
 	void SetID(cd::VertexID id) { m_id = id; }
 	cd::VertexID GetID() const { return m_id; }
 
+	void SetIsOnBoundary(bool on) { m_isOnBoundary = on; }
+	bool GetIsOnBoundary() const { return m_isOnBoundary; }
+
 	void SetPosition(Point position) { m_position = cd::MoveTemp(position); }
 	cd::Point& GetPosition() { return m_position; }
 	const cd::Point& GetPosition() const { return m_position; }
@@ -46,6 +49,7 @@ public:
 private:
 	// data
 	cd::VertexID m_id;
+	bool m_isOnBoundary;
 
 	// TODO : Copy data or just choose source data
 	cd::Point m_position;

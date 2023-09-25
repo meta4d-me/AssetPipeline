@@ -4,6 +4,8 @@
 #include "Vertex.h"
 #include "Scene/ObjectID.h"
 
+#include <unordered_map>
+
 namespace cd
 {
 
@@ -23,6 +25,7 @@ public:
 	~ProgressiveMeshImpl();
 
 	void FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons);
+	void SetBoundaryInfo(const std::vector<cd::Point>& vertices);
 	std::pair<std::vector<uint32_t>, std::vector<uint32_t>> BuildCollapseOperations();
 
 	uint32_t GetVertexCount() const { return static_cast<uint32_t>(m_vertices.size()); }
