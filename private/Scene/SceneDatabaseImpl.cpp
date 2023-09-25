@@ -223,11 +223,11 @@ void SceneDatabaseImpl::Dump() const
 
 				if (auto optUVScale = material.GetVec2fProperty(textureType, cd::MaterialProperty::UVScale); optUVScale.has_value())
 				{
-					details::Dump("\t\tMetallicUVScale", optUVScale.value());
+					details::Dump("\t\tUVScale", optUVScale.value());
 				}
 				if (auto optUVOffset = material.GetVec2fProperty(textureType, cd::MaterialProperty::UVOffset); optUVOffset.has_value())
 				{
-					details::Dump("\t\tMetallicUVOffset", optUVOffset.value());
+					details::Dump("\t\tUVOffset", optUVOffset.value());
 				}
 			}
 

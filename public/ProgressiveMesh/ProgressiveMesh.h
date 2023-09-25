@@ -14,7 +14,6 @@ class ProgressiveMeshImpl;
 
 }
 
-
 class CORE_API ProgressiveMesh
 {
 public:

@@ -106,6 +106,38 @@ void MeshImpl::FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh, ConvertSt
 			}
 		}
 	}
+	else if (ConvertStrategy::BoundaryOnly == strategy)
+	{
+		uint32_t vertexIndex = 0U;
+		for (const auto& face : halfEdgeMesh.GetFaces())
+		{
+			if (!face.IsBoundary())
+			{
+				continue;
+			}
+
+			uint32_t beginVertexIndex = vertexIndex;
+			hem::HalfEdgeCRef h = face.GetHalfEdge();
+			do
+			{
+				m_vertexPositions.emplace_back(h->GetVertex()->GetPosition());
+				m_vertexNormals.emplace_back(h->GetCornerNormal());
+				m_vertexUVSets[0].emplace_back(h->GetCornerUV());
+
+				++vertexIndex;
+				h = h->GetNext();
+			} while (h != face.GetHalfEdge());
+
+			uint32_t endVertexIndex = vertexIndex;
+			cd::Polygon polygon;
+			polygon.reserve(endVertexIndex);
+			for (uint32_t index = beginVertexIndex; index < endVertexIndex; ++index)
+			{
+				polygon.emplace_back(index);
+			}
+			m_polygons.emplace_back(cd::MoveTemp(polygon));
+		}
+	}
 	else
 	{
 		assert("Unsupported convert strategy.");

@@ -22,7 +22,6 @@ int main(int argc, char** argv)
 	PerformanceProfiler profiler("ProgressiveMesh");
 	
 	auto pSceneDatabase = std::make_unique<cd::SceneDatabase>();
-	
 
 	// Import
 	{
@@ -32,22 +31,17 @@ int main(int argc, char** argv)
 	}
 	
 	// Processing
-	//for (const auto& mesh : pSceneDatabase->GetMeshes())
-	//{
-	//	auto halfEdgeMesh = cd::hem::HalfEdgeMesh::FromIndexedMesh(mesh);
-	//	assert(halfEdgeMesh.IsValid());
-	//
-	//	//halfEdgeMesh.FlipEdge();
-	//
-	//	auto convertStrategy = cd::ConvertStrategy::TopologyFirst;
-	//	auto newMesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, convertStrategy);
-	//
-	//	if (cd::ConvertStrategy::TopologyFirst == convertStrategy)
-	//	{
-	//		assert(newMesh.GetVertexCount() == mesh.GetVertexCount());
-	//		assert(newMesh.GetPolygonCount() == mesh.GetPolygonCount());
-	//	}
-	//}
+	for (const auto& mesh : pSceneDatabase->GetMeshes())
+	{
+		auto halfEdgeMesh = cd::hem::HalfEdgeMesh::FromIndexedMesh(mesh);
+		assert(halfEdgeMesh.IsValid());
+
+		auto convertStrategy = cd::ConvertStrategy::BoundaryOnly;
+		auto newMesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, convertStrategy);
+		newMesh.SetID(pSceneDatabase->GetMeshCount());
+		newMesh.SetMaterialID(mesh.GetMaterialID());
+		pSceneDatabase->AddMesh(cd::MoveTemp(newMesh));
+	}
 
 	// Export
 	{

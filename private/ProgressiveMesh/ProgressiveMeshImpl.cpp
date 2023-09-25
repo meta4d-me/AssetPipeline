@@ -152,11 +152,6 @@ void ProgressiveMeshImpl::RemoveFace(FaceID faceID)
 
 void ProgressiveMeshImpl::ReplaceVertexInFace(FaceID faceID, VertexID v0ID, VertexID v1ID)
 {
-	uint32_t facesss = faceID.Data();
-	if (facesss == 487U)
-	{
-		int a = 0;
-	}
 	assert(faceID.IsValid());
 	auto& face = GetFace(faceID.Data());
 	assert(v0ID.IsValid());
@@ -272,6 +267,7 @@ Vertex* ProgressiveMeshImpl::GetMinimumCostVertex()
 {
 	Vertex* pCandidate = nullptr;
 	uint32_t vertexCount = GetVertexCount();
+	
 	for (uint32_t vertexIndex = 0U; vertexIndex < vertexCount; ++vertexIndex)
 	{
 		auto& vertex = m_vertices[vertexIndex];
@@ -335,24 +331,13 @@ std::pair<std::vector<uint32_t>, std::vector<uint32_t>> ProgressiveMeshImpl::Bui
 	std::vector<uint32_t> map;
 	map.resize(vertexCount);
 
-	auto& vvv = m_vertices[236];
-	//printf("236 cost = %f, target = %d\n", vvv.GetCollapseCost(), vvv.GetCollapseTarget().Data());
-
-	float lastCost = vvv.GetCollapseCost();
 	for (int vertexIndex = static_cast<int>(vertexCount) - 1; vertexIndex >= 0; --vertexIndex)
 	{
 		Vertex* pCandidate = GetMinimumCostVertex();
 		assert(pCandidate);
 		permutation[pCandidate->GetID().Data()] = vertexIndex;
 		map[vertexIndex] = pCandidate->GetCollapseTarget().Data();
-
-		auto& vvv = m_vertices[236];
-		if (vvv.GetCollapseCost() != lastCost)
-		{
-			//printf("236 cost = %f, target = %d\n", vvv.GetCollapseCost(), vvv.GetCollapseTarget().Data());
-			lastCost = vvv.GetCollapseCost();
-		}
-
+	
 		//printf("Collapse2 [Vertex %d] - [Vertex %d]\n", pCandidate->GetID().Data(), pCandidate->GetCollapseTarget().Data());
 		Collapse(pCandidate->GetID(), pCandidate->GetCollapseTarget());
 	}

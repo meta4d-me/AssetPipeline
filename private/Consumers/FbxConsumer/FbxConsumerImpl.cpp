@@ -74,7 +74,7 @@ void FbxConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
 			pNormalElement->GetDirectArray().Add(fbxsdk::FbxVector4(normal.x(), normal.y(), normal.z(), 0.0f));
 
 			// Only the first channel now
-			if(pUVElement)
+			if (pUVElement)
 			{
 				const cd::UV& uv = mesh.GetVertexUV(0)[vertexIndex];
 				pUVElement->GetDirectArray().Add(fbxsdk::FbxVector2(uv.x(), uv.y()));
@@ -85,9 +85,10 @@ void FbxConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
 		for (const auto& polygon : mesh.GetPolygons())
 		{
 			pFbxMesh->BeginPolygon(-1, -1, -1, false);
-			pFbxMesh->AddPolygon(polygon[0].Data());
-			pFbxMesh->AddPolygon(polygon[1].Data());
-			pFbxMesh->AddPolygon(polygon[2].Data());
+			for (uint32_t index = 0U; index < polygon.size(); ++index)
+			{
+				pFbxMesh->AddPolygon(polygon[index].Data());
+			}
 			pFbxMesh->EndPolygon();
 		}
 

@@ -5,6 +5,7 @@
 #include "Scene/ObjectID.h"
 
 #include <cassert>
+#include <cfloat>
 #include <vector>
 
 namespace cd::pm

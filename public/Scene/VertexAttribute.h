@@ -68,6 +68,8 @@ enum class ConvertStrategy
 	ShadingFirst,
 	// Mesh vertex uv/normal data will be averaged of corner uv/normal data. Topology will be preserved.
 	TopologyFirst,
+	// Only convert boundary for special purpose.
+	BoundaryOnly,
 };
 
 }
