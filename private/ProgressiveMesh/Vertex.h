@@ -26,7 +26,7 @@ public:
 	cd::VertexID GetID() const { return m_id; }
 
 	void SetIsOnBoundary(bool on) { m_isOnBoundary = on; }
-	bool GetIsOnBoundary() const { return m_isOnBoundary; }
+	bool IsOnBoundary() const { return m_isOnBoundary; }
 
 	void SetPosition(Point position) { m_position = cd::MoveTemp(position); }
 	cd::Point& GetPosition() { return m_position; }

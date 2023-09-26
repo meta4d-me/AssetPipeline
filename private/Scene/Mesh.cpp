@@ -6,7 +6,7 @@
 namespace cd
 {
 
-Mesh Mesh::FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy)
+Mesh Mesh::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy)
 {
 	Mesh mesh;
 	mesh.m_pMeshImpl = new MeshImpl();

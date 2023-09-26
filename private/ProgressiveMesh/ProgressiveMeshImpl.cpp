@@ -1,5 +1,6 @@
 #include "ProgressiveMeshImpl.h"
 
+#include "Hashers/HashCombine.hpp"
 #include "Scene/Mesh.h"
 
 #include <cfloat>
@@ -46,23 +47,38 @@ void ProgressiveMeshImpl::FromIndexedFaces(const std::vector<cd::Point>& vertice
 		v2.AddAdjacentVertex(v0.GetID());
 		v2.AddAdjacentVertex(v1.GetID());
 	}
-
-	for (uint32_t vertexIndex = 0U; vertexIndex < GetVertexCount(); ++vertexIndex)
-	{
-		ComputeEdgeCollapseCostAtVertex(vertexIndex);
-	}
 }
 
-void ProgressiveMeshImpl::SetBoundaryInfo(const std::vector<cd::Point>& vertices)
+void ProgressiveMeshImpl::InitBoundary(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons)
 {
-	for (const auto& v : vertices)
+	auto GetVertexHash = [](const cd::Point& p)
 	{
+		return HashCombine(Math::CastFloatToU32(p.x()), HashCombine(Math::CastFloatToU32(p.y()), Math::CastFloatToU32(p.z())));
+	};
 
+	std::unordered_map<uint32_t, uint32_t> mapBoundaryVertices;
+	for (uint32_t vertexIndex = 0U; vertexIndex < vertices.size(); ++vertexIndex)
+	{
+		uint32_t vertexHash = GetVertexHash(vertices[vertexIndex]);
+		//assert(!mapBoundaryVertices.contains(vertexHash));
+		mapBoundaryVertices[vertexHash] = vertexIndex;
+	}
+
+	for (auto& v : m_vertices)
+	{
+		uint32_t vertexHash = GetVertexHash(v.GetPosition());
+		bool isOnBoundary = mapBoundaryVertices.contains(vertexHash);
+		v.SetIsOnBoundary(isOnBoundary);
 	}
 }
 
 std::pair<std::vector<uint32_t>, std::vector<uint32_t>> ProgressiveMeshImpl::BuildCollapseOperations()
 {
+	for (const auto& vertex : m_vertices)
+	{
+		ComputeEdgeCollapseCostAtVertex(vertex.GetID());
+	}
+
 	uint32_t vertexCount = GetVertexCount();
 	std::vector<uint32_t> permutation;
 	permutation.resize(vertexCount);
@@ -233,8 +249,9 @@ void ProgressiveMeshImpl::ComputeNormal(cd::pm::Face& face)
 	face.SetNormal(v1v0.Cross(v2v0).Normalize());
 }
 
-void ProgressiveMeshImpl::ComputeEdgeCollapseCostAtVertex(uint32_t v0Index)
+void ProgressiveMeshImpl::ComputeEdgeCollapseCostAtVertex(VertexID v0ID)
 {
+	uint32_t v0Index = v0ID.Data();
 	auto& v0 = m_vertices[v0Index];
 	if (v0.GetAdjacentVertices().Empty())
 	{
@@ -249,7 +266,7 @@ void ProgressiveMeshImpl::ComputeEdgeCollapseCostAtVertex(uint32_t v0Index)
 
 	for (auto v1ID : v0.GetAdjacentVertices())
 	{
-		float cost = ComputeEdgeCollapseCostAtEdge(v0Index, v1ID.Data());
+		float cost = ComputeEdgeCollapseCostAtEdge(v0ID, v1ID);
 		if (cost < v0.GetCollapseCost())
 		{
 			v0.SetCollapseCost(cost);
@@ -258,10 +275,10 @@ void ProgressiveMeshImpl::ComputeEdgeCollapseCostAtVertex(uint32_t v0Index)
 	}
 }
 
-float ProgressiveMeshImpl::ComputeEdgeCollapseCostAtEdge(uint32_t v0Index, uint32_t v1Index)
+float ProgressiveMeshImpl::ComputeEdgeCollapseCostAtEdge(VertexID v0ID, VertexID v1ID)
 {
-	auto& v0 = m_vertices[v0Index];
-	auto& v1 = m_vertices[v1Index];
+	auto& v0 = m_vertices[v0ID.Data()];
+	auto& v1 = m_vertices[v1ID.Data()];
 
 	float edgeLength = (v0.GetPosition() - v1.GetPosition()).Length();
 	float curvature = 0.0f;
@@ -269,7 +286,7 @@ float ProgressiveMeshImpl::ComputeEdgeCollapseCostAtEdge(uint32_t v0Index, uint3
 	std::vector<FaceID> sideFaceIDs;
 	for (auto v0Face : v0.GetAdjacentFaces())
 	{
-		if (GetFace(v0Face.Data()).GetVertexIDs().Contains(VertexID(v1Index)))
+		if (GetFace(v0Face.Data()).GetVertexIDs().Contains(v1ID))
 		{
 			sideFaceIDs.push_back(v0Face);
 		}
@@ -296,7 +313,13 @@ float ProgressiveMeshImpl::ComputeEdgeCollapseCostAtEdge(uint32_t v0Index, uint3
 		}
 	}
 
-	return edgeLength * curvature;
+	float cost = edgeLength * curvature;
+	if (v0.IsOnBoundary() && v1.IsOnBoundary())
+	{
+		cost += 1000.0f;
+	}
+
+	return cost;
 }
 
 Vertex* ProgressiveMeshImpl::GetMinimumCostVertex()
@@ -354,7 +377,7 @@ void ProgressiveMeshImpl::Collapse(VertexID v0ID, VertexID v1ID)
 	for (auto vertexID : tmp)
 	{
 		//printf("\t2 ComputeEdgeCostAtVertex [%d]\n", vertexID.Data());
-		ComputeEdgeCollapseCostAtVertex(vertexID.Data());
+		ComputeEdgeCollapseCostAtVertex(vertexID);
 	}
 }
 

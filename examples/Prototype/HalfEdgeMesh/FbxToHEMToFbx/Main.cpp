@@ -1,11 +1,7 @@
 #include "FbxConsumer.h"
 #include "FbxProducer.h"
 #include "Framework/Processor.h"
-#include "HalfEdgeMesh/Edge.h"
-#include "HalfEdgeMesh/Face.h"
-#include "HalfEdgeMesh/HalfEdge.h"
 #include "HalfEdgeMesh/HalfEdgeMesh.h"
-#include "HalfEdgeMesh/Vertex.h"
 #include "Scene/SceneDatabase.h"
 #include "Utilities/PerformanceProfiler.h"
 
@@ -21,62 +17,36 @@ int main(int argc, char** argv)
 
 	const char* pInputFilePath = argv[1];
 	const char* pOutputFilePath = argv[2];
-	
+
 	using namespace cdtools;
 	PerformanceProfiler profiler("ProgressiveMesh");
-	
+
 	auto pSceneDatabase = std::make_unique<cd::SceneDatabase>();
-	
-	// Import.
+
+	// Import
 	{
 		FbxProducer producer(pInputFilePath);
 		Processor processor(&producer, nullptr, pSceneDatabase.get());
 		processor.Run();
 	}
-	
-	// Processing.
+
+	// Processing
 	for (const auto& mesh : pSceneDatabase->GetMeshes())
 	{
-		auto halfEdgeMesh = cd::hem::HalfEdgeMesh::FromIndexedMesh(mesh);
+		auto halfEdgeMesh = cd::HalfEdgeMesh::FromIndexedMesh(mesh);
 		assert(halfEdgeMesh.IsValid());
-	
-		halfEdgeMesh.Dump();
 
-		// Test Filp/Split edges
-		{
-			std::vector<cd::hem::EdgeRef> edges;
-			for (auto it = halfEdgeMesh.GetEdges().begin(); it != halfEdgeMesh.GetEdges().end(); ++it)
-			{
-				if (!it->IsOnBoundary())
-				{
-					cd::Direction result = it->GetHalfEdge()->GetFace()->Normal().Cross(it->GetHalfEdge()->GetTwin()->GetFace()->Normal());
-					if (cd::Direction::Zero() == result)
-					{
-						edges.push_back(it);
-					}
-				}
-			}
-
-			for (auto edge : edges)
-			{
-				halfEdgeMesh.SplitEdge(edge);
-			}
-
-			halfEdgeMesh.Dump();
-		}
-
-		auto convertStrategy = cd::ConvertStrategy::TopologyFirst;
+		auto convertStrategy = cd::ConvertStrategy::BoundaryOnly;
 		auto newMesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, convertStrategy);
-		newMesh.SetID(cd::MeshID(1U));
-		newMesh.SetName("FlipEdgeMesh");
+		newMesh.SetID(pSceneDatabase->GetMeshCount());
+		newMesh.SetMaterialID(mesh.GetMaterialID());
 		pSceneDatabase->AddMesh(cd::MoveTemp(newMesh));
 	}
 
-	// Export.
+	// Export
 	{
 		FbxConsumer consumer(pOutputFilePath);
 		Processor processor(nullptr, &consumer, pSceneDatabase.get());
-		processor.SetDumpSceneDatabaseEnable(true);
 		processor.Run();
 	}
 

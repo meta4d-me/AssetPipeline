@@ -39,6 +39,16 @@ ProgressiveMesh::~ProgressiveMesh()
 	}
 }
 
+void ProgressiveMesh::InitBoundary(const cd::Mesh& mesh)
+{
+	return m_pProgressiveMeshImpl->InitBoundary(mesh.GetVertexPositions(), mesh.GetPolygons());
+}
+
+void ProgressiveMesh::InitBoundary(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons)
+{
+	return m_pProgressiveMeshImpl->InitBoundary(vertices, polygons);
+}
+
 std::pair<std::vector<uint32_t>, std::vector<uint32_t>> ProgressiveMesh::BuildCollapseOperations()
 {
 	return m_pProgressiveMeshImpl->BuildCollapseOperations();

@@ -10,7 +10,7 @@
 namespace cd
 {
 
-void MeshImpl::FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy)
+void MeshImpl::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy)
 {
 	m_vertexUVSetCount = 1U;
 
@@ -135,6 +135,7 @@ void MeshImpl::FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh, ConvertSt
 			{
 				polygon.emplace_back(index);
 			}
+
 			m_polygons.emplace_back(cd::MoveTemp(polygon));
 		}
 	}

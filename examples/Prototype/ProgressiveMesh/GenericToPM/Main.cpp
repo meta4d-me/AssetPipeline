@@ -1,5 +1,6 @@
 #include "Framework/Processor.h"
 #include "GenericProducer.h"
+#include "HalfEdgeMesh/HalfEdgeMesh.h"
 #include "ProgressiveMesh/ProgressiveMesh.h"
 #include "Scene/SceneDatabase.h"
 #include "Scene/VertexFormat.h"
@@ -54,7 +55,10 @@ int main(int argc, char** argv)
 			}
 		}
 
+		auto hem = cd::HalfEdgeMesh::FromIndexedMesh(mesh);
+		auto boundaryMesh = cd::Mesh::FromHalfEdgeMesh(hem, cd::ConvertStrategy::BoundaryOnly);
 		auto pm = cd::ProgressiveMesh::FromIndexedMesh(mesh);
+		pm.InitBoundary(boundaryMesh);
 		auto [permutation, map] = pm.BuildCollapseOperations();
 	}
 

@@ -25,6 +25,7 @@ int main(int argc, char** argv)
 	auto pSceneDatabase = std::make_unique<cd::SceneDatabase>();
 	// Generate halfedge mesh and convert to index mesh.
 	{
+		using namespace cd;
 		using namespace cd::hem;
 		HalfEdgeMesh halfEdgeMesh;
 		auto v0 = halfEdgeMesh.AddVertex();

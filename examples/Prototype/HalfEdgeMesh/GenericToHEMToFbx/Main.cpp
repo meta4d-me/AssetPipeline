@@ -33,11 +33,12 @@ int main(int argc, char** argv)
 	// Processing
 	for (const auto& mesh : pSceneDatabase->GetMeshes())
 	{
-		auto halfEdgeMesh = cd::hem::HalfEdgeMesh::FromIndexedMesh(mesh);
+		auto halfEdgeMesh = cd::HalfEdgeMesh::FromIndexedMesh(mesh);
 		assert(halfEdgeMesh.IsValid());
-
+	
 		auto convertStrategy = cd::ConvertStrategy::BoundaryOnly;
 		auto newMesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, convertStrategy);
+		newMesh.SetName("Test");
 		newMesh.SetID(pSceneDatabase->GetMeshCount());
 		newMesh.SetMaterialID(mesh.GetMaterialID());
 		pSceneDatabase->AddMesh(cd::MoveTemp(newMesh));
