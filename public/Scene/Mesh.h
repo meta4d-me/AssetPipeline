@@ -61,8 +61,6 @@ public:
 
 	void ComputeVertexNormals();
 	void ComputeVertexTangents();
-	void RemoveDuplicatedVertices();
-	void RemoveUnusedVertices();
 
 	void SetVertexUVSetCount(uint32_t setCount);
 	uint32_t GetVertexUVSetCount() const;
