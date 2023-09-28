@@ -63,4 +63,14 @@ bool FbxProducer::WantImportAnimation() const
 	return m_pFbxProducerImpl->WantImportAnimation();
 }
 
+void FbxProducer::SetWantTriangulate(bool flag)
+{
+	m_pFbxProducerImpl->SetWantTriangulate(flag);
+}
+
+bool FbxProducer::IsTriangulateActive() const
+{
+	return m_pFbxProducerImpl->IsTriangulateActive();
+}
+
 }

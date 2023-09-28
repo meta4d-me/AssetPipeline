@@ -7,6 +7,7 @@
 namespace cd
 {
 
+class AxisSystem;
 class SceneDatabase;
 
 }
@@ -49,6 +50,7 @@ public:
 	void SetEmbedTextureFilesEnable(bool enable);
 	bool IsEmbedTextureFilesEnabled() const;
 
+	void SetAxisSystem(cd::AxisSystem axisSystem);
 	const cd::SceneDatabase* GetSceneDatabase() const;
 	void Run();
 

@@ -22,6 +22,7 @@ int main(int argc, char** argv)
 	PerformanceProfiler profiler("ProgressiveMesh");
 	
 	auto pSceneDatabase = std::make_unique<cd::SceneDatabase>();
+	auto pNewSceneDatabase = std::make_unique<cd::SceneDatabase>();
 
 	// Import
 	{
@@ -36,18 +37,21 @@ int main(int argc, char** argv)
 		auto halfEdgeMesh = cd::HalfEdgeMesh::FromIndexedMesh(mesh);
 		assert(halfEdgeMesh.IsValid());
 	
-		auto convertStrategy = cd::ConvertStrategy::BoundaryOnly;
-		auto newMesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, convertStrategy);
-		newMesh.SetName("Test");
-		newMesh.SetID(pSceneDatabase->GetMeshCount());
-		newMesh.SetMaterialID(mesh.GetMaterialID());
-		pSceneDatabase->AddMesh(cd::MoveTemp(newMesh));
+		auto meshMaterialID = mesh.GetMaterialID();
+
+		{
+			auto convertStrategy = cd::ConvertStrategy::BoundaryOnly;
+			auto newMesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, convertStrategy);
+			newMesh.SetName("BoundaryOnly");
+			newMesh.SetID(pNewSceneDatabase->GetMeshCount());
+			pNewSceneDatabase->AddMesh(cd::MoveTemp(newMesh));
+		}
 	}
 
 	// Export
 	{
 		FbxConsumer consumer(pOutputFilePath);
-		Processor processor(nullptr, &consumer, pSceneDatabase.get());
+		Processor processor(nullptr, &consumer, pNewSceneDatabase.get());
 		processor.Run();
 	}
 

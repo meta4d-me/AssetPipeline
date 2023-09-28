@@ -137,6 +137,16 @@ void Mesh::ComputeVertexTangents()
 {
 	m_pMeshImpl->ComputeVertexTangents();
 }
+
+void Mesh::RemoveDuplicatedVertices()
+{
+	m_pMeshImpl->RemoveDuplicatedVertices();
+}
+
+void Mesh::RemoveUnusedVertices()
+{
+	m_pMeshImpl->RemoveUnusedVertices();
+}
 //////////////////////////////////////////////////////////////////////////
 // Vertex texturing data
 //////////////////////////////////////////////////////////////////////////

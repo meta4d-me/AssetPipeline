@@ -27,7 +27,6 @@ int main(int argc, char** argv)
 	// Import
 	{
 		GenericProducer producer(pInputFilePath);
-		producer.ActivateTriangulateService();
 		producer.ActivateTangentsSpaceService();
 		producer.ActivateBoundingBoxService();
 		producer.ActivateFlattenHierarchyService();

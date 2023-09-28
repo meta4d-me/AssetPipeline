@@ -67,6 +67,9 @@ public:
 	void SetWantImportLight(bool flag) { m_importLight = flag; }
 	bool WantImportLight() const { return m_importLight; }
 
+	void SetWantTriangulate(bool flag) { m_bWantTriangulate = flag; }
+	bool IsTriangulateActive() const { return m_bWantTriangulate; }
+
 private:
 	int GetSceneNodeCount(const fbxsdk::FbxNode* pSceneNode);
 	void TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase);
@@ -93,10 +96,11 @@ private:
 	bool m_importSkinMesh = true;
 	bool m_importAnimation = true;
 	bool m_importLight = true;
+	bool m_bWantTriangulate = true;
 
 	std::string m_filePath;
 	fbxsdk::FbxManager* m_pSDKManager = nullptr;
-	fbxsdk::FbxGeometryConverter* m_pSDKGeometryConverter = nullptr;
+	std::unique_ptr<fbxsdk::FbxGeometryConverter> m_pSDKGeometryConverter;
 
 	std::map<int32_t, uint32_t> m_fbxMaterialIndexToMaterialID;
 

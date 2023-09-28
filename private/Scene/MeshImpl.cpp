@@ -4,6 +4,7 @@
 #include "HalfEdgeMesh/Face.h"
 #include "HalfEdgeMesh/HalfEdge.h"
 #include "HalfEdgeMesh/Vertex.h"
+#include "Hashers/HashCombine.hpp"
 
 #include <cfloat>
 
@@ -281,6 +282,59 @@ void MeshImpl::ComputeVertexTangents()
 	for (auto& tangent : GetVertexTangents())
 	{
 		tangent.Normalize();
+	}
+}
+
+void MeshImpl::RemoveDuplicatedVertices()
+{
+	// TODO : Only consider position currently.
+	std::map<uint32_t, uint32_t> mapPosToVertexIndex;
+	std::map<uint32_t, uint32_t> mapDuplicateToUnique;
+	for (uint32_t vertexIndex = 0U; vertexIndex < m_vertexCount; ++vertexIndex)
+	{
+		const auto& position = m_vertexPositions[vertexIndex];
+		uint32_t positionHash = cd::HashCombine(Math::CastFloatToU32(position.x()), cd::HashCombine(Math::CastFloatToU32(position.y()), Math::CastFloatToU32(position.z())));
+
+		auto itVertexIndex = mapPosToVertexIndex.find(positionHash);
+		if (itVertexIndex != mapPosToVertexIndex.end())
+		{
+			uint32_t uniqueVertexIndex = itVertexIndex->second;
+			mapDuplicateToUnique[vertexIndex] = uniqueVertexIndex;
+		}
+		else
+		{
+			mapPosToVertexIndex[positionHash] = vertexIndex;
+		}
+	}
+
+	// Update polygon index data.
+	for (auto& polygon : m_polygons)
+	{
+		for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygon.size(); ++polygonVertexIndex)
+		{
+			uint32_t newIndex = polygon[polygonVertexIndex].Data();
+			if (auto itUniqueIndex = mapDuplicateToUnique.find(newIndex); itUniqueIndex != mapDuplicateToUnique.end())
+			{
+				newIndex = mapDuplicateToUnique[newIndex];
+			}
+			polygon[polygonVertexIndex] = newIndex;
+		}
+	}
+
+	RemoveUnusedVertices();
+}
+
+void MeshImpl::RemoveUnusedVertices()
+{
+	std::vector<uint32_t> vertexUseCount;
+	vertexUseCount.resize(m_vertexCount, 0U);
+	for (auto& polygon : m_polygons)
+	{
+		for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygon.size(); ++polygonVertexIndex)
+		{
+			uint32_t index = polygon[polygonVertexIndex].Data();
+			vertexUseCount[index] += 1;
+		}
 	}
 }
 

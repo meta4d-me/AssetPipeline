@@ -28,6 +28,11 @@ void Processor::Run()
 	m_pProcessorImpl->Run();
 }
 
+void Processor::SetAxisSystem(cd::AxisSystem axisSystem)
+{
+	m_pProcessorImpl->SetAxisSystem(cd::MoveTemp(axisSystem));
+}
+
 void Processor::SetValidateSceneDatabaseEnable(bool enable)
 {
 	m_pProcessorImpl->SetValidateSceneDatabaseEnable(enable);

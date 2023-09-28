@@ -93,7 +93,7 @@ std::pair<std::vector<uint32_t>, std::vector<uint32_t>> ProgressiveMeshImpl::Bui
 		permutation[pCandidate->GetID().Data()] = vertexIndex;
 		map[vertexIndex] = pCandidate->GetCollapseTarget().Data();
 
-		//printf("Collapse2 [Vertex %d] - [Vertex %d]\n", pCandidate->GetID().Data(), pCandidate->GetCollapseTarget().Data());
+		printf("Collapse2 [Vertex %d] - [Vertex %d]\n", pCandidate->GetID().Data(), pCandidate->GetCollapseTarget().Data());
 		Collapse(pCandidate->GetID(), pCandidate->GetCollapseTarget());
 	}
 
@@ -314,9 +314,9 @@ float ProgressiveMeshImpl::ComputeEdgeCollapseCostAtEdge(VertexID v0ID, VertexID
 	}
 
 	float cost = edgeLength * curvature;
-	if (v0.IsOnBoundary() && v1.IsOnBoundary())
+	if (v0.IsOnBoundary())
 	{
-		cost += 1000.0f;
+		cost += 1.0f;
 	}
 
 	return cost;

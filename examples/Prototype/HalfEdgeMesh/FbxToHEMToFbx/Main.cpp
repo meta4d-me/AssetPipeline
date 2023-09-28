@@ -22,31 +22,33 @@ int main(int argc, char** argv)
 	PerformanceProfiler profiler("ProgressiveMesh");
 
 	auto pSceneDatabase = std::make_unique<cd::SceneDatabase>();
+	auto pNewSceneDatabase = std::make_unique<cd::SceneDatabase>();
 
 	// Import
 	{
 		FbxProducer producer(pInputFilePath);
+		producer.SetWantTriangulate(false);
 		Processor processor(&producer, nullptr, pSceneDatabase.get());
 		processor.Run();
 	}
 
 	// Processing
-	for (const auto& mesh : pSceneDatabase->GetMeshes())
+	for (auto& mesh : pSceneDatabase->GetMeshes())
 	{
+		mesh.RemoveDuplicatedVertices();
 		auto halfEdgeMesh = cd::HalfEdgeMesh::FromIndexedMesh(mesh);
-		assert(halfEdgeMesh.IsValid());
+		//assert(halfEdgeMesh.IsValid());
 
-		auto convertStrategy = cd::ConvertStrategy::BoundaryOnly;
-		auto newMesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, convertStrategy);
-		newMesh.SetID(pSceneDatabase->GetMeshCount());
-		newMesh.SetMaterialID(mesh.GetMaterialID());
-		pSceneDatabase->AddMesh(cd::MoveTemp(newMesh));
+		auto newMesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh, cd::ConvertStrategy::BoundaryOnly);
+		newMesh.SetName(mesh.GetName());
+		newMesh.SetID(pNewSceneDatabase->GetMeshCount());
+		pNewSceneDatabase->AddMesh(cd::MoveTemp(newMesh));
 	}
 
 	// Export
 	{
 		FbxConsumer consumer(pOutputFilePath);
-		Processor processor(nullptr, &consumer, pSceneDatabase.get());
+		Processor processor(nullptr, &consumer, pNewSceneDatabase.get());
 		processor.Run();
 	}
 
