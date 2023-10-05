@@ -1,5 +1,6 @@
 #include "ProgressiveMeshImpl.h"
 
+#include "Hashers/HashCombine.hpp"
 #include "Scene/Mesh.h"
 
 #include <cfloat>
@@ -46,11 +47,62 @@ void ProgressiveMeshImpl::FromIndexedFaces(const std::vector<cd::Point>& vertice
 		v2.AddAdjacentVertex(v0.GetID());
 		v2.AddAdjacentVertex(v1.GetID());
 	}
+}
 
-	for (uint32_t vertexIndex = 0U; vertexIndex < GetVertexCount(); ++vertexIndex)
+void ProgressiveMeshImpl::InitBoundary(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons)
+{
+	auto GetVertexHash = [](const cd::Point& p)
 	{
-		ComputeEdgeCollapseCostAtVertex(vertexIndex);
+		return HashCombine(Math::CastFloatToU32(p.x()), HashCombine(Math::CastFloatToU32(p.y()), Math::CastFloatToU32(p.z())));
+	};
+
+	std::unordered_map<uint32_t, uint32_t> mapBoundaryVertices;
+	for (uint32_t vertexIndex = 0U; vertexIndex < vertices.size(); ++vertexIndex)
+	{
+		uint32_t vertexHash = GetVertexHash(vertices[vertexIndex]);
+		//assert(!mapBoundaryVertices.contains(vertexHash));
+		mapBoundaryVertices[vertexHash] = vertexIndex;
 	}
+
+	for (auto& v : m_vertices)
+	{
+		uint32_t vertexHash = GetVertexHash(v.GetPosition());
+		bool isOnBoundary = mapBoundaryVertices.find(vertexHash) != mapBoundaryVertices.end();
+		v.SetIsOnBoundary(isOnBoundary);
+	}
+}
+
+std::pair<std::vector<uint32_t>, std::vector<uint32_t>> ProgressiveMeshImpl::BuildCollapseOperations()
+{
+	for (const auto& vertex : m_vertices)
+	{
+		ComputeEdgeCollapseCostAtVertex(vertex.GetID());
+	}
+
+	uint32_t vertexCount = GetVertexCount();
+	std::vector<uint32_t> permutation;
+	permutation.resize(vertexCount);
+
+	std::vector<uint32_t> map;
+	map.resize(vertexCount);
+
+	for (int vertexIndex = static_cast<int>(vertexCount) - 1; vertexIndex >= 0; --vertexIndex)
+	{
+		Vertex* pCandidate = GetMinimumCostVertex();
+		assert(pCandidate);
+		permutation[pCandidate->GetID().Data()] = vertexIndex;
+		map[vertexIndex] = pCandidate->GetCollapseTarget().Data();
+
+		printf("Collapse2 [Vertex %d] - [Vertex %d]\n", pCandidate->GetID().Data(), pCandidate->GetCollapseTarget().Data());
+		Collapse(pCandidate->GetID(), pCandidate->GetCollapseTarget());
+	}
+
+	for (uint32_t vertexIndex = 0U; vertexIndex < vertexCount; ++vertexIndex)
+	{
+		map[vertexIndex] = map[vertexIndex] == cd::VertexID::InvalidID ? 0U : permutation[map[vertexIndex]];
+	}
+
+	return std::make_pair(cd::MoveTemp(permutation), cd::MoveTemp(map));
 }
 
 Vertex& ProgressiveMeshImpl::AddVertex(Point position)
@@ -152,11 +204,6 @@ void ProgressiveMeshImpl::RemoveFace(FaceID faceID)
 
 void ProgressiveMeshImpl::ReplaceVertexInFace(FaceID faceID, VertexID v0ID, VertexID v1ID)
 {
-	uint32_t facesss = faceID.Data();
-	if (facesss == 487U)
-	{
-		int a = 0;
-	}
 	assert(faceID.IsValid());
 	auto& face = GetFace(faceID.Data());
 	assert(v0ID.IsValid());
@@ -202,8 +249,9 @@ void ProgressiveMeshImpl::ComputeNormal(cd::pm::Face& face)
 	face.SetNormal(v1v0.Cross(v2v0).Normalize());
 }
 
-void ProgressiveMeshImpl::ComputeEdgeCollapseCostAtVertex(uint32_t v0Index)
+void ProgressiveMeshImpl::ComputeEdgeCollapseCostAtVertex(VertexID v0ID)
 {
+	uint32_t v0Index = v0ID.Data();
 	auto& v0 = m_vertices[v0Index];
 	if (v0.GetAdjacentVertices().Empty())
 	{
@@ -212,13 +260,13 @@ void ProgressiveMeshImpl::ComputeEdgeCollapseCostAtVertex(uint32_t v0Index)
 		return;
 	}
 
-	// Prevent not update after cost reduce to 0 after initialization.
+	// Prevent not update after cost becomes 0 after initialization.
 	v0.SetCollapseCost(FLT_MAX);
 	v0.SetCollapseTarget(cd::VertexID::InvalidID);
 
 	for (auto v1ID : v0.GetAdjacentVertices())
 	{
-		float cost = ComputeEdgeCollapseCostAtEdge(v0Index, v1ID.Data());
+		float cost = ComputeEdgeCollapseCostAtEdge(v0ID, v1ID);
 		if (cost < v0.GetCollapseCost())
 		{
 			v0.SetCollapseCost(cost);
@@ -227,10 +275,10 @@ void ProgressiveMeshImpl::ComputeEdgeCollapseCostAtVertex(uint32_t v0Index)
 	}
 }
 
-float ProgressiveMeshImpl::ComputeEdgeCollapseCostAtEdge(uint32_t v0Index, uint32_t v1Index)
+float ProgressiveMeshImpl::ComputeEdgeCollapseCostAtEdge(VertexID v0ID, VertexID v1ID)
 {
-	auto& v0 = m_vertices[v0Index];
-	auto& v1 = m_vertices[v1Index];
+	auto& v0 = m_vertices[v0ID.Data()];
+	auto& v1 = m_vertices[v1ID.Data()];
 
 	float edgeLength = (v0.GetPosition() - v1.GetPosition()).Length();
 	float curvature = 0.0f;
@@ -238,7 +286,7 @@ float ProgressiveMeshImpl::ComputeEdgeCollapseCostAtEdge(uint32_t v0Index, uint3
 	std::vector<FaceID> sideFaceIDs;
 	for (auto v0Face : v0.GetAdjacentFaces())
 	{
-		if (GetFace(v0Face.Data()).GetVertexIDs().Contains(VertexID(v1Index)))
+		if (GetFace(v0Face.Data()).GetVertexIDs().Contains(v1ID))
 		{
 			sideFaceIDs.push_back(v0Face);
 		}
@@ -265,13 +313,20 @@ float ProgressiveMeshImpl::ComputeEdgeCollapseCostAtEdge(uint32_t v0Index, uint3
 		}
 	}
 
-	return edgeLength * curvature;
+	float cost = edgeLength * curvature;
+	if (v0.IsOnBoundary())
+	{
+		cost += 1.0f;
+	}
+
+	return cost;
 }
 
 Vertex* ProgressiveMeshImpl::GetMinimumCostVertex()
 {
 	Vertex* pCandidate = nullptr;
 	uint32_t vertexCount = GetVertexCount();
+	
 	for (uint32_t vertexIndex = 0U; vertexIndex < vertexCount; ++vertexIndex)
 	{
 		auto& vertex = m_vertices[vertexIndex];
@@ -322,47 +377,8 @@ void ProgressiveMeshImpl::Collapse(VertexID v0ID, VertexID v1ID)
 	for (auto vertexID : tmp)
 	{
 		//printf("\t2 ComputeEdgeCostAtVertex [%d]\n", vertexID.Data());
-		ComputeEdgeCollapseCostAtVertex(vertexID.Data());
+		ComputeEdgeCollapseCostAtVertex(vertexID);
 	}
-}
-
-std::pair<std::vector<uint32_t>, std::vector<uint32_t>> ProgressiveMeshImpl::BuildCollapseOperations()
-{
-	uint32_t vertexCount = GetVertexCount();
-	std::vector<uint32_t> permutation;
-	permutation.resize(vertexCount);
-
-	std::vector<uint32_t> map;
-	map.resize(vertexCount);
-
-	auto& vvv = m_vertices[236];
-	//printf("236 cost = %f, target = %d\n", vvv.GetCollapseCost(), vvv.GetCollapseTarget().Data());
-
-	float lastCost = vvv.GetCollapseCost();
-	for (int vertexIndex = static_cast<int>(vertexCount) - 1; vertexIndex >= 0; --vertexIndex)
-	{
-		Vertex* pCandidate = GetMinimumCostVertex();
-		assert(pCandidate);
-		permutation[pCandidate->GetID().Data()] = vertexIndex;
-		map[vertexIndex] = pCandidate->GetCollapseTarget().Data();
-
-		auto& vvv = m_vertices[236];
-		if (vvv.GetCollapseCost() != lastCost)
-		{
-			//printf("236 cost = %f, target = %d\n", vvv.GetCollapseCost(), vvv.GetCollapseTarget().Data());
-			lastCost = vvv.GetCollapseCost();
-		}
-
-		//printf("Collapse2 [Vertex %d] - [Vertex %d]\n", pCandidate->GetID().Data(), pCandidate->GetCollapseTarget().Data());
-		Collapse(pCandidate->GetID(), pCandidate->GetCollapseTarget());
-	}
-
-	for (uint32_t vertexIndex = 0U; vertexIndex < vertexCount; ++vertexIndex)
-	{
-		map[vertexIndex] = map[vertexIndex] == cd::VertexID::InvalidID ? 0U : permutation[map[vertexIndex]];
-	}
-
-	return std::make_pair(cd::MoveTemp(permutation), cd::MoveTemp(map));
 }
 
 }

@@ -253,6 +253,11 @@ public:
 							 x() * rhs.y() - y() * rhs.x());
 	}
 
+	uint32_t GetTypeHash() const
+	{
+
+	}
+
 	// Operators
 	CD_FORCEINLINE bool operator!=(const TVector& rhs) const { return !(*this == rhs); }
 	bool operator==(const TVector& rhs) const

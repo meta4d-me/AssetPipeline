@@ -4,6 +4,8 @@
 #include "Vertex.h"
 #include "Scene/ObjectID.h"
 
+#include <unordered_map>
+
 namespace cd
 {
 
@@ -23,6 +25,7 @@ public:
 	~ProgressiveMeshImpl();
 
 	void FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons);
+	void InitBoundary(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons);
 	std::pair<std::vector<uint32_t>, std::vector<uint32_t>> BuildCollapseOperations();
 
 	uint32_t GetVertexCount() const { return static_cast<uint32_t>(m_vertices.size()); }
@@ -40,8 +43,8 @@ public:
 	const Face& GetFace(uint32_t index) const { return m_faces[index]; }
 
 	void ComputeNormal(cd::pm::Face& face);
-	void ComputeEdgeCollapseCostAtVertex(uint32_t v0Index);
-	float ComputeEdgeCollapseCostAtEdge(uint32_t v0Index, uint32_t v1Index);
+	void ComputeEdgeCollapseCostAtVertex(VertexID v0ID);
+	float ComputeEdgeCollapseCostAtEdge(VertexID v0ID, VertexID v1ID);
 	Vertex* GetMinimumCostVertex();
 	void Collapse(VertexID v0ID, VertexID v1ID);
 

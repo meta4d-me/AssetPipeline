@@ -4,13 +4,14 @@
 #include "HalfEdgeMesh/Face.h"
 #include "HalfEdgeMesh/HalfEdge.h"
 #include "HalfEdgeMesh/Vertex.h"
+#include "Hashers/HashCombine.hpp"
 
 #include <cfloat>
 
 namespace cd
 {
 
-void MeshImpl::FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy)
+void MeshImpl::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy)
 {
 	m_vertexUVSetCount = 1U;
 
@@ -104,6 +105,39 @@ void MeshImpl::FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh, ConvertSt
 				m_vertexNormals[vertexIndex].Normalize();
 				m_vertexUVSets[0][vertexIndex] /= static_cast<float>(cornerCount);
 			}
+		}
+	}
+	else if (ConvertStrategy::BoundaryOnly == strategy)
+	{
+		uint32_t vertexIndex = 0U;
+		for (const auto& face : halfEdgeMesh.GetFaces())
+		{
+			if (!face.IsBoundary())
+			{
+				continue;
+			}
+
+			uint32_t beginVertexIndex = vertexIndex;
+			hem::HalfEdgeCRef h = face.GetHalfEdge();
+			do
+			{
+				m_vertexPositions.emplace_back(h->GetVertex()->GetPosition());
+				m_vertexNormals.emplace_back(h->GetCornerNormal());
+				m_vertexUVSets[0].emplace_back(h->GetCornerUV());
+
+				++vertexIndex;
+				h = h->GetNext();
+			} while (h != face.GetHalfEdge());
+
+			uint32_t endVertexIndex = vertexIndex;
+			cd::Polygon polygon;
+			polygon.reserve(endVertexIndex);
+			for (uint32_t index = beginVertexIndex; index < endVertexIndex; ++index)
+			{
+				polygon.emplace_back(index);
+			}
+
+			m_polygons.emplace_back(cd::MoveTemp(polygon));
 		}
 	}
 	else

@@ -73,17 +73,11 @@ FbxProducerImpl::FbxProducerImpl(std::string filePath)
 	assert(m_pSDKManager && "Failed to init sdk manager.");
 	m_pSDKManager->SetIOSettings(pIOSettings);
 
-	m_pSDKGeometryConverter = new fbxsdk::FbxGeometryConverter(m_pSDKManager);
+	m_pSDKGeometryConverter = std::make_unique<fbxsdk::FbxGeometryConverter>(m_pSDKManager);
 }
 
 FbxProducerImpl::~FbxProducerImpl()
 {
-	if (m_pSDKGeometryConverter)
-	{
-		delete m_pSDKGeometryConverter;
-		m_pSDKGeometryConverter = nullptr;
-	}
-	
 	if (m_pSDKManager)
 	{
 		m_pSDKManager->Destroy();
@@ -276,17 +270,17 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 		fbxsdk::FbxMesh* pFbxMesh = reinterpret_cast<fbxsdk::FbxMesh*>(pNodeAttribute);
 		assert(pFbxMesh);
 		
-		if (!pFbxMesh->IsTriangleMesh())
+		if (!pFbxMesh->IsTriangleMesh() && IsTriangulateActive())
 		{
 			const bool bReplace = true;
 			fbxsdk::FbxNodeAttribute* pConvertedNode = m_pSDKGeometryConverter->Triangulate(pFbxMesh, bReplace);
 			if (pConvertedNode && pConvertedNode->GetAttributeType() == FbxNodeAttribute::eMesh)
 			{
 				pFbxMesh = reinterpret_cast<fbxsdk::FbxMesh*>(pConvertedNode);
+				assert(pFbxMesh && pFbxMesh->IsTriangleMesh());
 			}
 		}
-		assert(pFbxMesh && pFbxMesh->IsTriangleMesh());
-
+		
 		bool hasError = false;
 		const fbxsdk::FbxLayer* pMeshBaseLayer = pFbxMesh->GetLayer(0);
 		if (!pMeshBaseLayer)
@@ -430,20 +424,21 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 	{
 		for (uint32_t polygonIndex = 0U; polygonIndex < totalPolygonCount; ++polygonIndex)
 		{
-			assert(3 == pFbxMesh->GetPolygonSize(polygonIndex));
-
+			uint32_t polygonVertexCount = pFbxMesh->GetPolygonSize(polygonIndex);
+			assert(polygonVertexCount >= 3U);
 			int32_t materialIndex = pLayerElementMaterial->GetIndexArray().GetAt(polygonIndex);
 			if (materialIndex == optMaterialIndex.value())
 			{
 				++availablePolygonCount;
+				availableVertexCount += polygonVertexCount;
 			}
 		}
 	}
 	else
 	{
 		availablePolygonCount = totalPolygonCount;
+		availableVertexCount = pFbxMesh->GetPolygonVertexCount();
 	}
-	availableVertexCount = availablePolygonCount * 3;
 
 	if (0 == availablePolygonCount || 0 == availableVertexCount)
 	{
@@ -525,8 +520,9 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 	std::map<uint32_t, uint32_t> mapVertexIDToControlPointIndex;
 	for (uint32_t polygonIndex = 0U; polygonIndex < availablePolygonCount; ++polygonIndex)
 	{
+		uint32_t polygonVertexCount = pFbxMesh->GetPolygonSize(polygonIndex);
 		polygonVertexBeginIndex = polygonVertexEndIndex;
-		polygonVertexEndIndex += 3;
+		polygonVertexEndIndex += polygonVertexCount;
 
 		if (splitPolygonByMaterial)
 		{
@@ -539,14 +535,14 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 
 		// Position
 		cd::Polygon polygon;
-		polygon.resize(3);
-		for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < 3U; ++polygonVertexIndex)
+		polygon.reserve(polygonVertexCount);
+		for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 		{
 			uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
 			fbxsdk::FbxVector4 position = pMeshVertexPositions[controlPointIndex];
 			uint32_t vertexID = polygonVertexBeginIndex + polygonVertexIndex;
 			mesh.SetVertexPosition(vertexID, cd::Point(position[0], position[1], position[2]));
-			polygon[polygonVertexIndex] = vertexID;
+			polygon.push_back(vertexID);
 
 			mapVertexIDToControlPointIndex[vertexID] = controlPointIndex;
 		}
@@ -557,7 +553,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 		bool applyBinormalData = false;
 		if (pLayerElementNormalData)
 		{
-			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < 3U; ++polygonVertexIndex)
+			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 			{
 				uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
 				uint32_t normalMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementNormalData->GetMappingMode() ? controlPointIndex : polygonVertexBeginIndex + polygonVertexIndex;
@@ -574,7 +570,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 
 		if (applyTangentData)
 		{
-			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < 3U; ++polygonVertexIndex)
+			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 			{
 				uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
 				uint32_t tangentMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementTangentData->GetMappingMode() ? controlPointIndex : polygonVertexBeginIndex + polygonVertexIndex;
@@ -587,7 +583,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 
 		if (applyBinormalData)
 		{
-			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < 3U; ++polygonVertexIndex)
+			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 			{
 				uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
 				uint32_t binormalMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementBinormalData->GetMappingMode() ? controlPointIndex : polygonVertexBeginIndex + polygonVertexIndex;
@@ -604,7 +600,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 			for (uint32_t uvSetIndex = 0U; uvSetIndex < layerElementUVDatas.size(); ++uvSetIndex)
 			{
 				const fbxsdk::FbxLayerElementUV* pLayerElementUVData = layerElementUVDatas[uvSetIndex];
-				for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < 3U; ++polygonVertexIndex)
+				for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 				{
 					uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
 					uint32_t uvMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementUVData->GetMappingMode() ? controlPointIndex : polygonVertexBeginIndex + polygonVertexIndex;
@@ -619,7 +615,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 		// Color
 		if (pLayerElementColorData)
 		{
-			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < 3U; ++polygonVertexIndex)
+			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 			{
 				uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
 				uint32_t colorMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementColorData->GetMappingMode() ? controlPointIndex : polygonVertexBeginIndex + polygonVertexIndex;

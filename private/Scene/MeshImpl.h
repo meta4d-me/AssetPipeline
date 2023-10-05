@@ -21,7 +21,7 @@ namespace cd
 class MeshImpl final
 {
 public:
-	void FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy);
+	void FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy);
 
 public:
 	MeshImpl() = default;
