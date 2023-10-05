@@ -174,9 +174,9 @@ public:
 			for (const auto& [textureType, colorValue] : m_textureColorDefaultValue)
 			{
 				// Init default color value if file not loaded.
-				if (!loadedTexturesData.contains(textureType))
+				if (loadedTexturesData.find(textureType) == loadedTexturesData.end())
 				{
-					assert(m_textureColorDefaultValue.contains(textureType));
+					assert(m_textureColorDefaultValue.find(textureType) != m_textureColorDefaultValue.end());
 					int colorIndex = static_cast<int>(m_textureColorIndex[textureType]);
 					uint8_t defaultValue = m_textureColorDefaultValue[textureType];
 					for (int i = 0; i < mergedTexture.rect.x(); ++i)

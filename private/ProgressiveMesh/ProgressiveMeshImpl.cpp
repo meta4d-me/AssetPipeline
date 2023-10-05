@@ -67,7 +67,7 @@ void ProgressiveMeshImpl::InitBoundary(const std::vector<cd::Point>& vertices, c
 	for (auto& v : m_vertices)
 	{
 		uint32_t vertexHash = GetVertexHash(v.GetPosition());
-		bool isOnBoundary = mapBoundaryVertices.contains(vertexHash);
+		bool isOnBoundary = mapBoundaryVertices.find(vertexHash) != mapBoundaryVertices.end();
 		v.SetIsOnBoundary(isOnBoundary);
 	}
 }
