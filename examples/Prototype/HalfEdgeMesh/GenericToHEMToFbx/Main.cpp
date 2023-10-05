@@ -34,8 +34,6 @@ int main(int argc, char** argv)
 	// Processing
 	for (auto& mesh : pSceneDatabase->GetMeshes())
 	{
-		mesh.RemoveDuplicatedVertices();
-
 		auto halfEdgeMesh = cd::HalfEdgeMesh::FromIndexedMesh(mesh);
 		assert(halfEdgeMesh.IsValid());
 		{
