@@ -57,6 +57,7 @@ public:
 	std::vector<Node>& GetNodes() { return m_nodes; }
 	const std::vector<Node>& GetNodes() const { return m_nodes; }
 	void SetNodeCount(uint32_t count) { m_nodes.reserve(count); }
+	Node& GetNode(uint32_t index) { return m_nodes[index]; }
 	const Node& GetNode(uint32_t index) const { return m_nodes[index]; }
 	const Node* GetNodeByName(const char* pName) const;
 	uint32_t GetNodeCount() const { return static_cast<uint32_t>(m_nodes.size()); }
@@ -66,6 +67,7 @@ public:
 	std::vector<Mesh>& GetMeshes() { return m_meshes; }
 	const std::vector<Mesh>& GetMeshes() const { return m_meshes; }
 	void SetMeshCount(uint32_t count) { m_meshes.reserve(count); }
+	Mesh& GetMesh(uint32_t index) { return m_meshes[index];  }
 	const Mesh& GetMesh(uint32_t index) const { return m_meshes[index];  }
 	uint32_t GetMeshCount() const { return static_cast<uint32_t>(m_meshes.size()); }
 
@@ -74,6 +76,7 @@ public:
 	std::vector<Morph>& GetMorphs() { return m_morphs; }
 	const std::vector<Morph>& GetMorphs() const { return m_morphs; }
 	void SetMorphCount(uint32_t count) { m_morphs.reserve(count); }
+	Morph& GetMorph(uint32_t index) { return m_morphs[index]; }
 	const Morph& GetMorph(uint32_t index) const { return m_morphs[index]; }
 	uint32_t GetMorphCount() const { return static_cast<uint32_t>(m_morphs.size()); }
 
@@ -91,6 +94,7 @@ public:
 	std::vector<Material>& GetMaterials() { return m_materials; }
 	const std::vector<Material>& GetMaterials() const { return m_materials; }
 	void SetMaterialCount(uint32_t count) { m_materials.reserve(count); }
+	Material& GetMaterial(uint32_t index) { return m_materials[index]; }
 	const Material& GetMaterial(uint32_t index) const { return m_materials[index]; }
 	uint32_t GetMaterialCount() const { return static_cast<uint32_t>(m_materials.size()); }
 
@@ -99,6 +103,7 @@ public:
 	std::vector<Camera>& GetCameras() { return m_cameras; }
 	const std::vector<Camera>& GetCameras() const { return m_cameras; }
 	void SetCameraCount(uint32_t count) { m_cameras.reserve(count); }
+	Camera& GetCamera(uint32_t index) { return m_cameras[index]; }
 	const Camera& GetCamera(uint32_t index) const { return m_cameras[index]; }
 	uint32_t GetCameraCount() const { return static_cast<uint32_t>(m_cameras.size()); }
 
@@ -107,6 +112,7 @@ public:
 	std::vector<Light>& GetLights() { return m_lights; }
 	const std::vector<Light>& GetLights() const { return m_lights; }
 	void SetLightCount(uint32_t count) { m_lights.reserve(count); }
+	Light& GetLight(uint32_t index) { return m_lights[index]; }
 	const Light& GetLight(uint32_t index) const { return m_lights[index]; }
 	uint32_t GetLightCount() const { return static_cast<uint32_t>(m_lights.size()); }
 
@@ -115,6 +121,7 @@ public:
 	std::vector<Bone>& GetBones() { return m_bones; }
 	const std::vector<Bone>& GetBones() const { return m_bones; }
 	void SetBoneCount(uint32_t count) { m_bones.reserve(count); }
+	Bone& GetBone(uint32_t index) { return m_bones[index]; }
 	const Bone& GetBone(uint32_t index) const { return m_bones[index]; }
 	const Bone* GetBoneByName(const char* pName) const;
 	uint32_t GetBoneCount() const { return static_cast<uint32_t>(m_bones.size()); }
@@ -124,6 +131,7 @@ public:
 	std::vector<Animation>& GetAnimations() { return m_animations; }
 	const std::vector<Animation>& GetAnimations() const { return m_animations; }
 	void SetAnimationCount(uint32_t count) { m_animations.reserve(count); }
+	Animation& GetAnimation(uint32_t index) { return m_animations[index]; }
 	const Animation& GetAnimation(uint32_t index) const { return m_animations[index]; }
 	uint32_t GetAnimationCount() const { return static_cast<uint32_t>(m_animations.size()); }
 
@@ -132,6 +140,7 @@ public:
 	std::vector<Track>& GetTracks() { return m_tracks; }
 	const std::vector<Track>& GetTracks() const { return m_tracks; }
 	void SetTrackCount(uint32_t count) { m_tracks.reserve(count); }
+	Track& GetTrack(uint32_t index) { return m_tracks[index]; }
 	const Track& GetTrack(uint32_t index) const { return m_tracks[index]; }
 	const Track* GetTrackByName(const char* pName) const;
 	uint32_t GetTrackCount() const { return static_cast<uint32_t>(m_tracks.size()); }

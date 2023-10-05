@@ -208,7 +208,7 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		uint32_t oldNodeCount = pSceneDatabase->GetNodeCount();
 		m_nodeIDGenerator.SetCurrentID(oldNodeCount);
 		pSceneDatabase->SetNodeCount(oldNodeCount + sceneNodeCount);
-		TraverseNodeRecursively(pSDKScene->GetRootNode(), nullptr, pSceneDatabase);
+		TraverseNodeRecursively(pSDKScene->GetRootNode(), cd::NodeID::InvalidID, pSceneDatabase);
 	}
 
 	// Convert fbx bone/joint to cd scene bone/joint.
@@ -247,16 +247,14 @@ int FbxProducerImpl::GetSceneNodeCount(const fbxsdk::FbxNode* pSceneNode)
 	return totalCount;
 }
 
-void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase)
+void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase)
 {
 	fbxsdk::FbxNodeAttribute* pNodeAttribute = pSDKNode->GetNodeAttribute();
 
-	cd::Node* pNode = nullptr;
 	if (nullptr == pNodeAttribute ||
 		fbxsdk::FbxNodeAttribute::eNull == pNodeAttribute->GetAttributeType())
 	{
-		cd::NodeID nodeID = AddNode(pSDKNode, pParentNode, pSceneDatabase);
-		pNode = &pSceneDatabase->GetNodes()[nodeID.Data()];
+		AddNode(pSDKNode, parentNodeID, pSceneDatabase);
 	}
 	else if (fbxsdk::FbxNodeAttribute::eLight == pNodeAttribute->GetAttributeType() && m_importLight)
 	{
@@ -300,7 +298,7 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 				{
 					assert(1U == materialCount && "Material is AllSame mapping mode but has multiple materials.");
 
-					AddMesh(pFbxMesh, pSDKNode->GetName(), 0, pParentNode, pSceneDatabase);
+					AddMesh(pFbxMesh, pSDKNode->GetName(), 0, parentNodeID, pSceneDatabase);
 				}
 				else if (fbxsdk::FbxLayerElement::eByPolygon == materialMappingMode)
 				{
@@ -308,36 +306,36 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 
 					// It will generate multiple meshes to assign one material.
 					// To manage them conveniently, they are placed under a new Node.
-					cd::NodeID meshesNodeID = AddNode(pSDKNode, pParentNode, pSceneDatabase);
+					cd::NodeID meshesNodeID = AddNode(pSDKNode, parentNodeID, pSceneDatabase);
 					for (uint32_t materialIndex = 0U; materialIndex < materialCount; ++materialIndex)
 					{
 						std::string splitMeshName(std::format("{}_{}", pSDKNode->GetName(), materialIndex));
-						AddMesh(pFbxMesh, splitMeshName.c_str(), materialIndex, &pSceneDatabase->GetNodes()[meshesNodeID.Data()], pSceneDatabase);
+						AddMesh(pFbxMesh, splitMeshName.c_str(), materialIndex, meshesNodeID, pSceneDatabase);
 					}
 				}
 			}
 			else
 			{
-				AddMesh(pFbxMesh, pSDKNode->GetName(), std::nullopt, pParentNode, pSceneDatabase);
+				AddMesh(pFbxMesh, pSDKNode->GetName(), std::nullopt, parentNodeID, pSceneDatabase);
 			}
 		}
 	}
 
 	for (int childIndex = 0; childIndex < pSDKNode->GetChildCount(); ++childIndex)
 	{
-		TraverseNodeRecursively(pSDKNode->GetChild(childIndex), pNode, pSceneDatabase);
+		TraverseNodeRecursively(pSDKNode->GetChild(childIndex), parentNodeID, pSceneDatabase);
 	}
 }
 
-cd::NodeID FbxProducerImpl::AddNode(const fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase)
+cd::NodeID FbxProducerImpl::AddNode(const fbxsdk::FbxNode* pSDKNode, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase)
 {
 	cd::NodeID nodeID = m_nodeIDGenerator.AllocateID();
 	cd::Node node(nodeID, pSDKNode->GetName());
 	node.SetTransform(details::ConvertFbxNodeTransform(const_cast<fbxsdk::FbxNode*>(pSDKNode)));
-	if (pParentNode)
+	if (parentNodeID.IsValid())
 	{
-		pParentNode->AddChildID(nodeID.Data());
-		node.SetParentID(pParentNode->GetID().Data());
+		pSceneDatabase->GetNode(parentNodeID.Data()).AddChildID(nodeID.Data());
+		node.SetParentID(parentNodeID.Data());
 	}
 	pSceneDatabase->AddNode(cd::MoveTemp(node));
 
@@ -409,7 +407,7 @@ cd::LightID FbxProducerImpl::AddLight(const fbxsdk::FbxLight* pFbxLight, const c
 	return lightID;
 }
 
-cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char* pMeshName, std::optional<int32_t> optMaterialIndex, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase)
+cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char* pMeshName, std::optional<int32_t> optMaterialIndex, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase)
 {
 	// For geometry data, we only query base layer which means index 0.
 	const fbxsdk::FbxLayer* pMeshBaseLayer = pFbxMesh->GetLayer(0);
@@ -500,9 +498,9 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 	mesh.SetVertexFormat(cd::MoveTemp(meshVertexFormat));
 
 	// Associate mesh id to its parent transform node.
-	if (pParentNode)
+	if (parentNodeID.IsValid())
 	{
-		pParentNode->AddMeshID(meshID.Data());
+		pSceneDatabase->GetNode(parentNodeID.Data()).AddMeshID(meshID.Data());
 	}
 
 	if (optMaterialIndex.has_value())
@@ -843,15 +841,15 @@ int FbxProducerImpl::GetSceneBoneCount(const fbxsdk::FbxNode* pSceneNode)
 //	}
 //}
 
-cd::BoneID FbxProducerImpl::AddBone(const fbxsdk::FbxNode* pSDKNode, cd::Bone* pParentBone, cd::SceneDatabase* pSceneDatabase)
+cd::BoneID FbxProducerImpl::AddBone(const fbxsdk::FbxNode* pSDKNode, cd::BoneID parentBoneID, cd::SceneDatabase* pSceneDatabase)
 {
 	cd::BoneID boneID = m_boneIDGenerator.AllocateID();
 	cd::Bone bone(boneID, pSDKNode->GetName());
 	bone.SetTransform(details::ConvertFbxNodeTransform(const_cast<fbxsdk::FbxNode*>(pSDKNode)));
-	if (pParentBone)
+	if (parentBoneID.IsValid())
 	{
-		pParentBone->AddChildID(boneID.Data());
-		bone.SetParentID(pParentBone->GetID().Data());
+		pSceneDatabase->GetBone(parentBoneID.Data()).AddChildID(boneID.Data());
+		bone.SetParentID(parentBoneID.Data());
 	}
 	pSceneDatabase->AddBone(cd::MoveTemp(bone));
 

@@ -60,6 +60,7 @@ public:
 	std::vector<Node>& GetNodes();
 	const std::vector<Node>& GetNodes() const;
 	void SetNodeCount(uint32_t nodeCount);
+	Node& GetNode(uint32_t index);
 	const Node& GetNode(uint32_t index) const;
 	const Node* GetNodeByName(const char* pName) const;
 	uint32_t GetNodeCount() const;
@@ -69,6 +70,7 @@ public:
 	std::vector<Mesh>& GetMeshes();
 	const std::vector<Mesh>& GetMeshes() const;
 	void SetMeshCount(uint32_t meshCount);
+	Mesh& GetMesh(uint32_t index);
 	const Mesh& GetMesh(uint32_t index) const;
 	uint32_t GetMeshCount() const;
 
@@ -77,6 +79,7 @@ public:
 	std::vector<Morph>& GetMorphs();
 	const std::vector<Morph>& GetMorphs() const;
 	void SetMorphCount(uint32_t morphCount);
+	Morph& GetMorph(uint32_t index);
 	const Morph& GetMorph(uint32_t index) const;
 	uint32_t GetMorphCount() const;
 
@@ -85,6 +88,7 @@ public:
 	std::vector<Material>& GetMaterials();
 	const std::vector<Material>& GetMaterials() const;
 	void SetMaterialCount(uint32_t materialCount);
+	Material& GetMaterial(uint32_t index);
 	const Material& GetMaterial(uint32_t index) const;
 	uint32_t GetMaterialCount() const;
 
@@ -102,6 +106,7 @@ public:
 	std::vector<Camera>& GetCameras();
 	const std::vector<Camera>& GetCameras() const;
 	void SetCameraCount(uint32_t cameraCount);
+	Camera& GetCamera(uint32_t index);
 	const Camera& GetCamera(uint32_t index) const;
 	uint32_t GetCameraCount() const;
 
@@ -110,6 +115,7 @@ public:
 	std::vector<Light>& GetLights();
 	const std::vector<Light>& GetLights() const;
 	void SetLightCount(uint32_t lightCount);
+	Light& GetLight(uint32_t index);
 	const Light& GetLight(uint32_t index) const;
 	uint32_t GetLightCount() const;
 
@@ -118,6 +124,7 @@ public:
 	std::vector<Bone>& GetBones();
 	const std::vector<Bone>& GetBones() const;
 	void SetBoneCount(uint32_t boneCount);
+	Bone& GetBone(uint32_t index);
 	const Bone& GetBone(uint32_t index) const;
 	const Bone* GetBoneByName(const char* pName) const;
 	uint32_t GetBoneCount() const;
@@ -127,6 +134,7 @@ public:
 	std::vector<Animation>& GetAnimations();
 	const std::vector<Animation>& GetAnimations() const;
 	void SetAnimationCount(uint32_t animationCount);
+	Animation& GetAnimation(uint32_t index);
 	const Animation& GetAnimation(uint32_t index) const;
 	uint32_t GetAnimationCount() const;
 
@@ -135,6 +143,7 @@ public:
 	std::vector<Track>& GetTracks();
 	const std::vector<Track>& GetTracks() const;
 	void SetTrackCount(uint32_t TrackCount);
+	Track& GetTrack(uint32_t index);
 	const Track& GetTrack(uint32_t index) const;
 	const Track* GetTrackByName(const char* pName) const;
 	uint32_t GetTrackCount() const;
