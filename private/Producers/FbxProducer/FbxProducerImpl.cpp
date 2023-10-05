@@ -841,15 +841,15 @@ int FbxProducerImpl::GetSceneBoneCount(const fbxsdk::FbxNode* pSceneNode)
 //	}
 //}
 
-cd::BoneID FbxProducerImpl::AddBone(const fbxsdk::FbxNode* pSDKNode, cd::Bone* pParentBone, cd::SceneDatabase* pSceneDatabase)
+cd::BoneID FbxProducerImpl::AddBone(const fbxsdk::FbxNode* pSDKNode, cd::BoneID parentBoneID, cd::SceneDatabase* pSceneDatabase)
 {
 	cd::BoneID boneID = m_boneIDGenerator.AllocateID();
 	cd::Bone bone(boneID, pSDKNode->GetName());
 	bone.SetTransform(details::ConvertFbxNodeTransform(const_cast<fbxsdk::FbxNode*>(pSDKNode)));
-	if (pParentBone)
+	if (parentBoneID.IsValid())
 	{
-		pParentBone->AddChildID(boneID.Data());
-		bone.SetParentID(pParentBone->GetID().Data());
+		pSceneDatabase->GetBone(parentBoneID.Data()).AddChildID(boneID.Data());
+		bone.SetParentID(parentBoneID.Data());
 	}
 	pSceneDatabase->AddBone(cd::MoveTemp(bone));
 

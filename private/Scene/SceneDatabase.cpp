@@ -152,6 +152,11 @@ void SceneDatabase::SetMeshCount(uint32_t meshCount)
 	return m_pSceneDatabaseImpl->SetMeshCount(meshCount);
 }
 
+Mesh& SceneDatabase::GetMesh(uint32_t index)
+{
+	return m_pSceneDatabaseImpl->GetMesh(index);
+}
+
 const Mesh& SceneDatabase::GetMesh(uint32_t index) const
 {
 	return m_pSceneDatabaseImpl->GetMesh(index);
@@ -185,6 +190,11 @@ void SceneDatabase::SetMorphCount(uint32_t morphCount)
 	return m_pSceneDatabaseImpl->SetMorphCount(morphCount);
 }
 
+Morph& SceneDatabase::GetMorph(uint32_t index)
+{
+	return m_pSceneDatabaseImpl->GetMorph(index);
+}
+
 const Morph& SceneDatabase::GetMorph(uint32_t index) const
 {
 	return m_pSceneDatabaseImpl->GetMorph(index);
@@ -216,6 +226,11 @@ const std::vector<Material>& SceneDatabase::GetMaterials() const
 void SceneDatabase::SetMaterialCount(uint32_t materialCount)
 {
 	return m_pSceneDatabaseImpl->SetMaterialCount(materialCount);
+}
+
+Material& SceneDatabase::GetMaterial(uint32_t index)
+{
+	return m_pSceneDatabaseImpl->GetMaterial(index);
 }
 
 const Material& SceneDatabase::GetMaterial(uint32_t index) const
@@ -289,6 +304,11 @@ void SceneDatabase::SetCameraCount(uint32_t cameraCount)
 	return m_pSceneDatabaseImpl->SetCameraCount(cameraCount);
 }
 
+Camera& SceneDatabase::GetCamera(uint32_t index)
+{
+	return m_pSceneDatabaseImpl->GetCamera(index);
+}
+
 const Camera& SceneDatabase::GetCamera(uint32_t index) const
 {
 	return m_pSceneDatabaseImpl->GetCamera(index);
@@ -322,6 +342,11 @@ void SceneDatabase::SetLightCount(uint32_t lightCount)
 	return m_pSceneDatabaseImpl->SetLightCount(lightCount);
 }
 
+Light& SceneDatabase::GetLight(uint32_t index)
+{
+	return m_pSceneDatabaseImpl->GetLight(index);
+}
+
 const Light& SceneDatabase::GetLight(uint32_t index) const
 {
 	return m_pSceneDatabaseImpl->GetLight(index);
@@ -353,6 +378,11 @@ const std::vector<Bone>& SceneDatabase::GetBones() const
 void SceneDatabase::SetBoneCount(uint32_t boneCount)
 {
 	return m_pSceneDatabaseImpl->SetBoneCount(boneCount);
+}
+
+Bone& SceneDatabase::GetBone(uint32_t index)
+{
+	return m_pSceneDatabaseImpl->GetBone(index);
 }
 
 const Bone& SceneDatabase::GetBone(uint32_t index) const
@@ -393,6 +423,11 @@ void SceneDatabase::SetAnimationCount(uint32_t animationCount)
 	return m_pSceneDatabaseImpl->SetAnimationCount(animationCount);
 }
 
+Animation& SceneDatabase::GetAnimation(uint32_t index)
+{
+	return m_pSceneDatabaseImpl->GetAnimation(index);
+}
+
 const Animation& SceneDatabase::GetAnimation(uint32_t index) const
 {
 	return m_pSceneDatabaseImpl->GetAnimation(index);
@@ -424,6 +459,11 @@ const std::vector<Track>& SceneDatabase::GetTracks() const
 void SceneDatabase::SetTrackCount(uint32_t animationCount)
 {
 	return m_pSceneDatabaseImpl->SetTrackCount(animationCount);
+}
+
+Track& SceneDatabase::GetTrack(uint32_t index)
+{
+	return m_pSceneDatabaseImpl->GetTrack(index);
 }
 
 const Track& SceneDatabase::GetTrack(uint32_t index) const
