@@ -15,8 +15,8 @@ local function MakeExample(exampleProjectPath)
 
 	local doUseFbxProducer = string.contains(exampleProject, "FbxTo")
 	local doUseFbxConsumer = string.contains(exampleProject, "ToFbx")
-	local doUseCDProducer = string.contains(exampleProject, "CatDogTo") or string.contains(exampleProject, "CDTo")
-	local doUseCDConsumer = string.contains(exampleProject, "ToCatDog") or string.contains(exampleProject, "ToCD")
+	local doUseCDProducer = string.contains(exampleProject, "CDTo")
+	local doUseCDConsumer = string.contains(exampleProject, "ToCD")
 	local doUseGenericProducer = string.contains(exampleProject, "GenericTo")
 	local doUseGenericConsumer = string.contains(exampleProject, "ToGeneric")
 	
@@ -133,6 +133,8 @@ local function CreateExamplesRecursively(folderName, parentPath)
 		if exampleFiles and #exampleFiles > 0 then
 			MakeExample(exampleProject)
 		else
+			-- TODO : Empty child folder may cause missing examples.
+			-- So please clean up any temporary empty folders under examples folder.
 			CreateExamplesRecursively(folderName.."/"..path.getbasename(exampleProject), path.join(RootPath, folderName, exampleProject))
 		end
 	end
