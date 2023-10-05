@@ -60,6 +60,7 @@ public:
 	std::vector<Node>& GetNodes();
 	const std::vector<Node>& GetNodes() const;
 	void SetNodeCount(uint32_t nodeCount);
+	Node& GetNode(uint32_t index);
 	const Node& GetNode(uint32_t index) const;
 	const Node* GetNodeByName(const char* pName) const;
 	uint32_t GetNodeCount() const;

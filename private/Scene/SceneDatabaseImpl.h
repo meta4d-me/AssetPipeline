@@ -57,6 +57,7 @@ public:
 	std::vector<Node>& GetNodes() { return m_nodes; }
 	const std::vector<Node>& GetNodes() const { return m_nodes; }
 	void SetNodeCount(uint32_t count) { m_nodes.reserve(count); }
+	Node& GetNode(uint32_t index) { return m_nodes[index]; }
 	const Node& GetNode(uint32_t index) const { return m_nodes[index]; }
 	const Node* GetNodeByName(const char* pName) const;
 	uint32_t GetNodeCount() const { return static_cast<uint32_t>(m_nodes.size()); }

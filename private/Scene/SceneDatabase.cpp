@@ -109,6 +109,11 @@ void SceneDatabase::SetNodeCount(uint32_t nodeCount)
 	return m_pSceneDatabaseImpl->SetNodeCount(nodeCount);
 }
 
+Node& SceneDatabase::GetNode(uint32_t index)
+{
+	return m_pSceneDatabaseImpl->GetNode(index);
+}
+
 const Node& SceneDatabase::GetNode(uint32_t index) const
 {
 	return m_pSceneDatabaseImpl->GetNode(index);
