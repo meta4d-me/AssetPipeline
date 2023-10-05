@@ -154,7 +154,7 @@ public:
 		return std::isfinite(value) && !std::isnan(value);
 	}
 
-	static constexpr uint32_t CastFloatToU32(float value)
+	static uint32_t CastFloatToU32(float value)
 	{
 		struct FloatU32Mem
 		{
