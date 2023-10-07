@@ -4,6 +4,7 @@
 #include "Scene/Mesh.h"
 
 #include <cfloat>
+#include <unordered_map>
 
 namespace cd::pm
 {
@@ -79,6 +80,14 @@ std::pair<std::vector<uint32_t>, std::vector<uint32_t>> ProgressiveMeshImpl::Bui
 		ComputeEdgeCollapseCostAtVertex(vertex.GetID());
 	}
 
+	for (auto& vertex : m_vertices)
+	{
+		if (vertex.GetID().IsValid())
+		{
+			m_minCostVertexHeap.push(&vertex);
+		}
+	}
+
 	uint32_t vertexCount = GetVertexCount();
 	std::vector<uint32_t> permutation;
 	permutation.resize(vertexCount);
@@ -86,15 +95,29 @@ std::pair<std::vector<uint32_t>, std::vector<uint32_t>> ProgressiveMeshImpl::Bui
 	std::vector<uint32_t> map;
 	map.resize(vertexCount);
 
+	Vertex dummyVertex(cd::VertexID::Invalid());
+	dummyVertex.SetCollapseTarget(cd::VertexID::Invalid());
+	dummyVertex.SetCollapseCost(FLT_MAX);
 	for (int vertexIndex = static_cast<int>(vertexCount) - 1; vertexIndex >= 0; --vertexIndex)
 	{
+		if (!m_minCostVertexHeap.empty())
+		{
+			Vertex* pCandidate2 = m_minCostVertexHeap.top();
+			if (pCandidate2->GetID().Data() == 43)
+			{
+			}
+			printf("Collapse [Vertex %d] - [Vertex %d], cost = %f\n", pCandidate2->GetID().Data(), pCandidate2->GetCollapseTarget().Data(), pCandidate2->GetCollapseCost());
+			m_minCostVertexHeap.pop();
+		}
+
 		Vertex* pCandidate = GetMinimumCostVertex();
 		assert(pCandidate);
 		permutation[pCandidate->GetID().Data()] = vertexIndex;
 		map[vertexIndex] = pCandidate->GetCollapseTarget().Data();
 
-		printf("Collapse2 [Vertex %d] - [Vertex %d]\n", pCandidate->GetID().Data(), pCandidate->GetCollapseTarget().Data());
+		printf("Collapse2 [Vertex %d] - [Vertex %d], cost = %f\n", pCandidate->GetID().Data(), pCandidate->GetCollapseTarget().Data(), pCandidate->GetCollapseCost());
 		Collapse(pCandidate->GetID(), pCandidate->GetCollapseTarget());
+		m_minCostVertexHeap.push(&dummyVertex);
 	}
 
 	for (uint32_t vertexIndex = 0U; vertexIndex < vertexCount; ++vertexIndex)
@@ -314,11 +337,10 @@ float ProgressiveMeshImpl::ComputeEdgeCollapseCostAtEdge(VertexID v0ID, VertexID
 	}
 
 	float cost = edgeLength * curvature;
-	if (v0.IsOnBoundary())
-	{
-		cost += 1.0f;
-	}
-
+	//if (v0.IsOnBoundary())
+	//{
+	//	cost += 1.0f;
+	//}
 	return cost;
 }
 

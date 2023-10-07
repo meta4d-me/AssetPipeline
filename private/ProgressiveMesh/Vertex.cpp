@@ -19,4 +19,9 @@ void Vertex::AddAdjacentFace(FaceID faceID)
 	}
 }
 
+float Vertex::GetCollapseCost() const
+{
+	return m_collapseCost;
+}
+
 }
