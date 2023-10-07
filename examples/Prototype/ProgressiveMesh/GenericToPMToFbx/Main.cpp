@@ -56,7 +56,9 @@ int main(int argc, char** argv)
 		}
 
 		auto pm = cd::ProgressiveMesh::FromIndexedMesh(mesh);
-		auto [permutation, map] = pm.BuildCollapseOperations();
+		auto lodMesh = pm.GenerateLodMesh(0.1f);
+		lodMesh.SetID(pSceneDatabase->GetMeshCount());
+		pSceneDatabase->AddMesh(cd::MoveTemp(lodMesh));
 	}
 
 	// Export
