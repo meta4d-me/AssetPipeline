@@ -105,7 +105,7 @@ std::pair<std::vector<uint32_t>, std::vector<uint32_t>> ProgressiveMeshImpl::Bui
 		permutation[pCandidate->GetID().Data()] = vertexIndex;
 		map[vertexIndex] = pCandidate->GetCollapseTarget().Data();
 
-		printf("Collapse [Vertex %d] - [Vertex %d], cost = %f\n", pCandidate->GetID().Data(), pCandidate->GetCollapseTarget().Data(), pCandidate->GetCollapseCost());
+		//printf("Collapse [Vertex %d] - [Vertex %d], cost = %f\n", pCandidate->GetID().Data(), pCandidate->GetCollapseTarget().Data(), pCandidate->GetCollapseCost());
 		Collapse(pCandidate->GetID(), pCandidate->GetCollapseTarget());
 	}
 
