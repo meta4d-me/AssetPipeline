@@ -42,7 +42,6 @@ int main(int argc, char** argv)
 		uint32_t polygonCount = mesh.GetPolygonCount();
 
 		std::vector<uint32_t> indexBuffer;
-		indexBuffer.reserve(polygonCount);
 		for (uint32_t polygonIndex = 0U; polygonIndex < polygonCount; ++polygonIndex)
 		{
 			const auto& polygon = mesh.GetPolygon(polygonIndex);
@@ -54,10 +53,10 @@ int main(int argc, char** argv)
 			}
 		}
 
-		auto hem = cd::HalfEdgeMesh::FromIndexedMesh(mesh);
-		auto boundaryMesh = cd::Mesh::FromHalfEdgeMesh(hem, cd::ConvertStrategy::BoundaryOnly);
+		//auto hem = cd::HalfEdgeMesh::FromIndexedMesh(mesh);
+		//auto boundaryMesh = cd::Mesh::FromHalfEdgeMesh(hem, cd::ConvertStrategy::BoundaryOnly);
 		auto pm = cd::ProgressiveMesh::FromIndexedMesh(mesh);
-		pm.InitBoundary(boundaryMesh);
+		//pm.InitBoundary(boundaryMesh);
 		auto [permutation, map] = pm.BuildCollapseOperations();
 	}
 

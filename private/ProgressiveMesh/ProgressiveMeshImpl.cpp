@@ -4,6 +4,7 @@
 #include "Scene/Mesh.h"
 
 #include <cfloat>
+#include <unordered_map>
 
 namespace cd::pm
 {
@@ -79,6 +80,12 @@ std::pair<std::vector<uint32_t>, std::vector<uint32_t>> ProgressiveMeshImpl::Bui
 		ComputeEdgeCollapseCostAtVertex(vertex.GetID());
 	}
 
+	for (auto& vertex : m_vertices)
+	{
+		assert(vertex.GetID().IsValid());
+		m_minCostVertexQueue.insert(&vertex);
+	}
+
 	uint32_t vertexCount = GetVertexCount();
 	std::vector<uint32_t> permutation;
 	permutation.resize(vertexCount);
@@ -88,12 +95,16 @@ std::pair<std::vector<uint32_t>, std::vector<uint32_t>> ProgressiveMeshImpl::Bui
 
 	for (int vertexIndex = static_cast<int>(vertexCount) - 1; vertexIndex >= 0; --vertexIndex)
 	{
-		Vertex* pCandidate = GetMinimumCostVertex();
+		assert(!m_minCostVertexQueue.empty());
+		auto itMinVertex = m_minCostVertexQueue.begin();
+		Vertex* pCandidate = *itMinVertex;
+		m_minCostVertexQueue.erase(itMinVertex);
+
 		assert(pCandidate);
 		permutation[pCandidate->GetID().Data()] = vertexIndex;
 		map[vertexIndex] = pCandidate->GetCollapseTarget().Data();
 
-		printf("Collapse2 [Vertex %d] - [Vertex %d]\n", pCandidate->GetID().Data(), pCandidate->GetCollapseTarget().Data());
+		//printf("Collapse [Vertex %d] - [Vertex %d], cost = %f\n", pCandidate->GetID().Data(), pCandidate->GetCollapseTarget().Data(), pCandidate->GetCollapseCost());
 		Collapse(pCandidate->GetID(), pCandidate->GetCollapseTarget());
 	}
 
@@ -314,11 +325,10 @@ float ProgressiveMeshImpl::ComputeEdgeCollapseCostAtEdge(VertexID v0ID, VertexID
 	}
 
 	float cost = edgeLength * curvature;
-	if (v0.IsOnBoundary())
-	{
-		cost += 1.0f;
-	}
-
+	//if (v0.IsOnBoundary())
+	//{
+	//	cost += 1.0f;
+	//}
 	return cost;
 }
 
@@ -376,8 +386,11 @@ void ProgressiveMeshImpl::Collapse(VertexID v0ID, VertexID v1ID)
 
 	for (auto vertexID : tmp)
 	{
+		Vertex& v = GetVertex(vertexID.Data());
+		m_minCostVertexQueue.erase(&v);
 		//printf("\t2 ComputeEdgeCostAtVertex [%d]\n", vertexID.Data());
 		ComputeEdgeCollapseCostAtVertex(vertexID);
+		m_minCostVertexQueue.insert(&v);
 	}
 }
 

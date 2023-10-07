@@ -4,7 +4,7 @@
 #include "Vertex.h"
 #include "Scene/ObjectID.h"
 
-#include <unordered_map>
+#include <set>
 
 namespace cd
 {
@@ -13,6 +13,19 @@ class Mesh;
 
 namespace pm
 {
+
+struct CompareVertexCollapseCost
+{
+	bool operator()(const Vertex* pV0, const Vertex* pV1) const
+	{
+		float v0Cost = pV0->GetCollapseCost();
+		float v1Cost = pV1->GetCollapseCost();
+		//printf("Compare [Vertex %u] and [Vertex %u]\n", pV0->GetID().Data(), pV1->GetID().Data());
+		//printf("\t[Vertex %u] cost is %f\n", pV0->GetID().Data(), v0Cost);
+		//printf("\t[Vertex %u] cost is %f\n", pV1->GetID().Data(), v1Cost);
+		return v0Cost == v1Cost ? pV0->GetID() < pV1->GetID() : v0Cost < v1Cost;
+	}
+};
 
 class CORE_API ProgressiveMeshImpl
 {
@@ -51,6 +64,7 @@ public:
 private:
 	std::vector<Vertex> m_vertices;
 	std::vector<Face> m_faces;
+	std::multiset<Vertex*, CompareVertexCollapseCost> m_minCostVertexQueue;
 };
 
 }

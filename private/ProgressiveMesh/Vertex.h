@@ -41,7 +41,7 @@ public:
 	const cd::DynamicArray<cd::FaceID>& GetAdjacentFaces() const { return m_adjacentFaces; }
 
 	void SetCollapseCost(float cost) { m_collapseCost = cost; }
-	float GetCollapseCost() const { return m_collapseCost; }
+	float GetCollapseCost() const;
 
 	void SetCollapseTarget(cd::VertexID target) { m_collapseTarget = target; }
 	cd::VertexID GetCollapseTarget() const { return m_collapseTarget; }
