@@ -1,6 +1,5 @@
 #include "ProgressiveMeshImpl.h"
 
-#include "Container/IterablePriorityQueueProxy.hpp"
 #include "Hashers/HashCombine.hpp"
 #include "Scene/Mesh.h"
 

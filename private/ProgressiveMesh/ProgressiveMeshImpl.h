@@ -4,8 +4,6 @@
 #include "Vertex.h"
 #include "Scene/ObjectID.h"
 
-#include <concepts>
-#include <queue>
 #include <set>
 
 namespace cd
