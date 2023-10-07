@@ -58,8 +58,10 @@ public:
 	void ComputeNormal(cd::pm::Face& face);
 	void ComputeEdgeCollapseCostAtVertex(VertexID v0ID);
 	float ComputeEdgeCollapseCostAtEdge(VertexID v0ID, VertexID v1ID);
-	Vertex* GetMinimumCostVertex();
 	void Collapse(VertexID v0ID, VertexID v1ID);
+
+	cd::Mesh GenerateLodMesh(float percent);
+	cd::Mesh GenerateLodMesh(uint32_t targetFaceCount);
 
 private:
 	std::vector<Vertex> m_vertices;

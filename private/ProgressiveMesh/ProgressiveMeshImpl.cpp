@@ -332,26 +332,6 @@ float ProgressiveMeshImpl::ComputeEdgeCollapseCostAtEdge(VertexID v0ID, VertexID
 	return cost;
 }
 
-Vertex* ProgressiveMeshImpl::GetMinimumCostVertex()
-{
-	Vertex* pCandidate = nullptr;
-	uint32_t vertexCount = GetVertexCount();
-	
-	for (uint32_t vertexIndex = 0U; vertexIndex < vertexCount; ++vertexIndex)
-	{
-		auto& vertex = m_vertices[vertexIndex];
-		if (vertex.GetID().IsValid())
-		{
-			if (!pCandidate || vertex.GetCollapseCost() < pCandidate->GetCollapseCost())
-			{
-				pCandidate = &vertex;
-			}
-		}
-	}
-
-	return pCandidate;
-}
-
 void ProgressiveMeshImpl::Collapse(VertexID v0ID, VertexID v1ID)
 {
 	if (!v1ID.IsValid())
@@ -392,6 +372,70 @@ void ProgressiveMeshImpl::Collapse(VertexID v0ID, VertexID v1ID)
 		ComputeEdgeCollapseCostAtVertex(vertexID);
 		m_minCostVertexQueue.insert(&v);
 	}
+}
+
+cd::Mesh ProgressiveMeshImpl::GenerateLodMesh(float percent)
+{
+	assert(percent >= 0.0f && percent <= 1.0f);
+	uint32_t targetFaceCount = static_cast<uint32_t>(GetFaceCount() * percent);
+	return GenerateLodMesh(targetFaceCount);
+}
+
+cd::Mesh ProgressiveMeshImpl::GenerateLodMesh(uint32_t targetFaceCount)
+{
+	auto collapseInfoPair = BuildCollapseOperations();
+	std::vector<uint32_t> permutation = collapseInfoPair.first;
+	std::vector<uint32_t> map = collapseInfoPair.second;
+
+	uint32_t targetVertexCount = targetFaceCount * 3U;
+	cd::Mesh mesh(targetVertexCount, targetFaceCount);
+
+	for (uint32_t vertexIndex = 0U, totalVertexCount = GetVertexCount(); vertexIndex < totalVertexCount; ++vertexIndex)
+	{
+		uint32_t newVertexIndex = permutation[vertexIndex];
+		assert(newVertexIndex < totalVertexCount);
+
+		if (newVertexIndex < targetVertexCount)
+		{
+			const auto& vertex = GetVertex(vertexIndex);
+			mesh.SetVertexPosition(newVertexIndex, vertex.GetPosition());
+		}
+	}
+
+	uint32_t validFaceCount = 0U;
+	for (uint32_t faceIndex = 0U, totalFaceCount = GetFaceCount(); faceIndex < totalFaceCount; ++faceIndex)
+	{
+		const auto& face = GetFace(faceIndex);
+		const auto& faceVertexIDs = face.GetVertexIDs();
+		assert(faceVertexIDs.Size() == 3U);
+
+		cd::Polygon newFace(3, VertexID::Invalid());
+		for (uint32_t ii = 0U; ii < newFace.size(); ++ii)
+		{
+			uint32_t vertexIndex = faceVertexIDs[ii].Data();
+			uint32_t newVertexIndex = permutation[vertexIndex];
+			while (newVertexIndex > targetVertexCount)
+			{
+				newVertexIndex = map[newVertexIndex];
+			}
+			newFace[ii] = newVertexIndex;
+		}
+
+		if (newFace[0] == newFace[1] ||
+			newFace[0] == newFace[2] ||
+			newFace[1] == newFace[2])
+		{
+			continue;
+		}
+
+		mesh.SetPolygon(validFaceCount, cd::MoveTemp(newFace));
+		if (++validFaceCount >= targetFaceCount)
+		{
+			break;
+		}
+	}
+
+	return mesh;
 }
 
 }

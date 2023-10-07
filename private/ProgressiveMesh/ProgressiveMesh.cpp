@@ -54,4 +54,14 @@ std::pair<std::vector<uint32_t>, std::vector<uint32_t>> ProgressiveMesh::BuildCo
 	return m_pProgressiveMeshImpl->BuildCollapseOperations();
 }
 
+cd::Mesh ProgressiveMesh::GenerateLodMesh(float percent)
+{
+	return m_pProgressiveMeshImpl->GenerateLodMesh(percent);
+}
+
+cd::Mesh ProgressiveMesh::GenerateLodMesh(uint32_t targetFaceCount)
+{
+	return m_pProgressiveMeshImpl->GenerateLodMesh(targetFaceCount);
+}
+
 }
