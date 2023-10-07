@@ -4,7 +4,9 @@
 #include "Vertex.h"
 #include "Scene/ObjectID.h"
 
+#include <concepts>
 #include <queue>
+#include <set>
 
 namespace cd
 {
@@ -20,7 +22,10 @@ struct CompareVertexCollapseCost
 	{
 		float v0Cost = pV0->GetCollapseCost();
 		float v1Cost = pV1->GetCollapseCost();
-		return v0Cost == v1Cost ? pV0->GetID() > pV1->GetID() : v0Cost > v1Cost;
+		//printf("Compare [Vertex %u] and [Vertex %u]\n", pV0->GetID().Data(), pV1->GetID().Data());
+		//printf("\t[Vertex %u] cost is %f\n", pV0->GetID().Data(), v0Cost);
+		//printf("\t[Vertex %u] cost is %f\n", pV1->GetID().Data(), v1Cost);
+		return v0Cost == v1Cost ? pV0->GetID() < pV1->GetID() : v0Cost < v1Cost;
 	}
 };
 
@@ -61,7 +66,7 @@ public:
 private:
 	std::vector<Vertex> m_vertices;
 	std::vector<Face> m_faces;
-	std::priority_queue<Vertex*, std::vector<Vertex*>, CompareVertexCollapseCost> m_minCostVertexHeap;
+	std::multiset<Vertex*, CompareVertexCollapseCost> m_minCostVertexQueue;
 };
 
 }

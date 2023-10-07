@@ -53,10 +53,10 @@ int main(int argc, char** argv)
 			}
 		}
 
-		auto hem = cd::HalfEdgeMesh::FromIndexedMesh(mesh);
-		auto boundaryMesh = cd::Mesh::FromHalfEdgeMesh(hem, cd::ConvertStrategy::BoundaryOnly);
+		//auto hem = cd::HalfEdgeMesh::FromIndexedMesh(mesh);
+		//auto boundaryMesh = cd::Mesh::FromHalfEdgeMesh(hem, cd::ConvertStrategy::BoundaryOnly);
 		auto pm = cd::ProgressiveMesh::FromIndexedMesh(mesh);
-		pm.InitBoundary(boundaryMesh);
+		//pm.InitBoundary(boundaryMesh);
 		auto [permutation, map] = pm.BuildCollapseOperations();
 	}
 

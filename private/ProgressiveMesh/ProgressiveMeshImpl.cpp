@@ -1,5 +1,6 @@
 #include "ProgressiveMeshImpl.h"
 
+#include "Container/IterablePriorityQueueProxy.hpp"
 #include "Hashers/HashCombine.hpp"
 #include "Scene/Mesh.h"
 
@@ -82,10 +83,8 @@ std::pair<std::vector<uint32_t>, std::vector<uint32_t>> ProgressiveMeshImpl::Bui
 
 	for (auto& vertex : m_vertices)
 	{
-		if (vertex.GetID().IsValid())
-		{
-			m_minCostVertexHeap.push(&vertex);
-		}
+		assert(vertex.GetID().IsValid());
+		m_minCostVertexQueue.insert(&vertex);
 	}
 
 	uint32_t vertexCount = GetVertexCount();
@@ -95,29 +94,19 @@ std::pair<std::vector<uint32_t>, std::vector<uint32_t>> ProgressiveMeshImpl::Bui
 	std::vector<uint32_t> map;
 	map.resize(vertexCount);
 
-	Vertex dummyVertex(cd::VertexID::Invalid());
-	dummyVertex.SetCollapseTarget(cd::VertexID::Invalid());
-	dummyVertex.SetCollapseCost(FLT_MAX);
 	for (int vertexIndex = static_cast<int>(vertexCount) - 1; vertexIndex >= 0; --vertexIndex)
 	{
-		if (!m_minCostVertexHeap.empty())
-		{
-			Vertex* pCandidate2 = m_minCostVertexHeap.top();
-			if (pCandidate2->GetID().Data() == 43)
-			{
-			}
-			printf("Collapse [Vertex %d] - [Vertex %d], cost = %f\n", pCandidate2->GetID().Data(), pCandidate2->GetCollapseTarget().Data(), pCandidate2->GetCollapseCost());
-			m_minCostVertexHeap.pop();
-		}
+		assert(!m_minCostVertexQueue.empty());
+		auto itMinVertex = m_minCostVertexQueue.begin();
+		Vertex* pCandidate = *itMinVertex;
+		m_minCostVertexQueue.erase(itMinVertex);
 
-		Vertex* pCandidate = GetMinimumCostVertex();
 		assert(pCandidate);
 		permutation[pCandidate->GetID().Data()] = vertexIndex;
 		map[vertexIndex] = pCandidate->GetCollapseTarget().Data();
 
-		printf("Collapse2 [Vertex %d] - [Vertex %d], cost = %f\n", pCandidate->GetID().Data(), pCandidate->GetCollapseTarget().Data(), pCandidate->GetCollapseCost());
+		printf("Collapse [Vertex %d] - [Vertex %d], cost = %f\n", pCandidate->GetID().Data(), pCandidate->GetCollapseTarget().Data(), pCandidate->GetCollapseCost());
 		Collapse(pCandidate->GetID(), pCandidate->GetCollapseTarget());
-		m_minCostVertexHeap.push(&dummyVertex);
 	}
 
 	for (uint32_t vertexIndex = 0U; vertexIndex < vertexCount; ++vertexIndex)
@@ -398,8 +387,11 @@ void ProgressiveMeshImpl::Collapse(VertexID v0ID, VertexID v1ID)
 
 	for (auto vertexID : tmp)
 	{
+		Vertex& v = GetVertex(vertexID.Data());
+		m_minCostVertexQueue.erase(&v);
 		//printf("\t2 ComputeEdgeCostAtVertex [%d]\n", vertexID.Data());
 		ComputeEdgeCollapseCostAtVertex(vertexID);
+		m_minCostVertexQueue.insert(&v);
 	}
 }
 
