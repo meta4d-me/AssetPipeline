@@ -13,6 +13,11 @@ local function MakeExample(exampleProjectPath)
 		return
 	end
 
+	if string.contains(exampleProject, "Effekseer") and not CheckSDKExists("EFFEKSEER_SDK_DIR") then
+		print("EFFEKSEER_SDK_DIR not found, Skip example "..exampleProject)
+		return
+	end
+
 	local doUseFbxProducer = string.contains(exampleProject, "FbxTo")
 	local doUseFbxConsumer = string.contains(exampleProject, "ToFbx")
 	local doUseCDProducer = string.contains(exampleProject, "CDTo")
