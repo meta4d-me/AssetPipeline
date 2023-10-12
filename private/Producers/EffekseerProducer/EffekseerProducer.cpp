@@ -4,7 +4,7 @@
 namespace cdtools
 {
 
-EffekseerProducer::EffekseerProducer(const char* pFilePath)
+EffekseerProducer::EffekseerProducer(const char16_t* pFilePath)
 {
 	m_pEffekseerProducerImpl = new EffekseerProducerImpl(pFilePath);
 }

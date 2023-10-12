@@ -11,7 +11,7 @@ class TOOL_API EffekseerProducer final : public IProducer
 {
 public:
 	EffekseerProducer() = delete;
-	explicit EffekseerProducer(const char* pFilePath);
+	explicit EffekseerProducer(const char16_t* pFilePath);
 	EffekseerProducer(const EffekseerProducer&) = delete;
 	EffekseerProducer& operator=(const EffekseerProducer&) = delete;
 	EffekseerProducer(EffekseerProducer&&) = delete;

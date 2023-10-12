@@ -10,7 +10,7 @@ class EffekseerProducerImpl final
 {
 public:
 	EffekseerProducerImpl() = delete;
-	explicit EffekseerProducerImpl(std::string filePath);
+	explicit EffekseerProducerImpl(const char16_t* pFilePath);
 	EffekseerProducerImpl(const EffekseerProducerImpl&) = delete;
 	EffekseerProducerImpl& operator=(const EffekseerProducerImpl&) = delete;
 	EffekseerProducerImpl(EffekseerProducerImpl&&) = delete;
@@ -18,6 +18,9 @@ public:
 	~EffekseerProducerImpl() = default;
 
 	void Execute(cd::SceneDatabase* pSceneDatabase);
+
+private:
+	const char16_t* m_pFilePath;
 };
 
 }
