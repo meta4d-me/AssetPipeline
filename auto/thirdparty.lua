@@ -31,6 +31,7 @@ end
 DefineSDKConfig("FBX_SDK_DIR")
 DefineSDKConfig("PHYSX_SDK_DIR")
 DefineSDKConfig("SPEEDTREE_SDK_DIR")
+DefineSDKConfig("EFFEKSEER_SDK_DIR")
 --------------------------------------------------------------
 
 -- Define ThirdParty projects
