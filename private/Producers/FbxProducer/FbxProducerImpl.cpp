@@ -515,21 +515,30 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 	uint32_t polygonVertexBeginIndex = 0U;
 	uint32_t polygonVertexEndIndex = 0U;
 	uint32_t polygonID = 0U;
+	uint32_t currentPolygonCount = 0U;
 	std::map<uint32_t, uint32_t> mapVertexIDToControlPointIndex;
-	for (uint32_t polygonIndex = 0U; polygonIndex < availablePolygonCount; ++polygonIndex)
+	for (uint32_t polygonIndex = 0U; polygonIndex < totalPolygonCount; ++polygonIndex)
 	{
-		uint32_t polygonVertexCount = pFbxMesh->GetPolygonSize(polygonIndex);
-		polygonVertexBeginIndex = polygonVertexEndIndex;
-		polygonVertexEndIndex += polygonVertexCount;
+		if (currentPolygonCount >= availablePolygonCount)
+		{
+			break;
+		}
 
 		if (splitPolygonByMaterial)
 		{
+			// Skip faces whose assigned material is not the target one.
 			int32_t materialIndex = pLayerElementMaterial->GetIndexArray().GetAt(polygonIndex);
 			if (materialIndex != optMaterialIndex.value())
 			{
 				continue;
 			}
 		}
+
+		++currentPolygonCount;
+
+		uint32_t polygonVertexCount = pFbxMesh->GetPolygonSize(polygonIndex);
+		polygonVertexBeginIndex = polygonVertexEndIndex;
+		polygonVertexEndIndex += polygonVertexCount;
 
 		// Position
 		cd::Polygon polygon;
