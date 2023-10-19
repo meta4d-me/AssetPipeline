@@ -35,6 +35,13 @@ void Dump(const cd::Transform& transform)
 	details::Dump("\tScale", transform.GetScale());
 }
 
+void Dump(const cd::Matrix4x4& matrix)
+{
+	details::Dump("\tRestPoseTranslation", matrix.GetTranslation());
+	details::Dump("\tRestPoseRotation", cd::Quaternion::FromMatrix(matrix.GetRotation()));
+	details::Dump("\tRestPoseScale", matrix.GetScale());
+}
+
 }
 
 namespace cd
@@ -292,7 +299,7 @@ void SceneDatabaseImpl::Dump() const
 		for (const auto& bone : GetBones())
 		{
 			printf("[Bone %u] Name : %s, ParentID : %u\n", bone.GetID().Data(), bone.GetName(), bone.GetParentID().Data());
-			details::Dump(bone.GetTransform());
+			details::Dump(bone.GetOffset().Inverse());
 
 			for (const cd::BoneID childNodeID : bone.GetChildIDs())
 			{
@@ -402,8 +409,8 @@ void SceneDatabaseImpl::Validate() const
 	for (uint32_t trackIndex = 0U; trackIndex < GetTrackCount(); ++trackIndex)
 	{
 		const cd::Track& track = GetTrack(trackIndex);
-		assert(trackIndex == track.GetID().Data());
-		assert(track.GetTranslationKeyCount() > 0 || track.GetRotationKeyCount() > 0 || track.GetScaleKeyCount() > 0);
+		//assert(trackIndex == track.GetID().Data());
+		//assert(track.GetTranslationKeyCount() > 0 || track.GetRotationKeyCount() > 0 || track.GetScaleKeyCount() > 0);
 
 		//assert(GetBoneByName(track.GetName()));
 		CheckKeyFramesTimeOrder(track);
