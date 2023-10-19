@@ -482,6 +482,44 @@ uint32_t SceneDatabase::GetTrackCount() const
 }
 
 ///////////////////////////////////////////////////////////////////
+// ParticleEmitter
+///////////////////////////////////////////////////////////////////
+void SceneDatabase::AddParticleEmitter(ParticleEmitter emitter)
+{
+	return m_pSceneDatabaseImpl->AddParticleEmitter(cd::MoveTemp(emitter));
+}
+
+std::vector<ParticleEmitter>& SceneDatabase::GetParticleEmitters()
+{
+	return m_pSceneDatabaseImpl->GetParticleEmitters();
+}
+
+const std::vector<ParticleEmitter>& SceneDatabase::GetParticleEmitters() const
+{
+	return m_pSceneDatabaseImpl->GetParticleEmitters();
+}
+
+void SceneDatabase::SetParticleEmitterCount(uint32_t emitterCount)
+{
+	return m_pSceneDatabaseImpl->SetParticleEmitterCount(emitterCount);
+}
+
+ParticleEmitter& SceneDatabase::GetParticleEmitter(uint32_t index)
+{
+	return m_pSceneDatabaseImpl->GetParticleEmitter(index);
+}
+
+const ParticleEmitter& SceneDatabase::GetParticleEmitter(uint32_t index) const
+{
+	return m_pSceneDatabaseImpl->GetParticleEmitter(index);
+}
+
+uint32_t SceneDatabase::GetParticleEmitterCount() const
+{
+	return m_pSceneDatabaseImpl->GetParticleEmitterCount();
+}
+
+///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
 void SceneDatabase::Dump() const
 {

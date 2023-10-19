@@ -69,6 +69,7 @@ using BoneID = ObjectID<uint32_t, ObjectType::Bone>;
 using AnimationID = ObjectID<uint32_t, ObjectType::Animation>;
 using TrackID = ObjectID<uint32_t, ObjectType::Track>;
 using MorphID = ObjectID<uint32_t, ObjectType::Morph>;
+using ParticleEmitterID = ObjectID<uint32_t, ObjectType::ParticleEmitter>;
 
 static_assert(sizeof(VertexID) == sizeof(uint32_t));
 

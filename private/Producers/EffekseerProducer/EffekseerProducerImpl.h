@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Base/Template.h"
+#include "Scene/ObjectIDGenerator.h"
 #include "Scene/SceneDatabase.h"
 
 namespace cdtools
@@ -21,6 +22,8 @@ public:
 
 private:
 	const char16_t* m_pFilePath;
+
+	cd::ObjectIDGenerator<cd::ParticleEmitterID> m_particleEmitterIDGenerator;
 };
 
 }
