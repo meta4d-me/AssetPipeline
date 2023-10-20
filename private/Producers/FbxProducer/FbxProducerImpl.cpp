@@ -29,16 +29,11 @@ cd::Transform ConvertFbxNodeTransform(fbxsdk::FbxNode* pNode)
 
 cd::Matrix4x4 ConvertFbxMatrixToCDMatrix(fbxsdk::FbxAMatrix matrix)
 {
-	cd::Matrix4x4 invertZ(1, 0, 0, 0,
-						  0, 1, 0, 0,
-					      0, 0, -1,0,
-						  0, 0, 0, 1);
 	cd::Matrix4x4 cdMatrix = cd::Matrix4x4(
 		static_cast<float>(matrix.Get(0, 0)), static_cast<float>(matrix.Get(0, 1)), static_cast<float>(matrix.Get(0, 2)), static_cast<float>(matrix.Get(0, 3)),
 		static_cast<float>(matrix.Get(1, 0)), static_cast<float>(matrix.Get(1, 1)), static_cast<float>(matrix.Get(1, 2)), static_cast<float>(matrix.Get(1, 3)),
 		static_cast<float>(matrix.Get(2, 0)), static_cast<float>(matrix.Get(2, 1)), static_cast<float>(matrix.Get(2, 2)), static_cast<float>(matrix.Get(2, 3)),
 		static_cast<float>(matrix.Get(3, 0)), static_cast<float>(matrix.Get(3, 1)), static_cast<float>(matrix.Get(3, 2)), static_cast<float>(matrix.Get(3, 3)));
-	cd::Matrix4x4 mat = invertZ * cdMatrix;
 	return cdMatrix;
 }
 cd::Transform ConvertFbxMatrixToTranform(fbxsdk::FbxAMatrix Matrix)
@@ -685,7 +680,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 				pCluster->GetTransformLinkMatrix(transformLinkMatrix);
 				pCluster->GetTransformMatrix(transformMatrix);
 				FbxAMatrix geometryTransform = details::GetGeometryTransformation(boneNode);
-				globalBindposeInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform;
+				globalBindposeInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform * pFbxMesh->GetNode()->EvaluateGlobalTransform();
 				fbxsdk::FbxTime increment;
 				increment.SetSecondDouble(0);
 				FbxAMatrix currentTransformOffset = boneNode->EvaluateGlobalTransform(increment);
