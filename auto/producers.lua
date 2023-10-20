@@ -16,6 +16,11 @@ end
 if CheckSDKExists("FBX_SDK_DIR") and BUILD_FBX then
 	dofile("producers/fbx_producer.lua")
 end
+
+if CheckSDKExists("EFFEKSEER_SDK_DIR") then
+	dofile("producers/effekseer_producer.lua")
+end
+
 if CheckSDKExists("PHYSX_SDK_DIR") then
 	dofile("producers/physx_producer.lua")
 end

@@ -1,8 +1,8 @@
 --------------------------------------------------------------
-print("Building fbx_producer")
+print("Building effekseer_producer")
 
 -- Define producer dll
-project("FbxProducer")
+project("EffekseerProducer")
 	kind("SharedLib")
 	language("C++")
 	Platform_SetCppDialect()
@@ -31,14 +31,14 @@ project("FbxProducer")
 	}
 
 	files {
-		path.join(RootPath, "public/Producers/FbxProducer/**.*"),
-		path.join(RootPath, "private/Producers/FbxProducer/**.*"),
+		path.join(RootPath, "public/Producers/EffekseerProducer/**.*"),
+		path.join(RootPath, "private/Producers/EffekseerProducer/**.*"),
 	}
 	
 	vpaths {
 		["Source/*"] = { 
-			path.join(RootPath, "public/Producers/FbxProducer/**.*"),
-			path.join(RootPath, "private/Producers/FbxProducer/**.*"),
+			path.join(RootPath, "public/Producers/EffekseerProducer/**.*"),
+			path.join(RootPath, "private/Producers/EffekseerProducer/**.*"),
 		},
 	}
 	
@@ -46,7 +46,7 @@ project("FbxProducer")
 	commercialSDKLibDirs = {}
 	commercialSDKLibNames = {}
 	
-	local config = CommercialSDKConfigs["FBX_SDK_DIR"]
+	local config = CommercialSDKConfigs["EFFEKSEER_SDK_DIR"]
 	if config then
 		table.insert(commercialSDKIncludeDirs, config.include)
 		table.insert(commercialSDKLibDirs, config.lib_dir)
