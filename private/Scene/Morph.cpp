@@ -21,9 +21,9 @@ Morph::Morph(uint32_t vertexCount)
 	m_pMorphImpl = new MorphImpl(vertexCount);
 }
 
-Morph::Morph(MorphID id, const char* pName, uint32_t vertexCount)
+Morph::Morph(MorphID id, MeshID sourceMeshID, const char* pName, uint32_t vertexCount)
 {
-	m_pMorphImpl = new MorphImpl(id, pName, vertexCount);
+	m_pMorphImpl = new MorphImpl(id, sourceMeshID, pName, vertexCount);
 }
 
 Morph::Morph(Morph&& rhs)
@@ -56,14 +56,14 @@ void Morph::Init(MorphID id, const char* pName, uint32_t vertexCount)
 	m_pMorphImpl->Init(id, pName, vertexCount);
 }
 
-MorphID Morph::GetID() const
+void Morph::SetSourceMeshID(MeshID meshID)
 {
-	return m_pMorphImpl->GetID();
+	m_pMorphImpl->SetSourceMeshID(meshID);
 }
 
-const char* Morph::GetName() const
+MeshID Morph::GetSourceMeshID() const
 {
-	return m_pMorphImpl->GetName().c_str();
+	return m_pMorphImpl->GetSourceMeshID();
 }
 
 void Morph::SetWeight(float weight)
@@ -81,128 +81,13 @@ uint32_t Morph::GetVertexCount() const
 	return m_pMorphImpl->GetVertexCount();
 }
 
-void Morph::SetVertexSourceID(uint32_t vertexIndex, uint32_t sourceID)
-{
-	m_pMorphImpl->SetVertexSourceID(vertexIndex, sourceID);
-}
-
-VertexID Morph::GetVertexSourceID(uint32_t vertexIndex) const
-{
-	return m_pMorphImpl->GetVertexSourceID(vertexIndex);
-}
-
-std::vector<VertexID>& Morph::GetVertexSourceIDs()
-{
-	return m_pMorphImpl->GetVertexSourceIDs();
-}
-
-const std::vector<VertexID>& Morph::GetVertexSourceIDs() const
-{
-	return m_pMorphImpl->GetVertexSourceIDs();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Vertex geometry data
-//////////////////////////////////////////////////////////////////////////
-void Morph::SetVertexPosition(uint32_t vertexIndex, const Point& position)
-{
-	m_pMorphImpl->SetVertexPosition(vertexIndex, position);
-}
-
-Point& Morph::GetVertexPosition(uint32_t vertexIndex)
-{
-	return m_pMorphImpl->GetVertexPosition(vertexIndex);
-}
-
-const Point& Morph::GetVertexPosition(uint32_t vertexIndex) const
-{
-	return m_pMorphImpl->GetVertexPosition(vertexIndex);
-}
-
-std::vector<Point>& Morph::GetVertexPositions()
-{
-	return m_pMorphImpl->GetVertexPositions();
-}
-
-const std::vector<Point>& Morph::GetVertexPositions() const
-{
-	return m_pMorphImpl->GetVertexPositions();
-}
-
-void Morph::SetVertexNormal(uint32_t vertexIndex, const Direction& normal)
-{
-	m_pMorphImpl->SetVertexNormal(vertexIndex, normal);
-}
-
-Direction& Morph::GetVertexNormal(uint32_t vertexIndex)
-{
-	return m_pMorphImpl->GetVertexNormal(vertexIndex);
-}
-
-const Direction& Morph::GetVertexNormal(uint32_t vertexIndex) const
-{
-	return m_pMorphImpl->GetVertexNormal(vertexIndex);
-}
-
-std::vector<Direction>& Morph::GetVertexNormals()
-{
-	return m_pMorphImpl->GetVertexNormals();
-}
-
-const std::vector<Direction>& Morph::GetVertexNormals() const
-{
-	return m_pMorphImpl->GetVertexNormals();
-}
-
-void Morph::SetVertexTangent(uint32_t vertexIndex, const Direction& tangent)
-{
-	m_pMorphImpl->SetVertexTangent(vertexIndex, tangent);
-}
-
-Direction& Morph::GetVertexTangent(uint32_t vertexIndex)
-{
-	return m_pMorphImpl->GetVertexTangent(vertexIndex);
-}
-
-const Direction& Morph::GetVertexTangent(uint32_t vertexIndex) const
-{
-	return m_pMorphImpl->GetVertexTangent(vertexIndex);
-}
-
-std::vector<Direction>& Morph::GetVertexTangents()
-{
-	return m_pMorphImpl->GetVertexTangents();
-}
-
-const std::vector<Direction>& Morph::GetVertexTangents() const
-{
-	return m_pMorphImpl->GetVertexTangents();
-}
-
-void Morph::SetVertexBiTangent(uint32_t vertexIndex, const Direction& biTangent)
-{
-	m_pMorphImpl->SetVertexBiTangent(vertexIndex, biTangent);
-}
-
-Direction& Morph::GetVertexBiTangent(uint32_t vertexIndex)
-{
-	return m_pMorphImpl->GetVertexBiTangent(vertexIndex);
-}
-
-const Direction& Morph::GetVertexBiTangent(uint32_t vertexIndex) const
-{
-	return m_pMorphImpl->GetVertexBiTangent(vertexIndex);
-}
-
-std::vector<Direction>& Morph::GetVertexBiTangents()
-{
-	return m_pMorphImpl->GetVertexBiTangents();
-}
-
-const std::vector<Direction>& Morph::GetVertexBiTangents() const
-{
-	return m_pMorphImpl->GetVertexBiTangents();
-}
+PIMPL_ID_APIS(Morph);
+PIMPL_NAME_APIS(Morph);
+PIMPL_VECTOR_DATA_APIS(Morph, VertexSourceID);
+PIMPL_VECTOR_DATA_APIS(Morph, VertexPosition);
+PIMPL_VECTOR_DATA_APIS(Morph, VertexNormal);
+PIMPL_VECTOR_DATA_APIS(Morph, VertexTangent);
+PIMPL_VECTOR_DATA_APIS(Morph, VertexBiTangent);
 
 Morph& Morph::operator<<(InputArchive& inputArchive)
 {

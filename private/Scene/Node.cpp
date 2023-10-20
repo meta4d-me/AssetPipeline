@@ -44,25 +44,8 @@ void Node::Init(NodeID nodeID, std::string name)
     m_pNodeImpl->Init(nodeID, cd::MoveTemp(name));
 }
 
-void Node::SetID(NodeID nodeID)
-{
-    m_pNodeImpl->SetID(nodeID);
-}
-
-NodeID Node::GetID() const
-{
-    return m_pNodeImpl->GetID();
-}
-
-void Node::SetName(std::string name)
-{
-    return m_pNodeImpl->SetName(cd::MoveTemp(name));
-}
-
-const char* Node::GetName() const
-{
-    return m_pNodeImpl->GetName().c_str();
-}
+PIMPL_ID_APIS(Node);
+PIMPL_NAME_APIS(Node);
 
 void Node::SetParentID(NodeID parentID)
 {

@@ -44,25 +44,8 @@ void Animation::Init(AnimationID id, std::string name)
     m_pAnimationImpl->Init(id, cd::MoveTemp(name));
 }
 
-void Animation::SetID(AnimationID id)
-{
-    return m_pAnimationImpl->SetID(id);
-}
-
-AnimationID Animation::GetID() const
-{
-    return m_pAnimationImpl->GetID();
-}
-
-void Animation::SetName(std::string name)
-{
-    return m_pAnimationImpl->SetName(cd::MoveTemp(name));
-}
-
-const char* Animation::GetName() const
-{
-    return m_pAnimationImpl->GetName().c_str();
-}
+PIMPL_ID_APIS(Animation);
+PIMPL_NAME_APIS(Animation);
 
 void Animation::SetDuration(float duration)
 {

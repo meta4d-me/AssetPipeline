@@ -6,7 +6,7 @@
 namespace cd
 {
 
-Mesh Mesh::FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy)
+Mesh Mesh::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy)
 {
 	Mesh mesh;
 	mesh.m_pMeshImpl = new MeshImpl();
@@ -62,25 +62,13 @@ void Mesh::Init(uint32_t vertexCount, uint32_t polygonCount)
 	m_pMeshImpl->Init(vertexCount, polygonCount);
 }
 
-void Mesh::SetID(MeshID id)
-{
-	m_pMeshImpl->SetID(id);
-}
-
-MeshID Mesh::GetID() const
-{
-	return m_pMeshImpl->GetID();
-}
-
-void Mesh::SetName(const char* pName)
-{
-	m_pMeshImpl->SetName(pName);
-}
-
-const char* Mesh::GetName() const
-{
-	return m_pMeshImpl->GetName().c_str();
-}
+PIMPL_ID_APIS(Mesh);
+PIMPL_NAME_APIS(Mesh);
+PIMPL_VECTOR_DATA_APIS(Mesh, MorphID);
+PIMPL_VECTOR_DATA_APIS(Mesh, VertexPosition);
+PIMPL_VECTOR_DATA_APIS(Mesh, VertexNormal);
+PIMPL_VECTOR_DATA_APIS(Mesh, VertexTangent);
+PIMPL_VECTOR_DATA_APIS(Mesh, VertexBiTangent);
 
 uint32_t Mesh::GetVertexCount() const
 {
@@ -122,6 +110,11 @@ const AABB& Mesh::GetAABB() const
 	return m_pMeshImpl->GetAABB();
 }
 
+void Mesh::UpdateAABB()
+{
+	m_pMeshImpl->UpdateAABB();
+}
+
 void Mesh::SetMaterialID(MaterialID materialID)
 {
 	return m_pMeshImpl->SetMaterialID(materialID);
@@ -132,137 +125,12 @@ MaterialID Mesh::GetMaterialID() const
 	return m_pMeshImpl->GetMaterialID();
 }
 
-uint32_t Mesh::GetMorphCount() const
-{
-	return m_pMeshImpl->GetMorphCount();
-}
-
-Morph& Mesh::GetMorph(uint32_t morphIndex)
-{
-	return m_pMeshImpl->GetMorph(morphIndex);
-}
-
-const Morph& Mesh::GetMorph(uint32_t morphIndex) const
-{
-	return m_pMeshImpl->GetMorph(morphIndex);
-}
-
-std::vector<Morph>& Mesh::GetMorphs()
-{
-	return m_pMeshImpl->GetMorphs();
-}
-
-const std::vector<Morph>& Mesh::GetMorphs() const
-{
-	return m_pMeshImpl->GetMorphs();
-}
-
 //////////////////////////////////////////////////////////////////////////
 // Vertex geometry data
 //////////////////////////////////////////////////////////////////////////
-void Mesh::SetVertexPosition(uint32_t vertexIndex, const Point& position)
-{
-	m_pMeshImpl->SetVertexPosition(vertexIndex, position);
-}
-
-std::vector<Point>& Mesh::GetVertexPositions()
-{
-	return m_pMeshImpl->GetVertexPositions();
-}
-
-Point& Mesh::GetVertexPosition(uint32_t vertexIndex)
-{
-	return m_pMeshImpl->GetVertexPosition(vertexIndex);
-}
-
-const Point& Mesh::GetVertexPosition(uint32_t vertexIndex) const
-{
-	return m_pMeshImpl->GetVertexPosition(vertexIndex);
-}
-
-const std::vector<Point>& Mesh::GetVertexPositions() const
-{
-	return m_pMeshImpl->GetVertexPositions();
-}
-
-void Mesh::SetVertexNormal(uint32_t vertexIndex, const Direction& normal)
-{
-	m_pMeshImpl->SetVertexNormal(vertexIndex, normal);
-}
-
-std::vector<Direction>& Mesh::GetVertexNormals()
-{
-	return m_pMeshImpl->GetVertexNormals();
-}
-
-Direction& Mesh::GetVertexNormal(uint32_t vertexIndex)
-{
-	return m_pMeshImpl->GetVertexNormal(vertexIndex);
-}
-
-const Direction& Mesh::GetVertexNormal(uint32_t vertexIndex) const
-{
-	return m_pMeshImpl->GetVertexNormal(vertexIndex);
-}
-
-const std::vector<Direction>& Mesh::GetVertexNormals() const
-{
-	return m_pMeshImpl->GetVertexNormals();
-}
-
 void Mesh::ComputeVertexNormals()
 {
 	m_pMeshImpl->ComputeVertexNormals();
-}
-
-void Mesh::SetVertexTangent(uint32_t vertexIndex, const Direction& tangent)
-{
-	m_pMeshImpl->SetVertexTangent(vertexIndex, tangent);
-}
-
-std::vector<Direction>& Mesh::GetVertexTangents()
-{
-	return m_pMeshImpl->GetVertexTangents();
-}
-
-Direction& Mesh::GetVertexTangent(uint32_t vertexIndex)
-{
-	return m_pMeshImpl->GetVertexTangent(vertexIndex);
-}
-
-const Direction& Mesh::GetVertexTangent(uint32_t vertexIndex) const
-{
-	return m_pMeshImpl->GetVertexTangent(vertexIndex);
-}
-
-const std::vector<Direction>& Mesh::GetVertexTangents() const
-{
-	return m_pMeshImpl->GetVertexTangents();
-}
-
-void Mesh::SetVertexBiTangent(uint32_t vertexIndex, const Direction& biTangent)
-{
-	m_pMeshImpl->SetVertexBiTangent(vertexIndex, biTangent);
-}
-
-std::vector<Direction>& Mesh::GetVertexBiTangents()
-{
-	return m_pMeshImpl->GetVertexBiTangents();
-}
-
-Direction& Mesh::GetVertexBiTangent(uint32_t vertexIndex)
-{
-	return m_pMeshImpl->GetVertexBiTangent(vertexIndex);
-}
-
-const Direction& Mesh::GetVertexBiTangent(uint32_t vertexIndex) const
-{
-	return m_pMeshImpl->GetVertexBiTangent(vertexIndex);
-}
-
-const std::vector<Direction>& Mesh::GetVertexBiTangents() const
-{
-	return m_pMeshImpl->GetVertexBiTangents();
 }
 
 void Mesh::ComputeVertexTangents()

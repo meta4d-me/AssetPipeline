@@ -45,6 +45,9 @@ public:
 	void SetWantImportAnimation(bool flag);
 	bool WantImportAnimation() const;
 
+	void SetWantTriangulate(bool flag);
+	bool IsTriangulateActive() const;
+
 private:
 	FbxProducerImpl* m_pFbxProducerImpl;
 };

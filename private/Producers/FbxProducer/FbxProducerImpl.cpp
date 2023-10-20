@@ -27,56 +27,29 @@ cd::Transform ConvertFbxNodeTransform(fbxsdk::FbxNode* pNode)
 		cd::Vec3f(static_cast<float>(scaling[0]), static_cast<float>(scaling[1]), static_cast<float>(scaling[2])));
 }
 
-cd::Matrix4x4 ConvertFbxOffsetTransform(fbxsdk::FbxAMatrix offsetMatrix)
+cd::Matrix4x4 ConvertFbxMatrixToCDMatrix(fbxsdk::FbxAMatrix matrix)
 {
-	return cd::Matrix4x4(
-		static_cast<float>(offsetMatrix.Get(0, 0)), static_cast<float>(offsetMatrix.Get(0, 1)), static_cast<float>(offsetMatrix.Get(0, 2)), static_cast<float>(offsetMatrix.Get(0, 3)),
-		static_cast<float>(offsetMatrix.Get(1, 0)), static_cast<float>(offsetMatrix.Get(1, 1)), static_cast<float>(offsetMatrix.Get(1, 2)), static_cast<float>(offsetMatrix.Get(1, 3)),
-		static_cast<float>(offsetMatrix.Get(2, 0)), static_cast<float>(offsetMatrix.Get(2, 1)), static_cast<float>(offsetMatrix.Get(2, 2)), static_cast<float>(offsetMatrix.Get(2, 3)),
-		static_cast<float>(offsetMatrix.Get(3, 0)), static_cast<float>(offsetMatrix.Get(3, 1)), static_cast<float>(offsetMatrix.Get(3, 2)), static_cast<float>(offsetMatrix.Get(3, 3)));
-	
+	cd::Matrix4x4 invertZ(1, 0, 0, 0,
+						  0, 1, 0, 0,
+					      0, 0, -1,0,
+						  0, 0, 0, 1);
+	cd::Matrix4x4 cdMatrix = cd::Matrix4x4(
+		static_cast<float>(matrix.Get(0, 0)), static_cast<float>(matrix.Get(0, 1)), static_cast<float>(matrix.Get(0, 2)), static_cast<float>(matrix.Get(0, 3)),
+		static_cast<float>(matrix.Get(1, 0)), static_cast<float>(matrix.Get(1, 1)), static_cast<float>(matrix.Get(1, 2)), static_cast<float>(matrix.Get(1, 3)),
+		static_cast<float>(matrix.Get(2, 0)), static_cast<float>(matrix.Get(2, 1)), static_cast<float>(matrix.Get(2, 2)), static_cast<float>(matrix.Get(2, 3)),
+		static_cast<float>(matrix.Get(3, 0)), static_cast<float>(matrix.Get(3, 1)), static_cast<float>(matrix.Get(3, 2)), static_cast<float>(matrix.Get(3, 3)));
+	cd::Matrix4x4 mat = invertZ * cdMatrix;
+	return cdMatrix;
 }
 cd::Transform ConvertFbxMatrixToTranform(fbxsdk::FbxAMatrix Matrix)
 {
-	fbxsdk::FbxVector4 translation = Matrix.GetT();
-	fbxsdk::FbxQuaternion rotation = Matrix.GetQ();
-	fbxsdk::FbxVector4 scale = Matrix.GetS();
+	cd::Matrix4x4 transformMatrix = ConvertFbxMatrixToCDMatrix(Matrix);
+
 	return cd::Transform(
-		cd::Vec3f(translation.mData[0], translation.mData[1], translation.mData[2]),
-		cd::Quaternion(rotation.mData[3], rotation.mData[0],rotation.mData[1],rotation.mData[2]),
-		cd::Vec3f(scale.mData[0], scale.mData[1], scale.mData[2]));
+		cd::Vec3f(transformMatrix.GetTranslation()),
+		cd::Quaternion(cd::Quaternion::FromMatrix(transformMatrix.GetRotation())),
+		cd::Vec3f(transformMatrix.GetScale()));
 }
-
-void UnrollRotationCurves(fbxsdk::FbxNode* pNode, fbxsdk::FbxAnimLayer* pAnimationLayer, fbxsdk::FbxAnimCurveFilterUnroll* pUnrollFilter)
-{
-	if (!pNode)
-	{
-		return;
-	}
-
-	if (fbxsdk::FbxAnimCurveNode* pCurveNode = pNode->LclRotation.GetCurveNode(pAnimationLayer))
-	{
-		if (uint32_t channelCount = pCurveNode->GetChannelsCount(); channelCount > 0U)
-		{
-			std::vector<fbxsdk::FbxAnimCurve*> rotationCurves;
-			rotationCurves.reserve(channelCount);
-			for (uint32_t channelIndex = 0U; channelIndex < channelCount; ++channelIndex)
-			{
-				rotationCurves.push_back(pCurveNode->GetCurve(channelIndex));
-			}
-
-			fbxsdk::FbxEuler::EOrder rotationOrder = eEulerXYZ;
-			pNode->GetRotationOrder(fbxsdk::FbxNode::eSourcePivot, rotationOrder);
-			pUnrollFilter->SetRotationOrder(rotationOrder);
-			pUnrollFilter->Apply(rotationCurves.data(), static_cast<int32_t>(rotationCurves.size()));
-		}
-	}
-
-	for (int32_t nodeIndex = 0; nodeIndex < pNode->GetChildCount(); ++nodeIndex)
-	{
-		UnrollRotationCurves(pNode->GetChild(nodeIndex), pAnimationLayer, pUnrollFilter);
-	}
-};
 
 void FBXMatrixToFloat16(fbxsdk::FbxMatrix* src, float dest[16])
 {
@@ -105,41 +78,6 @@ fbxsdk::FbxAMatrix GetGeometryTransformation(fbxsdk::FbxNode* inNode)
 	return FbxAMatrix(lT, lR, lS);
 }
 
-void ComputeClusterDeformation(FbxAMatrix& pGlobalPosition, FbxMesh* pMesh, FbxCluster* pCluster, FbxAMatrix& pVertexTransformMatrix, FbxTime pTime)
-{
-	FbxCluster::ELinkMode lClusterMode = pCluster->GetLinkMode();
-
-	if (lClusterMode == FbxCluster::eNormalize)
-	{
-		FbxAMatrix lReferenceGlobalInitPosition;
-		FbxAMatrix lClusterGlobalInitPosition;
-		FbxAMatrix lClusterGlobalCurrentPosition;
-
-		FbxAMatrix lAssociateGeometry;
-		FbxAMatrix lClusterGeometry;
-
-		FbxAMatrix lClusterRelativeInitPosition;
-		FbxAMatrix lClusterRelativeCurrentPositionInverse;
-		pCluster->GetTransformMatrix(lReferenceGlobalInitPosition);
-
-		const FbxVector4 lT = pMesh->GetNode()->GetGeometricTranslation(FbxNode::eSourcePivot);
-		const FbxVector4 lR = pMesh->GetNode()->GetGeometricRotation(FbxNode::eSourcePivot);
-		const FbxVector4 lS = pMesh->GetNode()->GetGeometricScaling(FbxNode::eSourcePivot);
-		FbxAMatrix lReferenceGeometry = FbxAMatrix(lT, lR, lS);
-
-		lReferenceGlobalInitPosition *= lReferenceGeometry;
-
-		pCluster->GetTransformLinkMatrix(lClusterGlobalInitPosition);
-
-		lClusterGlobalCurrentPosition = pCluster->GetLink()->EvaluateGlobalTransform(pTime);
-
-		lClusterRelativeInitPosition = lClusterGlobalInitPosition.Inverse() * lReferenceGlobalInitPosition;
-
-		lClusterRelativeCurrentPositionInverse = pGlobalPosition.Inverse() * lClusterGlobalCurrentPosition;
-
-		pVertexTransformMatrix = lClusterRelativeCurrentPositionInverse * lClusterRelativeInitPosition;
-	}
-}
 }
 
 namespace cdtools
@@ -155,7 +93,7 @@ FbxProducerImpl::FbxProducerImpl(std::string filePath)
 	assert(m_pSDKManager && "Failed to init sdk manager.");
 	m_pSDKManager->SetIOSettings(pIOSettings);
 
-	m_pGeometryConverter = std::make_unique<fbxsdk::FbxGeometryConverter>(m_pSDKManager);
+	m_pSDKGeometryConverter = std::make_unique<fbxsdk::FbxGeometryConverter>(m_pSDKManager);
 }
 
 FbxProducerImpl::~FbxProducerImpl()
@@ -213,40 +151,52 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		return;
 	}
 
+	// Query file axis system and unit system.
+	fbxsdk::FbxAxisSystem fileAxisSystem = m_pSDKScene->GetGlobalSettings().GetAxisSystem();
+	fbxsdk::FbxSystemUnit fileUnitSystem = m_pSDKScene->GetGlobalSettings().GetSystemUnit();
+
+	cd::Handedness handedness = fileAxisSystem.GetCoorSystem() == fbxsdk::FbxAxisSystem::eRightHanded ? cd::Handedness::Right : cd::Handedness::Left;
+	auto GetUpVector = [&fileAxisSystem]()
+	{
+		int sign = 1;
+		switch (fileAxisSystem.GetUpVector(sign))
+		{
+		case fbxsdk::FbxAxisSystem::eXAxis:
+			return cd::UpVector::XAxis;
+		case fbxsdk::FbxAxisSystem::eYAxis:
+			return cd::UpVector::YAxis;
+		case fbxsdk::FbxAxisSystem::eZAxis:
+			return cd::UpVector::ZAxis;
+		}
+
+		assert(sign == 1);
+		return cd::UpVector::YAxis;
+	};
+
+	int sign;
+	cd::FrontVector frontVector = fileAxisSystem.GetFrontVector(sign) == fbxsdk::FbxAxisSystem::eParityEven ? cd::FrontVector::ParityEven : cd::FrontVector::ParityOdd;
+	assert(sign == 1);
+
+	cd::AxisSystem axisSystem(handedness, GetUpVector(), frontVector);
+	//pSceneDatabase->SetAxisSystem(cd::MoveTemp(axisSystem));
+
+	// Axis system
+	fbxsdk::FbxAxisSystem fbxAxisSystem = m_pSDKScene->GetGlobalSettings().GetAxisSystem();
+	fbxsdk::FbxAxisSystem CDEngineAxisSystem(fbxsdk::FbxAxisSystem::eYAxis,
+		fbxsdk::FbxAxisSystem::eParityOdd,
+		fbxsdk::FbxAxisSystem::eLeftHanded);
+	if (fbxAxisSystem != CDEngineAxisSystem)
+	{
+		CDEngineAxisSystem.ConvertScene(m_pSDKScene);
+	}
+
+	fbxsdk::FbxAxisSystem lAxisSytemReference = m_pSDKScene->GetGlobalSettings().GetAxisSystem();
+
 	// Query scene information and prepare to import.
 	pSceneDatabase->SetName(m_filePath.c_str());
 	m_materialIDGenerator.SetCurrentID(pSceneDatabase->GetMaterialCount());
 	m_textureIDGenerator.SetCurrentID(pSceneDatabase->GetTextureCount());
 	m_meshIDGenerator.SetCurrentID(pSceneDatabase->GetMeshCount());
-
-	// Bake animation layers to the base layer and destroy other layers.
-	//uint32_t animationStackCount = pSDKScene->GetSrcObjectCount<fbxsdk::FbxAnimStack>();
-	//for (uint32_t stackIndex = 0U; stackIndex < animationStackCount; ++stackIndex)
-	//{
-	//	fbxsdk::FbxAnimStack* pAnimationStack = pSDKScene->GetSrcObject<fbxsdk::FbxAnimStack>(stackIndex);
-	//	if (pAnimationStack->GetMemberCount() > 1)
-	//	{
-	//		// TODO : will check all layers to decide final sample rate.
-	//		constexpr int sampleRate = 30;
-
-	//		fbxsdk::FbxTime framePeriod;
-	//		framePeriod.SetSecondDouble(1.0 / sampleRate);
-
-	//		fbxsdk::FbxTimeSpan timeSpan = pAnimationStack->GetLocalTimeSpan();
-	//		pAnimationStack->BakeLayers(pSDKScene->GetAnimationEvaluator(), timeSpan.GetStart(), timeSpan.GetStop(), framePeriod);
-
-	//		fbxsdk::FbxAnimLayer* pAnimationBaseLayer = pAnimationStack->GetMember<fbxsdk::FbxAnimLayer>(0);
-	//		fbxsdk::FbxAnimCurveFilterUnroll unrollFilter;
-	//		unrollFilter.Reset();
-
-	//		details::UnrollRotationCurves(pSDKScene->GetRootNode(), pAnimationBaseLayer, &unrollFilter);
-	//	}
-	//}
-
-	// Query file axis system and unit system.
-	fbxsdk::FbxAxisSystem fileAxisSystem = m_pSDKScene->GetGlobalSettings().GetAxisSystem();
-	fbxsdk::FbxSystemUnit fileUnitSystem = m_pSDKScene->GetGlobalSettings().GetSystemUnit();
-
 	// Convert fbx materials to cd materials.
 	if (WantImportMaterial())
 	{
@@ -267,21 +217,7 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		uint32_t oldNodeCount = pSceneDatabase->GetNodeCount();
 		m_nodeIDGenerator.SetCurrentID(oldNodeCount);
 		pSceneDatabase->SetNodeCount(oldNodeCount + sceneNodeCount);
-		TraverseNodeRecursively(m_pSDKScene->GetRootNode(), nullptr, pSceneDatabase);
-	}
-
-	// Convert fbx bone/joint to cd scene bone/joint.
-	if (WantImportSkinMesh())
-	{
-		fbxsdk::FbxNode* rootNode = m_pSDKScene->GetRootNode();
-		uint32_t sceneBoneCount = static_cast<uint32_t>(GetSceneBoneCount(m_pSDKScene->GetRootNode()));
-		if (sceneBoneCount > 0U)
-		{
-			uint32_t oldBoneCount = pSceneDatabase->GetBoneCount();
-			m_boneIDGenerator.SetCurrentID(oldBoneCount);
-			pSceneDatabase->SetNodeCount(oldBoneCount + sceneBoneCount);
-			//TraverseBoneRecursively(pSDKScene->GetRootNode(), nullptr, pSceneDatabase);
-		}
+		TraverseNodeRecursively(m_pSDKScene->GetRootNode(), cd::NodeID::InvalidID, pSceneDatabase);
 	}
 
 	if (WantImportAnimation())
@@ -300,8 +236,8 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 
 		fbxsdk::FbxTakeInfo* lCurrentTakeInfo = m_pSDKScene->GetTakeInfo(*(mAnimStackNameArray[0]));
 		ProcessAnimation(m_pSDKScene->GetRootNode(), m_pSDKScene, pSceneDatabase);
-		int a = 0;
 	}
+
 }
 
 int FbxProducerImpl::GetSceneNodeCount(const fbxsdk::FbxNode* pSceneNode)
@@ -326,15 +262,14 @@ int FbxProducerImpl::GetSceneNodeCount(const fbxsdk::FbxNode* pSceneNode)
 	return totalCount;
 }
 
-void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase)
+void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase)
 {
-	const fbxsdk::FbxNodeAttribute* pNodeAttribute = pSDKNode->GetNodeAttribute();
-	cd::Node* pNode = nullptr;
+	fbxsdk::FbxNodeAttribute* pNodeAttribute = pSDKNode->GetNodeAttribute();
+
 	if (nullptr == pNodeAttribute ||
 		fbxsdk::FbxNodeAttribute::eNull == pNodeAttribute->GetAttributeType())
 	{
-		cd::NodeID nodeID = AddNode(pSDKNode, pParentNode, pSceneDatabase);
-		pNode = &pSceneDatabase->GetNodes()[nodeID.Data()];
+		AddNode(pSDKNode, parentNodeID, pSceneDatabase);
 	}
 	else if (fbxsdk::FbxNodeAttribute::eLight == pNodeAttribute->GetAttributeType() && m_importLight)
 	{
@@ -345,28 +280,22 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 	}
 	else if (fbxsdk::FbxNodeAttribute::eMesh == pNodeAttribute->GetAttributeType())
 	{
-		const fbxsdk::FbxMesh* pFbxMesh = reinterpret_cast<const fbxsdk::FbxMesh*>(pNodeAttribute);
-		fbxsdk::FbxMesh* fbxMesh = pSDKNode->GetMesh();
-		//assert(pFbxMesh && pFbxMesh->IsTriangleMesh());
-
-		bool hasError = false;
-		if (!fbxMesh->IsTriangleMesh())
+		fbxsdk::FbxMesh* pFbxMesh = reinterpret_cast<fbxsdk::FbxMesh*>(pNodeAttribute);
+		assert(pFbxMesh);
+		
+		if (!pFbxMesh->IsTriangleMesh() && IsTriangulateActive())
 		{
-			hasError = true;
-			fbxsdk::FbxNodeAttribute* ConvertedNode = m_pGeometryConverter->Triangulate(fbxMesh, true);
-			if (ConvertedNode && ConvertedNode->GetAttributeType() == fbxsdk::FbxNodeAttribute::eMesh)
+			const bool bReplace = true;
+			fbxsdk::FbxNodeAttribute* pConvertedNode = m_pSDKGeometryConverter->Triangulate(pFbxMesh, bReplace);
+			if (pConvertedNode && pConvertedNode->GetAttributeType() == FbxNodeAttribute::eMesh)
 			{
-				fbxMesh = ConvertedNode->GetNode()->GetMesh();
-				hasError = false;
-				ProcessJointsAndAnimations(pSDKNode, pSceneDatabase);
-			}
-			else
-			{
-				printf("[Error] Mesh is not triangulated.\n");
+				pFbxMesh = reinterpret_cast<fbxsdk::FbxMesh*>(pConvertedNode);
+				assert(pFbxMesh && pFbxMesh->IsTriangleMesh());
 			}
 		}
-
-		fbxsdk::FbxLayer* pMeshBaseLayer = fbxMesh->GetLayer(0);
+		
+		bool hasError = false;
+		const fbxsdk::FbxLayer* pMeshBaseLayer = pFbxMesh->GetLayer(0);
 		if (!pMeshBaseLayer)
 		{
 			printf("[Error] No geometry info in the FbxMesh.\n");
@@ -385,7 +314,7 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 				{
 					assert(1U == materialCount && "Material is AllSame mapping mode but has multiple materials.");
 
-					AddMesh(fbxMesh, pSDKNode, 0, pParentNode, pSceneDatabase);
+					AddMesh(pFbxMesh, pSDKNode->GetName(), 0, parentNodeID, pSceneDatabase);
 				}
 				else if (fbxsdk::FbxLayerElement::eByPolygon == materialMappingMode)
 				{
@@ -393,44 +322,37 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 
 					// It will generate multiple meshes to assign one material.
 					// To manage them conveniently, they are placed under a new Node.
-					cd::NodeID meshesNodeID = AddNode(pSDKNode, pParentNode, pSceneDatabase);
+					cd::NodeID meshesNodeID = AddNode(pSDKNode, parentNodeID, pSceneDatabase);
 					for (uint32_t materialIndex = 0U; materialIndex < materialCount; ++materialIndex)
 					{
 						std::string splitMeshName(std::format("{}_{}", pSDKNode->GetName(), materialIndex));
-						AddMesh(fbxMesh, pSDKNode, materialIndex, &pSceneDatabase->GetNodes()[meshesNodeID.Data()], pSceneDatabase);
+						AddMesh(pFbxMesh, splitMeshName.c_str(), materialIndex, meshesNodeID, pSceneDatabase);
 					}
 				}
 			}
 			else
 			{
-				AddMesh(fbxMesh, pSDKNode, std::nullopt, pParentNode, pSceneDatabase);
+				AddMesh(pFbxMesh, pSDKNode->GetName(), std::nullopt, parentNodeID, pSceneDatabase);
 			}
 		}
-
-	}
-
-	else if (fbxsdk::FbxNodeAttribute::eSkeleton == pNodeAttribute->GetAttributeType())
-	{
-
-		//printf("skeleton/n");
 	}
 
 
 	for (int childIndex = 0; childIndex < pSDKNode->GetChildCount(); ++childIndex)
 	{
-		TraverseNodeRecursively(pSDKNode->GetChild(childIndex), pNode, pSceneDatabase);
+		TraverseNodeRecursively(pSDKNode->GetChild(childIndex), parentNodeID, pSceneDatabase);
 	}
 }
 
-cd::NodeID FbxProducerImpl::AddNode(const fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase)
+cd::NodeID FbxProducerImpl::AddNode(const fbxsdk::FbxNode* pSDKNode, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase)
 {
 	cd::NodeID nodeID = m_nodeIDGenerator.AllocateID();
 	cd::Node node(nodeID, pSDKNode->GetName());
 	node.SetTransform(details::ConvertFbxNodeTransform(const_cast<fbxsdk::FbxNode*>(pSDKNode)));
-	if (pParentNode)
+	if (parentNodeID.IsValid())
 	{
-		//	pParentNode->AddChildID(nodeID.Data());
-		//	node.SetParentID(pParentNode->GetID().Data());
+		pSceneDatabase->GetNode(parentNodeID.Data()).AddChildID(nodeID.Data());
+		node.SetParentID(parentNodeID.Data());
 	}
 	pSceneDatabase->AddNode(cd::MoveTemp(node));
 
@@ -439,7 +361,7 @@ cd::NodeID FbxProducerImpl::AddNode(const fbxsdk::FbxNode* pSDKNode, cd::Node* p
 
 cd::LightID FbxProducerImpl::AddLight(const fbxsdk::FbxLight* pFbxLight, const char* pLightName, cd::Transform transform, cd::SceneDatabase* pSceneDatabase)
 {
-	cd::LightType lightType = cd::LightType::Count;
+	cd::LightType lightType;
 	float lightIntensity = static_cast<float>(pFbxLight->Intensity.Get());
 
 	switch (pFbxLight->LightType.Get())
@@ -458,32 +380,30 @@ cd::LightID FbxProducerImpl::AddLight(const fbxsdk::FbxLight* pFbxLight, const c
 	{
 		lightIntensity = 1.0f;
 
-		switch (pFbxLight->AreaLightShape.Get())
+			switch (pFbxLight->AreaLightShape.Get())
+			{
+				case fbxsdk::FbxLight::EAreaLightShape::eRectangle:
+				{
+					lightType = cd::LightType::Rectangle;
+					break;
+				}
+				default:
+				{
+					lightType = cd::LightType::Sphere;
+					break;
+				}
+			}
+			break;
+		}
+		case fbxsdk::FbxLight::EType::eSpot:
 		{
-		case fbxsdk::FbxLight::EAreaLightShape::eRectangle:
-		{
-			lightType = cd::LightType::Rectangle;
+			lightType = cd::LightType::Spot;
 			break;
 		}
 		default:
 		{
-			lightType = cd::LightType::Sphere;
-			break;
+			assert("Unknown light source type.\n");
 		}
-		}
-		break;
-	}
-	case fbxsdk::FbxLight::EType::eSpot:
-	{
-		lightType = cd::LightType::Spot;
-		break;
-	}
-	}
-
-	if (cd::LightType::Count == lightType)
-	{
-		printf("Unknown light type.\n");
-		return cd::LightID(cd::LightID::InvalidID);
 	}
 
 	cd::LightID lightID = m_lightIDGenerator.AllocateID();
@@ -504,11 +424,11 @@ cd::LightID FbxProducerImpl::AddLight(const fbxsdk::FbxLight* pFbxLight, const c
 	return lightID;
 }
 
-cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, fbxsdk::FbxNode* pFbxNode, std::optional<int32_t> optMaterialIndex, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase)
+cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char* pMeshName, std::optional<int32_t> optMaterialIndex, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase)
 {
 	// For geometry data, we only query base layer which means index 0.
 	const fbxsdk::FbxLayer* pMeshBaseLayer = pFbxMesh->GetLayer(0);
-	uint32_t totalVertexCount = pFbxMesh->GetControlPointsCount();
+	uint32_t controlPointCount = pFbxMesh->GetControlPointsCount();
 	uint32_t totalPolygonCount = pFbxMesh->GetPolygonCount();
 
 	uint32_t availablePolygonCount = 0U;
@@ -519,21 +439,20 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, fbxsdk::Fbx
 	{
 		for (uint32_t polygonIndex = 0U; polygonIndex < totalPolygonCount; ++polygonIndex)
 		{
-			assert(3 == pFbxMesh->GetPolygonSize(polygonIndex));
-
+			uint32_t polygonVertexCount = pFbxMesh->GetPolygonSize(polygonIndex);
+			assert(polygonVertexCount >= 3U);
 			int32_t materialIndex = pLayerElementMaterial->GetIndexArray().GetAt(polygonIndex);
 			if (materialIndex == optMaterialIndex.value())
 			{
 				++availablePolygonCount;
+				availableVertexCount += polygonVertexCount;
 			}
 		}
-
-		availableVertexCount = availablePolygonCount * 3;
 	}
 	else
 	{
 		availablePolygonCount = totalPolygonCount;
-		availableVertexCount = totalVertexCount;
+		availableVertexCount = pFbxMesh->GetPolygonVertexCount();
 	}
 
 	if (0 == availablePolygonCount || 0 == availableVertexCount)
@@ -553,9 +472,6 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, fbxsdk::Fbx
 	const fbxsdk::FbxLayerElementBinormal* pLayerElementBinormalData = pMeshBaseLayer->GetBinormals();
 	const fbxsdk::FbxLayerElementVertexColor* pLayerElementColorData = pMeshBaseLayer->GetVertexColors();
 
-	//meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneIndex, cd::AttributeValueType::Int16, cd::MaxBoneInfluenceCount);
-	//meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneWeight, cd::AttributeValueType::Float, cd::MaxBoneInfluenceCount);
-	// For uv data, we need to query other layers to get uv sets for lightmap, shadowmap, decay...
 	std::vector<const fbxsdk::FbxLayerElementUV*> layerElementUVDatas;
 	for (int32_t layerIndex = 0; layerIndex < pFbxMesh->GetLayerCount(); ++layerIndex)
 	{
@@ -596,13 +512,14 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, fbxsdk::Fbx
 		mesh.SetVertexColorSetCount(1U);
 		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Vec4f::ValueType>(), cd::Vec4f::Size);
 	}
-
-
+	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneIndex, cd::AttributeValueType::Int16, cd::MaxBoneInfluenceCount);
+	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneWeight, cd::AttributeValueType::Float, cd::MaxBoneInfluenceCount);
+	mesh.SetVertexFormat(cd::MoveTemp(meshVertexFormat));
 
 	// Associate mesh id to its parent transform node.
-	if (pParentNode)
+	if (parentNodeID.IsValid())
 	{
-		pParentNode->AddMeshID(meshID.Data());
+		pSceneDatabase->GetNode(parentNodeID.Data()).AddMeshID(meshID.Data());
 	}
 
 	if (optMaterialIndex.has_value())
@@ -616,13 +533,14 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, fbxsdk::Fbx
 	// Process polygon and vertex data.
 	uint32_t polygonVertexBeginIndex = 0U;
 	uint32_t polygonVertexEndIndex = 0U;
-	uint32_t vertexID = 0U;
 	uint32_t polygonID = 0U;
-	std::map<uint32_t, uint32_t> mapControlPointToVertexID;
-	for (uint32_t polygonIndex = 0U; polygonIndex < totalPolygonCount; ++polygonIndex)
+	std::map<uint32_t, uint32_t> mapVertexIDToControlPointIndex;
+	std::map<uint32_t, std::vector<uint32_t>> mapControlPointIndexToVertexID;
+	for (uint32_t polygonIndex = 0U; polygonIndex < availablePolygonCount; ++polygonIndex)
 	{
+		uint32_t polygonVertexCount = pFbxMesh->GetPolygonSize(polygonIndex);
 		polygonVertexBeginIndex = polygonVertexEndIndex;
-		polygonVertexEndIndex += 3;
+		polygonVertexEndIndex += polygonVertexCount;
 
 		if (splitPolygonByMaterial)
 		{
@@ -633,26 +551,19 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, fbxsdk::Fbx
 			}
 		}
 
-		// Map control point index to vertex id
-		for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < 3U; ++polygonVertexIndex)
-		{
-			uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
-			if (auto itVertexID = mapControlPointToVertexID.find(controlPointIndex); itVertexID == mapControlPointToVertexID.end())
-			{
-				mapControlPointToVertexID[controlPointIndex] = vertexID++;
-			}
-		}
-
 		// Position
 		cd::Polygon polygon;
-		polygon.resize(3);
-		for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < 3U; ++polygonVertexIndex)
+		polygon.reserve(polygonVertexCount);
+		for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 		{
+			fbxsdk::FbxAMatrix fbxTransformMatrix = pFbxMesh->GetNode()->EvaluateGlobalTransform();
 			uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
-			fbxsdk::FbxVector4 position = pMeshVertexPositions[controlPointIndex];
-			mesh.SetVertexPosition(mapControlPointToVertexID[controlPointIndex], cd::Point(position[0], position[1], position[2]));
-
-			polygon[polygonVertexIndex] = mapControlPointToVertexID[controlPointIndex];
+			fbxsdk::FbxVector4 position = fbxTransformMatrix.MultT(pMeshVertexPositions[controlPointIndex]);
+			uint32_t vertexID = polygonVertexBeginIndex + polygonVertexIndex;
+			mesh.SetVertexPosition(vertexID, cd::Point(position[0], position[1], position[2]));
+			polygon.push_back(vertexID);
+			mapVertexIDToControlPointIndex[vertexID] = controlPointIndex;
+			mapControlPointIndexToVertexID[controlPointIndex].push_back(vertexID);
 		}
 		mesh.SetPolygon(polygonID++, cd::MoveTemp(polygon));
 
@@ -661,13 +572,14 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, fbxsdk::Fbx
 		bool applyBinormalData = false;
 		if (pLayerElementNormalData)
 		{
-			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < 3U; ++polygonVertexIndex)
+			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 			{
 				uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
 				uint32_t normalMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementNormalData->GetMappingMode() ? controlPointIndex : polygonVertexBeginIndex + polygonVertexIndex;
 				uint32_t normalValueIndex = fbxsdk::FbxLayerElement::eDirect == pLayerElementNormalData->GetReferenceMode() ? normalMapIndex : pLayerElementNormalData->GetIndexArray().GetAt(normalMapIndex);
 				fbxsdk::FbxVector4 normalValue = pLayerElementNormalData->GetDirectArray().GetAt(normalValueIndex);
-				mesh.SetVertexNormal(mapControlPointToVertexID[controlPointIndex], cd::Direction(normalValue[0], normalValue[1], normalValue[2]));
+				uint32_t vertexID = polygonVertexBeginIndex + polygonVertexIndex;
+				mesh.SetVertexNormal(vertexID, cd::Direction(normalValue[0], normalValue[1], normalValue[2]));
 
 				// If normal data exists, apply TBN data.
 				applyTangentData = pLayerElementTangentData && pLayerElementBinormalData;
@@ -677,25 +589,27 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, fbxsdk::Fbx
 
 		if (applyTangentData)
 		{
-			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < 3U; ++polygonVertexIndex)
+			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 			{
 				uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
 				uint32_t tangentMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementTangentData->GetMappingMode() ? controlPointIndex : polygonVertexBeginIndex + polygonVertexIndex;
 				uint32_t tangentValueIndex = fbxsdk::FbxLayerElement::eDirect == pLayerElementTangentData->GetReferenceMode() ? tangentMapIndex : pLayerElementTangentData->GetIndexArray().GetAt(tangentMapIndex);
 				fbxsdk::FbxVector4 tangentValue = pLayerElementTangentData->GetDirectArray().GetAt(tangentValueIndex);
-				mesh.SetVertexTangent(mapControlPointToVertexID[controlPointIndex], cd::Direction(tangentValue[0], tangentValue[1], tangentValue[2]));
+				uint32_t vertexID = polygonVertexBeginIndex + polygonVertexIndex;
+				mesh.SetVertexTangent(vertexID, cd::Direction(tangentValue[0], tangentValue[1], tangentValue[2]));
 			}
 		}
 
 		if (applyBinormalData)
 		{
-			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < 3U; ++polygonVertexIndex)
+			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 			{
 				uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
 				uint32_t binormalMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementBinormalData->GetMappingMode() ? controlPointIndex : polygonVertexBeginIndex + polygonVertexIndex;
 				uint32_t binormalValueIndex = fbxsdk::FbxLayerElement::eDirect == pLayerElementBinormalData->GetReferenceMode() ? binormalMapIndex : pLayerElementBinormalData->GetIndexArray().GetAt(binormalMapIndex);
 				fbxsdk::FbxVector4 binormalValue = pLayerElementBinormalData->GetDirectArray().GetAt(binormalValueIndex);
-				mesh.SetVertexBiTangent(mapControlPointToVertexID[controlPointIndex], cd::Direction(binormalValue[0], binormalValue[1], binormalValue[2]));
+				uint32_t vertexID = polygonVertexBeginIndex + polygonVertexIndex;
+				mesh.SetVertexBiTangent(vertexID, cd::Direction(binormalValue[0], binormalValue[1], binormalValue[2]));
 			}
 		}
 
@@ -705,13 +619,14 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, fbxsdk::Fbx
 			for (uint32_t uvSetIndex = 0U; uvSetIndex < layerElementUVDatas.size(); ++uvSetIndex)
 			{
 				const fbxsdk::FbxLayerElementUV* pLayerElementUVData = layerElementUVDatas[uvSetIndex];
-				for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < 3U; ++polygonVertexIndex)
+				for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 				{
 					uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
 					uint32_t uvMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementUVData->GetMappingMode() ? controlPointIndex : polygonVertexBeginIndex + polygonVertexIndex;
 					uint32_t uvValueIndex = fbxsdk::FbxLayerElement::eDirect == pLayerElementUVData->GetReferenceMode() ? uvMapIndex : pLayerElementUVData->GetIndexArray().GetAt(uvMapIndex);
 					fbxsdk::FbxVector2 uvValue = pLayerElementUVData->GetDirectArray().GetAt(uvValueIndex);
-					mesh.SetVertexUV(uvSetIndex, mapControlPointToVertexID[controlPointIndex], cd::UV(uvValue[0], uvValue[1]));
+					uint32_t vertexID = polygonVertexBeginIndex + polygonVertexIndex;
+					mesh.SetVertexUV(uvSetIndex, vertexID, cd::UV(uvValue[0], uvValue[1]));
 				}
 			}
 		}
@@ -719,13 +634,14 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, fbxsdk::Fbx
 		// Color
 		if (pLayerElementColorData)
 		{
-			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < 3U; ++polygonVertexIndex)
+			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 			{
 				uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
 				uint32_t colorMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementColorData->GetMappingMode() ? controlPointIndex : polygonVertexBeginIndex + polygonVertexIndex;
 				uint32_t colorValueIndex = fbxsdk::FbxLayerElement::eDirect == pLayerElementColorData->GetReferenceMode() ? colorMapIndex : pLayerElementColorData->GetIndexArray().GetAt(colorMapIndex);
 				fbxsdk::FbxColor colorValue = pLayerElementColorData->GetDirectArray().GetAt(colorValueIndex);
-				mesh.SetVertexColor(0U, mapControlPointToVertexID[controlPointIndex], cd::Color(colorValue.mRed, colorValue.mGreen, colorValue.mBlue, colorValue.mAlpha));
+				uint32_t vertexID = polygonVertexBeginIndex + polygonVertexIndex;
+				mesh.SetVertexColor(0U, vertexID, cd::Color(colorValue.mRed, colorValue.mGreen, colorValue.mBlue, colorValue.mAlpha));
 			}
 		}
 	}
@@ -738,62 +654,23 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, fbxsdk::Fbx
 
 	// BlendShape
 	int32_t blendShapeCount = pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eBlendShape);
+	assert(blendShapeCount <= 1 && "Why use two blendshape in a mesh?");
 	for (int32_t blendShapeIndex = 0; blendShapeIndex < blendShapeCount; ++blendShapeIndex)
 	{
-		fbxsdk::FbxBlendShape* pBlendShape = static_cast<fbxsdk::FbxBlendShape*>(pFbxMesh->GetDeformer(blendShapeIndex, fbxsdk::FbxDeformer::eBlendShape));
-		assert(pBlendShape);
-
-		int32_t blendShapeChannelCount = pBlendShape->GetBlendShapeChannelCount();
-		for (int32_t channelIndex = 0; channelIndex < blendShapeChannelCount; ++channelIndex)
-		{
-			fbxsdk::FbxBlendShapeChannel* pChannel = static_cast<fbxsdk::FbxBlendShapeChannel*>(pBlendShape->GetBlendShapeChannel(channelIndex));
-			assert(pChannel);
-
-			int32_t targetShapeCount = pChannel->GetTargetShapeCount();
-			for (int32_t targetShapeIndex = 0; targetShapeIndex < targetShapeCount; ++targetShapeIndex)
-			{
-				fbxsdk::FbxShape* pTargetShape = pChannel->GetTargetShape(targetShapeIndex);
-				assert(pTargetShape);
-
-				uint32_t targetShapeVertexID = 0U;
-				for (uint32_t controlPointIndex = 0U; controlPointIndex < totalVertexCount; ++controlPointIndex)
-				{
-					auto itVertexID = mapControlPointToVertexID.find(controlPointIndex);
-					if (itVertexID == mapControlPointToVertexID.end())
-					{
-						// Different materials on blender shape will split it to multiple parts.
-						// Not sure if it is proper to do so.
-						continue;
-					}
-
-					uint32_t sourceVertexID = itVertexID->second;
-					const cd::Point& sourceShapePosition = mesh.GetVertexPosition(sourceVertexID);
-					fbxsdk::FbxVector4 targetShapePosition = pTargetShape->GetControlPointAt(controlPointIndex);
-					if (cd::Math::IsEqualTo(sourceShapePosition.x(), static_cast<float>(targetShapePosition[0])) &&
-						cd::Math::IsEqualTo(sourceShapePosition.y(), static_cast<float>(targetShapePosition[1])) &&
-						cd::Math::IsEqualTo(sourceShapePosition.z(), static_cast<float>(targetShapePosition[2])))
-					{
-						// No difference.
-						continue;
-					}
-
-					targetShapeVertexID++;
-				}
-			}
-		}
+		const fbxsdk::FbxBlendShape* pBlendShape = static_cast<fbxsdk::FbxBlendShape*>(pFbxMesh->GetDeformer(blendShapeIndex, fbxsdk::FbxDeformer::eBlendShape));
+		mesh.SetMorphIDs(AddMorphs(pBlendShape, mesh, mapVertexIDToControlPointIndex, pSceneDatabase));
 	}
 
-	//Skinmesh
-
+	//SkinMesh
+	std::map<uint32_t, uint32_t> mapVertexIndexToCurrentBoneCount;
 	for (uint32_t deformerIndex = 0; deformerIndex < pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eSkin); deformerIndex++)
 	{
-		std::map<uint32_t, uint32_t> mapVertexIndexToCurrentBoneCount;
 		fbxsdk::FbxSkin* skinDeformer = static_cast<fbxsdk::FbxSkin*>(pFbxMesh->GetDeformer(deformerIndex, fbxsdk::FbxDeformer::eSkin));
 		m_sceneBoneCount = skinDeformer->GetClusterCount();
 		for (int clusterIndex = 0; clusterIndex < m_sceneBoneCount; ++clusterIndex)
 		{
 			bool isBoneReused = false;
-			
+
 			fbxsdk::FbxCluster* pCluster = skinDeformer->GetCluster(clusterIndex);
 			const char* boneName = pCluster->GetLink()->GetName();
 			cd::BoneID::ValueType boneHash = cd::StringHash<cd::BoneID::ValueType>(boneName);
@@ -814,15 +691,12 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, fbxsdk::Fbx
 				pCluster->GetTransformMatrix(transformMatrix);
 				FbxAMatrix geometryTransform = details::GetGeometryTransformation(boneNode);
 				globalBindposeInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform;
-				FbxTime increment;  
-				increment.SetSecondDouble(1.2);
+				fbxsdk::FbxTime increment;
+				increment.SetSecondDouble(0);
 				FbxAMatrix currentTransformOffset = boneNode->EvaluateGlobalTransform(increment);
-			
-				cd::Quaternion rotation = details::ConvertFbxMatrixToTranform(currentTransformOffset).GetRotation();
-				FbxAMatrix transformed = ((currentTransformOffset.Inverse() * pCluster->GetLink()->EvaluateGlobalTransform(increment)).Transpose());
 
 				bone.SetTransform(details::ConvertFbxMatrixToTranform(currentTransformOffset));
-				bone.SetOffset(details::ConvertFbxOffsetTransform(globalBindposeInverseMatrix));
+				bone.SetOffset(details::ConvertFbxMatrixToCDMatrix(globalBindposeInverseMatrix));
 
 				// Set the parent bone
 				fbxsdk::FbxNode* pParentNode = boneNode->GetParent();
@@ -841,35 +715,107 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, fbxsdk::Fbx
 
 				pSceneDatabase->AddBone(cd::MoveTemp(bone));
 			}
-
-			int32_t VertexCount = pFbxMesh->GetControlPointsCount();
-			int32_t VertexIndexCount = pCluster->GetControlPointIndicesCount();
-			for (int32_t k = 0; k < VertexIndexCount; ++k)
+			const int32_t vertexCount = pCluster->GetControlPointIndicesCount();
+			int* fbxVertexIndices = pCluster->GetControlPointIndices();
+			double* boneWeights = pCluster->GetControlPointWeights();
+			for (int32_t influencedVertexIndex = 0; influencedVertexIndex < vertexCount; ++influencedVertexIndex)
 			{
-				int32_t controlPointIndex = pCluster->GetControlPointIndices()[k];
-				float weight = (float)pCluster->GetControlPointWeights()[k];
-				uint32_t currentBoneCount = 0U;
-				auto itVertexBoneCount = mapVertexIndexToCurrentBoneCount.find(controlPointIndex);
-				if (itVertexBoneCount != mapVertexIndexToCurrentBoneCount.end())
+				uint32_t fbxVertexIndex = fbxVertexIndices[influencedVertexIndex];
+				auto itVertexID = mapControlPointIndexToVertexID.find(fbxVertexIndex);
+				assert(itVertexID != mapControlPointIndexToVertexID.end());
+				for (const auto& vertexIndex : itVertexID->second)
 				{
-					currentBoneCount = mapVertexIndexToCurrentBoneCount[controlPointIndex] + 1;
-					assert(currentBoneCount <= cd::MaxBoneInfluenceCount);
+					double weight = boneWeights[influencedVertexIndex];
+					uint32_t currentBoneCount = 0U;
+					auto itVertexBoneCount = mapVertexIndexToCurrentBoneCount.find(vertexIndex);
+					if (itVertexBoneCount != mapVertexIndexToCurrentBoneCount.end())
+					{
+						currentBoneCount = mapVertexIndexToCurrentBoneCount[vertexIndex] + 1;
+						assert(currentBoneCount <= cd::MaxBoneInfluenceCount);
+					}
+					mapVertexIndexToCurrentBoneCount[vertexIndex] = currentBoneCount;
+					mesh.SetVertexBoneWeight(currentBoneCount, vertexIndex, boneID, weight);
 				}
-				std::printf("bondeIndex: %d ,controlPointIndex: %d \n", boneID.Data(), controlPointIndex);
-				mesh.SetVertexBoneWeight(currentBoneCount, controlPointIndex, boneID, weight);
-				mapVertexIndexToCurrentBoneCount[controlPointIndex] = currentBoneCount;
+			}
+		}
+	}
+	pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
+	return meshID;
+}
+
+std::vector<cd::MorphID> FbxProducerImpl::AddMorphs(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, const std::map<uint32_t, uint32_t>& mapVertexIDToControlPointIndex, cd::SceneDatabase* pSceneDatabase)
+{
+	assert(pBlendShape);
+
+	std::vector<cd::MorphID> morphIDs;
+
+	uint32_t sourceVertexCount = sourceMesh.GetVertexCount();
+	int32_t blendShapeChannelCount = pBlendShape->GetBlendShapeChannelCount();
+	for (int32_t channelIndex = 0; channelIndex < blendShapeChannelCount; ++channelIndex)
+	{
+		const fbxsdk::FbxBlendShapeChannel* pChannel = static_cast<const fbxsdk::FbxBlendShapeChannel*>(pBlendShape->GetBlendShapeChannel(channelIndex));
+		assert(pChannel);
+
+		int32_t targetShapeCount = pChannel->GetTargetShapeCount();
+		for (int32_t targetShapeIndex = 0; targetShapeIndex < targetShapeCount; ++targetShapeIndex)
+		{
+			const fbxsdk::FbxShape* pTargetShape = pChannel->GetTargetShape(targetShapeIndex);
+			assert(pTargetShape);
+
+			uint32_t targetShapeVertexID = 0U;
+			for (uint32_t sourceVertexID = 0U; sourceVertexID < sourceVertexCount; ++sourceVertexID)
+			{
+				auto itControlPointIndex = mapVertexIDToControlPointIndex.find(sourceVertexID);
+				assert(itControlPointIndex != mapVertexIDToControlPointIndex.end());
+				uint32_t controlPointIndex = itControlPointIndex->second;
+				const cd::Point& sourceShapePosition = sourceMesh.GetVertexPosition(sourceVertexID);
+				fbxsdk::FbxVector4 sdkTargetPos = pTargetShape->GetControlPointAt(controlPointIndex);
+				cd::Point targetShapePosition(static_cast<float>(sdkTargetPos[0]), static_cast<float>(sdkTargetPos[1]), static_cast<float>(sdkTargetPos[2]));
+				if (sourceShapePosition == targetShapePosition)
+				{
+					// No difference.
+					continue;
+				}
+
+				++targetShapeVertexID;
 			}
 
+			if (0U == targetShapeVertexID)
+			{
+				// Target shape is same to source shape.
+				continue;
+			}
+
+			cd::Morph morph(m_morphIDGenerator.AllocateID(), sourceMesh.GetID(), pTargetShape->GetName(), targetShapeVertexID);
+			morphIDs.push_back(morph.GetID());
+
+			uint32_t targetShapeVertexIndex = 0U;
+			for (uint32_t sourceVertexID = 0U; sourceVertexID < sourceVertexCount; ++sourceVertexID)
+			{
+				auto itControlPointIndex = mapVertexIDToControlPointIndex.find(sourceVertexID);
+				assert(itControlPointIndex != mapVertexIDToControlPointIndex.end());
+				uint32_t controlPointIndex = itControlPointIndex->second;
+				const cd::Point& sourceShapePosition = sourceMesh.GetVertexPosition(sourceVertexID);
+				fbxsdk::FbxVector4 sdkTargetPos = pTargetShape->GetControlPointAt(controlPointIndex);
+				cd::Point targetShapePosition(static_cast<float>(sdkTargetPos[0]), static_cast<float>(sdkTargetPos[1]), static_cast<float>(sdkTargetPos[2]));
+				if (sourceShapePosition == targetShapePosition)
+				{
+					// No difference.
+					continue;
+				}
+
+				// TODO : import initial weights.
+				morph.SetWeight(0.0f);
+				morph.SetVertexSourceID(targetShapeVertexIndex, sourceVertexID);
+				morph.SetVertexPosition(targetShapeVertexIndex, targetShapePosition);
+				++targetShapeVertexIndex;
+			}
+
+			pSceneDatabase->AddMorph(cd::MoveTemp(morph));
 		}
-		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneIndex, cd::AttributeValueType::Int16, cd::MaxBoneInfluenceCount);
-		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneWeight, cd::AttributeValueType::Float, cd::MaxBoneInfluenceCount);
 	}
 
-	mesh.SetVertexFormat(cd::MoveTemp(meshVertexFormat));
-	pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
-
-	return meshID;
-
+	return morphIDs;
 }
 
 void FbxProducerImpl::AddMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial)
@@ -913,6 +859,8 @@ void FbxProducerImpl::AddMaterialTexture(const fbxsdk::FbxProperty& sdkProperty,
 			pSceneDatabase->AddTexture(cd::MoveTemp(texture));
 		}
 		material.SetTextureID(textureType, textureID);
+		material.SetVec2fProperty(textureType, cd::MaterialProperty::UVOffset, cd::Vec2f(0.0f, 0.0f));
+		material.SetVec2fProperty(textureType, cd::MaterialProperty::UVScale, cd::Vec2f(1.0f, 1.0f));
 	}
 }
 
@@ -977,206 +925,92 @@ int FbxProducerImpl::GetSceneBoneCount(fbxsdk::FbxNode* pSceneNode)
 	return totalCount;
 }
 
-void FbxProducerImpl::TraverseBoneRecursively(fbxsdk::FbxNode* pSDKNode, cd::Bone* pParentNode, cd::SceneDatabase* pSceneDatabase)
-{
-	const fbxsdk::FbxNodeAttribute* pNodeAttribute = pSDKNode->GetNodeAttribute();
-
-	cd::Bone* pBone = nullptr;
-	if (fbxsdk::FbxNodeAttribute::eSkeleton == pNodeAttribute->GetAttributeType())
-	{
-		cd::BoneID boneID = AddBone(pSDKNode, pBone, pSceneDatabase);
-		pBone = &pSceneDatabase->GetBones()[boneID.Data()];
-	}
-
-	for (int childIndex = 0; childIndex < pSDKNode->GetChildCount(); ++childIndex)
-	{
-		TraverseBoneRecursively(pSDKNode->GetChild(childIndex), nullptr, pSceneDatabase);
-	}
-}
-
-cd::BoneID FbxProducerImpl::AddBone(const fbxsdk::FbxNode* pSDKNode, cd::Bone* pParentBone, cd::SceneDatabase* pSceneDatabase)
+cd::BoneID FbxProducerImpl::AddBone(const fbxsdk::FbxNode* pSDKNode, cd::BoneID parentBoneID, cd::SceneDatabase* pSceneDatabase)
 {
 	cd::BoneID boneID = m_boneIDGenerator.AllocateID();
 	cd::Bone bone(boneID, pSDKNode->GetName());
 	bone.SetTransform(details::ConvertFbxNodeTransform(const_cast<fbxsdk::FbxNode*>(pSDKNode)));
-	if (pParentBone)
+	if (parentBoneID.IsValid())
 	{
-		pParentBone->AddChildID(boneID.Data());
-		bone.SetParentID(pParentBone->GetID().Data());
+		pSceneDatabase->GetBone(parentBoneID.Data()).AddChildID(boneID.Data());
+		bone.SetParentID(parentBoneID.Data());
 	}
 	pSceneDatabase->AddBone(cd::MoveTemp(bone));
 
 	return boneID;
 }
 
-cd::AnimationID FbxProducerImpl::AddAnimation(fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxScene* pSDKScene, cd::SceneDatabase* pSceneDatabase)
-{
-	uint32_t animationCount = pSDKScene->GetSrcObjectCount<fbxsdk::FbxAnimStack>();
-	if (0U == animationCount)
-	{
-		return cd::AnimationID(cd::AnimationID::InvalidID);
-	}
-
-	double frameRate = fbxsdk::FbxTime::GetFrameRate(pSDKScene->GetGlobalSettings().GetTimeMode());
-	fbxsdk::FbxTime startTime = FBXSDK_TIME_INFINITE;
-	fbxsdk::FbxTime endTime = FBXSDK_TIME_MINUS_INFINITE;
-	uint32_t totalKeyCount = 0U;
-	auto ConvertAnimationTransformCurve = [&pSDKNode, &startTime, &endTime, &totalKeyCount](fbxsdk::FbxAnimLayer* pAnimationLayer, const fbxsdk::FbxPropertyT<FbxDouble3>& curveProperty, const char* pChannel)
-	{
-		fbxsdk::FbxAnimCurve* pAnimationTransformCurve = pSDKNode->LclTranslation.GetCurve(pAnimationLayer, pChannel, false);
-		uint32_t keyCount = pAnimationTransformCurve->KeyGetCount();
-		totalKeyCount = std::max(totalKeyCount, keyCount);
-
-		if (1U == totalKeyCount)
-		{
-			fbxsdk::FbxAnimCurveKey keyValue = pAnimationTransformCurve->KeyGet(0);
-			fbxsdk::FbxTime keyTime = keyValue.GetTime();
-
-			startTime = startTime > keyTime ? keyTime : startTime;
-			endTime = endTime < keyTime ? keyTime : endTime;
-		}
-		else if (totalKeyCount > 1U)
-		{
-			fbxsdk::FbxTimeSpan localAnimatedTimeSpan(FBXSDK_TIME_INFINITE, FBXSDK_TIME_MINUS_INFINITE);
-			pAnimationTransformCurve->GetTimeInterval(localAnimatedTimeSpan);
-
-			fbxsdk::FbxTime localStartTime = localAnimatedTimeSpan.GetStart();
-			fbxsdk::FbxTime localEndTime = localAnimatedTimeSpan.GetStop();
-
-			startTime = startTime > localStartTime ? localStartTime : startTime;
-			endTime = endTime < localEndTime ? localEndTime : endTime;
-		}
-	};
-
-	for (uint32_t animationIndex = 0U; animationIndex < animationCount; ++animationIndex)
-	{
-		fbxsdk::FbxAnimStack* pAnimationStack = pSDKScene->GetSrcObject<fbxsdk::FbxAnimStack>(animationIndex);
-		uint32_t animationLayerCount = pAnimationStack->GetMemberCount();
-		for (uint32_t layerIndex = 0U; layerIndex < animationLayerCount; ++layerIndex)
-		{
-			fbxsdk::FbxAnimLayer* pAnimationLayer = static_cast<fbxsdk::FbxAnimLayer*>(pAnimationStack->GetMember(layerIndex));
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclTranslation, FBXSDK_CURVENODE_COMPONENT_X);
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclTranslation, FBXSDK_CURVENODE_COMPONENT_Y);
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclTranslation, FBXSDK_CURVENODE_COMPONENT_Z);
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclRotation, FBXSDK_CURVENODE_COMPONENT_X);
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclRotation, FBXSDK_CURVENODE_COMPONENT_Y);
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclRotation, FBXSDK_CURVENODE_COMPONENT_Z);
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclScaling, FBXSDK_CURVENODE_COMPONENT_Z);
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclScaling, FBXSDK_CURVENODE_COMPONENT_Z);
-			ConvertAnimationTransformCurve(pAnimationLayer, pSDKNode->LclScaling, FBXSDK_CURVENODE_COMPONENT_Z);
-		}
-	}
-
-}
-
-void FbxProducerImpl::ProcessJointsAndAnimations(fbxsdk::FbxNode* pSDKNode, cd::SceneDatabase* pSceneDatabase)
-{
-	FbxMesh* currMesh = pSDKNode->GetMesh();
-	unsigned int numOfDeformers = currMesh->GetDeformerCount();
-	FbxAMatrix geometryTransform = details::GetGeometryTransformation(pSDKNode);
-
-
-}
-
 void FbxProducerImpl::ProcessAnimation(fbxsdk::FbxNode* pNode, fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase)
-{
-	
-		const int animationCount = scene->GetSrcObjectCount<fbxsdk::FbxAnimStack>();
+{	
+	const int animationCount = scene->GetSrcObjectCount<fbxsdk::FbxAnimStack>();
 
+	for (int i = 0; i < animationCount; ++i)
+	{
 
-		for (int i = 0; i < animationCount; ++i)
+		// Single-take animation information.
+		fbxsdk::FbxAnimStack* currAnimStack = scene->GetSrcObject<fbxsdk::FbxAnimStack>(i);
+		scene->SetCurrentAnimationStack(currAnimStack);
+		fbxsdk::FbxString animStackName = currAnimStack->GetName();
+		std::string animationName = animStackName.Buffer();
+		float start = (float)currAnimStack->GetLocalTimeSpan().GetStart().GetSecondDouble();
+		float end = (float)currAnimStack->GetLocalTimeSpan().GetStop().GetSecondDouble();
+
+		cd::AnimationID::ValueType animationHash = cd::StringHash<cd::AnimationID::ValueType>(animationName);
+		cd::AnimationID animationID = m_animationIDGenerator.AllocateID(animationHash);
+
+		cd::Animation animation(animationID, animationName);
+		animation.SetDuration(static_cast<float>(end > start ? end - start : 1.0f));
+		animation.SetTicksPerSecond(static_cast<float>(24.0f));
+		fbxsdk::FbxAnimEvaluator* evaluator = scene->GetAnimationEvaluator();
+
+		float period = 1.f / 24.f; // todo: make variable, it's all over this file
+		const auto& bones = pSceneDatabase->GetBones();
+		int trackCount = std::ceil((end - start) / period);
+
+		for (int boneIndex = 0; boneIndex < m_sceneBoneCount; ++boneIndex)
 		{
+			fbxsdk::FbxNode* bone = scene->FindNodeByName(bones[boneIndex].GetName());
+			cd::TrackID::ValueType trackHash = cd::StringHash<cd::TrackID::ValueType>(bones[boneIndex].GetName());
+			cd::TrackID trackID = m_trackIDGenerator.AllocateID(trackHash);
 
-			// Single-take animation information.
-			fbxsdk::FbxAnimStack* currAnimStack = scene->GetSrcObject<fbxsdk::FbxAnimStack>(i);
-			scene->SetCurrentAnimationStack(currAnimStack);
-			fbxsdk::FbxString animStackName = currAnimStack->GetName();
-			std::string animationName = animStackName.Buffer();
-			float start = (float)currAnimStack->GetLocalTimeSpan().GetStart().GetSecondDouble();
-			float end = (float)currAnimStack->GetLocalTimeSpan().GetStop().GetSecondDouble();
+			cd::Track boneTrack(trackID, bones[boneIndex].GetName());
+			const char* name = bones[boneIndex].GetName();
+			boneTrack.SetTranslationKeyCount(trackCount);
+			boneTrack.SetRotationKeyCount(trackCount);
+			boneTrack.SetScaleKeyCount(trackCount);
 
-			cd::AnimationID::ValueType animationHash = cd::StringHash<cd::AnimationID::ValueType>(animationName);
-			cd::AnimationID animationID = m_animationIDGenerator.AllocateID(animationHash);
+			int trackIndex = 0;
+			bool loop = true;
+			for (int count = 0; count < trackCount ; count++)
+			{	
+				fbxsdk::FbxTime frameTime;
+				frameTime.SetSecondDouble(count * period);
+				fbxsdk::FbxAMatrix currentTransform = bone->EvaluateGlobalTransform(frameTime);
+				cd::Transform transformKey = details::ConvertFbxMatrixToTranform(currentTransform);
+				
+				// Translation.
+				auto& cdTranslationKey = boneTrack.GetTranslationKeys()[trackIndex];
+				cdTranslationKey.SetTime(static_cast<float>(count * period));
+				cdTranslationKey.SetValue(transformKey.GetTranslation());
 
-			cd::Animation animation(animationID, animationName);
-			animation.SetDuration(static_cast<float>(end > start ? end - start : 1.0f));
-			animation.SetTicksPerSecond(static_cast<float>(24.0f));
-			fbxsdk::FbxAnimEvaluator* evaluator = scene->GetAnimationEvaluator();
+				// Rotation.
+				auto& cdRotationKey = boneTrack.GetRotationKeys()[trackIndex];
+				cdRotationKey.SetTime(static_cast<float>(count * period));
+				cdRotationKey.SetValue(transformKey.GetRotation());
 
-		double period = 1.f / 24.f; // todo: make variable, it's all over this file
-			const auto& bones = pSceneDatabase->GetBones();
-			int trackCount = std::ceil((end - start) / period) + 1;
+				// Scale.
+				auto& cdScaleKey = boneTrack.GetScaleKeys()[trackIndex];
+				cdScaleKey.SetTime(static_cast<float>(count * period));
+				cdScaleKey.SetValue(transformKey.GetScale());
 
-			for (int j = 0; j < m_sceneBoneCount; ++j)
-			{
-				fbxsdk::FbxNode* joint = scene->FindNodeByName(bones[j].GetName());
-				cd::TrackID::ValueType trackHash = cd::StringHash<cd::TrackID::ValueType>(bones[j].GetName());
-				cd::TrackID trackID = m_trackIDGenerator.AllocateID(trackHash);
-
-				cd::Track boneTrack(trackID, bones[j].GetName());
-				const char* name = bones[j].GetName();
-				boneTrack.SetTranslationKeyCount(trackCount);
-				boneTrack.SetRotationKeyCount(trackCount);
-				boneTrack.SetScaleKeyCount(trackCount);
-
-				int trackIndex = 0;
-				bool loop = true;
-			for (double time = start; loop; time += period)
-			{
-				if (time >= end)
-				{
-					loop = false;
-					time = end;
-				}
-
-					// Translation.
-
-					auto& cdTranslationKey = boneTrack.GetTranslationKeys()[trackIndex];
-
-
-					fbxsdk::FbxTime currTime = fbxsdk::FbxTimeSeconds(time);
-					//FbxAMatrix currentTransformOffset = evaluator->GetNodeGlobalTransform(node, currTime) * geometryTransform;
-					//FbxAMatrix localPose = currentTransformOffset.Inverse() * evaluator->GetNodeLocalTransform(joint, currTime);
-
-					fbxsdk::FbxAMatrix localPose =
-						bones[j].GetParentID().IsValid() ?
-						evaluator->GetNodeGlobalTransform(joint, currTime) :
-						evaluator->GetNodeLocalTransform(joint, currTime);
-
-					float frameTime = float(time - start);
-					fbxsdk::FbxVector4 translation = localPose.GetT();
-					cdTranslationKey.SetTime(frameTime);
-					cdTranslationKey.SetValue(cd::Vec3f((float)translation[0], (float)translation[1], (float)translation[2]));
-
-
-
-					// Rotation.
-
-					fbxsdk::FbxQuaternion quaternion = localPose.GetQ();
-
-					//In fbxsdk Queternion is w,x,y,z
-					auto& cdRotationKey = boneTrack.GetRotationKeys()[trackIndex];
-					cdRotationKey.SetTime(frameTime);
-					cdRotationKey.SetValue(cd::Quaternion((float)quaternion[1], (float)quaternion[2], (float)quaternion[3], (float)quaternion[0]));
-
-
-					// Scale.
-
-					FbxVector4 scale = localPose.GetS();
-
-					auto& cdScaleKey = boneTrack.GetScaleKeys()[trackIndex];
-					cdScaleKey.SetTime(frameTime);
-					cdScaleKey.SetValue(cd::Vec3f((float)scale[0], (float)scale[1], (float)scale[2]));
-
-					trackIndex++;
-				}
+				trackIndex++;
+			}
 				animation.AddBoneTrackID(trackID.Data());
 				pSceneDatabase->AddTrack(cd::MoveTemp(boneTrack));
 			}
-			pSceneDatabase->AddAnimation(cd::MoveTemp(animation));
+		pSceneDatabase->AddAnimation(cd::MoveTemp(animation));
 
-		}
+	}
 	}
 	
 }
-

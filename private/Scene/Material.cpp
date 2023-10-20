@@ -44,25 +44,8 @@ void Material::Init(MaterialID materialID, const char* pMaterialName, MaterialTy
 	m_pMaterialImpl->Init(materialID, pMaterialName, type);
 }
 
-MaterialID Material::GetID() const
-{
-	return m_pMaterialImpl->GetID();
-}
-
-void Material::SetID(MaterialID id)
-{
-	m_pMaterialImpl->SetID(id);
-}
-
-const char* Material::GetName() const
-{
-	return m_pMaterialImpl->GetName().c_str();
-}
-
-void Material::SetName(const char* pName)
-{
-	m_pMaterialImpl->SetName(pName);
-}
+PIMPL_ID_APIS(Material);
+PIMPL_NAME_APIS(Material);
 
 MaterialType Material::GetType() const
 {

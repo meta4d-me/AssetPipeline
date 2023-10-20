@@ -1,5 +1,4 @@
 #include "HalfEdgeMesh/Edge.h"
-
 #include "HalfEdgeMesh/Face.h"
 #include "HalfEdgeMesh/HalfEdge.h"
 #include "HalfEdgeMesh/Vertex.h"
@@ -14,7 +13,7 @@ bool Edge::IsOnBoundary() const
 
 Point Edge::Center() const
 {
-	return (m_halfEdgeRef->GetVertex()->GetPosition() + m_halfEdgeRef->GetTwin()->GetVertex()->GetPosition()) * 0.5f;
+	return (m_halfEdgeRef->GetVertex()->GetPosition() + m_halfEdgeRef->GetEndVertex()->GetPosition()) * 0.5f;
 }
 
 Direction Edge::Normal() const
@@ -24,10 +23,10 @@ Direction Edge::Normal() const
 
 float Edge::Length() const
 {
-	return (m_halfEdgeRef->GetVertex()->GetPosition() - m_halfEdgeRef->GetTwin()->GetVertex()->GetPosition()).Length();
+	return (m_halfEdgeRef->GetVertex()->GetPosition() - m_halfEdgeRef->GetEndVertex()->GetPosition()).Length();
 }
 
-bool Edge::Validate() const
+bool Edge::IsValid() const
 {
 	return true;
 }

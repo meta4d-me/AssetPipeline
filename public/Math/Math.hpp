@@ -33,6 +33,8 @@ public:
 	static constexpr float HALF_SQRT_3 = SQRT_3 / 2.0f;
 	static constexpr float INVERSE_SQRT_3 = 1.0f / SQRT_3;
 	static constexpr float FLOAT_NAN = std::numeric_limits<float>::quiet_NaN();
+	static constexpr float FLOAT_MIN = std::numeric_limits<float>::min();
+	static constexpr float FLOAT_MAX = std::numeric_limits<float>::max();
 
 	template<typename T>
 	static constexpr T DegreeToRadian(T degree) { return degree * DEGREE_TO_RADIAN; }
@@ -147,9 +149,26 @@ public:
 	}
 
 	template<typename T>
-	static constexpr bool Validate(T value)
+	static constexpr bool IsValid(T value)
 	{
 		return std::isfinite(value) && !std::isnan(value);
 	}
+
+	static uint32_t CastFloatToU32(float value)
+	{
+		struct FloatU32Mem
+		{
+			union
+			{
+				float f;
+				uint32_t u;
+			};
+		};
+
+		FloatU32Mem m;
+		m.f = value;
+		return m.u;
+	}
 };
+
 }

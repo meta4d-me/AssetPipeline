@@ -607,17 +607,12 @@ void GenericProducerImpl::AddLight(cd::SceneDatabase* pSceneDatabase, const aiLi
 		case aiLightSource_AMBIENT:
 		case aiLightSource_UNDEFINED:
 		default:
-			return cd::LightType::Count;
+			assert("Unknown light source type.\n");
+			return cd::LightType::Point;
 		}
 	};
 
 	cd::LightType lightType = GetLightType(pSourceLight->mType);
-	if (cd::LightType::Count == lightType)
-	{
-		printf("Unknown light source type.\n");
-		return;
-	}
-
 	cd::Light light(m_lightIDGenerator.AllocateID(), lightType);
 	light.SetName(pSourceLight->mName.C_Str());
 	light.SetColor(cd::RGB(pSourceLight->mColorAmbient.r, pSourceLight->mColorAmbient.g, pSourceLight->mColorAmbient.b));

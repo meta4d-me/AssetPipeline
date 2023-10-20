@@ -63,3 +63,5 @@ project("AssetPipelineCore")
 			"4251"
 		}
 	filter {}
+
+	justmycode("Off")

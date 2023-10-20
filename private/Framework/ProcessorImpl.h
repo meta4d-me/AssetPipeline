@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Base/Template.h"
+#include "Math/AxisSystem.hpp"
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -29,6 +32,13 @@ public:
 	~ProcessorImpl();
 
 	const cd::SceneDatabase* GetSceneDatabase() const { return m_pCurrentSceneDatabase; }
+
+	void SetAxisSystem(cd::AxisSystem axisSystem) { m_targetAxisSystem = cd::MoveTemp(axisSystem); }
+	cd::AxisSystem& GetAxisSystem() { return m_targetAxisSystem; }
+	const cd::AxisSystem& GetAxisSystem() const { return m_targetAxisSystem; }
+
+	void ConvertAxisSystem();
+
 	void Run();
 
 	void SetValidateSceneDatabaseEnable(bool enable) { m_enableValidateSceneDatabase = enable; }
@@ -49,8 +59,6 @@ public:
 	void SetEmbedTextureFilesEnable(bool enable) { m_enableEmbedTextureFiles = enable; }
 	bool IsEmbedTextureFilesEnabled() const { return m_enableEmbedTextureFiles; }
 
-	void DumpSceneDatabase();
-	void ValidateSceneDatabase();
 	void CalculateAABBForSceneDatabase();
 	void FlattenSceneDatabase();
 	void SearchMissingTextures();
@@ -59,6 +67,8 @@ public:
 private:
 	IProducer* m_pProducer = nullptr;
 	IConsumer* m_pConsumer = nullptr;
+
+	cd::AxisSystem m_targetAxisSystem;
 
 	cd::SceneDatabase* m_pCurrentSceneDatabase;
 	std::unique_ptr<cd::SceneDatabase> m_pLocalSceneDatabase;

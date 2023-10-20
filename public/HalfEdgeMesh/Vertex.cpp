@@ -6,10 +6,25 @@
 namespace cd::hem
 {
 
+std::optional<HalfEdgeRef> Vertex::GetHalfEdgeToVertex(VertexRef vertex) const
+{
+	HalfEdgeRef h = m_halfEdgeRef;
+	do
+	{
+		if (h->GetEndVertex() == vertex)
+		{
+			return h;
+		}
+
+		h = h->GetRotateNext();
+	} while (h != m_halfEdgeRef);
+
+	return std::nullopt;
+}
+
 bool Vertex::IsOnBoundary() const
 {
 	HalfEdgeCRef h = m_halfEdgeRef;
-
 	do
 	{
 		if (h->GetFace()->IsBoundary())
@@ -17,7 +32,7 @@ bool Vertex::IsOnBoundary() const
 			return true;
 		}
 
-		h = h->GetTwin()->GetNext();
+		h = h->GetRotateNext();
 	} while (h != m_halfEdgeRef);
 	
 	return false;
@@ -33,7 +48,7 @@ Point Vertex::NeighborCenter() const
 	{
 		center += h->GetNext()->GetVertex()->GetPosition();
 		neighborCount += 1.0f;
-		h = h->GetTwin()->GetNext();
+		h = h->GetRotateNext();
 	} while (h != m_halfEdgeRef);
 
 	center /= neighborCount;
@@ -50,7 +65,7 @@ Direction Vertex::Normal() const
 	{
 		const Point& v1 = h->GetNext()->GetVertex()->GetPosition();
 
-		h = h->GetTwin()->GetNext();
+		h = h->GetRotateNext();
 
 		const Point& v2 = h->GetNext()->GetVertex()->GetPosition();
 
@@ -68,20 +83,20 @@ Direction Vertex::Normal() const
 uint32_t Vertex::Degree() const
 {
 	uint32_t degree = 0U;
-	HalfEdgeCRef h = m_halfEdgeRef;
 
+	HalfEdgeCRef h = m_halfEdgeRef;
 	do
 	{
 		++degree;
-		h = h->GetTwin()->GetNext();
+		h = h->GetRotateNext();
 	} while (h != m_halfEdgeRef);
 
 	return degree;
 }
 
-bool Vertex::Validate() const
+bool Vertex::IsValid() const
 {
-	return m_position.Validate();
+	return m_position.IsValid();
 }
 
 }

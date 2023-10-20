@@ -32,11 +32,8 @@ public:
 	
 	void Init(NodeID nodeID, std::string name);
 
-	void SetID(NodeID nodeID);
-	NodeID GetID() const;
-
-	void SetName(std::string name);
-	const char* GetName() const;
+	EXPORT_OBJECT_ID_APIS(NodeID);
+	EXPORT_NAME_APIS();
 
 	void SetParentID(NodeID parentID);
 	NodeID GetParentID() const;

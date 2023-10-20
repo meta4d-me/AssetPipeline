@@ -32,29 +32,12 @@ public:
 
 	void Init(TrackID id, std::string name);
 
-	void SetID(TrackID id);
-	TrackID GetID() const;
+	EXPORT_OBJECT_ID_APIS(TrackID);
+	EXPORT_NAME_APIS();
 
-	void SetName(std::string name);
-	const char* GetName() const;
-
-	void SetTranslationKeyCount(uint32_t keyCount);
-	uint32_t GetTranslationKeyCount() const;
-	void SetTranslationKeys(std::vector<TranslationKey> keys);
-	std::vector<TranslationKey>& GetTranslationKeys();
-	const std::vector<TranslationKey>& GetTranslationKeys() const;
-
-	void SetRotationKeyCount(uint32_t keyCount);
-	uint32_t GetRotationKeyCount() const;
-	void SetRotationKeys(std::vector<RotationKey> keys);
-	std::vector<RotationKey>& GetRotationKeys();
-	const std::vector<RotationKey>& GetRotationKeys() const;
-
-	void SetScaleKeyCount(uint32_t keyCount);
-	uint32_t GetScaleKeyCount() const;
-	void SetScaleKeys(std::vector<ScaleKey> keys);
-	std::vector<ScaleKey>& GetScaleKeys();
-	const std::vector<ScaleKey>& GetScaleKeys() const;
+	EXPORT_VECTOR_DATA_APIS(TranslationKey);
+	EXPORT_VECTOR_DATA_APIS(RotationKey);
+	EXPORT_VECTOR_DATA_APIS(ScaleKey);
 
 	Track& operator<<(InputArchive& inputArchive);
 	Track& operator<<(InputArchiveSwapBytes& inputArchive);

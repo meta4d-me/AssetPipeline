@@ -31,11 +31,8 @@ public:
 
 	void Init(AnimationID id, std::string name);
 
-	void SetID(AnimationID id) { m_id = id; }
-	AnimationID GetID() const { return m_id; }
-
-	void SetName(std::string name) { m_name = cd::MoveTemp(name); }
-	const std::string& GetName() const { return m_name; }
+	IMPLEMENT_ID_APIS(AnimationID, m_id);
+	IMPLEMENT_NAME_APIS(m_name);
 
 	void SetDuration(float duration) { m_duration = duration; }
 	float GetDuration() const { return m_duration; }

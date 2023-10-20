@@ -23,7 +23,7 @@ public:
 	explicit Morph(InputArchive& inputArchive);
 	explicit Morph(InputArchiveSwapBytes & inputArchive);
 	explicit Morph(uint32_t vertexCount);
-	explicit Morph(MorphID id, const char* pName, uint32_t vertexCount);
+	explicit Morph(MorphID id, MeshID sourceMeshID, const char* pName, uint32_t vertexCount);
 	Morph(const Morph&) = delete;
 	Morph& operator=(const Morph&) = delete;
 	Morph(Morph&&);
@@ -31,43 +31,24 @@ public:
 	~Morph();
 
 	void Init(uint32_t vertexCount);
-	void Init(MorphID meshID, const char* pName, uint32_t vertexCount);
-	MorphID GetID() const;
-	const char* GetName() const;
+	void Init(MorphID id, const char* pName, uint32_t vertexCount);
+
+	EXPORT_OBJECT_ID_APIS(MorphID);
+	EXPORT_NAME_APIS();
+
+	void SetSourceMeshID(MeshID meshID);
+	MeshID GetSourceMeshID() const;
 
 	void SetWeight(float weight);
 	float GetWeight() const;
 
 	uint32_t GetVertexCount() const;
 
-	void SetVertexSourceID(uint32_t vertexIndex, uint32_t sourceID);
-	VertexID GetVertexSourceID(uint32_t vertexIndex) const;
-	std::vector<VertexID>& GetVertexSourceIDs();
-	const std::vector<VertexID>& GetVertexSourceIDs() const;
-
-	void SetVertexPosition(uint32_t vertexIndex, const Point& position);
-	Point& GetVertexPosition(uint32_t vertexIndex);
-	const Point& GetVertexPosition(uint32_t vertexIndex) const;
-	std::vector<Point>& GetVertexPositions();
-	const std::vector<Point>& GetVertexPositions() const;
-
-	void SetVertexNormal(uint32_t vertexIndex, const Direction& normal);
-	Direction& GetVertexNormal(uint32_t vertexIndex);
-	const Direction& GetVertexNormal(uint32_t vertexIndex) const;
-	std::vector<Direction>& GetVertexNormals();
-	const std::vector<Direction>& GetVertexNormals() const;
-
-	void SetVertexTangent(uint32_t vertexIndex, const Direction& tangent);
-	Direction& GetVertexTangent(uint32_t vertexIndex);
-	const Direction& GetVertexTangent(uint32_t vertexIndex) const;
-	std::vector<Direction>& GetVertexTangents();
-	const std::vector<Direction>& GetVertexTangents() const;
-
-	void SetVertexBiTangent(uint32_t vertexIndex, const Direction& biTangent);
-	Direction& GetVertexBiTangent(uint32_t vertexIndex);
-	const Direction& GetVertexBiTangent(uint32_t vertexIndex) const;
-	std::vector<Direction>& GetVertexBiTangents();
-	const std::vector<Direction>& GetVertexBiTangents() const;
+	EXPORT_VECTOR_DATA_APIS(VertexSourceID);
+	EXPORT_VECTOR_DATA_APIS(VertexPosition);
+	EXPORT_VECTOR_DATA_APIS(VertexNormal);
+	EXPORT_VECTOR_DATA_APIS(VertexTangent);
+	EXPORT_VECTOR_DATA_APIS(VertexBiTangent);
 
 	Morph& operator<<(InputArchive& inputArchive);
 	Morph& operator<<(InputArchiveSwapBytes& inputArchive);

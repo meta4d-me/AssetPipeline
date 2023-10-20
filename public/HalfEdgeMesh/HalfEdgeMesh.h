@@ -1,8 +1,11 @@
 #pragma once
 
-#include "HalfEdgeMesh/ForwardDecls.h"
+#include "HalfEdgeMesh/Vertex.h"
+#include "HalfEdgeMesh/Face.h"
+#include "HalfEdgeMesh/HalfEdge.h"
+#include "Scene/ObjectID.h"
 
-#include <optional>
+#include <list>
 
 namespace cd
 {
@@ -11,6 +14,10 @@ class Mesh;
 
 namespace hem
 {
+
+class HalfEdgeMeshImpl;
+
+}
 
 class CORE_API HalfEdgeMesh
 {
@@ -26,49 +33,52 @@ public:
 	HalfEdgeMesh& operator=(HalfEdgeMesh&&);
 	~HalfEdgeMesh();
 
-	std::list<Vertex>& GetVertices() { return m_vertices; }
-	const std::list<Vertex>& GetVertices() const { return m_vertices; }
+	std::list<hem::Vertex>& GetVertices();
+	const std::list<hem::Vertex>& GetVertices() const;
 
-	std::list<Edge>& GetEdges() { return m_edges; }
-	const std::list<Edge>& GetEdges() const { return m_edges; }
+	std::list<hem::Edge>& GetEdges();
+	const std::list<hem::Edge>& GetEdges() const;
 
-	std::list<Face>& GetFaces() { return m_faces; }
-	const std::list<Face>& GetFaces() const { return m_faces; }
+	std::list<hem::Face>& GetFaces();
+	const std::list<hem::Face>& GetFaces() const;
 
-	std::list<HalfEdge>& GetHalfEdges() { return m_halfEdges; }
-	const std::list<HalfEdge>& GetHalfEdges() const { return m_halfEdges; }
+	std::list<hem::HalfEdge>& GetHalfEdges();
+	const std::list<hem::HalfEdge>& GetHalfEdges() const;
 
-	VertexRef EmplaceVertex();
-	EdgeRef EmplaceEdge();
-	FaceRef EmplaceFace(bool isBoundary = false);
-	HalfEdgeRef EmplaceHalfEdge();
+	// Helpers.
+	bool IsTriangleMesh() const;
+	bool IsValid() const;
+	void Dump() const;
 
-	void EraseVertex(VertexRef vertex);
-	void EraseEdge(EdgeRef edge);
-	void EraseFace(FaceRef face);
-	void EraseHalfEdge(HalfEdgeRef halfEdge);
+	// Returns the count of boudary faces.
+	uint32_t Boundaries() const;
+	bool HasBoundary() const { return Boundaries() > 0U; }
 
-	bool Validate() const;
+	// Add/Remove are basic mesh edit functions which will maintain connectivity data to make correct topology.
+	hem::VertexRef AddVertex();
+	hem::EdgeRef AddEdge(hem::VertexRef v0, hem::VertexRef v1);
+	std::optional<hem::FaceRef> AddFace(const std::vector<hem::HalfEdgeRef>& loop);
+	void RemoveVertex(hem::VertexRef vertex);
+	void RemoveEdge(hem::EdgeRef edge);
+	void RemoveFace(hem::FaceRef face);
 
-	std::optional<VertexRef> CollapseEdge(EdgeRef edge, float t = 0.5f);
+	// Rotate non-boundary edge CCW inside its containing faces.
+	// Reassign connectivity data but not create or destroy mesh elements.
+	// Returns edge after rotation.
+	std::optional<hem::EdgeRef> FlipEdge(hem::EdgeRef edge);
+
+	// Split an edge by adding a new vertex in the midpoint of edge.
+	// Reassign connectivity data and add a new vertex and edges, faces.
+	// Returns new added vertex.
+	std::optional<hem::VertexRef> SplitEdge(hem::EdgeRef edge, float t = 0.5f);
+
+	// Collapse an edge by removing one vertex and optional to move another vertex to a new position.
+	// It also needs to delete two adjacent faces along the edge. Then reassign connectivity data.
+	// Returns the remain vertex.
+	std::optional<hem::VertexRef> CollapseEdge(hem::EdgeRef edge, float t = 0.5f);
 
 private:
-	std::list<Vertex> m_vertices;
-	std::list<Edge> m_edges;
-	std::list<Face> m_faces;
-	std::list<HalfEdge> m_halfEdges;
-
-	uint32_t m_nextVertexID = 0U;
-	uint32_t m_nextEdgeID = 0U;
-	uint32_t m_nextFaceID = 0U;
-	uint32_t m_nextHalfEdgeID = 0U;
-
-	std::list<Vertex> m_freeVertices;
-	std::list<Edge> m_freeEdges;
-	std::list<Face> m_freeFaces;
-	std::list<HalfEdge> m_freeHalfEdges;
+	hem::HalfEdgeMeshImpl* m_pHalfEdgeMeshImpl;
 };
-
-}
 
 }

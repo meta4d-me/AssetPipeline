@@ -10,9 +10,10 @@ MorphImpl::MorphImpl(uint32_t vertexCount)
 	Init(vertexCount);
 }
 
-MorphImpl::MorphImpl(MorphID id, std::string name, uint32_t vertexCount) :
+MorphImpl::MorphImpl(MorphID id, MeshID sourceMeshID, std::string name, uint32_t vertexCount) :
 	m_name(MoveTemp(name)),
-	m_id(id)
+	m_id(id),
+	m_sourceMeshID(sourceMeshID)
 {
 	Init(vertexCount);
 }
@@ -37,35 +38,6 @@ void MorphImpl::Init(MorphID id, std::string name, uint32_t vertexCount)
 	m_id = id;
 	m_name = MoveTemp(name);
 	Init(vertexCount);
-}
-
-void MorphImpl::SetVertexSourceID(uint32_t vertexIndex, uint32_t sourceID)
-{
-	m_vertexSourceIDs[vertexIndex] = cd::VertexID(sourceID);
-}
-
-////////////////////////////////////////////////////////////////////////////////////
-// Vertex geometry data
-////////////////////////////////////////////////////////////////////////////////////
-
-void MorphImpl::SetVertexPosition(uint32_t vertexIndex, const Point& position)
-{
-	m_vertexPositions[vertexIndex] = position;
-}
-
-void MorphImpl::SetVertexNormal(uint32_t vertexIndex, const Direction& normal)
-{
-	m_vertexNormals[vertexIndex] = normal;
-}
-
-void MorphImpl::SetVertexTangent(uint32_t vertexIndex, const Direction& tangent)
-{
-	m_vertexTangents[vertexIndex] = tangent;
-}
-
-void MorphImpl::SetVertexBiTangent(uint32_t vertexIndex, const Direction& biTangent)
-{
-	m_vertexBiTangents[vertexIndex] = biTangent;
 }
 
 }

@@ -70,6 +70,7 @@ class MergeTextureConsumer : public cdtools::IConsumer
 {
 public:
 	MergeTextureConsumer() = default;
+	MergeTextureConsumer(const char* pOutputFolderPath) : m_outputFolderPath(pOutputFolderPath) {}
 	MergeTextureConsumer(const MergeTextureConsumer&) = delete;
 	MergeTextureConsumer& operator=(const MergeTextureConsumer&) = delete;
 	MergeTextureConsumer(MergeTextureConsumer&&) = default;
@@ -96,6 +97,7 @@ public:
 		assert(!m_mergedTextureSuffixAndExtension.empty() && "Need to specify merged texture suffix and output file extension.");
 		assert(!m_textureColorIndex.empty() && "Forgot to set texture type and its according color index?");
 
+		std::map<cd::TextureID, std::string> textureNewFilePath;
 		for (const auto& material : pSceneDatabase->GetMaterials())
 		{
 			std::map<std::string, std::vector<cd::MaterialTextureType>> textureFileSupportTypes;
@@ -174,9 +176,9 @@ public:
 			for (const auto& [textureType, colorValue] : m_textureColorDefaultValue)
 			{
 				// Init default color value if file not loaded.
-				if (!loadedTexturesData.contains(textureType))
+				if (loadedTexturesData.find(textureType) == loadedTexturesData.end())
 				{
-					assert(m_textureColorDefaultValue.contains(textureType));
+					assert(m_textureColorDefaultValue.find(textureType) != m_textureColorDefaultValue.end());
 					int colorIndex = static_cast<int>(m_textureColorIndex[textureType]);
 					uint8_t defaultValue = m_textureColorDefaultValue[textureType];
 					for (int i = 0; i < mergedTexture.rect.x(); ++i)
@@ -201,7 +203,8 @@ public:
 				}
 			}
 
-			std::filesystem::path mergedFilePath = mergedTextureFilePath.parent_path() / material.GetName();
+			std::filesystem::path mergedFilePath = !m_outputFolderPath.empty() ? m_outputFolderPath : mergedTextureFilePath.parent_path();
+			mergedFilePath /= mergedTextureFilePath.stem();
 			//mergedFilePath += "_" + std::to_string(mergedTextureRect.value().x());
 			//mergedFilePath += "x" + std::to_string(mergedTextureRect.value().y());
 			mergedFilePath += "_" + m_mergedTextureSuffixAndExtension;
@@ -213,11 +216,29 @@ public:
 			else
 			{
 				printf("Succeed to save merged texture : %s.\n", outputFilePath.c_str());
+				for (const auto& [textureType, _] : m_textureColorIndex)
+				{
+					if (!material.IsTextureSetup(textureType))
+					{
+						continue;
+					}
+
+					cd::TextureID textureID = material.GetTextureID(textureType);
+					textureNewFilePath[textureID] = outputFilePath;
+				}
 			}
+		}
+
+		// Update material texture paths.
+		for (const auto& [textureID, filePath] : textureNewFilePath)
+		{
+			auto& texture = const_cast<cd::Texture&>(pSceneDatabase->GetTexture(textureID.Data()));
+			texture.SetPath(filePath.c_str());
 		}
 	}
 
 private:
+	std::string m_outputFolderPath;
 	std::string m_mergedTextureSuffixAndExtension;
 	std::map<cd::MaterialTextureType, ColorIndex> m_textureColorIndex; 
 	std::map<cd::MaterialTextureType, uint8_t> m_textureColorDefaultValue; 

@@ -152,19 +152,19 @@ public:
 	CD_FORCEINLINE constexpr TVector<T, 3> xyz() const { static_assert(3 <= N); return TVector<T, 3>(x(), y(), z()); }
 
 	// Validation
-	CD_FORCEINLINE bool Validate() const
+	CD_FORCEINLINE bool IsValid() const
 	{
 		if constexpr (2 == N)
 		{
-			return cd::Math::Validate(x()) && cd::Math::Validate(y());
+			return cd::Math::IsValid(x()) && cd::Math::IsValid(y());
 		}
 		else if constexpr (3 == N)
 		{
-			return cd::Math::Validate(x()) && cd::Math::Validate(y()) && cd::Math::Validate(z());
+			return cd::Math::IsValid(x()) && cd::Math::IsValid(y()) && cd::Math::IsValid(z());
 		}
 		else if constexpr (4 == N)
 		{
-			return cd::Math::Validate(x()) && cd::Math::Validate(y()) && cd::Math::Validate(z()) && cd::Math::Validate(w());
+			return cd::Math::IsValid(x()) && cd::Math::IsValid(y()) && cd::Math::IsValid(z()) && cd::Math::IsValid(w());
 		}
 	}
 
@@ -179,6 +179,19 @@ public:
 		}
 
 		return true;
+	}
+
+	CD_FORCEINLINE bool ContainsNan() const
+	{
+		for (size_t index = 0; index < N; ++index)
+		{
+			if (std::isnan(data[index]))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	CD_FORCEINLINE bool Contains(T value) const
@@ -221,8 +234,8 @@ public:
 
 	TVector& Normalize()
 	{
-		T length = Length();
-		std::for_each(Begin(), End(), [&length](T& component) { component /= length; });
+		T invLength = 1.0f / Length();
+		std::for_each(Begin(), End(), [&invLength](T& component) { component *= invLength; });
 		return *this;
 	}
 
@@ -240,6 +253,11 @@ public:
 							 x() * rhs.y() - y() * rhs.x());
 	}
 
+	uint32_t GetTypeHash() const
+	{
+
+	}
+
 	// Operators
 	CD_FORCEINLINE bool operator!=(const TVector& rhs) const { return !(*this == rhs); }
 	bool operator==(const TVector& rhs) const
@@ -248,7 +266,7 @@ public:
 		{
 			if constexpr (std::is_floating_point<T>())
 			{
-				if (std::abs(data[index] - rhs[index]) > Math::GetEpsilon<T>())
+				if (!cd::Math::IsEqualTo(data[index], rhs[index]))
 				{
 					return false;
 				}
@@ -293,6 +311,7 @@ public:
 		return *this;
 	}
 
+	friend CD_FORCEINLINE TVector operator*(T lhs, const TVector& rhs) { return rhs * lhs; }
 	CD_FORCEINLINE TVector operator*(T value) const { return TVector(*this) *= value; }
 	TVector& operator*=(T value)
 	{

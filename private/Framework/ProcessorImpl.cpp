@@ -5,46 +5,11 @@
 #include "Scene/SceneDatabase.h"
 
 #include <cassert>
-#include <cfloat>
 #include <filesystem>
 #include <fstream>
 
 namespace details
 {
-
-void Dump(const char* label, const cd::Quaternion& quaternion)
-{
-	printf("%s : (w = %f, x = %f, y = %f, z = %f)\n", label, quaternion.w(), quaternion.x(), quaternion.y(), quaternion.z());
-}
-
-void Dump(const char* label, const cd::Vec2f& vector)
-{
-	printf("%s : (x = %f, y = %f)\n", label, vector.x(), vector.y());
-}
-
-void Dump(const char* label, const cd::Vec3f& vector)
-{
-	printf("%s : (x = %f, y = %f, z = %f)\n", label, vector.x(), vector.y(), vector.z());
-}
-
-void Dump(const char* label, const cd::Vec4f& vector)
-{
-	printf("%s : (x = %f, y = %f, z = %f, w = %f)\n", label, vector.x(), vector.y(), vector.z(), vector.w());
-}
-
-void Dump(const cd::Transform& transform)
-{
-	details::Dump("\tTranslation", transform.GetTranslation());
-	details::Dump("\tRotation", transform.GetRotation());
-	details::Dump("\tScale", transform.GetScale());
-}
-
-void Dump(const cd::Matrix4x4& offset)
-{
-	details::Dump("\tTranslation", offset.GetTranslation());
-	details::Dump("\tRotaion", cd::Quaternion::FromMatrix(offset.GetRotation()));
-	details::Dump("\tScale", offset.GetScale());
-}
 
 void CalculateNodeTransforms(std::vector<cd::Matrix4x4>& nodeFinalTransforms, const cd::SceneDatabase* pSceneDatabase, const cd::Node& node)
 {
@@ -78,7 +43,7 @@ public:
 
 		if (m_pProcessImpl->IsValidateSceneDatabaseEnabled())
 		{
-			m_pProcessImpl->ValidateSceneDatabase();
+			m_pProcessImpl->GetSceneDatabase()->Validate();
 		}
 	}
 	SceneDatabaseValidator(const SceneDatabaseValidator&) = delete;
@@ -89,7 +54,7 @@ public:
 	{
 		if (m_pProcessImpl->IsValidateSceneDatabaseEnabled())
 		{
-			m_pProcessImpl->ValidateSceneDatabase();
+			m_pProcessImpl->GetSceneDatabase()->Validate();
 		}
 	}
 
@@ -137,6 +102,8 @@ ProcessorImpl::ProcessorImpl(IProducer* pProducer, IConsumer* pConsumer, cd::Sce
 		// The SceneDatabase is from outside resource.
 		m_pCurrentSceneDatabase = pHostSceneDatabase;
 	}
+
+	m_targetAxisSystem = cd::AxisSystem::CDEngine();
 }
 
 ProcessorImpl::~ProcessorImpl()
@@ -149,6 +116,8 @@ void ProcessorImpl::Run()
 	{
 		m_pProducer->Execute(m_pCurrentSceneDatabase);
 	}
+
+	ConvertAxisSystem();
 
 	// Adding post processing here.
 	// SceneDatabaseValidator will help to validate if data is correct before and after.
@@ -179,7 +148,7 @@ void ProcessorImpl::Run()
 	// Dump all information finally.
 	if (IsDumpSceneDatabaseEnabled())
 	{
-		DumpSceneDatabase();
+		m_pCurrentSceneDatabase->Dump();
 	}
 
 	if (m_pConsumer)
@@ -188,342 +157,85 @@ void ProcessorImpl::Run()
 	}
 }
 
-void ProcessorImpl::DumpSceneDatabase()
+void ProcessorImpl::ConvertAxisSystem()
 {
-	printf("\nSceneDatabase : \n");
-	printf("\tName : %s\n", m_pCurrentSceneDatabase->GetName());
-	printf("\tAABB :\n");
-	details::Dump("\t\tMin", m_pCurrentSceneDatabase->GetAABB().Min());
-	details::Dump("\t\tMax", m_pCurrentSceneDatabase->GetAABB().Max());
-	printf("\tAxisSystem : \n");
-	printf("\t\tHandedness : %s\n", cd::Handedness::Left == m_pCurrentSceneDatabase->GetAxisSystem().GetHandedness() ? "LeftHandSystem" : "RightHandSystem");
-	details::Dump("\t\tUpAxis", cd::Vec3f::GetUpAxis(m_pCurrentSceneDatabase->GetAxisSystem()));
-	details::Dump("\t\tFrontAxis", cd::Vec3f::GetFrontAxis(m_pCurrentSceneDatabase->GetAxisSystem()));
-	printf("\tUnitSystem : \n");
-	printf("\t\tUnit : %s\n", cd::Unit::CenterMeter == m_pCurrentSceneDatabase->GetUnit() ? "CenterMeter" : "Meter");
-
-	printf("\tNode count : %d\n", m_pCurrentSceneDatabase->GetNodeCount());
-	printf("\tMesh count : %d\n", m_pCurrentSceneDatabase->GetMeshCount());
-	printf("\tMaterial count : %d\n", m_pCurrentSceneDatabase->GetMaterialCount());
-	printf("\tTexture count : %d\n", m_pCurrentSceneDatabase->GetTextureCount());
-	printf("\tCamera count : %d\n", m_pCurrentSceneDatabase->GetCameraCount());
-	printf("\tLight count : %d\n", m_pCurrentSceneDatabase->GetLightCount());
-	printf("\tBone count : %d\n", m_pCurrentSceneDatabase->GetBoneCount());
-	printf("\tAnimation count : %d\n", m_pCurrentSceneDatabase->GetAnimationCount());
-	printf("\tTrack count : %d\n", m_pCurrentSceneDatabase->GetTrackCount());
-	if (m_pCurrentSceneDatabase->GetNodeCount() > 0U)
+	const cd::AxisSystem& sceneAxisSystem = m_pCurrentSceneDatabase->GetAxisSystem();
+	if (sceneAxisSystem == m_targetAxisSystem)
 	{
-		printf("\n");
-		for (const auto& node : m_pCurrentSceneDatabase->GetNodes())
-		{
-			printf("[Node %u] ParentID = %u, Name = %s\n", node.GetID().Data(), node.GetParentID().Data(), node.GetName());
-			details::Dump(node.GetTransform());
-
-			for (cd::MeshID meshID : node.GetMeshIDs())
-			{
-				printf("\t[Associated Mesh %u]\n", meshID.Data());
-			}
-		}
+		return;
 	}
-
-	std::map<uint32_t, std::vector<uint32_t>> materialDrawMeshIDs;
-	if (m_pCurrentSceneDatabase->GetMeshCount() > 0U)
+	
+	bool mirrorHandedness = sceneAxisSystem.GetHandedness() != m_targetAxisSystem.GetHandedness();
+	if (mirrorHandedness)
 	{
-		printf("\n");
-		for (const auto& mesh : m_pCurrentSceneDatabase->GetMeshes())
+		// TODO : convert node transform data.
+		// TODO : convert bone transform data.
+
+		// Convert mesh data.
+		for (cd::Mesh& mesh : m_pCurrentSceneDatabase->GetMeshes())
 		{
-			printf("[Mesh %u] Name = %s\n", mesh.GetID().Data(), mesh.GetName());
-			printf("\tVertexCount = %u, TriangleCount = %u\n", mesh.GetVertexCount(), mesh.GetPolygonCount());
-			if (mesh.GetMaterialID().IsValid())
+			for (uint32_t vertexIndex = 0U; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
 			{
-				printf("\t[Associated Material %u]\n", mesh.GetMaterialID().Data());
+				auto& position = mesh.GetVertexPosition(vertexIndex);
+				position.z() = -position.z();
 
-				materialDrawMeshIDs[mesh.GetMaterialID().Data()].push_back(mesh.GetID().Data());
-			}
-
-			//for (uint32_t vertexIndex = 0U; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
-			//{
-			//	printf("\tVertex [%u]\n", vertexIndex);
-			//	details::Dump("\t\tPosition", mesh.GetVertexPosition(vertexIndex));
-			//	details::Dump("\t\tNormal", mesh.GetVertexNormal(vertexIndex));
-			//
-			//	//if (mesh.GetVertexAdjacentVertexCount(vertexIndex) > 0U)
-			//	//{
-			//	//	printf("\t\tAdjacent Vertex : ");
-			//	//	for (cd::VertexID adjVertexID : mesh.GetVertexAdjacentVertexArray(vertexIndex))
-			//	//	{
-			//	//		printf("%u, ", adjVertexID.Data());
-			//	//	}
-			//	//	printf("\n");
-			//	//}
-			//	//
-			//	//if (mesh.GetVertexAdjacentPolygonCount(vertexIndex) > 0U)
-			//	//{
-			//	//	printf("\t\tAdjacent Polygon : ");
-			//	//	for (cd::PolygonID adjPolygonID : mesh.GetVertexAdjacentPolygonArray(vertexIndex))
-			//	//	{
-			//	//		printf("%u, ", adjPolygonID.Data());
-			//	//	}
-			//	//	printf("\n");
-			//	//}
-			//}
-		}
-	}
-
-	if (m_pCurrentSceneDatabase->GetMaterialCount() > 0U)
-	{
-		printf("\n");
-		for (const auto& material : m_pCurrentSceneDatabase->GetMaterials())
-		{
-			printf("[MaterialID %u] Name = %s\n", material.GetID().Data(), material.GetName());
-
-			if (auto optMetallic = material.GetFloatProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::Factor); optMetallic.has_value())
-			{
-				printf("\tMetallic = %f\n", optMetallic.value());
-			}
-
-			if (auto optRoughness = material.GetFloatProperty(cd::MaterialPropertyGroup::Roughness, cd::MaterialProperty::Factor); optRoughness.has_value())
-			{
-				printf("\tRoughness = %f\n", optRoughness.value());
-			}
-
-			if (auto optTwoSided = material.GetBoolProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::TwoSided); optTwoSided.has_value())
-			{
-				printf("\t%s = %d\n", nameof::nameof_enum(cd::MaterialProperty::TwoSided).data(), optTwoSided.value());
-			}
-
-			if (auto optBlendMode = material.GetI32Property(cd::MaterialPropertyGroup::General, cd::MaterialProperty::BlendMode); optBlendMode.has_value())
-			{
-				cd::BlendMode blendMode = static_cast<cd::BlendMode>(optBlendMode.value());
-				printf("\tBlendMode = %s\n", nameof::nameof_enum(blendMode).data());
-
-				if (cd::BlendMode::Mask == blendMode)
+				for (uint32_t uvSetIndex = 0U; uvSetIndex < mesh.GetVertexUVSetCount(); ++uvSetIndex)
 				{
-					auto optAlphaTestValue = material.GetFloatProperty(cd::MaterialPropertyGroup::General, cd::MaterialProperty::OpacityMaskClipValue);
-					assert(optAlphaTestValue.has_value());
-					printf("\t\tAlphaCutOff = %f\n", optAlphaTestValue.value());
+					auto& uv = mesh.GetVertexUV(uvSetIndex, vertexIndex);
+					uv.y() = 1.0f - uv.y();
 				}
-			}
 
-			for (int textureTypeValue = 0; textureTypeValue < static_cast<int>(cd::MaterialTextureType::Count); ++textureTypeValue)
-			{
-				cd::MaterialTextureType textureType = static_cast<cd::MaterialTextureType>(textureTypeValue);
-				if (material.IsTextureSetup(textureType))
-				{
-					auto textureID = material.GetTextureID(textureType);
-					const auto& texture = m_pCurrentSceneDatabase->GetTexture(textureID.Data());
-					printf("\t[Associated Texture %u] Type = %s\n", textureID.Data(), nameof::nameof_enum(textureType).data());
-					printf("\t\tPath = %s\n", texture.GetPath());
-				}
-			
-				if (auto optUVScale = material.GetVec2fProperty(textureType, cd::MaterialProperty::UVScale); optUVScale.has_value())
-				{
-					details::Dump("\t\tMetallicUVScale", optUVScale.value());
-				}
-				if (auto optUVOffset = material.GetVec2fProperty(textureType, cd::MaterialProperty::UVOffset); optUVOffset.has_value())
-				{
-					details::Dump("\t\tMetallicUVOffset", optUVOffset.value());
-				}
+				auto& normal = mesh.GetVertexNormal(vertexIndex);
+				normal.z() = -normal.z();
 				
+				auto& tangent = mesh.GetVertexTangent(vertexIndex);
+				tangent.z() = -tangent.z();
+				
+				auto& bitangent = mesh.GetVertexBiTangent(vertexIndex);
+				bitangent.z() = -bitangent.z();
 			}
 
-			if (auto itDrawMeshes = materialDrawMeshIDs.find(material.GetID().Data());
-				itDrawMeshes != materialDrawMeshIDs.end())
+			for (uint32_t polygonIndex = 0U; polygonIndex < mesh.GetPolygonCount(); ++polygonIndex)
 			{
-				for (uint32_t drawMeshID : itDrawMeshes->second)
+				auto& polygon = mesh.GetPolygon(polygonIndex);
+				uint32_t polygonVertexCount = static_cast<uint32_t>(polygon.size());
+				uint32_t polygonVertexHalfCount = polygonVertexCount >> 1;
+				for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexHalfCount; ++polygonVertexIndex)
 				{
-					const auto& mesh = m_pCurrentSceneDatabase->GetMesh(drawMeshID);
-					printf("\t[Associated Mesh %u] %s \n", drawMeshID, mesh.GetName());
+					std::swap(polygon[polygonVertexIndex], polygon[polygonVertexCount - 1 - polygonVertexIndex]);
 				}
 			}
 		}
-	}
 
-	if (m_pCurrentSceneDatabase->GetTextureCount() > 0U)
-	{
-		printf("\n");
-		for (const auto& texture : m_pCurrentSceneDatabase->GetTextures())
+		// Convert morph data.
+		for (cd::Morph& morph : m_pCurrentSceneDatabase->GetMorphs())
 		{
-			printf("[Texture %u] Type = %s\n", texture.GetID().Data(), nameof::nameof_enum(texture.GetType()).data());
-			printf("\tName = %s\n", texture.GetName());
-			printf("\tPath = %s\n", texture.GetPath());
-			printf("\tUVMapMode = (%s, %s)\n", nameof::nameof_enum(texture.GetUMapMode()).data(), nameof::nameof_enum(texture.GetVMapMode()).data());
-		}
-	}
-
-	if (m_pCurrentSceneDatabase->GetCameraCount() > 0U)
-	{
-		printf("\n");
-		for (const auto& camera : m_pCurrentSceneDatabase->GetCameras())
-		{
-			printf("[Camera %u] Name = %s\n", camera.GetID().Data(), camera.GetName());
-			details::Dump("\tEye", camera.GetEye());
-			details::Dump("\tLookAt", camera.GetLookAt());
-			details::Dump("\tUp", camera.GetUp());
-			printf("\tNearPlane = %f, FarPlane = %f\n", camera.GetNearPlane(), camera.GetFarPlane());
-			printf("\tAspect = %f, Fov = %f\n", camera.GetAspect(), camera.GetFov());
-		}
-	}
-
-	if (m_pCurrentSceneDatabase->GetLightCount() > 0U)
-	{
-		printf("\n");
-		for (const auto& light : m_pCurrentSceneDatabase->GetLights())
-		{
-			printf("[Light %u] Type = %s, Name = %s\n", light.GetID().Data(), cd::GetLightTypeName(light.GetType()), light.GetName());
-			printf("\tIntensity = %f\n", light.GetIntensity());
-			printf("\tRange = %f, Radius = %f\n", light.GetRange(), light.GetRadius());
-			printf("\tWidth = %f, Height = %f\n", light.GetWidth(), light.GetHeight());
-			printf("\tAngleScale = %f, AngleOffset = %f\n", light.GetAngleScale(), light.GetAngleOffset());
-			details::Dump("\tColor", light.GetColor());
-			details::Dump("\tPosition", light.GetPosition());
-			details::Dump("\tDirection", light.GetDirection());
-			details::Dump("\tUp", light.GetUp());
-		}
-	}
-
-	if (m_pCurrentSceneDatabase->GetBoneCount() > 0U)
-	{
-		printf("\n");
-		for (const auto& bone : m_pCurrentSceneDatabase->GetBones())
-		{
-			printf("[Bone %u] Name : %s, ParentID : %u\n", bone.GetID().Data(), bone.GetName(), bone.GetParentID().Data());
-			details::Dump(bone.GetTransform());
-			details::Dump(bone.GetOffset().Inverse());
-
-			for (const cd::BoneID childNodeID : bone.GetChildIDs())
+			for (uint32_t vertexIndex = 0U; vertexIndex < morph.GetVertexCount(); ++vertexIndex)
 			{
-				printf("\t[ChildBone %u]\n", childNodeID.Data());
+				auto& position = morph.GetVertexPosition(vertexIndex);
+				position.z() = -position.z();
+
+				auto& normal = morph.GetVertexNormal(vertexIndex);
+				normal.z() = -normal.z();
+
+				auto& tangent = morph.GetVertexTangent(vertexIndex);
+				tangent.z() = -tangent.z();
+
+				auto& bitangent = morph.GetVertexBiTangent(vertexIndex);
+				bitangent.z() = -bitangent.z();
 			}
 		}
 	}
 
-	if (m_pCurrentSceneDatabase->GetAnimationCount() > 0U)
-	{
-		printf("\n");
-		for (const auto& animation : m_pCurrentSceneDatabase->GetAnimations())
-		{
-			printf("[Animation %u] Name : %s\n", animation.GetID().Data(), animation.GetName());
-			printf("\tDuration : %f, TicksPerSecond : %f\n", animation.GetDuration(), animation.GetTicksPerSecnod());
-		}
-	}
-
-	if (m_pCurrentSceneDatabase->GetTrackCount() > 0U)
-	{
-		printf("\n");
-		for (const auto& track : m_pCurrentSceneDatabase->GetTracks())
-		{
-			printf("[Track %u] Name : %s\n", track.GetID().Data(), track.GetName());
-			printf("\tTranslationKeyCount : %u, RotationKeyCount : %u, ScaleKeyCount : %u\n",
-				track.GetTranslationKeyCount(), track.GetRotationKeyCount(), track.GetScaleKeyCount());
-
-			details::Dump("\tFirstTranslationKey", track.GetTranslationKeys()[0].GetValue());
-			details::Dump("\tFirstRotationKey", track.GetRotationKeys()[0].GetValue());
-			details::Dump("\tFirstScaleKey", track.GetScaleKeys()[0].GetValue());
-		}
-	}
-}
-
-void ProcessorImpl::ValidateSceneDatabase()
-{
-	for (uint32_t nodeIndex = 0U; nodeIndex < m_pCurrentSceneDatabase->GetNodeCount(); ++nodeIndex)
-	{
-		const cd::Node& node = m_pCurrentSceneDatabase->GetNode(nodeIndex);
-		assert(nodeIndex == node.GetID().Data());
-	}
-
-	for (uint32_t meshIndex = 0U; meshIndex < m_pCurrentSceneDatabase->GetMeshCount(); ++meshIndex)
-	{
-		const cd::Mesh& mesh = m_pCurrentSceneDatabase->GetMesh(meshIndex);
-		assert(meshIndex == mesh.GetID().Data());
-	}
-
-	for (uint32_t materialIndex = 0U; materialIndex < m_pCurrentSceneDatabase->GetMaterialCount(); ++materialIndex)
-	{
-		const cd::Material& material = m_pCurrentSceneDatabase->GetMaterial(materialIndex);
-		assert(materialIndex == material.GetID().Data());
-	}
-
-	for (uint32_t textureIndex = 0U; textureIndex < m_pCurrentSceneDatabase->GetTextureCount(); ++textureIndex)
-	{
-		const cd::Texture& texture = m_pCurrentSceneDatabase->GetTexture(textureIndex);
-		assert(textureIndex == texture.GetID().Data());
-	}
-
-	for (uint32_t boneIndex = 0U; boneIndex < m_pCurrentSceneDatabase->GetBoneCount(); ++boneIndex)
-	{
-		const cd::Bone& bone = m_pCurrentSceneDatabase->GetBone(boneIndex);
-		assert(boneIndex == bone.GetID().Data());
-	}
-
-	for (uint32_t animationIndex = 0U; animationIndex < m_pCurrentSceneDatabase->GetAnimationCount(); ++animationIndex)
-	{
-		const cd::Animation& animation = m_pCurrentSceneDatabase->GetAnimation(animationIndex);
-		assert(animationIndex == animation.GetID().Data());
-	}
-
-	auto CheckKeyFramesTimeOrder = [](const cd::Track& track)
-	{
-		// Make sure keyframes are sorted by time LessNotEqual.
-		float keyFrameTime = -FLT_MAX;
-		for (const auto& key : track.GetTranslationKeys())
-		{
-			float keyTime = key.GetTime();
-			assert(keyFrameTime < keyTime);
-			keyFrameTime = keyTime;
-		}
-
-		keyFrameTime = -FLT_MAX;
-		for (const auto& key : track.GetRotationKeys())
-		{
-			float keyTime = key.GetTime();
-			assert(keyFrameTime < keyTime);
-			keyFrameTime = keyTime;
-		}
-
-		keyFrameTime = -FLT_MAX;
-		for (const auto& key : track.GetScaleKeys())
-		{
-			float keyTime = key.GetTime();
-			assert(keyFrameTime < keyTime);
-			keyFrameTime = keyTime;
-		}
-	};
-
-	for (uint32_t trackIndex = 0U; trackIndex < m_pCurrentSceneDatabase->GetTrackCount(); ++trackIndex)
-	{
-		const cd::Track& track = m_pCurrentSceneDatabase->GetTrack(trackIndex);
-		assert(trackIndex == track.GetID().Data());
-		assert(track.GetTranslationKeyCount() > 0 || track.GetRotationKeyCount() > 0 || track.GetScaleKeyCount() > 0);
-
-		//assert(m_pCurrentSceneDatabase->GetBoneByName(track.GetName()));
-		CheckKeyFramesTimeOrder(track);
-	}
+	m_pCurrentSceneDatabase->SetAxisSystem(m_targetAxisSystem);
 }
 
 void ProcessorImpl::CalculateAABBForSceneDatabase()
 {
 	// Update mesh AABB by its current vertex positions.
-	std::vector<cd::Mesh>& meshes = m_pCurrentSceneDatabase->GetMeshes();
-	for (uint32_t meshIndex = 0U; meshIndex < m_pCurrentSceneDatabase->GetMeshCount(); ++meshIndex)
+	for (auto& mesh : m_pCurrentSceneDatabase->GetMeshes())
 	{
-		cd::Mesh& mesh = meshes[meshIndex];
-
-		// Apply transform to vertex position.
-		cd::Point minPoint(FLT_MAX);
-		cd::Point maxPoint(-FLT_MAX);
-		for (uint32_t vertexIndex = 0U; vertexIndex < mesh.GetVertexCount(); ++vertexIndex)
-		{
-			const cd::Point& position = mesh.GetVertexPosition(vertexIndex);
-			minPoint.x() = minPoint.x() > position.x() ? position.x() : minPoint.x();
-			minPoint.y() = minPoint.y() > position.y() ? position.y() : minPoint.y();
-			minPoint.z() = minPoint.z() > position.z() ? position.z() : minPoint.z();
-			maxPoint.x() = maxPoint.x() > position.x() ? maxPoint.x() : position.x();
-			maxPoint.y() = maxPoint.y() > position.y() ? maxPoint.y() : position.y();
-			maxPoint.z() = maxPoint.z() > position.z() ? maxPoint.z() : position.z();
-		}
-
-		mesh.SetAABB(cd::AABB(cd::MoveTemp(minPoint), cd::MoveTemp(maxPoint)));
+		mesh.UpdateAABB();
 	}
 
 	// Update scene AABB by meshes' AABB.

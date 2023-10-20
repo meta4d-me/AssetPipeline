@@ -4,11 +4,14 @@
 #include "HalfEdgeMesh/Face.h"
 #include "HalfEdgeMesh/HalfEdge.h"
 #include "HalfEdgeMesh/Vertex.h"
+#include "Hashers/HashCombine.hpp"
+
+#include <cfloat>
 
 namespace cd
 {
 
-void MeshImpl::FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy)
+void MeshImpl::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy)
 {
 	m_vertexUVSetCount = 1U;
 
@@ -104,6 +107,39 @@ void MeshImpl::FromHalfEdgeMesh(const hem::HalfEdgeMesh& halfEdgeMesh, ConvertSt
 			}
 		}
 	}
+	else if (ConvertStrategy::BoundaryOnly == strategy)
+	{
+		uint32_t vertexIndex = 0U;
+		for (const auto& face : halfEdgeMesh.GetFaces())
+		{
+			if (!face.IsBoundary())
+			{
+				continue;
+			}
+
+			uint32_t beginVertexIndex = vertexIndex;
+			hem::HalfEdgeCRef h = face.GetHalfEdge();
+			do
+			{
+				m_vertexPositions.emplace_back(h->GetVertex()->GetPosition());
+				m_vertexNormals.emplace_back(h->GetCornerNormal());
+				m_vertexUVSets[0].emplace_back(h->GetCornerUV());
+
+				++vertexIndex;
+				h = h->GetNext();
+			} while (h != face.GetHalfEdge());
+
+			uint32_t endVertexIndex = vertexIndex;
+			cd::Polygon polygon;
+			polygon.reserve(endVertexIndex);
+			for (uint32_t index = beginVertexIndex; index < endVertexIndex; ++index)
+			{
+				polygon.emplace_back(index);
+			}
+
+			m_polygons.emplace_back(cd::MoveTemp(polygon));
+		}
+	}
 	else
 	{
 		assert("Unsupported convert strategy.");
@@ -144,15 +180,21 @@ void MeshImpl::Init(uint32_t vertexCount, uint32_t polygonCount)
 ////////////////////////////////////////////////////////////////////////////////////
 // Vertex geometry data
 ////////////////////////////////////////////////////////////////////////////////////
-
-void MeshImpl::SetVertexPosition(uint32_t vertexIndex, const Point& position)
+void MeshImpl::UpdateAABB()
 {
-	m_vertexPositions[vertexIndex] = position;
-}
+	cd::Point minPoint(FLT_MAX);
+	cd::Point maxPoint(-FLT_MAX);
+	for (const cd::Point& position : GetVertexPositions())
+	{
+		minPoint.x() = minPoint.x() > position.x() ? position.x() : minPoint.x();
+		minPoint.y() = minPoint.y() > position.y() ? position.y() : minPoint.y();
+		minPoint.z() = minPoint.z() > position.z() ? position.z() : minPoint.z();
+		maxPoint.x() = maxPoint.x() > position.x() ? maxPoint.x() : position.x();
+		maxPoint.y() = maxPoint.y() > position.y() ? maxPoint.y() : position.y();
+		maxPoint.z() = maxPoint.z() > position.z() ? maxPoint.z() : position.z();
+	}
 
-void MeshImpl::SetVertexNormal(uint32_t vertexIndex, const Direction& normal)
-{
-	m_vertexNormals[vertexIndex] = normal;
+	SetAABB(cd::AABB(cd::MoveTemp(minPoint), cd::MoveTemp(maxPoint)));
 }
 
 void MeshImpl::ComputeVertexNormals()
@@ -200,16 +242,6 @@ void MeshImpl::ComputeVertexNormals()
 	{
 		SetVertexNormal(i, vertexNormals[i]);
 	}
-}
-
-void MeshImpl::SetVertexTangent(uint32_t vertexIndex, const Direction& tangent)
-{
-	m_vertexTangents[vertexIndex] = tangent;
-}
-
-void MeshImpl::SetVertexBiTangent(uint32_t vertexIndex, const Direction& biTangent)
-{
-	m_vertexBiTangents[vertexIndex] = biTangent;
 }
 
 void MeshImpl::ComputeVertexTangents()

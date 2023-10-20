@@ -21,6 +21,10 @@ enum class Unit
 	Nit,
 
 	EV,
+
+	Seceond,
+	Minute,
+	Hour,
 };
 
 constexpr const char* UnitNames[] =
@@ -38,6 +42,9 @@ constexpr const char* UnitNames[] =
 	"lx",
 	"nt",
 	"ev",
+	"s",
+	"min",
+	"hour",
 };
 
 constexpr const char* GetUnitName(Unit unit)

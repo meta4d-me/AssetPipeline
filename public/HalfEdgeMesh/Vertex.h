@@ -26,12 +26,14 @@ public:
 	HalfEdgeRef GetHalfEdge() const { return m_halfEdgeRef; }
 	void SetHalfEdge(HalfEdgeRef ref) { m_halfEdgeRef = ref; }
 
+	std::optional<HalfEdgeRef> GetHalfEdgeToVertex(VertexRef vertex) const;
+
 	bool IsOnBoundary() const;
 	Point NeighborCenter() const;
 	Direction Normal() const;
 	uint32_t Degree() const;
 
-	bool Validate() const;
+	bool IsValid() const;
 
 private:
 	// data
