@@ -46,19 +46,6 @@ cd::Transform ConvertFbxMatrixToTranform(fbxsdk::FbxAMatrix Matrix)
 		cd::Vec3f(transformMatrix.GetScale()));
 }
 
-void FBXMatrixToFloat16(fbxsdk::FbxMatrix* src, float dest[16])
-{
-	unsigned int nn = 0;
-	for (int i = 0; i < 4; i++)
-	{
-		for (int j = 0; j < 4; j++)
-		{
-			dest[nn] = static_cast<float>(src->Get(i, j));
-			nn++;
-		}
-	}
-}
-
 fbxsdk::FbxAMatrix GetGeometryTransformation(fbxsdk::FbxNode* inNode)
 {
 	if (!inNode)
@@ -230,7 +217,7 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		m_pSDKScene->SetCurrentAnimationStack(m_pCurrentAnimationStack);
 
 		fbxsdk::FbxTakeInfo* lCurrentTakeInfo = m_pSDKScene->GetTakeInfo(*(mAnimStackNameArray[0]));
-		ProcessAnimation(m_pSDKScene->GetRootNode(), m_pSDKScene, pSceneDatabase);
+		ProcessAnimation(m_pSDKScene, pSceneDatabase);
 	}
 
 }
@@ -560,6 +547,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 		polygon.reserve(polygonVertexCount);
 		for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 		{
+			//fbxTransformMatrix fir axis transform.
 			fbxsdk::FbxAMatrix fbxTransformMatrix = pFbxMesh->GetNode()->EvaluateGlobalTransform();
 			uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
 			fbxsdk::FbxVector4 position = fbxTransformMatrix.MultT(pMeshVertexPositions[controlPointIndex]);
@@ -674,7 +662,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 		for (int clusterIndex = 0; clusterIndex < m_sceneBoneCount; ++clusterIndex)
 		{
 			bool isBoneReused = false;
-
+			// Cluster is a mesh which connect a bone.
 			fbxsdk::FbxCluster* pCluster = skinDeformer->GetCluster(clusterIndex);
 			const char* boneName = pCluster->GetLink()->GetName();
 			cd::BoneID::ValueType boneHash = cd::StringHash<cd::BoneID::ValueType>(boneName);
@@ -693,13 +681,15 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 
 				pCluster->GetTransformLinkMatrix(transformLinkMatrix);
 				pCluster->GetTransformMatrix(transformMatrix);
+				//If the artist follows the rules,geometryTransform shuold be identity.
 				FbxAMatrix geometryTransform = details::GetGeometryTransformation(boneNode);
+				//mult pFbxMesh->GetNode()->EvaluateGlobalTransform() for asisTransform.
 				globalBindposeInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform * pFbxMesh->GetNode()->EvaluateGlobalTransform();
 				fbxsdk::FbxTime increment;
 				increment.SetSecondDouble(0);
 				FbxAMatrix currentTransformOffset = boneNode->EvaluateGlobalTransform(increment);
 
-				bone.SetTransform(details::ConvertFbxMatrixToTranform(currentTransformOffset));
+				bone.SetTransform(details::ConvertFbxMatrixToTranform(currentTransformOffset)); //for now boneTransform is useless. I just store the pose of the first frame of the animation
 				bone.SetOffset(details::ConvertFbxMatrixToCDMatrix(globalBindposeInverseMatrix));
 
 				// Set the parent bone
@@ -944,7 +934,7 @@ cd::BoneID FbxProducerImpl::AddBone(const fbxsdk::FbxNode* pSDKNode, cd::BoneID 
 	return boneID;
 }
 
-void FbxProducerImpl::ProcessAnimation(fbxsdk::FbxNode* pNode, fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase)
+void FbxProducerImpl::ProcessAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase)
 {	
 	const int animationCount = scene->GetSrcObjectCount<fbxsdk::FbxAnimStack>();
 
@@ -965,9 +955,8 @@ void FbxProducerImpl::ProcessAnimation(fbxsdk::FbxNode* pNode, fbxsdk::FbxScene*
 		cd::Animation animation(animationID, animationName);
 		animation.SetDuration(static_cast<float>(end > start ? end - start : 1.0f));
 		animation.SetTicksPerSecond(static_cast<float>(24.0f));
-		fbxsdk::FbxAnimEvaluator* evaluator = scene->GetAnimationEvaluator();
 
-		float period = 1.f / 24.f; // todo: make variable, it's all over this file
+		float period = 1.f / 24.f; // todo: it can make variable, like 24fps or 60fps...
 		const auto& bones = pSceneDatabase->GetBones();
 		int trackCount = std::ceil((end - start) / period);
 
@@ -984,7 +973,6 @@ void FbxProducerImpl::ProcessAnimation(fbxsdk::FbxNode* pNode, fbxsdk::FbxScene*
 			boneTrack.SetScaleKeyCount(trackCount);
 
 			int trackIndex = 0;
-			bool loop = true;
 			for (int count = 0; count < trackCount ; count++)
 			{	
 				fbxsdk::FbxTime frameTime;

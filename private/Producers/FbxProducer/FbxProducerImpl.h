@@ -93,7 +93,7 @@ private:
 	//cd::TrackID AddTrack(const fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase);
 	cd::AnimationID AddAnimation(fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxScene* pSDKScene, cd::SceneDatabase* pSceneDatabase);
 
-	void ProcessAnimation(fbxsdk::FbxNode* pNode, fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase);
+	void ProcessAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase);
 private:
 	bool m_importMaterial = true;
 	bool m_importTexture = true;
