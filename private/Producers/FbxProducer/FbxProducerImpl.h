@@ -104,8 +104,6 @@ private:
 
 	int m_sceneBoneCount = 0;
 
-	int m_sceneBoneCount = 0;
-
 	std::string m_filePath;
 	fbxsdk::FbxManager* m_pSDKManager = nullptr;
 	fbxsdk::FbxAnimStack* m_pCurrentAnimationStack = nullptr;

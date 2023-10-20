@@ -463,7 +463,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 
 	// Convert fbx mesh to cd mesh.
 	cd::MeshID meshID = m_meshIDGenerator.AllocateID();
-	cd::Mesh mesh(meshID, pFbxNode->GetName(), availableVertexCount, availablePolygonCount);
+	cd::Mesh mesh(meshID, pMeshName, availableVertexCount, availablePolygonCount);
 	cd::VertexFormat meshVertexFormat;
 
 	const fbxsdk::FbxVector4* pMeshVertexPositions = pFbxMesh->GetControlPoints();
