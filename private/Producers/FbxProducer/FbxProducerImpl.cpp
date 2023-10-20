@@ -29,16 +29,11 @@ cd::Transform ConvertFbxNodeTransform(fbxsdk::FbxNode* pNode)
 
 cd::Matrix4x4 ConvertFbxMatrixToCDMatrix(fbxsdk::FbxAMatrix matrix)
 {
-	cd::Matrix4x4 invertZ(1, 0, 0, 0,
-						  0, 1, 0, 0,
-					      0, 0, -1,0,
-						  0, 0, 0, 1);
 	cd::Matrix4x4 cdMatrix = cd::Matrix4x4(
 		static_cast<float>(matrix.Get(0, 0)), static_cast<float>(matrix.Get(0, 1)), static_cast<float>(matrix.Get(0, 2)), static_cast<float>(matrix.Get(0, 3)),
 		static_cast<float>(matrix.Get(1, 0)), static_cast<float>(matrix.Get(1, 1)), static_cast<float>(matrix.Get(1, 2)), static_cast<float>(matrix.Get(1, 3)),
 		static_cast<float>(matrix.Get(2, 0)), static_cast<float>(matrix.Get(2, 1)), static_cast<float>(matrix.Get(2, 2)), static_cast<float>(matrix.Get(2, 3)),
 		static_cast<float>(matrix.Get(3, 0)), static_cast<float>(matrix.Get(3, 1)), static_cast<float>(matrix.Get(3, 2)), static_cast<float>(matrix.Get(3, 3)));
-	cd::Matrix4x4 mat = invertZ * cdMatrix;
 	return cdMatrix;
 }
 cd::Transform ConvertFbxMatrixToTranform(fbxsdk::FbxAMatrix Matrix)
@@ -534,22 +529,31 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 	uint32_t polygonVertexBeginIndex = 0U;
 	uint32_t polygonVertexEndIndex = 0U;
 	uint32_t polygonID = 0U;
+	uint32_t currentPolygonCount = 0U;
 	std::map<uint32_t, uint32_t> mapVertexIDToControlPointIndex;
 	std::map<uint32_t, std::vector<uint32_t>> mapControlPointIndexToVertexID;
 	for (uint32_t polygonIndex = 0U; polygonIndex < availablePolygonCount; ++polygonIndex)
 	{
-		uint32_t polygonVertexCount = pFbxMesh->GetPolygonSize(polygonIndex);
-		polygonVertexBeginIndex = polygonVertexEndIndex;
-		polygonVertexEndIndex += polygonVertexCount;
+		if (currentPolygonCount >= availablePolygonCount)
+		{
+			break;
+		}
 
 		if (splitPolygonByMaterial)
 		{
+			// Skip faces whose assigned material is not the target one.
 			int32_t materialIndex = pLayerElementMaterial->GetIndexArray().GetAt(polygonIndex);
 			if (materialIndex != optMaterialIndex.value())
 			{
 				continue;
 			}
 		}
+
+		++currentPolygonCount;
+
+		uint32_t polygonVertexCount = pFbxMesh->GetPolygonSize(polygonIndex);
+		polygonVertexBeginIndex = polygonVertexEndIndex;
+		polygonVertexEndIndex += polygonVertexCount;
 
 		// Position
 		cd::Polygon polygon;

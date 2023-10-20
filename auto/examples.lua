@@ -13,6 +13,11 @@ local function MakeExample(exampleProjectPath)
 		return
 	end
 
+	if string.contains(exampleProject, "Effekseer") and not CheckSDKExists("EFFEKSEER_SDK_DIR") then
+		print("EFFEKSEER_SDK_DIR not found, Skip example "..exampleProject)
+		return
+	end
+
 	local doUseFbxProducer = string.contains(exampleProject, "FbxTo")
 	local doUseFbxConsumer = string.contains(exampleProject, "ToFbx")
 	local doUseCDProducer = string.contains(exampleProject, "CDTo")
@@ -21,6 +26,7 @@ local function MakeExample(exampleProjectPath)
 	local doUseGenericConsumer = string.contains(exampleProject, "ToGeneric")
 	
 	local doUseTerrainProducer = string.contains(exampleProject, "TerrainTo")
+	local doUseEffekseerProducer = string.contains(exampleProject, "EffekseerTo")
 
 	print("Making example : "..exampleProject)
 	project(exampleProject)
@@ -106,6 +112,14 @@ local function MakeExample(exampleProjectPath)
 			print("Using TerrainProducer")		
 		end
 		
+		if doUseEffekseerProducer then
+			table.insert(extraIncludeDirs, path.join(RootPath, "public/Producers/EffekseerProducer"))
+			table.insert(extraLinkDebugLibs, path.join(RootPath, "build/bin/Debug/EffekseerProducer"))
+			table.insert(extraLinkReleaseLibs, path.join(RootPath, "build/bin/Release/EffekseerProducer"))
+			dependson { "EffekseerProducer" }
+			print("Using EffekseerProducer")
+		end
+
 		includedirs {
 			path.join(RootPath, "public"),
 			path.join(RootPath, "misc"),
