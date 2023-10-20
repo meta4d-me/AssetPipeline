@@ -690,7 +690,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 				pCluster->GetTransformLinkMatrix(transformLinkMatrix);
 				pCluster->GetTransformMatrix(transformMatrix);
 				FbxAMatrix geometryTransform = details::GetGeometryTransformation(boneNode);
-				globalBindposeInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform;
+				globalBindposeInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform * pFbxMesh->GetNode()->EvaluateGlobalTransform();
 				fbxsdk::FbxTime increment;
 				increment.SetSecondDouble(0);
 				FbxAMatrix currentTransformOffset = boneNode->EvaluateGlobalTransform(increment);
