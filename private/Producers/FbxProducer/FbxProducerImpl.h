@@ -78,8 +78,6 @@ private:
 	int GetSceneNodeCount(const fbxsdk::FbxNode* pSceneNode);
 	void TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase);
 
-	int GetSceneBoneCount(fbxsdk::FbxNode* pSceneNode);
-
 	void AddMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial);
 	void AddMaterialTexture(const fbxsdk::FbxProperty& sdkProperty, cd::MaterialTextureType textureType, cd::Material& material, cd::SceneDatabase* pSceneDatabase);
 	cd::MaterialID AddMaterial(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, cd::SceneDatabase* pSceneDatabase);
@@ -106,12 +104,9 @@ private:
 
 	std::string m_filePath;
 	fbxsdk::FbxManager* m_pSDKManager = nullptr;
-	fbxsdk::FbxAnimStack* m_pCurrentAnimationStack = nullptr;
-	fbxsdk::FbxScene* m_pSDKScene = nullptr;
 	std::unique_ptr<fbxsdk::FbxGeometryConverter> m_pSDKGeometryConverter;
 
 	std::map<int32_t, uint32_t> m_fbxMaterialIndexToMaterialID;
-	std::vector<fbxsdk::FbxNode*> m_pBones;
 	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
 	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
 	cd::ObjectIDGenerator<cd::NodeID> m_nodeIDGenerator;
