@@ -23,19 +23,14 @@ class FbxNode;
 class FbxProperty;
 class FbxScene;
 class FbxSurfaceMaterial;
-class FbxAnimStack;
-class FbxScene;
-class FbxTime;
 
 }
 
 namespace cd
 {
 
-class Bone;
 class Material;
 class Mesh;
-class Node;
 class SceneDatabase;
 
 }
@@ -88,7 +83,6 @@ private:
 	std::vector<cd::MorphID> AddMorphs(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, const std::map<uint32_t, uint32_t>& mapVertexIDToControlPointIndex, cd::SceneDatabase* pSceneDatabase);
 
 	cd::BoneID AddBone(const fbxsdk::FbxNode* pSDKNode, cd::BoneID parentBoneID, cd::SceneDatabase* pSceneDatabase);
-	//cd::TrackID AddTrack(const fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase);
 	cd::AnimationID AddAnimation(fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxScene* pSDKScene, cd::SceneDatabase* pSceneDatabase);
 
 	void ProcessAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase);
