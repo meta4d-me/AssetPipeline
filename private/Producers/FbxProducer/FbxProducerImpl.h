@@ -100,8 +100,6 @@ private:
 	bool m_importLight = true;
 	bool m_bWantTriangulate = true;
 
-	int m_sceneBoneCount = 0;
-
 	std::string m_filePath;
 	fbxsdk::FbxManager* m_pSDKManager = nullptr;
 	std::unique_ptr<fbxsdk::FbxGeometryConverter> m_pSDKGeometryConverter;

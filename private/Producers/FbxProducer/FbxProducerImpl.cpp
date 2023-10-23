@@ -225,7 +225,7 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		fbxsdk::FbxAxisSystem::eLeftHanded);
 	if (fbxAxisSystem != CDEngineAxisSystem)
 	{
-		CDEngineAxisSystem.ConvertScene(pSDKScene);
+		//CDEngineAxisSystem.ConvertScene(pSDKScene);
 	}
 
 	fbxsdk::FbxAxisSystem lAxisSytemReference = pSDKScene->GetGlobalSettings().GetAxisSystem();
@@ -260,19 +260,14 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 
 	if (WantImportAnimation())
 	{
-		fbxsdk::FbxTime mCurrentTime;
-		fbxsdk::FbxTime mStart, mStop;
-		fbxsdk::FbxArray<fbxsdk::FbxString*> mAnimStackNameArray;
-		pSDKScene->FillAnimStackNameArray(mAnimStackNameArray);
-		fbxsdk::FbxAnimStack* pCurrentAnimationStack = pSDKScene->FindMember<FbxAnimStack>(mAnimStackNameArray[0]->Buffer());
-		if (pCurrentAnimationStack == nullptr)
+		fbxsdk::FbxAnimStack* pAnimStack = pSDKScene->GetSrcObject<FbxAnimStack>(0);
+		if (pAnimStack == nullptr)
 		{
 			printf("No animation stack");
 			return;
 		}
-		pSDKScene->SetCurrentAnimationStack(pCurrentAnimationStack);
+		pSDKScene->SetCurrentAnimationStack(pAnimStack);
 
-		fbxsdk::FbxTakeInfo* lCurrentTakeInfo = pSDKScene->GetTakeInfo(*(mAnimStackNameArray[0]));
 		ProcessAnimation(pSDKScene, pSceneDatabase);
 	}
 
@@ -637,6 +632,10 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 
 		if (applyTangentData)
 		{
+			if (!pLayerElementTangentData)
+			{
+				mesh.ComputeVertexTangents();
+			}
 			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 			{
 				uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
@@ -694,12 +693,6 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 		}
 	}
 
-	if (!pLayerElementTangentData)
-	{
-		mesh.ComputeVertexTangents();
-		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
-	}
-
 	// BlendShape
 	int32_t blendShapeCount = pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eBlendShape);
 	assert(blendShapeCount <= 1 && "Why use two blendshape in a mesh?");
@@ -714,8 +707,8 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 	for (uint32_t deformerIndex = 0; deformerIndex < pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eSkin); deformerIndex++)
 	{
 		fbxsdk::FbxSkin* skinDeformer = static_cast<fbxsdk::FbxSkin*>(pFbxMesh->GetDeformer(deformerIndex, fbxsdk::FbxDeformer::eSkin));
-		m_sceneBoneCount = skinDeformer->GetClusterCount();
-		for (int clusterIndex = 0; clusterIndex < m_sceneBoneCount; ++clusterIndex)
+		pSceneDatabase->SetBoneCount(skinDeformer->GetClusterCount());
+		for (int clusterIndex = 0; clusterIndex < skinDeformer->GetClusterCount(); ++clusterIndex)
 		{
 			bool isBoneReused = false;
 			// Cluster is a skinmesh which connect a bone.
@@ -996,8 +989,7 @@ void FbxProducerImpl::ProcessAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabas
 		float period = 1.f / 24.f; // todo: it can make variable, like 24fps or 60fps...
 		const auto& bones = pSceneDatabase->GetBones();
 		int trackCount = std::ceil((end - start) / period);
-
-		for (int boneIndex = 0; boneIndex < m_sceneBoneCount; ++boneIndex)
+		for (int boneIndex = 0; boneIndex < pSceneDatabase->GetBoneCount(); ++boneIndex)
 		{
 			fbxsdk::FbxNode* bone = scene->FindNodeByName(bones[boneIndex].GetName());
 			cd::TrackID::ValueType trackHash = cd::StringHash<cd::TrackID::ValueType>(bones[boneIndex].GetName());
