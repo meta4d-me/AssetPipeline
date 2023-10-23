@@ -61,6 +61,19 @@ SceneDatabaseImpl::SceneDatabaseImpl()
 ///////////////////////////////////////////////////////////////////
 // Node
 ///////////////////////////////////////////////////////////////////
+Node* SceneDatabaseImpl::GetNodeByName(const char* pName)
+{
+	for (auto& node : m_nodes)
+	{
+		if (0 == strcmp(pName, node.GetName()))
+		{
+			return &node;
+		}
+	}
+
+	return nullptr;
+}
+
 const Node* SceneDatabaseImpl::GetNodeByName(const char* pName) const
 {
 	for (const auto& node : m_nodes)
@@ -77,6 +90,19 @@ const Node* SceneDatabaseImpl::GetNodeByName(const char* pName) const
 ///////////////////////////////////////////////////////////////////
 // Bone
 ///////////////////////////////////////////////////////////////////
+Bone* SceneDatabaseImpl::GetBoneByName(const char* pName)
+{
+	for (auto& bone : m_bones)
+	{
+		if (0 == strcmp(pName, bone.GetName()))
+		{
+			return &bone;
+		}
+	}
+
+	return nullptr;
+}
+
 const Bone* SceneDatabaseImpl::GetBoneByName(const char* pName) const
 {
 	for (const auto& bone : m_bones)
@@ -409,8 +435,8 @@ void SceneDatabaseImpl::Validate() const
 	for (uint32_t trackIndex = 0U; trackIndex < GetTrackCount(); ++trackIndex)
 	{
 		const cd::Track& track = GetTrack(trackIndex);
-		//assert(trackIndex == track.GetID().Data());
-		//assert(track.GetTranslationKeyCount() > 0 || track.GetRotationKeyCount() > 0 || track.GetScaleKeyCount() > 0);
+		assert(trackIndex == track.GetID().Data());
+		assert(track.GetTranslationKeyCount() > 0 || track.GetRotationKeyCount() > 0 || track.GetScaleKeyCount() > 0);
 
 		//assert(GetBoneByName(track.GetName()));
 		CheckKeyFramesTimeOrder(track);

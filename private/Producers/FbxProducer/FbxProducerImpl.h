@@ -9,7 +9,6 @@
 #include <map>
 #include <optional>
 #include <string>
-#include <fbxsdk/core/arch/fbxtypes.h>
 
 namespace fbxsdk
 {

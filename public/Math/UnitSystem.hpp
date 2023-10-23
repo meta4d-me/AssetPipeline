@@ -42,9 +42,9 @@ constexpr const char* UnitNames[] =
 	"lx",
 	"nt",
 	"ev",
-	"s",
+	"sec",
 	"min",
-	"hour",
+	"hr",
 };
 
 constexpr const char* GetUnitName(Unit unit)
