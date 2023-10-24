@@ -1,4 +1,4 @@
-#include "Scene/ParticEmitter.h"
+#include "Scene/ParticleEmitter.h"
 #include "ParticleEmitterImpl.h"
 
 namespace cd
@@ -16,7 +16,7 @@ ParticleEmitter::ParticleEmitter(InputArchiveSwapBytes& inputArchive)
 
 ParticleEmitter::ParticleEmitter(ParticleEmitterID id, const char* pName)
 {
-    m_pParticleEmitterImpl = new ParticleEmitterImpl(id, pName);
+    m_pParticleEmitterImpl = new ParticleEmitterImpl(id, cd::MoveTemp(pName));
 }
 
 ParticleEmitter::ParticleEmitter(ParticleEmitter&& rhs)
@@ -56,6 +56,37 @@ const cd::Vec3f& ParticleEmitter::GetPosition() const
 {
     return m_pParticleEmitterImpl->GetPosition();
 }
+
+void ParticleEmitter::SetVelocity(cd::Vec3f velocity)
+{
+    m_pParticleEmitterImpl->SetVelocity(cd::MoveTemp(velocity));
+}
+
+Vec3f& ParticleEmitter::GetVelocity()
+{
+    return m_pParticleEmitterImpl->GetVelocity();
+}
+
+const cd::Vec3f& ParticleEmitter::GetVelocity() const
+{
+    return m_pParticleEmitterImpl->GetVelocity();
+}
+
+void ParticleEmitter::SetAccelerate(cd::Vec3f accelerate)
+{
+    m_pParticleEmitterImpl->SetAccelerate(cd::MoveTemp(accelerate));
+}
+
+Vec3f& ParticleEmitter::GetAccelerate()
+{
+    return m_pParticleEmitterImpl->GetAccelerate();
+}
+
+const cd::Vec3f& ParticleEmitter::GetAccelerate() const
+{
+    return m_pParticleEmitterImpl->GetAccelerate();
+}
+
 
 ParticleEmitter& ParticleEmitter::operator<<(InputArchive& inputArchive)
 {

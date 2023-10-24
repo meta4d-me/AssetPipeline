@@ -1,5 +1,4 @@
 #include "EffekseerProducerImpl.h"
-#include "Hashers/StringHash.hpp"
 
 #include <codecvt>
 #include <Effekseer.h>
@@ -13,12 +12,30 @@ EffekseerProducerImpl::EffekseerProducerImpl(const char16_t* pFilePath) :
 {
 }
 
+void EffekseerProducerImpl::TraverseNodeRecursively(Effekseer::EffectNode* pNode)
+{
+	Effekseer::EffectNodeType nodeType = pNode->GetType();
+	if (Effekseer::EffectNodeType::Sprite == nodeType)
+	{
+		auto* pSpriteNode = static_cast<Effekseer::EffectNodeSprite*>(pNode);
+		m_particlePos = pSpriteNode->TranslationParam.TranslationPVA.location;
+		m_particleVelocity = pSpriteNode->TranslationParam.TranslationPVA.velocity;
+		m_particleAccelerate = pSpriteNode->TranslationParam.TranslationPVA.acceleration;
+		return ;
+	}
+
+	int childNodeCount = pNode->GetChildrenCount();
+	for (int childIndex = 0; childIndex < childNodeCount; ++childIndex)
+	{
+		TraverseNodeRecursively(pNode->GetChild(childIndex));
+	}
+}
+
 void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 {
 	auto efkManager = ::Effekseer::Manager::Create(8000);
 	auto effect = Effekseer::Effect::Create(efkManager, m_pFilePath);
 	auto* pEffectData = effect.Get();
-
 
 	//ID name
 	const char16_t* EffectName = pEffectData->GetName();
@@ -28,16 +45,16 @@ void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	const char* pParticleEmitterName = str.c_str();
 	cd::ParticleEmitterID::ValueType particleEmitterHash = cd::StringHash<cd::ParticleEmitterID::ValueType>(pParticleEmitterName);
 	cd::ParticleEmitterID particleEmitterID = m_particleEmitterIDGenerator.AllocateID(particleEmitterHash);
-	
-	//pos
-	Effekseer::Handle efkHandle = 0;
-	efkHandle = efkManager->Play(effect, 0,0,0);
-	efkManager->AddLocation(efkHandle,::Effekseer::Vector3D(1.0f,0.0f,0.0f));
-	auto pos = efkManager->GetLocation(efkHandle);
+
+	//pos velocity scale
+   TraverseNodeRecursively(pEffectData->GetRoot());
 
 	//all Set
 	cd::ParticleEmitter particleEmitter(particleEmitterID, pParticleEmitterName);
-	particleEmitter.SetPosition(cd::Vec3f(pos.X,pos.Y,pos.Z));
+	particleEmitter.SetPosition(cd::Vec3f(m_particlePos.max.x, m_particlePos.max.y, m_particlePos.max.z));
+	particleEmitter.SetVelocity(cd::Vec3f(m_particleVelocity.max.x, m_particleVelocity.max.y, m_particleVelocity.max.z));
+	particleEmitter.SetAccelerate(cd::Vec3f(m_particleAccelerate.max.x, m_particleAccelerate.max.y, m_particleAccelerate.max.z));
+
 
 	pSceneDatabase->AddParticleEmitter(cd::MoveTemp(particleEmitter));
 	//// Mesh

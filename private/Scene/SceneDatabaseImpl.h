@@ -13,7 +13,7 @@
 #include "Scene/Node.h"
 #include "Scene/Texture.h"
 #include "Scene/Track.h"
-#include "Scene/ParticEmitter.h"
+#include "Scene/ParticleEmitter.h"
 
 #include <optional>
 #include <unordered_map>

@@ -33,6 +33,14 @@ public:
 	Vec3f& GetPosition();
 	const cd::Vec3f& GetPosition() const;
 
+	void SetVelocity(cd::Vec3f velocity);
+	Vec3f& GetVelocity();
+	const cd::Vec3f& GetVelocity() const;
+
+	void SetAccelerate(cd::Vec3f accelerate);
+	Vec3f& GetAccelerate();
+	const cd::Vec3f& GetAccelerate() const;
+
 	ParticleEmitter& operator<<(InputArchive& inputArchive);
 	ParticleEmitter& operator<<(InputArchiveSwapBytes& inputArchive);
 	const ParticleEmitter& operator>>(OutputArchive& outputArchive) const;
