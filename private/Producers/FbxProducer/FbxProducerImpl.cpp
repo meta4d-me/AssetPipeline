@@ -49,7 +49,13 @@ cd::Transform ConvertFbxMatrixToTranform(fbxsdk::FbxAMatrix Matrix)
 
 fbxsdk::FbxAMatrix GetGeometryTransformation(fbxsdk::FbxNode* pNode)
 {
-	assert(pNode && "Null for mesh geometry");
+	if (!pNode)
+	{
+		std::printf("Null for mesh geometry");
+		fbxsdk::FbxAMatrix matrix;
+		matrix.SetIdentity();
+		return matrix;
+	}
 	const fbxsdk::FbxVector4& translation = pNode->GetGeometricTranslation(fbxsdk::FbxNode::eSourcePivot);
 	const fbxsdk::FbxVector4& rotation = pNode->GetGeometricRotation(fbxsdk::FbxNode::eSourcePivot);
 	const fbxsdk::FbxVector4& scale = pNode->GetGeometricScaling(fbxsdk::FbxNode::eSourcePivot);
@@ -713,8 +719,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 				FbxAMatrix geometryTransform = details::GetGeometryTransformation(pBoneNode);
 				assert(geometryTransform.IsIdentity());
 
-				// Multiply pFbxMesh->GetNode()->EvaluateGlobalTransform() for axisTransform.
-				fbxsdk::FbxAMatrix globalBindposeInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform * pFbxMesh->GetNode()->EvaluateGlobalTransform();
+				fbxsdk::FbxAMatrix globalBindposeInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform;
 				
 				fbxsdk::FbxTime increment;
 				increment.SetSecondDouble(0);
