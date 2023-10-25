@@ -428,7 +428,7 @@ void GenericProducerImpl::AddMeshBones(cd::SceneDatabase* pSceneDatabase, const 
 		{
 			// Other bone data will be initialized from aiNode which has the same name with aiBone.
 			cd::Bone bone(boneID, cd::MoveTemp(boneName));
-			bone.SetOffset(ConvertAssimpMatrix(pSourceBone->mOffsetMatrix));
+			bone.SetOffset(ConvertAssimpMatrix(pSourceBone->mOffsetMatrix).Inverse());
 			pSceneDatabase->AddBone(cd::MoveTemp(bone));
 		}
 		
