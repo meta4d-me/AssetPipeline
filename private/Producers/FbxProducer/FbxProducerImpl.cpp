@@ -51,7 +51,6 @@ fbxsdk::FbxAMatrix GetGeometryTransformation(fbxsdk::FbxNode* pNode)
 {
 	if (!pNode)
 	{
-		std::printf("Null for mesh geometry");
 		fbxsdk::FbxAMatrix matrix;
 		matrix.SetIdentity();
 		return matrix;

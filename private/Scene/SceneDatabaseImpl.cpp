@@ -35,11 +35,11 @@ void Dump(const cd::Transform& transform)
 	details::Dump("\tScale", transform.GetScale());
 }
 
-void Dump(const cd::Matrix4x4& matrix)
+void Dump(const char* label, const cd::Matrix4x4& matrix)
 {
-	details::Dump("\tRestPoseTranslation", matrix.GetTranslation());
-	details::Dump("\tRestPoseRotation", cd::Quaternion::FromMatrix(matrix.GetRotation()));
-	details::Dump("\tRestPoseScale", matrix.GetScale());
+	details::Dump (label, matrix.GetTranslation());
+	details::Dump(label, cd::Quaternion::FromMatrix(matrix.GetRotation()));
+	details::Dump(label, matrix.GetScale());
 }
 
 }
@@ -325,7 +325,7 @@ void SceneDatabaseImpl::Dump() const
 		for (const auto& bone : GetBones())
 		{
 			printf("[Bone %u] Name : %s, ParentID : %u\n", bone.GetID().Data(), bone.GetName(), bone.GetParentID().Data());
-			details::Dump(bone.GetOffset().Inverse());
+			details::Dump("RestPost", bone.GetOffset().Inverse());
 
 			for (const cd::BoneID childNodeID : bone.GetChildIDs())
 			{
