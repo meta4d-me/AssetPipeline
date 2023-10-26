@@ -32,13 +32,15 @@ int main(int argc, char** argv)
 		producer.ActivateBoundingBoxService();
 		producer.ActivateFlattenHierarchyService();
 		Processor processor(&producer, nullptr, pSceneDatabase.get());
-		processor.SetDumpSceneDatabaseEnable(false);
+		processor.SetDumpSceneDatabaseEnable(true);
 		processor.Run();
 	}
 	
 	// Processing
-	for (auto& mesh : pSceneDatabase->GetMeshes())
+	uint32_t meshCount = pSceneDatabase->GetMeshCount();
+	for (uint32_t meshIndex = 0U; meshIndex < meshCount; ++meshIndex)
 	{
+		const auto& mesh = pSceneDatabase->GetMesh(meshIndex);
 		uint32_t vertexCount = mesh.GetVertexCount();
 		uint32_t polygonCount = mesh.GetPolygonCount();
 
@@ -56,7 +58,7 @@ int main(int argc, char** argv)
 		}
 
 		auto pm = cd::ProgressiveMesh::FromIndexedMesh(mesh);
-		auto lodMesh = pm.GenerateLodMesh(0.1f);
+		auto lodMesh = pm.GenerateLodMesh(0.1f, &mesh);
 		lodMesh.SetID(pSceneDatabase->GetMeshCount());
 		pSceneDatabase->AddMesh(cd::MoveTemp(lodMesh));
 	}
