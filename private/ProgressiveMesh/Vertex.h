@@ -14,6 +14,9 @@ namespace cd::pm
 class Vertex
 {
 public:
+	static inline float BoundaryVertexCollapseCost = 100.0f;
+
+public:
 	Vertex() = delete;
 	explicit Vertex(cd::VertexID id) : m_id(id) { }
 	Vertex(const Vertex&) = default;

@@ -21,7 +21,7 @@ void Vertex::AddAdjacentFace(FaceID faceID)
 
 float Vertex::GetCollapseCost() const
 {
-	return m_isOnBoundary ? m_collapseCost + 100.0f : m_collapseCost;
+	return m_isOnBoundary ? m_collapseCost + BoundaryVertexCollapseCost : m_collapseCost;
 }
 
 }
