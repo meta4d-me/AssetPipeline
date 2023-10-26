@@ -41,10 +41,10 @@ public:
 	}
 
 	// Get
-	CD_FORCEINLINE Iterator Begin() { return &m_translation[0]; }
-	CD_FORCEINLINE Iterator End() { return &m_translation[0] + Size; }
-	CD_FORCEINLINE ConstIterator Begin() const { return &m_translation[0]; }
-	CD_FORCEINLINE ConstIterator End() const { return &m_translation[0] + Size; }
+	CD_FORCEINLINE Iterator begin() { return &m_translation[0]; }
+	CD_FORCEINLINE Iterator end() { return &m_translation[0] + Size; }
+	CD_FORCEINLINE ConstIterator begin() const { return &m_translation[0]; }
+	CD_FORCEINLINE ConstIterator end() const { return &m_translation[0] + Size; }
 
 	CD_FORCEINLINE void SetTranslation(TVector<T, 3> translation) { m_translation = cd::MoveTemp(translation); }
 	CD_FORCEINLINE TVector<T, 3>& GetTranslation() { return m_translation; }

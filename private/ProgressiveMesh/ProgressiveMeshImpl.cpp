@@ -51,6 +51,20 @@ void ProgressiveMeshImpl::FromIndexedFaces(const std::vector<cd::Point>& vertice
 	}
 }
 
+void ProgressiveMeshImpl::InitBoundary(const cd::AABB& aabb)
+{
+	for (auto& v : m_vertices)
+	{
+		if (v.IsOnBoundary())
+		{
+			continue;
+		}
+		
+		bool isOnBoundary = aabb.IsPointInside(v.GetPosition());
+		v.SetIsOnBoundary(isOnBoundary);
+	}
+}
+
 void ProgressiveMeshImpl::InitBoundary(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons)
 {
 	auto GetVertexHash = [](const cd::Point& p)
@@ -68,6 +82,11 @@ void ProgressiveMeshImpl::InitBoundary(const std::vector<cd::Point>& vertices, c
 
 	for (auto& v : m_vertices)
 	{
+		if (v.IsOnBoundary())
+		{
+			continue;
+		}
+
 		uint32_t vertexHash = GetVertexHash(v.GetPosition());
 		bool isOnBoundary = mapBoundaryVertices.find(vertexHash) != mapBoundaryVertices.end();
 		v.SetIsOnBoundary(isOnBoundary);
@@ -326,10 +345,6 @@ float ProgressiveMeshImpl::ComputeEdgeCollapseCostAtEdge(VertexID v0ID, VertexID
 	}
 
 	float cost = edgeLength * curvature;
-	//if (v0.IsOnBoundary())
-	//{
-	//	cost += 1.0f;
-	//}
 	return cost;
 }
 
@@ -379,6 +394,13 @@ cd::Mesh ProgressiveMeshImpl::GenerateLodMesh(float percent, const cd::Mesh* pSo
 {
 	assert(percent >= 0.0f && percent <= 1.0f);
 	uint32_t targetFaceCount = static_cast<uint32_t>(GetFaceCount() * percent);
+	return GenerateLodMesh(targetFaceCount, pSourceMesh);
+}
+
+cd::Mesh ProgressiveMeshImpl::GenerateLodMesh(float percent, uint32_t minFaceCount, const cd::Mesh* pSourceMesh)
+{
+	assert(percent >= 0.0f && percent <= 1.0f);
+	uint32_t targetFaceCount = std::max(minFaceCount, static_cast<uint32_t>(GetFaceCount() * percent));
 	return GenerateLodMesh(targetFaceCount, pSourceMesh);
 }
 

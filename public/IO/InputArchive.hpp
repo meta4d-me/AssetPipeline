@@ -39,14 +39,14 @@ public:
 	TInputArchive& operator>>(char& data) { return Import(data); }
 	TInputArchive& operator>>(bool& data) { return Import(data); }
 	TInputArchive& operator>>(std::string& data) { return Import(data); }
-	TInputArchive& operator>>(Vec2f& data) { return ImportBuffer(data.Begin()); }
-	TInputArchive& operator>>(Vec3f& data) { return ImportBuffer(data.Begin()); }
-	TInputArchive& operator>>(Vec4f& data) { return ImportBuffer(data.Begin()); }
-	TInputArchive& operator>>(Quaternion& data) { return ImportBuffer(data.Begin()); }
-	TInputArchive& operator>>(Matrix3x3& data) { return ImportBuffer(data.Begin()); }
-	TInputArchive& operator>>(Matrix4x4& data) { return ImportBuffer(data.Begin()); }
-	TInputArchive& operator>>(Transform& data) { return ImportBuffer(data.Begin()); }
-	TInputArchive& operator>>(AABB& data) { ImportBuffer(data.Min().Begin()); ImportBuffer(data.Max().Begin()); return *this; }
+	TInputArchive& operator>>(Vec2f& data) { return ImportBuffer(data.begin()); }
+	TInputArchive& operator>>(Vec3f& data) { return ImportBuffer(data.begin()); }
+	TInputArchive& operator>>(Vec4f& data) { return ImportBuffer(data.begin()); }
+	TInputArchive& operator>>(Quaternion& data) { return ImportBuffer(data.begin()); }
+	TInputArchive& operator>>(Matrix3x3& data) { return ImportBuffer(data.begin()); }
+	TInputArchive& operator>>(Matrix4x4& data) { return ImportBuffer(data.begin()); }
+	TInputArchive& operator>>(Transform& data) { return ImportBuffer(data.begin()); }
+	TInputArchive& operator>>(AABB& data) { ImportBuffer(data.Min().begin()); ImportBuffer(data.Max().begin()); return *this; }
 	TInputArchive& operator>>(AxisSystem& data)
 	{
 		uint8_t handedness, up, front;

@@ -225,18 +225,18 @@ public:
 			T a06, T a07, T a08)
 	{
 		static_assert(3 == Rows && 3 == Cols);
-		data[0] = TVector<T, 3>(a00, a01, a02);
-		data[1] = TVector<T, 3>(a03, a04, a05);
-		data[2] = TVector<T, 3>(a06, a07, a08);
+		m_data[0] = TVector<T, 3>(a00, a01, a02);
+		m_data[1] = TVector<T, 3>(a03, a04, a05);
+		m_data[2] = TVector<T, 3>(a06, a07, a08);
 	}
 
 	// 3x3
 	TMatrix(TVector<T, 3> colVec0, TVector<T, 3> colVec1, TVector<T, 3> colVec2)
 	{
 		static_assert(3 == Rows && 3 == Cols);
-		data[0] = cd::MoveTemp(colVec0);
-		data[1] = cd::MoveTemp(colVec1);
-		data[2] = cd::MoveTemp(colVec2);
+		m_data[0] = cd::MoveTemp(colVec0);
+		m_data[1] = cd::MoveTemp(colVec1);
+		m_data[2] = cd::MoveTemp(colVec2);
 	}
 
 	// 4x4
@@ -246,20 +246,20 @@ public:
 			T a12, T a13, T a14, T a15)
 	{
 		static_assert(4 == Rows && 4 == Cols);
-		data[0] = TVector<T, 4>(a00, a01, a02, a03);
-		data[1] = TVector<T, 4>(a04, a05, a06, a07);
-		data[2] = TVector<T, 4>(a08, a09, a10, a11);
-		data[3] = TVector<T, 4>(a12, a13, a14, a15);
+		m_data[0] = TVector<T, 4>(a00, a01, a02, a03);
+		m_data[1] = TVector<T, 4>(a04, a05, a06, a07);
+		m_data[2] = TVector<T, 4>(a08, a09, a10, a11);
+		m_data[3] = TVector<T, 4>(a12, a13, a14, a15);
 	}
 
 	// 4x4
 	TMatrix(TVector<T, 4> colVec0, TVector<T, 4> colVec1, TVector<T, 4> colVec2, TVector<T, 4> colVec3)
 	{
 		static_assert(4 == Rows && 4 == Cols);
-		data[0] = cd::MoveTemp(colVec0);
-		data[1] = cd::MoveTemp(colVec1);
-		data[2] = cd::MoveTemp(colVec2);
-		data[3] = cd::MoveTemp(colVec3);
+		m_data[0] = cd::MoveTemp(colVec0);
+		m_data[1] = cd::MoveTemp(colVec1);
+		m_data[2] = cd::MoveTemp(colVec2);
+		m_data[3] = cd::MoveTemp(colVec3);
 	}
 
 	TMatrix(const TMatrix&) = default;
@@ -269,17 +269,17 @@ public:
 	~TMatrix() = default;
 
 	// Get
-	CD_FORCEINLINE Iterator Begin() { return &data[0][0]; }
-	CD_FORCEINLINE Iterator End() { return &data[0][0] + Size; }
-	CD_FORCEINLINE ConstIterator Begin() const { return &data[0][0]; }
-	CD_FORCEINLINE ConstIterator End() const { return &data[0][0] + Size; }
-	CD_FORCEINLINE const TVector<T, Rows>& GetColumn(int index) const { return data[index]; }
-	CD_FORCEINLINE TVector<T, Rows>& GetColumn(int index) { return data[index]; }
-	CD_FORCEINLINE T Data(int index) const { return reinterpret_cast<const T*>(data)[index]; }
-	CD_FORCEINLINE T& Data(int index) { return reinterpret_cast<T*>(data)[index]; }
-	CD_FORCEINLINE T Data(int row, int col) const { return data[col][row]; }
-	CD_FORCEINLINE T& Data(int row, int col) { return data[col][row]; }
-	void Clear() { std::memset(Begin(), 0, Size * sizeof(float)); }
+	CD_FORCEINLINE Iterator begin() { return &m_data[0][0]; }
+	CD_FORCEINLINE Iterator end() { return &m_data[0][0] + Size; }
+	CD_FORCEINLINE ConstIterator begin() const { return &m_data[0][0]; }
+	CD_FORCEINLINE ConstIterator end() const { return &m_data[0][0] + Size; }
+	CD_FORCEINLINE const TVector<T, Rows>& GetColumn(int index) const { return m_data[index]; }
+	CD_FORCEINLINE TVector<T, Rows>& GetColumn(int index) { return m_data[index]; }
+	CD_FORCEINLINE T Data(int index) const { return reinterpret_cast<const T*>(m_data)[index]; }
+	CD_FORCEINLINE T& Data(int index) { return reinterpret_cast<T*>(m_data)[index]; }
+	CD_FORCEINLINE T Data(int row, int col) const { return m_data[col][row]; }
+	CD_FORCEINLINE T& Data(int row, int col) { return m_data[col][row]; }
+	void Clear() { std::memset(begin(), 0, Size * sizeof(float)); }
 
 	// Calculations
 	MatrixType Inverse() const
@@ -368,11 +368,11 @@ public:
 		static_assert(Rows >= 3 && Cols >= 3);
 		if constexpr (3 == Rows && 3 == Cols)
 		{
-			return TVector<T, 2>(data[2][0], data[2][1]);
+			return TVector<T, 2>(m_data[2][0], m_data[2][1]);
 		}
 		else if constexpr (4 == Rows && 4 == Cols)
 		{
-			return TVector<T, 3>(data[3][0], data[3][1], data[3][2]);
+			return TVector<T, 3>(m_data[3][0], m_data[3][1], m_data[3][2]);
 		}
 	}
 	
@@ -382,11 +382,11 @@ public:
 		static_assert(Rows >= 3 && Cols >= 3);
 		if constexpr (3 == Rows && 3 == Cols)
 		{
-			return TVector<T, 3>(data[0].Length(), data[1].Length());
+			return TVector<T, 3>(m_data[0].Length(), m_data[1].Length());
 		}
 		else if constexpr (4 == Rows && 4 == Cols)
 		{
-			return TVector<T, 3>(data[0].Length(), data[1].Length(), data[2].Length());
+			return TVector<T, 3>(m_data[0].Length(), m_data[1].Length(), m_data[2].Length());
 		}
 	}
 
@@ -397,17 +397,17 @@ public:
 
 		if constexpr (3 == Rows && 3 == Cols)
 		{
-			T sx = data[0].Length();
-			T sy = data[1].Length();
+			T sx = m_data[0].Length();
+			T sy = m_data[1].Length();
 
 			return TMatrix<T, 2, 2>(Data(0) / sx, Data(1) / sx,
 									Data(3) / sy, Data(4) / sy);
 		}
 		else if constexpr (4 == Rows && 4 == Cols)
 		{
-			T sx = data[0].Length();
-			T sy = data[1].Length();
-			T sz = data[2].Length();
+			T sx = m_data[0].Length();
+			T sy = m_data[1].Length();
+			T sz = m_data[2].Length();
 
 			return TMatrix<T, 3, 3>(Data(0) / sx, Data(1) / sx, Data(2) / sx,
 									Data(4) / sy, Data(5) / sy, Data(6) / sy,
@@ -420,7 +420,7 @@ public:
 	MatrixType& operator+=(T value)
 	{
 		int index = 0;
-		std::for_each(Begin(), End(), [&value, &index](T& component)
+		std::for_each(begin(), end(), [&value, &index](T& component)
 		{
 			component += value;
 			++index;
@@ -433,7 +433,7 @@ public:
 	MatrixType& operator+=(const MatrixType& rhs)
 	{
 		int index = 0;
-		std::for_each(Begin(), End(), [&rhs, &index](T& component)
+		std::for_each(begin(), end(), [&rhs, &index](T& component)
 		{
 			component += rhs.Data(index);
 			++index;
@@ -449,7 +449,7 @@ public:
 	MatrixType& operator-=(const MatrixType& rhs)
 	{
 		int index = 0;
-		std::for_each(Begin(), End(), [&rhs, &index](T& component)
+		std::for_each(begin(), end(), [&rhs, &index](T& component)
 		{
 			component -= rhs.Data(index);
 			++index;
@@ -462,7 +462,7 @@ public:
 	MatrixType& operator*=(T value)
 	{
 		int index = 0;
-		std::for_each(Begin(), End(), [&value, &index](T& component)
+		std::for_each(begin(), end(), [&value, &index](T& component)
 		{
 			component *= value;
 			++index;
@@ -530,7 +530,7 @@ public:
 	CD_FORCEINLINE MatrixType& operator/=(T value) { return (*this) *= (1 / value); }
 
 private:
-	TVector<T, Rows> data[Cols];
+	TVector<T, Rows> m_data[Cols];
 };
 
 using Matrix3x3 = TMatrix<float, 3, 3>;
