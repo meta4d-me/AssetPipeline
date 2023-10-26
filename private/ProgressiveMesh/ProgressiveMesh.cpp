@@ -39,6 +39,11 @@ ProgressiveMesh::~ProgressiveMesh()
 	}
 }
 
+void ProgressiveMesh::InitBoundary(const cd::AABB& aabb)
+{
+	return m_pProgressiveMeshImpl->InitBoundary(aabb);
+}
+
 void ProgressiveMesh::InitBoundary(const cd::Mesh& mesh)
 {
 	return m_pProgressiveMeshImpl->InitBoundary(mesh.GetVertexPositions(), mesh.GetPolygons());
@@ -57,6 +62,11 @@ std::pair<std::vector<uint32_t>, std::vector<uint32_t>> ProgressiveMesh::BuildCo
 cd::Mesh ProgressiveMesh::GenerateLodMesh(float percent, const cd::Mesh* pSourceMesh)
 {
 	return m_pProgressiveMeshImpl->GenerateLodMesh(percent, pSourceMesh);
+}
+
+cd::Mesh ProgressiveMesh::GenerateLodMesh(float percent, uint32_t minFaceCount, const cd::Mesh* pSourceMesh)
+{
+	return m_pProgressiveMeshImpl->GenerateLodMesh(percent, minFaceCount, pSourceMesh);
 }
 
 cd::Mesh ProgressiveMesh::GenerateLodMesh(uint32_t targetFaceCount, const cd::Mesh* pSourceMesh)

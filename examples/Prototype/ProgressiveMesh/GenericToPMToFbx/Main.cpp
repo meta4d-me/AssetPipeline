@@ -58,7 +58,25 @@ int main(int argc, char** argv)
 		}
 
 		auto pm = cd::ProgressiveMesh::FromIndexedMesh(mesh);
-		auto lodMesh = pm.GenerateLodMesh(0.1f, &mesh);
+		for (uint32_t otherMeshIndex = 0U; otherMeshIndex < meshCount; ++otherMeshIndex)
+		{
+			if (meshIndex == otherMeshIndex)
+			{
+				continue;
+			}
+
+			const auto& otherMesh = pSceneDatabase->GetMesh(otherMeshIndex);
+			if (!mesh.GetAABB().Intersects(otherMesh.GetAABB()))
+			{
+				continue;
+			}
+
+			cd::AABB intersection = mesh.GetAABB().GetIntersection(otherMesh.GetAABB());
+			pm.InitBoundary(intersection);
+		}
+
+		auto lodMesh = pm.GenerateLodMesh(0.1f, 2000, &mesh);
+		lodMesh.SetName(std::format("{}_reduced", mesh.GetName()));
 		lodMesh.SetID(pSceneDatabase->GetMeshCount());
 		pSceneDatabase->AddMesh(cd::MoveTemp(lodMesh));
 	}

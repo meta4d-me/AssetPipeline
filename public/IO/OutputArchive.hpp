@@ -38,14 +38,14 @@ public:
 	TOutputArchive& operator<<(char data) { return Export(data); }
 	TOutputArchive& operator<<(bool data) { return Export(data); }
 	TOutputArchive& operator<<(const std::string& data) { return Export(data); }
-	TOutputArchive& operator<<(const Vec2f& data) { return ExportBuffer(data.Begin(), data.Size); }
-	TOutputArchive& operator<<(const Vec3f& data) { return ExportBuffer(data.Begin(), data.Size); }
-	TOutputArchive& operator<<(const Vec4f& data) { return ExportBuffer(data.Begin(), data.Size); }
-	TOutputArchive& operator<<(const Quaternion& data) { return ExportBuffer(data.Begin(), data.Size); }
-	TOutputArchive& operator<<(const Matrix3x3& data) { return ExportBuffer(data.Begin(), data.Size); }
-	TOutputArchive& operator<<(const Matrix4x4& data) { return ExportBuffer(data.Begin(), data.Size); }
-	TOutputArchive& operator<<(const Transform& data) { return ExportBuffer(data.Begin(), data.Size); }
-	TOutputArchive& operator<<(const AABB& data) { ExportBuffer(data.Min().Begin(), data.Min().Size); ExportBuffer(data.Max().Begin(), data.Max().Size); return *this; }
+	TOutputArchive& operator<<(const Vec2f& data) { return ExportBuffer(data.begin(), data.Size); }
+	TOutputArchive& operator<<(const Vec3f& data) { return ExportBuffer(data.begin(), data.Size); }
+	TOutputArchive& operator<<(const Vec4f& data) { return ExportBuffer(data.begin(), data.Size); }
+	TOutputArchive& operator<<(const Quaternion& data) { return ExportBuffer(data.begin(), data.Size); }
+	TOutputArchive& operator<<(const Matrix3x3& data) { return ExportBuffer(data.begin(), data.Size); }
+	TOutputArchive& operator<<(const Matrix4x4& data) { return ExportBuffer(data.begin(), data.Size); }
+	TOutputArchive& operator<<(const Transform& data) { return ExportBuffer(data.begin(), data.Size); }
+	TOutputArchive& operator<<(const AABB& data) { ExportBuffer(data.Min().begin(), data.Min().Size); ExportBuffer(data.Max().begin(), data.Max().Size); return *this; }
 	TOutputArchive& operator<<(const AxisSystem& data)
 	{
 		Export(static_cast<uint8_t>(data.GetHandedness()));
