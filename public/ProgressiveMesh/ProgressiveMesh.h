@@ -31,8 +31,8 @@ public:
 	void InitBoundary(const cd::Mesh& mesh);
 	void InitBoundary(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons);
 	std::pair<std::vector<uint32_t>, std::vector<uint32_t>> BuildCollapseOperations();
-	cd::Mesh GenerateLodMesh(float percent);
-	cd::Mesh GenerateLodMesh(uint32_t targetFaceCount);
+	cd::Mesh GenerateLodMesh(float percent, const cd::Mesh* pSourceMesh = nullptr);
+	cd::Mesh GenerateLodMesh(uint32_t targetFaceCount, const cd::Mesh* pSourceMesh = nullptr);
 
 private:
 	pm::ProgressiveMeshImpl* m_pProgressiveMeshImpl;

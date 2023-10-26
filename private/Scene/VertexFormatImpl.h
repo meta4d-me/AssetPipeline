@@ -13,8 +13,8 @@ class VertexFormatImpl
 {
 public:
 	explicit VertexFormatImpl() = default;
-	VertexFormatImpl(const VertexFormatImpl&) = delete;
-	VertexFormatImpl& operator=(const VertexFormatImpl&) = delete;
+	VertexFormatImpl(const VertexFormatImpl& rhs);
+	VertexFormatImpl& operator=(const VertexFormatImpl& rhs);
 	VertexFormatImpl(VertexFormatImpl&&) = default;
 	VertexFormatImpl& operator=(VertexFormatImpl&&) = default;
 	~VertexFormatImpl() = default;

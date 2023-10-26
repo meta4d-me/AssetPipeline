@@ -3,6 +3,17 @@
 namespace cd
 {
 
+VertexFormatImpl::VertexFormatImpl(const VertexFormatImpl& rhs)
+{
+	this->operator=(rhs);
+}
+
+VertexFormatImpl& VertexFormatImpl::operator=(const VertexFormatImpl& rhs)
+{
+	m_vertexLayouts = rhs.m_vertexLayouts;
+	return *this;
+}
+
 void VertexFormatImpl::AddAttributeLayout(VertexAttributeType attributeType, AttributeValueType valueType, uint8_t count)
 {
 	m_vertexLayouts.push_back(VertexAttributeLayout{ .vertexAttributeType = attributeType,

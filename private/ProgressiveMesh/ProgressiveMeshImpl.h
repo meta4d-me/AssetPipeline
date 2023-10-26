@@ -60,8 +60,8 @@ public:
 	float ComputeEdgeCollapseCostAtEdge(VertexID v0ID, VertexID v1ID);
 	void Collapse(VertexID v0ID, VertexID v1ID);
 
-	cd::Mesh GenerateLodMesh(float percent);
-	cd::Mesh GenerateLodMesh(uint32_t targetFaceCount);
+	cd::Mesh GenerateLodMesh(float percent, const cd::Mesh* pSourceMesh);
+	cd::Mesh GenerateLodMesh(uint32_t targetFaceCount, const cd::Mesh* pSourceMesh);
 
 private:
 	std::vector<Vertex> m_vertices;
