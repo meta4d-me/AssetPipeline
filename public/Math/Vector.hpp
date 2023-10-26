@@ -200,7 +200,7 @@ public:
 	CD_FORCEINLINE T Sum() const
 	{
 		T result = static_cast<T>(0);
-		std::for_each(begin(), end(), [](const T& component) { result += component; });
+		std::for_each(begin(), end(), [&result](const T& component) { result += component; });
 		return result;
 	}
 
