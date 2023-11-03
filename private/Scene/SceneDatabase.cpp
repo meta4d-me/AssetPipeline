@@ -119,6 +119,11 @@ const Node& SceneDatabase::GetNode(uint32_t index) const
 	return m_pSceneDatabaseImpl->GetNode(index);
 }
 
+Node* SceneDatabase::GetNodeByName(const char* pName)
+{
+	return m_pSceneDatabaseImpl->GetNodeByName(pName);
+}
+
 const Node* SceneDatabase::GetNodeByName(const char* pName) const
 {
 	return m_pSceneDatabaseImpl->GetNodeByName(pName);
@@ -388,6 +393,11 @@ Bone& SceneDatabase::GetBone(uint32_t index)
 const Bone& SceneDatabase::GetBone(uint32_t index) const
 {
 	return m_pSceneDatabaseImpl->GetBone(index);
+}
+
+Bone* SceneDatabase::GetBoneByName(const char* pName)
+{
+	return m_pSceneDatabaseImpl->GetBoneByName(pName);
 }
 
 const Bone* SceneDatabase::GetBoneByName(const char* pName) const

@@ -9,6 +9,18 @@ VertexFormat::VertexFormat()
 	m_pVertexFormatImpl = new VertexFormatImpl();
 }
 
+VertexFormat::VertexFormat(const VertexFormat& rhs)
+{
+	*this = rhs;
+}
+
+VertexFormat& VertexFormat::operator=(const VertexFormat& rhs)
+{
+	m_pVertexFormatImpl = new VertexFormatImpl();
+	*m_pVertexFormatImpl = *rhs.m_pVertexFormatImpl;
+	return *this;
+}
+
 VertexFormat::VertexFormat(VertexFormat&& rhs)
 {
 	*this = cd::MoveTemp(rhs);

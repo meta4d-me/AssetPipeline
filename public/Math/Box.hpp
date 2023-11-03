@@ -96,16 +96,45 @@ public:
 		return result;
 	}
 
+	bool Intersects(const TBox& other) const
+	{
+		for (uint32_t index = 0U; index < N; ++index)
+		{
+			if (other.Max()[index] < m_min[index] || other.Min()[index] > m_max[index])
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	TBox GetIntersection(const TBox& other) const
+	{
+		constexpr T zero = static_cast<T>(0);
+
+		TVector<T, N> min(zero);
+		TVector<T, N> max(zero);
+		for (uint32_t index = 0U; index < N; ++index)
+		{
+			min[index] = std::max(m_min[index], other.Min()[index]);
+			max[index] = std::min(m_max[index], other.Max()[index]);
+		}
+		return TBox(MoveTemp(min), MoveTemp(max));
+	}
+
 	bool Intersects(const TRay<T>& ray, T& t) const
 	{
+		constexpr T one = static_cast<T>(1);
+
 		// TODO : For 2D Rect.
 		static_assert(3 == N);
 
 		// TODO : have a look at "Fast Ray-Box Intersection" Graphics Gems, 1990.
 		// We can cache it inside Ray class to speed up calculations.
-		T dirfracx = 1.0f / ray.Direction().x();
-		T dirfracy = 1.0f / ray.Direction().y();
-		T dirfracz = 1.0f / ray.Direction().z();
+		T dirfracx = one / ray.Direction().x();
+		T dirfracy = one / ray.Direction().y();
+		T dirfracz = one / ray.Direction().z();
 
 		T t1 = (m_min.x() - ray.Origin().x()) * dirfracx;
 		T t2 = (m_max.x() - ray.Origin().x()) * dirfracx;
