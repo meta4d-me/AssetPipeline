@@ -25,6 +25,8 @@ public:
 
 	void TraverseNodeRecursively(Effekseer::EffectNode* pNode);
 
+	void PushAllColor(Effekseer::AllTypeColorParameter* AllColor);
+
 	void Execute(cd::SceneDatabase* pSceneDatabase);
 
 private:
@@ -32,6 +34,7 @@ private:
 	Effekseer::random_vector3d m_particlePos;
 	Effekseer::random_vector3d m_particleVelocity;
 	Effekseer::random_vector3d m_particleAccelerate;
+	Effekseer::Color m_Color;
 
 	cd::ObjectIDGenerator<cd::ParticleEmitterID> m_particleEmitterIDGenerator;
 };

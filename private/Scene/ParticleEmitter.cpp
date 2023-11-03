@@ -87,6 +87,20 @@ const cd::Vec3f& ParticleEmitter::GetAccelerate() const
     return m_pParticleEmitterImpl->GetAccelerate();
 }
 
+void ParticleEmitter::SetColor(cd::Vec4f color)
+{
+    m_pParticleEmitterImpl->SetColor(cd::MoveTemp(color));
+}
+
+Vec4f& ParticleEmitter::GetColor()
+{
+    return m_pParticleEmitterImpl->GetColor();
+}
+
+const cd::Vec4f& ParticleEmitter::GetColor() const
+{
+    return m_pParticleEmitterImpl->GetColor();
+}
 
 ParticleEmitter& ParticleEmitter::operator<<(InputArchive& inputArchive)
 {

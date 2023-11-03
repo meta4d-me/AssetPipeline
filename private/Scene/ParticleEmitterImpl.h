@@ -44,6 +44,11 @@ public:
 	Vec3f& GetAccelerate() { return m_Accelerate; }
 	const Vec3f& GetAccelerate() const { return m_Accelerate; }
 
+	//Color
+	void SetColor(Vec4f color) { m_Color = MoveTemp(color); }
+	Vec4f& GetColor() { return m_Color; }
+	const Vec4f& GetColor() const { return m_Color; }
+
 	template<bool SwapBytesOrder>
 	ParticleEmitterImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
@@ -51,7 +56,8 @@ public:
 		std::string emitterName;
 		inputArchive >> emitterID >> emitterName;
 		Init(ParticleEmitterID(emitterID), cd::MoveTemp(emitterName));
-		inputArchive >> GetPosition() >> GetVelocity() >> GetAccelerate();
+		inputArchive >> GetPosition() >> GetVelocity() >> GetAccelerate()
+			>> GetColor();
 		return *this;
 	}
 
@@ -59,7 +65,8 @@ public:
 	const ParticleEmitterImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
 		outputArchive << GetID().Data() << GetName()
-			<< GetPosition() << GetVelocity() << GetAccelerate();
+			<< GetPosition() << GetVelocity() << GetAccelerate()
+			<< GetColor();
 		return *this;
 	}
 
@@ -70,6 +77,7 @@ private:
 	cd::Vec3f m_Position;
 	cd::Vec3f m_Velocity;
 	cd::Vec3f m_Accelerate;
+	cd::Vec4f m_Color;
 };
 
 }

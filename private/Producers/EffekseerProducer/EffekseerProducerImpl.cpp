@@ -12,17 +12,50 @@ EffekseerProducerImpl::EffekseerProducerImpl(const char16_t* pFilePath) :
 {
 }
 
+void EffekseerProducerImpl::PushAllColor(Effekseer::AllTypeColorParameter* AllColor)
+{
+	//Color
+	if (AllColor->type ==AllColor->Fixed)
+	{
+		m_Color = AllColor->fixed.all;
+	}
+	else if (AllColor->type == AllColor->Easing)
+	{
+
+	}
+}
+
 void EffekseerProducerImpl::TraverseNodeRecursively(Effekseer::EffectNode* pNode)
 {
 	Effekseer::EffectNodeType nodeType = pNode->GetType();
 	if (Effekseer::EffectNodeType::Sprite == nodeType)
 	{
+		//PVA
 		auto* pSpriteNode = static_cast<Effekseer::EffectNodeSprite*>(pNode);
 		m_particlePos = pSpriteNode->TranslationParam.TranslationPVA.location;
 		m_particleVelocity = pSpriteNode->TranslationParam.TranslationPVA.velocity;
 		m_particleAccelerate = pSpriteNode->TranslationParam.TranslationPVA.acceleration;
-		return ;
+		PushAllColor(&pSpriteNode->SpriteAllColor);
+
+		return;
 	}
+	else if (Effekseer::EffectNodeType::Ribbon == nodeType)
+	{
+
+	}
+	else if (Effekseer::EffectNodeType::Track == nodeType)
+	{
+
+	}
+	else if (Effekseer::EffectNodeType::Ring == nodeType)
+	{
+
+	}
+	else if (Effekseer::EffectNodeType::Model == nodeType)
+	{
+
+	}
+
 
 	int childNodeCount = pNode->GetChildrenCount();
 	for (int childIndex = 0; childIndex < childNodeCount; ++childIndex)
@@ -30,6 +63,7 @@ void EffekseerProducerImpl::TraverseNodeRecursively(Effekseer::EffectNode* pNode
 		TraverseNodeRecursively(pNode->GetChild(childIndex));
 	}
 }
+
 
 void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 {
@@ -47,6 +81,7 @@ void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	cd::ParticleEmitterID particleEmitterID = m_particleEmitterIDGenerator.AllocateID(particleEmitterHash);
 
 	//pos velocity scale
+	//may be  get all?????
    TraverseNodeRecursively(pEffectData->GetRoot());
 
 	//all Set
@@ -54,8 +89,7 @@ void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	particleEmitter.SetPosition(cd::Vec3f(m_particlePos.max.x, m_particlePos.max.y, m_particlePos.max.z));
 	particleEmitter.SetVelocity(cd::Vec3f(m_particleVelocity.max.x, m_particleVelocity.max.y, m_particleVelocity.max.z));
 	particleEmitter.SetAccelerate(cd::Vec3f(m_particleAccelerate.max.x, m_particleAccelerate.max.y, m_particleAccelerate.max.z));
-
-
+	particleEmitter.SetColor(cd::Vec4f(m_Color.R,m_Color.G,m_Color.B,m_Color.A));
 	pSceneDatabase->AddParticleEmitter(cd::MoveTemp(particleEmitter));
 	//// Mesh
 	//auto a = pEffectData->GetName();

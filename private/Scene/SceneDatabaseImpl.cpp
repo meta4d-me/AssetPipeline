@@ -336,6 +336,7 @@ void SceneDatabaseImpl::Dump() const
 			details::Dump("\tPosition", particle.GetPosition());
 			details::Dump("\tVelocity", particle.GetVelocity());
 			details::Dump("\tAccelerate", particle.GetAccelerate());
+			details::Dump("\tColor", particle.GetColor());
 		}
 	}
 }

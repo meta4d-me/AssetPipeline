@@ -41,6 +41,10 @@ public:
 	Vec3f& GetAccelerate();
 	const cd::Vec3f& GetAccelerate() const;
 
+	void SetColor(cd::Vec4f color);
+	Vec4f& GetColor();
+	const cd::Vec4f& GetColor() const;
+
 	ParticleEmitter& operator<<(InputArchive& inputArchive);
 	ParticleEmitter& operator<<(InputArchiveSwapBytes& inputArchive);
 	const ParticleEmitter& operator>>(OutputArchive& outputArchive) const;
