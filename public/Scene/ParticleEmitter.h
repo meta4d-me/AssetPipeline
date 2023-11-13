@@ -29,6 +29,10 @@ public:
 	EXPORT_OBJECT_ID_APIS(ParticleEmitterID);
 	EXPORT_NAME_APIS();
 
+	void SetType(int type);
+	int& GetType();
+	const int& GetType() const;
+
 	void SetPosition(cd::Vec3f position);
 	Vec3f& GetPosition();
 	const cd::Vec3f& GetPosition() const;

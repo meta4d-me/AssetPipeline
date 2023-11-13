@@ -333,6 +333,11 @@ void SceneDatabaseImpl::Dump() const
 		for (const auto& particle : GetParticleEmitters())
 		{
 			printf("[ParticleEmitter %u] Name : %s\n", particle.GetID().Data(), particle.GetName());
+			if (particle.GetType() == 2) { printf("\tType: Sprite\n"); }
+			else if (particle.GetType() == 3) { printf("\tType: Ribbon\n"); }
+			else if (particle.GetType() == 4) { printf("\tType: Ring\n"); }
+			else if (particle.GetType() == 5) { printf("\tType: Model\n"); }
+			else if (particle.GetType() == 6) { printf("\tType: Track\n"); }
 			details::Dump("\tPosition", particle.GetPosition());
 			details::Dump("\tVelocity", particle.GetVelocity());
 			details::Dump("\tAccelerate", particle.GetAccelerate());

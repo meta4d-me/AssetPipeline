@@ -42,6 +42,21 @@ ParticleEmitter::~ParticleEmitter()
 PIMPL_ID_APIS(ParticleEmitter);
 PIMPL_NAME_APIS(ParticleEmitter);
 
+void ParticleEmitter::SetType(int type)
+{
+    m_pParticleEmitterImpl->SetType(cd::MoveTemp(type));
+}
+
+int& ParticleEmitter::GetType()
+{
+    return m_pParticleEmitterImpl->GetType();
+}
+
+const int& ParticleEmitter::GetType() const
+{
+    return m_pParticleEmitterImpl->GetType();
+}
+
 void ParticleEmitter::SetPosition(cd::Vec3f position)
 {
     m_pParticleEmitterImpl->SetPosition(cd::MoveTemp(position));

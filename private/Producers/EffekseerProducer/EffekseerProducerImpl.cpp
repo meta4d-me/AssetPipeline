@@ -28,6 +28,7 @@ void EffekseerProducerImpl::PushAllColor(Effekseer::AllTypeColorParameter* AllCo
 void EffekseerProducerImpl::TraverseNodeRecursively(Effekseer::EffectNode* pNode)
 {
 	Effekseer::EffectNodeType nodeType = pNode->GetType();
+	m_particleType = nodeType;
 	if (Effekseer::EffectNodeType::Sprite == nodeType)
 	{
 		//PVA
@@ -86,6 +87,7 @@ void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 
 	//all Set
 	cd::ParticleEmitter particleEmitter(particleEmitterID, pParticleEmitterName);
+	particleEmitter.SetType(static_cast<int>(m_particleType));
 	particleEmitter.SetPosition(cd::Vec3f(m_particlePos.max.x, m_particlePos.max.y, m_particlePos.max.z));
 	particleEmitter.SetVelocity(cd::Vec3f(m_particleVelocity.max.x, m_particleVelocity.max.y, m_particleVelocity.max.z));
 	particleEmitter.SetAccelerate(cd::Vec3f(m_particleAccelerate.max.x, m_particleAccelerate.max.y, m_particleAccelerate.max.z));

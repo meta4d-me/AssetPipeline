@@ -31,6 +31,7 @@ public:
 
 private:
 	const char16_t* m_pFilePath;
+	Effekseer::EffectNodeType m_particleType;
 	Effekseer::random_vector3d m_particlePos;
 	Effekseer::random_vector3d m_particleVelocity;
 	Effekseer::random_vector3d m_particleAccelerate;
