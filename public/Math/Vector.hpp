@@ -214,7 +214,14 @@ public:
 
 	TVector& Normalize()
 	{
-		T invLength = static_cast<T>(1) / Length();
+		float length = Length();
+		if (cd::Math::IsSmallThanZero(length))
+		{
+			// avoid devide zero nan.
+			return *this;
+		}
+
+		T invLength = static_cast<T>(1) / length;
 		std::for_each(begin(), end(), [&invLength](T& component) { component *= invLength; });
 		return *this;
 	}
