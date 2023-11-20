@@ -723,8 +723,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 				fbxsdk::FbxTime increment;
 				increment.SetSecondDouble(0);
 
-				// Currently, boneTransform is useless. I just store the pose of the first frame of the animation.
-				bone.SetTransform(details::ConvertFbxMatrixToTranform(pBoneNode->EvaluateGlobalTransform(increment)));
+				bone.SetTransform(details::ConvertFbxMatrixToTranform(globalBindposeInverseMatrix.Inverse()));
 				bone.SetOffset(details::ConvertFbxMatrixToCDMatrix(globalBindposeInverseMatrix));
 
 				// Set the parent bone
@@ -738,9 +737,14 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 						assert(pParentBone);
 						bone.SetParentID(pParentBone->GetID());
 						pParentBone->AddChildID(bone.GetID());
+						cd::Matrix4x4 parentMatixInserve = pParentBone->GetOffset();
+						cd::Matrix4x4 globalMatrix = bone.GetTransform().GetMatrix();
+						cd::Matrix4x4 localMatix = pParentBone->GetOffset() * bone.GetTransform().GetMatrix();
+						bone.SetTransform(cd::Transform(localMatix.GetTranslation(),cd::Quaternion::FromMatrix(localMatix.GetRotation()),localMatix.GetScale()));		
 					}
 				}
-
+				cd::Matrix4x4 tranform = bone.GetTransform().GetMatrix();
+				cd::Matrix4x4 offset = bone.GetOffset().Inverse();
 				pSceneDatabase->AddBone(cd::MoveTemp(bone));
 			}
 
@@ -954,64 +958,126 @@ cd::BoneID FbxProducerImpl::AddBone(const fbxsdk::FbxNode* pSDKNode, cd::BoneID 
 
 void FbxProducerImpl::ProcessAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase)
 {	
+	// Locates all skeleton nodes in the fbx scene. Some might be nullptr.
+	std::vector<FbxNode*> bones;
+	for (int i = 0; i < pSceneDatabase->GetBoneCount(); i++) 
+	{
+		const char* jointName = pSceneDatabase->GetBone(i).GetName();
+		bones.push_back(scene->FindNodeByName(jointName));
+	}
 	const int animationCount = scene->GetSrcObjectCount<fbxsdk::FbxAnimStack>();
 	for (int animationIndex = 0; animationIndex < animationCount; ++animationIndex)
 	{
 		// Single-take animation information.
 		fbxsdk::FbxAnimStack* pCurrentAnimStack = scene->GetSrcObject<fbxsdk::FbxAnimStack>(animationIndex);
 		scene->SetCurrentAnimationStack(pCurrentAnimStack);
-		fbxsdk::FbxString animStackName = pCurrentAnimStack->GetName();
-		std::string animationName = animStackName.Buffer();
+		const char* animStackName = pCurrentAnimStack->GetName();
 		float start = static_cast<float>(pCurrentAnimStack->GetLocalTimeSpan().GetStart().GetSecondDouble());
 		float end = static_cast<float>(pCurrentAnimStack->GetLocalTimeSpan().GetStop().GetSecondDouble());
 
-		cd::AnimationID::ValueType animationHash = cd::StringHash<cd::AnimationID::ValueType>(animationName);
+		cd::AnimationID::ValueType animationHash = cd::StringHash<cd::AnimationID::ValueType>(animStackName);
 		cd::AnimationID animationID = m_animationIDGenerator.AllocateID(animationHash);
-		cd::Animation animation(animationID, cd::MoveTemp(animationName));
+		cd::Animation animation(animationID, cd::MoveTemp(animStackName));
 
-		animation.SetDuration(static_cast<float>(end > start ? end - start : 1.0f));
-		animation.SetTicksPerSecond(static_cast<float>(24.0f));
+		float period = 1.f / 30.0f; // todo: it can make variable, like 24fps or 60fps...
+		int trackCount = static_cast<int>(std::ceil((end - start) / period + 1.0f));
 
-		float period = 1.f / 24.f; // todo: it can make variable, like 24fps or 60fps...
-		const auto& bones = pSceneDatabase->GetBones();
-		int trackCount = static_cast<int>(std::ceil((end - start) / period));
-		for (uint32_t boneIndex = 0U; boneIndex < pSceneDatabase->GetBoneCount(); ++boneIndex)
+		std::vector<float> times;
+		times.resize(trackCount);
+
+		std::vector<std::vector<cd::Matrix4x4>> worldMatrices;
+		worldMatrices.resize(pSceneDatabase->GetBoneCount());
+		for (int i = 0; i < pSceneDatabase->GetBoneCount(); i++)
 		{
-			fbxsdk::FbxNode* bone = scene->FindNodeByName(bones[boneIndex].GetName());
-			cd::TrackID::ValueType trackHash = cd::StringHash<cd::TrackID::ValueType>(bones[boneIndex].GetName());
-			cd::TrackID trackID = m_trackIDGenerator.AllocateID(trackHash);
+			worldMatrices[i].resize(trackCount);
+		}
 
-			cd::Track boneTrack(trackID, bones[boneIndex].GetName());
-			const char* name = bones[boneIndex].GetName();
+		animation.SetDuration(end - start);
+		animation.SetTicksPerSecond(static_cast<float>(30.0f));
+
+		// Goes through the whole timeline to compute animated word matrices.
+		// Fbx sdk seems to compute nodes transformation for the whole scene, so it's
+		// much faster to query all nodes at once for the same time t.
+		FbxAnimEvaluator* evaluator = scene->GetAnimationEvaluator();
+		for (int trackIndex = 0; trackIndex < trackCount; ++trackIndex)
+		{
+			const float time = std::min(trackIndex * period, end - start);
+			times[trackIndex] = time;
+			for (uint32_t boneIndex = 0U; boneIndex < pSceneDatabase->GetBoneCount(); ++boneIndex)
+			{
+				fbxsdk::FbxNode* bone = bones[boneIndex];
+				if (bone)
+				{
+					const FbxAMatrix fbxMatrix = evaluator->GetNodeGlobalTransform(bone, FbxTimeSeconds(time + start));
+					const cd::Matrix4x4 matrix = details::ConvertFbxMatrixToCDMatrix(fbxMatrix);
+					worldMatrices[boneIndex][trackIndex] = matrix;
+				}
+
+			}
+		}
+
+		// Builds world inverse matrices.
+		std::vector<std::vector<cd::Matrix4x4>> worldInverseMatrices;
+		worldInverseMatrices.resize(pSceneDatabase->GetBoneCount());
+		for (int i = 0; i < pSceneDatabase->GetBoneCount(); i++)
+		{
+		
+			const std::vector<cd::Matrix4x4>& boneWorldMatrices = worldMatrices[i];
+			std::vector<cd::Matrix4x4>& boneWorldInvMatrices = worldInverseMatrices[i];
+			boneWorldInvMatrices.resize((trackCount));
+			for (size_t p = 0; p < trackCount; ++p)
+			{
+				boneWorldInvMatrices[p] = boneWorldMatrices[p].Inverse();
+			}
+		}
+		// Builds local space animation tracks.
+		// Allocates all tracks with the same number of joints as the skeleton.
+		for (int i = 0; i < pSceneDatabase->GetBoneCount(); i++)
+		{
+			std::string str(animStackName);
+			cd::TrackID::ValueType trackHash = cd::StringHash<cd::TrackID::ValueType>(str + bones[i]->GetName());
+			cd::TrackID trackID = m_trackIDGenerator.AllocateID(trackHash);
+			cd::Track boneTrack(trackID, str + bones[i]->GetName());
 			boneTrack.SetTranslationKeyCount(trackCount);
 			boneTrack.SetRotationKeyCount(trackCount);
 			boneTrack.SetScaleKeyCount(trackCount);
-
-			for (int trackIndex = 0; trackIndex < trackCount; ++trackIndex)
-			{	
-				fbxsdk::FbxTime frameTime;
-				frameTime.SetSecondDouble(trackIndex * period);
-				fbxsdk::FbxAMatrix currentTransform = bone->EvaluateGlobalTransform(frameTime);
-				cd::Transform transformKey = details::ConvertFbxMatrixToTranform(currentTransform);
-				
-				float time = static_cast<float>(trackIndex * period);
-
-				// Translation.
-				auto& cdTranslationKey = boneTrack.GetTranslationKeys()[trackIndex];
-				cdTranslationKey.SetTime(time);
-				cdTranslationKey.SetValue(transformKey.GetTranslation());
-
-				// Rotation.
-				auto& cdRotationKey = boneTrack.GetRotationKeys()[trackIndex];
-				cdRotationKey.SetTime(time);
-				cdRotationKey.SetValue(transformKey.GetRotation());
-
-				// Scale.
-				auto& cdScaleKey = boneTrack.GetScaleKeys()[trackIndex];
-				cdScaleKey.SetTime(time);
-				cdScaleKey.SetValue(transformKey.GetScale());
+			std::vector<cd::Matrix4x4>& boneWorldMatrices = worldMatrices[i];
+			fbxsdk::FbxNode* parent = bones[i]->GetParent();
+			auto name = parent->GetName();
+			int ID = 0;
+			if (parent->GetNodeAttribute()->GetAttributeType() == fbxsdk::FbxNodeAttribute::eSkeleton)
+			{
+				ID = pSceneDatabase->GetBoneByName(parent->GetName())->GetID().Data();
 			}
+			std::vector<cd::Matrix4x4>& boneWorldInverseMatrices = worldInverseMatrices[ID];
 
+			for (uint32_t n = 0; n < trackCount; ++n)
+			{
+				//Build local matrix;
+				cd::Matrix4x4 localMatrix;
+				if (parent->GetNodeAttribute()->GetAttributeType() == fbxsdk::FbxNodeAttribute::eSkeleton)
+				{
+					localMatrix = boneWorldInverseMatrices[n] * boneWorldMatrices[n];
+				}
+				else
+				{
+					localMatrix = boneWorldMatrices[n];
+				}
+				cd::Transform localTransform = cd::Transform(localMatrix.GetTranslation(),cd::Quaternion::FromMatrix(localMatrix.GetRotation()), localMatrix.GetScale());
+				//Fills corresponding track
+				const float t = times[n];
+				auto& cdTranslationKey = boneTrack.GetTranslationKeys()[n];
+				cdTranslationKey.SetTime(t);
+				cdTranslationKey.SetValue(localMatrix.GetTranslation());
+
+				auto& cdRotationKey = boneTrack.GetRotationKeys()[n];
+				cdRotationKey.SetTime(t);
+				cdRotationKey.SetValue(cd::Quaternion::FromMatrix(localMatrix.GetRotation()));
+
+				auto& cdScaleKey = boneTrack.GetScaleKeys()[n];
+				cdScaleKey.SetTime(t);
+				cdScaleKey.SetValue(localMatrix.GetScale());
+			}
 			animation.AddBoneTrackID(trackID.Data());
 			pSceneDatabase->AddTrack(cd::MoveTemp(boneTrack));
 		}
