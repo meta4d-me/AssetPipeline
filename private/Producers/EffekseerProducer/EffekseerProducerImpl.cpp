@@ -17,27 +17,88 @@ void EffekseerProducerImpl::PushAllColor(Effekseer::AllTypeColorParameter* AllCo
 	//Color
 	if (AllColor->type ==AllColor->Fixed)
 	{
-		m_Color = AllColor->fixed.all;
+		m_fixedColor .push_back(AllColor->fixed.all);
+	}
+	else if (AllColor->type == AllColor->Random)
+	{
+
 	}
 	else if (AllColor->type == AllColor->Easing)
 	{
 
 	}
+	//TODO : there still have some num to analysis
+}
+
+void EffekseerProducerImpl::JudgeRotationType(Effekseer::RotationParameter* Type)
+{
+	if (Type->RotationType == Effekseer::ParameterRotationType::ParameterRotationType_Fixed)
+	{
+		m_fixedRotation.push_back(Type->RotationFixed.Position);
+	}
+	else if (Type->RotationType == Effekseer::ParameterRotationType::ParameterRotationType_PVA)
+	{
+
+	}
+	else if (Type->RotationType == Effekseer::ParameterRotationType::ParameterRotationType_Easing)
+	{
+
+	}
+	///TODO:  there still some num to analysis
+}
+
+void EffekseerProducerImpl::PushRotate(Effekseer::EffectNodeSprite* node)
+{
+
+	if (node->Billboard == Effekseer::BillboardType::Billboard)
+	{
+		//NO Rotation
+		JudgeRotationType(&node->RotationParam);
+	}
+	else if (node->Billboard == Effekseer::BillboardType::RotatedBillboard)
+	{
+		//Z Rotation
+		JudgeRotationType(&node->RotationParam);
+	}
+	else if (node->Billboard == Effekseer::BillboardType::YAxisFixed)
+	{
+		//Y Rotation
+		JudgeRotationType(&node->RotationParam);
+	}
+	else if (node->Billboard == Effekseer::BillboardType::Fixed)
+	{
+		// XYZ Rotation
+		JudgeRotationType(&node->RotationParam);
+	}
+}
+
+void EffekseerProducerImpl::PushScale(Effekseer::EffectNodeSprite* node)
+{
+	if (node->ScalingParam.ScalingType == Effekseer::ParameterScalingType::ParameterScalingType_Fixed)
+	{
+		m_fixedScale.push_back(node->ScalingParam.ScalingFixed.Position);
+	}
+	else if (node->ScalingParam.ScalingType == Effekseer::ParameterScalingType::ParameterScalingType_PVA)
+	{
+
+	}
+	///TODO:  there still some num to analysis
 }
 
 void EffekseerProducerImpl::TraverseNodeRecursively(Effekseer::EffectNode* pNode)
 {
 	Effekseer::EffectNodeType nodeType = pNode->GetType();
-	m_particleType = nodeType;
 	if (Effekseer::EffectNodeType::Sprite == nodeType)
 	{
 		//PVA
+		m_particleType.push_back(nodeType);
 		auto* pSpriteNode = static_cast<Effekseer::EffectNodeSprite*>(pNode);
-		m_particlePos = pSpriteNode->TranslationParam.TranslationPVA.location;
-		m_particleVelocity = pSpriteNode->TranslationParam.TranslationPVA.velocity;
-		m_particleAccelerate = pSpriteNode->TranslationParam.TranslationPVA.acceleration;
+		m_particlePos.push_back(pSpriteNode->TranslationParam.TranslationPVA.location);
+		m_particleVelocity.push_back(pSpriteNode->TranslationParam.TranslationPVA.velocity);
+		m_particleAccelerate.push_back(pSpriteNode->TranslationParam.TranslationPVA.acceleration);
 		PushAllColor(&pSpriteNode->SpriteAllColor);
-
+		PushRotate(pSpriteNode);
+		PushScale(pSpriteNode);
 		return;
 	}
 	else if (Effekseer::EffectNodeType::Ribbon == nodeType)
@@ -78,21 +139,26 @@ void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	std::u16string u16str = EffectName;
 	std::string str = converter.to_bytes(u16str);
 	const char* pParticleEmitterName = str.c_str();
-	cd::ParticleEmitterID::ValueType particleEmitterHash = cd::StringHash<cd::ParticleEmitterID::ValueType>(pParticleEmitterName);
-	cd::ParticleEmitterID particleEmitterID = m_particleEmitterIDGenerator.AllocateID(particleEmitterHash);
 
 	//pos velocity scale
 	//may be  get all?????
-   TraverseNodeRecursively(pEffectData->GetRoot());
+	TraverseNodeRecursively(pEffectData->GetRoot());
+	for (int i = 0; i < pEffectData->GetRoot()->GetChildrenCount(); i++)
+	{
+		cd::ParticleEmitterID::ValueType particleEmitterHash = cd::StringHash<cd::ParticleEmitterID::ValueType>(pParticleEmitterName+i);
+		cd::ParticleEmitterID particleEmitterID = m_particleEmitterIDGenerator.AllocateID(particleEmitterHash);
+		//all Set
+		cd::ParticleEmitter particleEmitter(particleEmitterID, pParticleEmitterName);
+		particleEmitter.SetType(static_cast<int>(m_particleType[i]));
+		particleEmitter.SetPosition(cd::Vec3f(m_particlePos[i].max.x, m_particlePos[i].max.y, m_particlePos[i].max.z));
+		particleEmitter.SetVelocity(cd::Vec3f(m_particleVelocity[i].max.x, m_particleVelocity[i].max.y, m_particleVelocity[i].max.z));
+		particleEmitter.SetAccelerate(cd::Vec3f(m_particleAccelerate[i].max.x, m_particleAccelerate[i].max.y, m_particleAccelerate[i].max.z));
+		particleEmitter.SetColor(cd::Vec4f(m_fixedColor[i].R, m_fixedColor[i].G, m_fixedColor[i].B, m_fixedColor[i].A));
+		particleEmitter.SetFixedRotation(cd::Vec3f(m_fixedRotation[i].X, m_fixedRotation[i].Y, m_fixedRotation[i].Z));
+		particleEmitter.SetFixedScale(cd::Vec3f(m_fixedScale[i].X, m_fixedScale[i].Y, m_fixedScale[i].Z));
 
-	//all Set
-	cd::ParticleEmitter particleEmitter(particleEmitterID, pParticleEmitterName);
-	particleEmitter.SetType(static_cast<int>(m_particleType));
-	particleEmitter.SetPosition(cd::Vec3f(m_particlePos.max.x, m_particlePos.max.y, m_particlePos.max.z));
-	particleEmitter.SetVelocity(cd::Vec3f(m_particleVelocity.max.x, m_particleVelocity.max.y, m_particleVelocity.max.z));
-	particleEmitter.SetAccelerate(cd::Vec3f(m_particleAccelerate.max.x, m_particleAccelerate.max.y, m_particleAccelerate.max.z));
-	particleEmitter.SetColor(cd::Vec4f(m_Color.R,m_Color.G,m_Color.B,m_Color.A));
-	pSceneDatabase->AddParticleEmitter(cd::MoveTemp(particleEmitter));
+		pSceneDatabase->AddParticleEmitter(cd::MoveTemp(particleEmitter));
+	}
 	//// Mesh
 	//auto a = pEffectData->GetName();
 

@@ -333,7 +333,9 @@ void SceneDatabaseImpl::Dump() const
 		for (const auto& particle : GetParticleEmitters())
 		{
 			printf("[ParticleEmitter %u] Name : %s\n", particle.GetID().Data(), particle.GetName());
-			if (particle.GetType() == 2) { printf("\tType: Sprite\n"); }
+			if (particle.GetType() == -1) { printf("\tType: Root\n"); }
+			else if (particle.GetType() == 0) { printf("\tType: NoneType\n"); }
+			else if (particle.GetType() == 2) { printf("\tType: Sprite\n"); }
 			else if (particle.GetType() == 3) { printf("\tType: Ribbon\n"); }
 			else if (particle.GetType() == 4) { printf("\tType: Ring\n"); }
 			else if (particle.GetType() == 5) { printf("\tType: Model\n"); }
@@ -342,6 +344,8 @@ void SceneDatabaseImpl::Dump() const
 			details::Dump("\tVelocity", particle.GetVelocity());
 			details::Dump("\tAccelerate", particle.GetAccelerate());
 			details::Dump("\tColor", particle.GetColor());
+			details::Dump("\tRotation", particle.GetFixedRotation());
+			details::Dump("\tScale", particle.GetFixedScale());
 		}
 	}
 }

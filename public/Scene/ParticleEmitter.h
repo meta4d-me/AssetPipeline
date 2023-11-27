@@ -49,6 +49,14 @@ public:
 	Vec4f& GetColor();
 	const cd::Vec4f& GetColor() const;
 
+	void SetFixedRotation(cd::Vec3f rotation);
+	Vec3f& GetFixedRotation();
+	const cd::Vec3f& GetFixedRotation() const;
+
+	void SetFixedScale(cd::Vec3f scale);
+	Vec3f& GetFixedScale ();
+	const cd::Vec3f& GetFixedScale() const;
+
 	ParticleEmitter& operator<<(InputArchive& inputArchive);
 	ParticleEmitter& operator<<(InputArchiveSwapBytes& inputArchive);
 	const ParticleEmitter& operator>>(OutputArchive& outputArchive) const;

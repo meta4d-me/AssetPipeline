@@ -27,15 +27,24 @@ public:
 
 	void PushAllColor(Effekseer::AllTypeColorParameter* AllColor);
 
+	void PushRotate(Effekseer::EffectNodeSprite* node);
+
+	void PushScale(Effekseer::EffectNodeSprite* node);
+
+	void JudgeRotationType(Effekseer::RotationParameter* Type);
+
 	void Execute(cd::SceneDatabase* pSceneDatabase);
 
 private:
 	const char16_t* m_pFilePath;
-	Effekseer::EffectNodeType m_particleType;
-	Effekseer::random_vector3d m_particlePos;
-	Effekseer::random_vector3d m_particleVelocity;
-	Effekseer::random_vector3d m_particleAccelerate;
-	Effekseer::Color m_Color;
+	std::vector<Effekseer::EffectNodeType> m_particleType;
+	std::vector<Effekseer::random_vector3d> m_particlePos;
+	std::vector<Effekseer::random_vector3d> m_particleVelocity;
+	std::vector<Effekseer::random_vector3d> m_particleAccelerate;
+	std::vector<Effekseer::Color> m_fixedColor;
+	std::vector<Effekseer::Vector3D> m_fixedRotation;
+	std::vector<Effekseer::Vector3D> m_fixedScale;
+
 
 	cd::ObjectIDGenerator<cd::ParticleEmitterID> m_particleEmitterIDGenerator;
 };

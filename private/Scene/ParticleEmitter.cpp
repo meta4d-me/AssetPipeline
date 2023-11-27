@@ -117,6 +117,36 @@ const cd::Vec4f& ParticleEmitter::GetColor() const
     return m_pParticleEmitterImpl->GetColor();
 }
 
+void ParticleEmitter::SetFixedRotation(cd::Vec3f rotation)
+{
+    m_pParticleEmitterImpl->SetFixedRotation(cd::MoveTemp(rotation));
+}
+
+Vec3f& ParticleEmitter::GetFixedRotation()
+{
+    return m_pParticleEmitterImpl->GetFixedRotation();
+}
+
+const cd::Vec3f& ParticleEmitter::GetFixedRotation() const
+{
+    return m_pParticleEmitterImpl->GetFixedRotation();
+}
+
+void ParticleEmitter::SetFixedScale(cd::Vec3f scale)
+{
+    m_pParticleEmitterImpl->SetFixedScale(cd::MoveTemp(scale));
+}
+
+Vec3f& ParticleEmitter::GetFixedScale()
+{
+    return m_pParticleEmitterImpl->GetFixedScale();
+}
+
+const cd::Vec3f& ParticleEmitter::GetFixedScale() const
+{
+    return m_pParticleEmitterImpl->GetFixedScale();
+}
+
 ParticleEmitter& ParticleEmitter::operator<<(InputArchive& inputArchive)
 {
     *m_pParticleEmitterImpl << inputArchive;

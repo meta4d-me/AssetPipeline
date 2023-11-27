@@ -4,6 +4,7 @@
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
 #include "Scene/ObjectID.h"
+#include "Scene/VertexFormat.h"
 
 namespace cd
 {
@@ -53,6 +54,16 @@ public:
 	Vec4f& GetColor() { return m_color; }
 	const Vec4f& GetColor() const { return m_color; }
 
+	//FixedRotation
+	void SetFixedRotation(Vec3f rotation) { m_fixedRotation = MoveTemp(rotation); }
+	Vec3f& GetFixedRotation() { return m_fixedRotation; }
+	const Vec3f& GetFixedRotation() const { return m_fixedRotation; }
+
+	//FixedScale
+	void SetFixedScale(Vec3f scale) { m_fixedScale = MoveTemp(scale); }
+	Vec3f& GetFixedScale() { return m_fixedScale; }
+	const Vec3f& GetFixedScale() const { return m_fixedScale; }
+
 	template<bool SwapBytesOrder>
 	ParticleEmitterImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
@@ -61,7 +72,7 @@ public:
 		inputArchive >> emitterID >> emitterName;
 		Init(ParticleEmitterID(emitterID), cd::MoveTemp(emitterName));
 		inputArchive >> GetType() >> GetPosition() >> GetVelocity() >> GetAccelerate()
-			>> GetColor();
+			>> GetColor() >> GetFixedRotation() >> GetFixedScale();
 		return *this;
 	}
 
@@ -70,7 +81,7 @@ public:
 	{
 		outputArchive << GetID().Data() << GetName() << GetType()
 			<< GetPosition() << GetVelocity() << GetAccelerate()
-			<< GetColor();
+			<< GetColor() << GetFixedRotation() << GetFixedScale();
 		return *this;
 	}
 
@@ -78,11 +89,14 @@ private:
 	ParticleEmitterID m_id;
 	std::string m_name;
 
+	cd::VertexFormat m_vertexFormat;
 	int m_type;
 	cd::Vec3f m_position;
 	cd::Vec3f m_velocity;
 	cd::Vec3f m_accelerate;
 	cd::Vec4f m_color;
+	cd::Vec3f m_fixedRotation;
+	cd::Vec3f m_fixedScale;
 };
 
 }
