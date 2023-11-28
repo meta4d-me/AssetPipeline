@@ -3,8 +3,8 @@
 local function MakeExample(exampleProjectPath)
 	exampleProject = path.getbasename(exampleProjectPath)
 
-	if string.contains(exampleProject, "Fbx") and not CheckSDKExists("FBX_SDK_DIR") then
-		print("FBX_SDK_DIR not found, Skip example "..exampleProject)
+	if string.contains(exampleProject, "Fbx") and not BUILD_FBX then
+		print("Skip example "..exampleProject)
 		return
 	end
 

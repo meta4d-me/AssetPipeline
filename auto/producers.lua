@@ -13,7 +13,7 @@ else
 	print("[Skip] generic_producer.")
 end
 
-if CheckSDKExists("FBX_SDK_DIR") and BUILD_FBX then
+if BUILD_FBX then
 	dofile("producers/fbx_producer.lua")
 end
 
