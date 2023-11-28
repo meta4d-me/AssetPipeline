@@ -28,7 +28,6 @@ function CheckSDKExists(sdkDirectoryMacro)
 	return CommercialSDKConfigs[sdkDirectoryMacro] ~= nil
 end
 
-DefineSDKConfig("FBX_SDK_DIR")
 DefineSDKConfig("PHYSX_SDK_DIR")
 DefineSDKConfig("SPEEDTREE_SDK_DIR")
 DefineSDKConfig("EFFEKSEER_SDK_DIR")

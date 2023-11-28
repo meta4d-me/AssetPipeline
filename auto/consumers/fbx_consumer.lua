@@ -20,4 +20,4 @@ project("FbxConsumer")
 		},
 	}
 	
-	find_fbxsdk.run({static_runtime = false})
+	find_fbxsdk.project_config({static_runtime = false})
