@@ -15,8 +15,8 @@ BUILD_TERRAIN = not os.istarget("linux") and USE_CLANG_TOOLSET == "0"
 local BUILD_EXAMPLES = not os.istarget("linux") and USE_CLANG_TOOLSET == "0"
 
 find_fbxsdk = require("premake-findfbx")
-find_fbxsdk.custom_sdk_directory = "O:/fbx"
-find_fbxsdk.dump_information = true
+-- find_fbxsdk.custom_sdk_directory = "C:/fbx"
+-- find_fbxsdk.dump_information = true
 local sdkLocation = find_fbxsdk.get_sdk_location()
 BUILD_FBX = BUILD_FBX and sdkLocation ~= nil and os.isdir(sdkLocation)
 
