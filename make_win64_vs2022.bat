@@ -23,3 +23,4 @@ if exist "./auto/commercial_sdk_locations.bat" (
 @echo on
 cd auto
 call "./Premake/Windows/premake5" --os=windows vs2022
+pause

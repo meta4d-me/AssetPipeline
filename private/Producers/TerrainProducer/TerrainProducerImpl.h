@@ -1,9 +1,9 @@
 #pragma once
 
 #include "AlphaMap.h"
+#include "Producers/TerrainProducer/AlphaMapTypes.h"
+#include "Producers/TerrainProducer/TerrainTypes.h"
 #include "Scene/ObjectIDGenerator.h"
-#include "TerrainProducer/AlphaMapTypes.h"
-#include "TerrainProducer/TerrainTypes.h"
 
 #include <memory>
 
