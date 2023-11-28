@@ -1,5 +1,8 @@
 --------------------------------------------------------------
-print("Building generic_producer")
+-- GenericProducer
+--------------------------------------------------------------
+print("[GenericProducer] Generate project...")
+
 
 function SetupAssimpLib(assimpLibName, configName)
 	libdirs {
@@ -14,31 +17,9 @@ end
 -- Assimp producer which used to parse as many kinds of file formats as possible.
 project("GenericProducer")
 	kind("SharedLib")
-	language("C++")
 	Platform_SetCppDialect()
-	dependson { "AssetPipelineCore", "assimp" }
-
-	location(path.join(RootPath, "build"))
-
-	filter { "configurations:Debug" }
-		objdir(path.join(RootPath, "build/obj/Debug"))
-		targetdir(path.join(RootPath, "build/bin/Debug"))
-		libdirs(path.join(RootPath, "build/bin/Debug"))
-		links {
-			path.join(RootPath, "build/bin/Debug/AssetPipelineCore")
-		}		
-	filter { "configurations:Release" }
-		objdir(path.join(RootPath, "build/obj/Release"))
-		targetdir(path.join(RootPath, "build/bin/Release"))
-		libdirs(path.join(RootPath, "build/bin/Release"))
-		links {
-			path.join(RootPath, "build/bin/Release/AssetPipelineCore")
-		}		
-	filter {}
-
-	defines {
-		"TOOL_BUILD_SHARED"
-	}
+	Tool_InitProject()
+	dependson { "assimp" }
 
 	files {
 		path.join(RootPath, "public/Producers/GenericProducer/**.*"),
@@ -50,12 +31,6 @@ project("GenericProducer")
 			path.join(RootPath, "public/Producers/GenericProducer/**.*"),
 			path.join(RootPath, "private/Producers/GenericProducer/**.*"),
 		},
-	}
-
-	includedirs {
-		path.join(RootPath, "public"),
-		path.join(RootPath, "private"),
-		path.join(RootPath, "external"),
 	}
 	
 	-- assimp

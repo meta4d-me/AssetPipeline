@@ -14,7 +14,9 @@
 * Hash
   * [PicoSHA2](https://github.com/okdshin/PicoSHA2)
 * Image
-  * [stb](https://github.com/nothings/stb) 
+  * [stb](https://github.com/nothings/stb)
+* Premake
+  * [premake-findfbx](https://github.com/T-rvw/premake-findfbx)
 * Pipeline
   * [assimp](https://github.com/assimp/assimp)
 * Serialization

@@ -2,7 +2,7 @@
 
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
-#include "TerrainProducer/AlphaMapTypes.h"
+#include "Producers/TerrainProducer/AlphaMapTypes.h"
 
 #include <array>
 #include <stdint.h>

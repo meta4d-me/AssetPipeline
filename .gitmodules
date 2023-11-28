@@ -10,3 +10,6 @@
 	path = external/stb
 	url = https://github.com/CatDogEngine/stb.git
 	branch = master
+[submodule "auto/premake-findfbx"]
+	path = auto/premake-findfbx
+	url = https://github.com/CatDogEngine/premake-findfbx.git
