@@ -15,10 +15,10 @@
   * [PicoSHA2](https://github.com/okdshin/PicoSHA2)
 * Image
   * [stb](https://github.com/nothings/stb)
-* Premake
-  * [premake-findfbx](https://github.com/T-rvw/premake-findfbx)
 * Pipeline
   * [assimp](https://github.com/assimp/assimp)
+* Premake
+  * [premake-findfbx](https://github.com/T-rvw/premake-findfbx)
 * Serialization
   * [rapidxml](https://github.com/discord/rapidxml)
 
