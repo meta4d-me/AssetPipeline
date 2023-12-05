@@ -13,6 +13,13 @@ namespace cdtools
 
 class GenericProducerImpl;
 
+enum class GenericProducerOptions
+{
+	GenerateBoundingBox,
+	FlattenHierarchy,
+	TriangulateModel,
+};
+
 // GenericProducer can be used to import all kinds of model formats, such as fbx, glTF, obj. Powered by assimp.
 class TOOL_API GenericProducer final : public IProducer
 {
