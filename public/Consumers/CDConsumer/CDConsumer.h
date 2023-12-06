@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Base/Endian.h"
+#include "Consumers/CDConsumer/CDConsumerOptions.h"
 #include "ExportMode.h"
 #include "Framework/IConsumer.h"
 
@@ -26,6 +27,10 @@ public:
 
 	cd::EndianType GetTargetEndian() const;
 	void SetTargetEndian(cd::EndianType endian);
+
+	void EnableOption(CDConsumerOptions option);
+	void DisableOption(CDConsumerOptions option);
+	bool IsOptionEnabled(CDConsumerOptions option) const;
 
 private:
 	void ExportPureBinary(const cd::SceneDatabase* pSceneDatabase);

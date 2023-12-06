@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Base/Endian.h"
+#include "Base/EnumOptions.hpp"
 #include "Base/Template.h"
+#include "Consumers/CDConsumer/CDConsumerOptions.h"
 #include "Consumers/CDConsumer/ExportMode.h"
 
 #include <string>
@@ -37,8 +39,14 @@ public:
 	void ExportPureBinary(const cd::SceneDatabase* pSceneDatabase);
 	void ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase);
 
+	cd::EnumOptions<CDConsumerOptions>& GetOptions() { return m_options; }
+	const cd::EnumOptions<CDConsumerOptions>& GetOptions() const { return m_options; }
+	bool IsOptionEnabled(CDConsumerOptions option) const { return m_options.IsEnabled(option); }
+
 private:
 	ExportMode m_exportMode;
+	cd::EnumOptions<CDConsumerOptions> m_options;
+
 	cd::EndianType m_targetEndian = cd::Endian::GetNative();
 	std::string m_filePath;
 };
