@@ -1,4 +1,5 @@
 #include "Producers/GenericProducer/GenericProducer.h"
+
 #include "GenericProducerImpl.h"
 
 namespace cdtools
@@ -28,74 +29,19 @@ void GenericProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 	m_pGenericProducerImpl->Execute(pSceneDatabase);
 }
 
-void GenericProducer::ActivateBoundingBoxService()
+void GenericProducer::EnableOption(GenericProducerOptions option)
 {
-	m_pGenericProducerImpl->ActivateBoundingBoxService();
+	m_pGenericProducerImpl->GetOptions().Enable(option);
 }
 
-bool GenericProducer::IsBoundingBoxServiceActive() const
+void GenericProducer::DisableOption(GenericProducerOptions option)
 {
-	return m_pGenericProducerImpl->IsBoundingBoxServiceActive();
+	m_pGenericProducerImpl->GetOptions().Disable(option);
 }
 
-void GenericProducer::ActivateFlattenHierarchyService()
+bool GenericProducer::IsOptionEnabled(GenericProducerOptions option) const
 {
-	m_pGenericProducerImpl->ActivateFlattenHierarchyService();
-}
-
-bool GenericProducer::IsFlattenHierarchyServiceActive() const
-{
-	return m_pGenericProducerImpl->IsFlattenHierarchyServiceActive();
-}
-
-void GenericProducer::ActivateTriangulateService()
-{
-	m_pGenericProducerImpl->ActivateTriangulateService();
-}
-
-bool GenericProducer::IsTriangulateServiceActive() const
-{
-	return m_pGenericProducerImpl->IsFlattenHierarchyServiceActive();
-}
-
-void GenericProducer::ActivateTangentsSpaceService()
-{
-	m_pGenericProducerImpl->ActivateTangentsSpaceService();
-}
-
-bool GenericProducer::IsTangentsSpaceServiceActive() const
-{
-	return m_pGenericProducerImpl->IsFlattenHierarchyServiceActive();
-}
-
-void GenericProducer::ActivateCleanUnusedService()
-{
-	m_pGenericProducerImpl->ActivateCleanUnusedService();
-}
-
-bool GenericProducer::IsCleanUnusedServiceActive() const
-{
-	return m_pGenericProducerImpl->IsFlattenHierarchyServiceActive();
-}
-
-void GenericProducer::ActivateSimpleAnimationService()
-{
-	m_pGenericProducerImpl->ActivateSimpleAnimationService();
-}
-
-bool GenericProducer::IsSimpleAnimationServiceActive() const
-{
-	return m_pGenericProducerImpl->IsSimpleAnimationServiceActive();
-}
-
-void GenericProducer::ActivateImproveACMRService()
-{
-	m_pGenericProducerImpl->ActivateImproveACMRService();
-}
-
-bool GenericProducer::IsImproveACMRServiceActive() const
-{
-	return m_pGenericProducerImpl->IsImproveACMRServiceActive();
+	return m_pGenericProducerImpl->GetOptions().IsEnabled(option);
 }
 
 }

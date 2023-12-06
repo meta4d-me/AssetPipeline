@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Framework/IProducer.h"
+#include "Producers/CDProducer/CDProducerOptions.h"
 
 namespace cdtools
 {
@@ -18,6 +19,10 @@ public:
 	CDProducer& operator=(CDProducer&&) = delete;
 	virtual ~CDProducer();
 	virtual void Execute(cd::SceneDatabase* pSceneDatabase) override;
+
+	void EnableOption(CDProducerOptions option);
+	void DisableOption(CDProducerOptions option);
+	bool IsOptionEnabled(CDProducerOptions option) const;
 
 private:
 	CDProducerImpl* m_pCDProducerImpl;

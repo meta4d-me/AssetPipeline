@@ -1,4 +1,5 @@
 #include "GenericProducerImpl.h"
+
 #include "Hashers/StringHash.hpp"
 #include "Scene/ObjectIDGenerator.h"
 #include "Scene/SceneDatabase.h"
@@ -84,27 +85,27 @@ uint32_t GenericProducerImpl::GetImportFlags() const
 	constexpr uint32_t DefaultImportModelFlags = cdtools::array_sum(BasicImportModelFlags);
 
 	uint32_t importFlags = DefaultImportModelFlags;
-	if (IsTriangulateServiceActive())
+	if (IsOptionEnabled(GenericProducerOptions::TriangulateModel))
 	{
 		importFlags |= aiProcess_Triangulate;
 	}
 
-	if (IsBoundingBoxServiceActive())
+	if (IsOptionEnabled(GenericProducerOptions::GenerateBoundingBox))
 	{
 		importFlags |= aiProcess_GenBoundingBoxes;
 	}
 
-	if (IsFlattenHierarchyServiceActive())
+	if (IsOptionEnabled(GenericProducerOptions::FlattenTransformHierarchy))
 	{
 		importFlags |= aiProcess_PreTransformVertices;
 	}
 
-	if (IsTangentsSpaceServiceActive())
+	if (IsOptionEnabled(GenericProducerOptions::GenerateTangentSpace))
 	{
 		importFlags |= aiProcess_CalcTangentSpace;
 	}
 
-	if (IsImproveACMRServiceActive())
+	if (IsOptionEnabled(GenericProducerOptions::OptimizeMeshBufferCacheHitRate))
 	{
 		importFlags |= aiProcess_ImproveCacheLocality;
 	}
@@ -307,7 +308,7 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 	mesh.SetMaterialID(cd::MaterialID(m_materialIDGenerator.GetCurrentID() + pSourceMesh->mMaterialIndex));
 
 	// By default, aabb will be empty.
-	if (IsBoundingBoxServiceActive())
+	if (IsOptionEnabled(GenericProducerOptions::GenerateBoundingBox))
 	{
 		cd::AABB meshAABB(cd::Point(pSourceMesh->mAABB.mMin.x, pSourceMesh->mAABB.mMin.y, pSourceMesh->mAABB.mMin.z),
 			cd::Point(pSourceMesh->mAABB.mMax.x, pSourceMesh->mAABB.mMax.y, pSourceMesh->mAABB.mMax.z));
@@ -559,7 +560,7 @@ void GenericProducerImpl::AddNodeRecursively(cd::SceneDatabase* pSceneDatabase, 
 void GenericProducerImpl::AddMaterials(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene)
 {
 	std::optional<std::set<uint32_t>> optUsedMaterialIndexes = std::nullopt;
-	if (IsCleanUnusedServiceActive())
+	if (IsOptionEnabled(GenericProducerOptions::CleanUnusedObjects))
 	{
 		optUsedMaterialIndexes = std::set<uint32_t>();
 	}
@@ -676,7 +677,7 @@ void GenericProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 
 	// Assimp will generate extra nodes as a chain for bone hierarchy if every bone includes data except basic Translation/Rotation/Scale.
 	// In the first version, we want to make animation not so complex.
-	aiSetImportPropertyInteger(pImportProperties, AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, static_cast<int>(!IsSimpleAnimationServiceActive()));
+	aiSetImportPropertyInteger(pImportProperties, AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, static_cast<int>(!IsOptionEnabled(GenericProducerOptions::OnlyTransformAnimationKey)));
 	const aiScene* pScene = aiImportFileExWithProperties(m_filePath.c_str(), GetImportFlags(), nullptr, pImportProperties);
 
 	aiReleasePropertyStore(pImportProperties);
@@ -712,7 +713,7 @@ void GenericProducerImpl::RemoveBoneReferenceNodes(cd::SceneDatabase* pSceneData
 		// So we will convert cd::Node to cd::Bone here.
 		std::vector<const cd::Node*> queriedNodes;
 		std::string boneNodeName = bone.GetName();
-		if (IsSimpleAnimationServiceActive())
+		if (IsOptionEnabled(GenericProducerOptions::OnlyTransformAnimationKey))
 		{
 			if (const cd::Node* pNode = pSceneDatabase->GetNodeByName(boneNodeName.c_str()))
 			{
