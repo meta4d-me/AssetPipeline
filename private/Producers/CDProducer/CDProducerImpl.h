@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Base/Endian.h"
+#include "Base/EnumOptions.hpp"
 #include "Base/Template.h"
+#include "Producers/CDProducer/CDProducerOptions.h"
 
 #include <string>
 
@@ -27,8 +29,13 @@ public:
 	~CDProducerImpl() = default;
 	void Execute(cd::SceneDatabase* pSceneDatabase);
 
+	cd::EnumOptions<CDProducerOptions>& GetOptions() { return m_options; }
+	const cd::EnumOptions<CDProducerOptions>& GetOptions() const { return m_options; }
+	bool IsOptionEnabled(CDProducerOptions option) const { return m_options.IsEnabled(option); }
+
 private:
 	std::string m_filePath;
+	cd::EnumOptions<CDProducerOptions> m_options;
 };
 
 }

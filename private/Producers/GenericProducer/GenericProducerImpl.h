@@ -1,6 +1,8 @@
 #pragma once
 
+#include "Base/EnumOptions.hpp"
 #include "Base/Template.h"
+#include "Producers/GenericProducer/GenericProducerOptions.h"
 #include "Scene/ObjectIDGenerator.h"
 
 #include <cstdint>
@@ -37,29 +39,11 @@ public:
 	~GenericProducerImpl() = default;
 
 	void SetSceneDatabaseIDs(uint32_t nodeID, uint32_t meshID, uint32_t materialID, uint32_t textureID, uint32_t lightID);
-
 	void Execute(cd::SceneDatabase* pSceneDatabase);
 
-	void ActivateBoundingBoxService() { m_bWantBoundingBox = true; }
-	bool IsBoundingBoxServiceActive() const { return m_bWantBoundingBox; }
-
-	void ActivateFlattenHierarchyService() { m_bWantFlattenHierarchy = true; }
-	bool IsFlattenHierarchyServiceActive() const { return m_bWantFlattenHierarchy; }
-
-	void ActivateTriangulateService() { m_bWantTriangulate = true; }
-	bool IsTriangulateServiceActive() const { return m_bWantTriangulate; }
-
-	void ActivateTangentsSpaceService() { m_bWantTangentsSpace = true; }
-	bool IsTangentsSpaceServiceActive() const { return m_bWantTangentsSpace; }
-
-	void ActivateCleanUnusedService() { m_bWantCleanUnused = true; }
-	bool IsCleanUnusedServiceActive() const { return m_bWantCleanUnused; }
-
-	void ActivateSimpleAnimationService() { m_bWantSimpleAnimation = true; }
-	bool IsSimpleAnimationServiceActive() const { return m_bWantSimpleAnimation; }
-
-	void ActivateImproveACMRService() { m_bWantSimpleAnimation = true; }
-	bool IsImproveACMRServiceActive() const { return m_bWantSimpleAnimation; }
+	cd::EnumOptions<GenericProducerOptions>& GetOptions() { return m_options; }
+	const cd::EnumOptions<GenericProducerOptions>& GetOptions() const { return m_options; }
+	bool IsOptionEnabled(GenericProducerOptions option) const { return m_options.IsEnabled(option); }
 
 private:
 	uint32_t GetImportFlags() const;
@@ -81,15 +65,7 @@ private:
 private:
 	std::string m_filePath;
 	std::string m_folderPath;
-
-	// Service flags
-	bool m_bWantBoundingBox = false;
-	bool m_bWantFlattenHierarchy = false;
-	bool m_bWantTriangulate = false;
-	bool m_bWantTangentsSpace = false;
-	bool m_bWantCleanUnused = false;
-	bool m_bWantSimpleAnimation = false;
-	bool m_bWantImproveACMR = false;
+	cd::EnumOptions<GenericProducerOptions> m_options;
 
 	// Generate IDs for different objects
 	cd::ObjectIDGenerator<cd::NodeID> m_nodeIDGenerator;

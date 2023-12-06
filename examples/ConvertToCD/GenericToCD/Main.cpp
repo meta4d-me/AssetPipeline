@@ -20,11 +20,11 @@ int main(int argc, char** argv)
 	const char* pInputFilePath = argv[1];
 	const char* pOutputFilePath = argv[2];
 	GenericProducer producer(pInputFilePath);
-	producer.ActivateBoundingBoxService();
-	producer.ActivateTriangulateService();
-	producer.ActivateTangentsSpaceService();
-	producer.ActivateCleanUnusedService();
-	producer.ActivateSimpleAnimationService();
+	producer.EnableOption(GenericProducerOptions::GenerateBoundingBox);
+	producer.EnableOption(GenericProducerOptions::TriangulateModel);
+	producer.EnableOption(GenericProducerOptions::GenerateTangentSpace);
+	producer.EnableOption(GenericProducerOptions::CleanUnusedObjects);
+	producer.EnableOption(GenericProducerOptions::OnlyTransformAnimationKey);
 
 	CDConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);

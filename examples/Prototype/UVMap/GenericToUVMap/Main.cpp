@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 
 	auto pSceneDatabase = std::make_unique<cd::SceneDatabase>();
 	GenericProducer producer(pInputFilePath);
-	producer.ActivateTriangulateService();
+	producer.EnableOption(GenericProducerOptions::TriangulateModel);
 	Processor processor(&producer, nullptr, pSceneDatabase.get());
 	processor.Run();
 
