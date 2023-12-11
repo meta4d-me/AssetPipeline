@@ -57,6 +57,10 @@ public:
 	Vec3f& GetFixedScale ();
 	const cd::Vec3f& GetFixedScale() const;
 
+	void SetTypeName(std::string name);
+	std::string& GetTypeName();
+	const std::string& GetTypeName() const;
+
 	ParticleEmitter& operator<<(InputArchive& inputArchive);
 	ParticleEmitter& operator<<(InputArchiveSwapBytes& inputArchive);
 	const ParticleEmitter& operator>>(OutputArchive& outputArchive) const;

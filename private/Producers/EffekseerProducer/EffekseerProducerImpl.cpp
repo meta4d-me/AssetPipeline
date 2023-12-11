@@ -150,6 +150,13 @@ void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		//all Set
 		cd::ParticleEmitter particleEmitter(particleEmitterID, pParticleEmitterName);
 		particleEmitter.SetType(static_cast<int>(m_particleType[i]));
+		if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Root)) { particleEmitter.SetTypeName("Root"); }
+		else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::NoneType)) { particleEmitter.SetTypeName("NoneType"); }
+		else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Sprite)) { particleEmitter.SetTypeName("Sprite"); }
+		else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Ribbon)) { particleEmitter.SetTypeName("Ribbon"); }
+		else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Ring)) { particleEmitter.SetTypeName("Ring"); }
+		else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Model)) { particleEmitter.SetTypeName("Model"); }
+		else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Track)) { particleEmitter.SetTypeName("Track"); }
 		particleEmitter.SetPosition(cd::Vec3f(m_particlePos[i].max.x, m_particlePos[i].max.y, m_particlePos[i].max.z));
 		particleEmitter.SetVelocity(cd::Vec3f(m_particleVelocity[i].max.x, m_particleVelocity[i].max.y, m_particleVelocity[i].max.z));
 		particleEmitter.SetAccelerate(cd::Vec3f(m_particleAccelerate[i].max.x, m_particleAccelerate[i].max.y, m_particleAccelerate[i].max.z));

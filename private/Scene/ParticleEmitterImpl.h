@@ -64,6 +64,11 @@ public:
 	Vec3f& GetFixedScale() { return m_fixedScale; }
 	const Vec3f& GetFixedScale() const { return m_fixedScale; }
 
+	//TypeName
+	void SetTypeName(std::string name) { m_typeName = MoveTemp(name); }
+	std::string & GetTypeName() { return m_typeName; }
+	const std::string& GetTypeName() const { return m_typeName; }
+
 	template<bool SwapBytesOrder>
 	ParticleEmitterImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
@@ -71,7 +76,7 @@ public:
 		std::string emitterName;
 		inputArchive >> emitterID >> emitterName;
 		Init(ParticleEmitterID(emitterID), cd::MoveTemp(emitterName));
-		inputArchive >> GetType() >> GetPosition() >> GetVelocity() >> GetAccelerate()
+		inputArchive >> GetType() >> GetTypeName() >> GetPosition() >> GetVelocity() >> GetAccelerate()
 			>> GetColor() >> GetFixedRotation() >> GetFixedScale();
 		return *this;
 	}
@@ -79,7 +84,7 @@ public:
 	template<bool SwapBytesOrder>
 	const ParticleEmitterImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetID().Data() << GetName() << GetType()
+		outputArchive << GetID().Data() << GetName() << GetType() << GetTypeName()
 			<< GetPosition() << GetVelocity() << GetAccelerate()
 			<< GetColor() << GetFixedRotation() << GetFixedScale();
 		return *this;
@@ -97,6 +102,7 @@ private:
 	cd::Vec4f m_color;
 	cd::Vec3f m_fixedRotation;
 	cd::Vec3f m_fixedScale;
+	std::string m_typeName;
 };
 
 }
