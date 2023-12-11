@@ -8,10 +8,12 @@ else
 	print("[Skip] generic_consumer.")
 end
 
-if CheckSDKExists("FBX_SDK_DIR") and BUILD_FBX then
+if BUILD_FBX then
 	dofile("consumers/fbx_consumer.lua")
 end
+
 if CheckSDKExists("PHYSX_SDK_DIR") then
 	dofile("consumers/physx_consumer.lua")
 end
+
 group("")

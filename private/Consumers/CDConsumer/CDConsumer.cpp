@@ -53,4 +53,19 @@ void CDConsumer::ExportXmlBinary(const cd::SceneDatabase* pSceneDatabase)
 	m_pCDConsumerImpl->ExportXmlBinary(pSceneDatabase);
 }
 
+void CDConsumer::EnableOption(CDConsumerOptions option)
+{
+	m_pCDConsumerImpl->GetOptions().Enable(option);
+}
+
+void CDConsumer::DisableOption(CDConsumerOptions option)
+{
+	m_pCDConsumerImpl->GetOptions().Disable(option);
+}
+
+bool CDConsumer::IsOptionEnabled(CDConsumerOptions option) const
+{
+	return m_pCDConsumerImpl->GetOptions().IsEnabled(option);
+}
+
 }

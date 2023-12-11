@@ -14,6 +14,9 @@ namespace cd::pm
 class Vertex
 {
 public:
+	static inline float BoundaryVertexCollapseCost = 100.0f;
+
+public:
 	Vertex() = delete;
 	explicit Vertex(cd::VertexID id) : m_id(id) { }
 	Vertex(const Vertex&) = default;
@@ -49,7 +52,7 @@ public:
 private:
 	// data
 	cd::VertexID m_id;
-	bool m_isOnBoundary;
+	bool m_isOnBoundary = false;
 
 	// TODO : Copy data or just choose source data
 	cd::Point m_position;

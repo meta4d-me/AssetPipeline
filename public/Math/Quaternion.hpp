@@ -188,12 +188,12 @@ public:
 	void Clear() { m_scalar = static_cast<T>(1); m_vector.Clear(); }
 
 	// Get
-	CD_FORCEINLINE Iterator Begin() { return m_vector.Begin(); }
-	CD_FORCEINLINE Iterator End() { return &m_scalar + 1; }
-	CD_FORCEINLINE ConstIterator Begin() const { return m_vector.Begin(); }
-	CD_FORCEINLINE ConstIterator End() const { return &m_scalar + 1; }
-	CD_FORCEINLINE T& Data(int index) { return *(Begin() + index); }
-	CD_FORCEINLINE T Data(int index) const { return *(Begin() + index); }
+	CD_FORCEINLINE Iterator begin() { return m_vector.begin(); }
+	CD_FORCEINLINE Iterator end() { return &m_scalar + 1; }
+	CD_FORCEINLINE ConstIterator begin() const { return m_vector.begin(); }
+	CD_FORCEINLINE ConstIterator end() const { return &m_scalar + 1; }
+	CD_FORCEINLINE T& Data(int index) { return *(begin() + index); }
+	CD_FORCEINLINE T Data(int index) const { return *(begin() + index); }
 	CD_FORCEINLINE T GetScalar() const { return m_scalar; }
 	CD_FORCEINLINE void SetScalar(T s) { m_scalar = s; }
 	CD_FORCEINLINE const TVector<T, 3>& GetVector() const { return m_vector; }

@@ -41,11 +41,11 @@ int main(int argc, char** argv)
 	std::string ormTextureSuffixAndExtension = "ORM.png";
 	{
 		GenericProducer producer(pInputFilePath);
-		producer.ActivateBoundingBoxService();
-		producer.ActivateTriangulateService();
-		producer.ActivateTangentsSpaceService();
-		producer.ActivateCleanUnusedService();
-		producer.ActivateFlattenHierarchyService();
+		producer.EnableOption(GenericProducerOptions::GenerateBoundingBox);
+		producer.EnableOption(GenericProducerOptions::TriangulateModel);
+		producer.EnableOption(GenericProducerOptions::GenerateTangentSpace);
+		producer.EnableOption(GenericProducerOptions::CleanUnusedObjects);
+		producer.EnableOption(GenericProducerOptions::FlattenTransformHierarchy);
 
 		MergeTextureConsumer consumer(outputTextureFolderPath.string().c_str());
 		consumer.SetMergedTextureSuffixAndExtension(ormTextureSuffixAndExtension.c_str());

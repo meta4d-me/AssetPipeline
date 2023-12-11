@@ -1,23 +1,12 @@
 --------------------------------------------------------------
-print("Building catdog_producer")
+-- CDProducer
+--------------------------------------------------------------
+print("[CDProducer] Generate project...")
 
 project("CDProducer")
 	kind("SharedLib")
-	language("C++")
 	Platform_SetCppDialect()
-	dependson { "AssetPipelineCore" }
-
-	location(path.join(RootPath, "build"))
-
-	Platform_LinkSettings()
-
-	links {
-		"AssetPipelineCore"
-	}
-
-	defines {
-		"TOOL_BUILD_SHARED"
-	}
+	Tool_InitProject()
 
 	files {
 		path.join(RootPath, "public/Producers/CDProducer/**.*"),
@@ -29,10 +18,4 @@ project("CDProducer")
 			path.join(RootPath, "public/Producers/CDProducer/**.*"),
 			path.join(RootPath, "private/Producers/CDProducer/**.*"),
 		},
-	}
-
-	includedirs {
-		path.join(RootPath, "public"),
-		path.join(RootPath, "private"),
-		path.join(RootPath, "external"),
 	}

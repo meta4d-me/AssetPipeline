@@ -14,6 +14,15 @@ BUILD_FBX = not os.istarget("linux") and USE_CLANG_TOOLSET == "0"
 BUILD_TERRAIN = not os.istarget("linux") and USE_CLANG_TOOLSET == "0"
 local BUILD_EXAMPLES = not os.istarget("linux") and USE_CLANG_TOOLSET == "0"
 
+find_fbxsdk = require("premake-findfbx")
+find_fbxsdk.dump_information = true
+local sdkLocation = find_fbxsdk.get_sdk_location()
+BUILD_FBX = BUILD_FBX and sdkLocation ~= nil and os.isdir(sdkLocation)
+
+print("[Option][BUILD_ASSIMP] = "..tostring(BUILD_ASSIMP))
+print("[Option][BUILD_FBX] = "..tostring(BUILD_FBX))
+print("[Option][BUILD_TERRAIN] = "..tostring(BUILD_TERRAIN))
+
 --------------------------------------------------------------
 -- Define solution
 workspace("AssetPipeline")
@@ -74,8 +83,11 @@ project("AutoMake")
 		}
 	filter {}
 group("")
+
 --------------------------------------------------------------
+-- Helper functions
 function Platform_SetCppDialect()
+	language("C++")
 	if os.istarget("linux") then
 		cppdialect("c++2a")
 	elseif os.istarget("windows") then
@@ -90,26 +102,20 @@ function Platform_SetCppDialect()
 	end
 end
 
-function Platform_LinkSettings()
-	filter { "configurations:Debug" }
-		objdir(path.join(RootPath, "build/obj/Debug"))
-		targetdir(path.join(RootPath, "build/bin/Debug"))
-		
-		filter { "system:Windows" }
-			libdirs(path.join(RootPath, "build/bin/Debug"))
-		filter { "system:Android" }
-			libdirs(path.join(RootPath, "ARM64/Debug"))
-		filter {}			
-	filter { "configurations:Release" }
-		objdir(path.join(RootPath, "build/obj/Release"))
-		targetdir(path.join(RootPath, "build/bin/Release"))
-		
-		filter { "system:Windows" }
-			libdirs(path.join(RootPath, "build/bin/Release"))
-		filter { "system:Android" }
-			libdirs(path.join(RootPath, "ARM64/Release"))
-		filter {}
-	filter {}
+function Tool_InitProject()
+	location(path.join(RootPath, "build"))
+	objdir("%{prj.location}/obj/%{cfg.buildcfg}")
+	targetdir("%{prj.location}/bin/%{cfg.buildcfg}")
+	libdirs("%{prj.location}/bin/%{cfg.buildcfg}")
+	links { "AssetPipelineCore" }
+	dependson { "AssetPipelineCore" }
+	defines { "TOOL_BUILD_SHARED" }
+	
+	includedirs {
+		path.join(RootPath, "public"),
+		path.join(RootPath, "private"),
+		path.join(RootPath, "external"),
+	}	
 end
 
 dofile("thirdparty.lua")

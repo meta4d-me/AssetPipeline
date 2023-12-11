@@ -2,6 +2,7 @@
 
 #include "Face.h"
 #include "Vertex.h"
+#include "Math/Box.hpp"
 #include "Scene/ObjectID.h"
 
 #include <set>
@@ -38,6 +39,7 @@ public:
 	~ProgressiveMeshImpl();
 
 	void FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons);
+	void InitBoundary(const cd::AABB& aabb);
 	void InitBoundary(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons);
 	std::pair<std::vector<uint32_t>, std::vector<uint32_t>> BuildCollapseOperations();
 
@@ -60,8 +62,9 @@ public:
 	float ComputeEdgeCollapseCostAtEdge(VertexID v0ID, VertexID v1ID);
 	void Collapse(VertexID v0ID, VertexID v1ID);
 
-	cd::Mesh GenerateLodMesh(float percent);
-	cd::Mesh GenerateLodMesh(uint32_t targetFaceCount);
+	cd::Mesh GenerateLodMesh(float percent, const cd::Mesh* pSourceMesh);
+	cd::Mesh GenerateLodMesh(float percent, uint32_t minFaceCount, const cd::Mesh* pSourceMesh);
+	cd::Mesh GenerateLodMesh(uint32_t targetFaceCount, const cd::Mesh* pSourceMesh);
 
 private:
 	std::vector<Vertex> m_vertices;

@@ -1,21 +1,14 @@
 --------------------------------------------------------------
-print("Building catdog_consumer")
+-- CDConsumer
+--------------------------------------------------------------
+print("[CDConsumer] Generate project...")
 
 project("CDConsumer")
 	kind("SharedLib")
-	language("C++")
 	Platform_SetCppDialect()
-	dependson { "AssetPipelineCore" }
-
-	location(path.join(RootPath, "build"))
-	Platform_LinkSettings()
-
-	links {
-		"AssetPipelineCore"
-	}
+	Tool_InitProject()
 
 	defines {
-		"TOOL_BUILD_SHARED",
 		"RAPIDXML_NO_EXCEPTIONS"
 	}
 
@@ -29,10 +22,4 @@ project("CDConsumer")
 			path.join(RootPath, "public/Consumers/CDConsumer/**.*"),
 			path.join(RootPath, "private/Consumers/CDConsumer/**.*"),
 		},
-	}
-
-	includedirs {
-		path.join(RootPath, "public"),
-		path.join(RootPath, "private"),
-		path.join(RootPath, "external"),
 	}

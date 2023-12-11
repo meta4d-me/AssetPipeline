@@ -27,18 +27,20 @@ int main(int argc, char** argv)
 	// Import
 	{
 		GenericProducer producer(pInputFilePath);
-		producer.ActivateTriangulateService();
-		producer.ActivateTangentsSpaceService();
-		producer.ActivateBoundingBoxService();
-		producer.ActivateFlattenHierarchyService();
+		producer.EnableOption(GenericProducerOptions::GenerateBoundingBox);
+		producer.EnableOption(GenericProducerOptions::TriangulateModel);
+		producer.EnableOption(GenericProducerOptions::GenerateTangentSpace);
+		producer.EnableOption(GenericProducerOptions::FlattenTransformHierarchy);
 		Processor processor(&producer, nullptr, pSceneDatabase.get());
-		processor.SetDumpSceneDatabaseEnable(false);
+		processor.SetDumpSceneDatabaseEnable(true);
 		processor.Run();
 	}
 	
 	// Processing
-	for (auto& mesh : pSceneDatabase->GetMeshes())
+	uint32_t meshCount = pSceneDatabase->GetMeshCount();
+	for (uint32_t meshIndex = 0U; meshIndex < meshCount; ++meshIndex)
 	{
+		const auto& mesh = pSceneDatabase->GetMesh(meshIndex);
 		uint32_t vertexCount = mesh.GetVertexCount();
 		uint32_t polygonCount = mesh.GetPolygonCount();
 
@@ -56,7 +58,25 @@ int main(int argc, char** argv)
 		}
 
 		auto pm = cd::ProgressiveMesh::FromIndexedMesh(mesh);
-		auto lodMesh = pm.GenerateLodMesh(0.1f);
+		for (uint32_t otherMeshIndex = 0U; otherMeshIndex < meshCount; ++otherMeshIndex)
+		{
+			if (meshIndex == otherMeshIndex)
+			{
+				continue;
+			}
+
+			const auto& otherMesh = pSceneDatabase->GetMesh(otherMeshIndex);
+			if (!mesh.GetAABB().Intersects(otherMesh.GetAABB()))
+			{
+				continue;
+			}
+
+			cd::AABB intersection = mesh.GetAABB().GetIntersection(otherMesh.GetAABB());
+			pm.InitBoundary(intersection);
+		}
+
+		auto lodMesh = pm.GenerateLodMesh(0.1f, 2000, &mesh);
+		lodMesh.SetName(std::format("{}_reduced", mesh.GetName()));
 		lodMesh.SetID(pSceneDatabase->GetMeshCount());
 		pSceneDatabase->AddMesh(cd::MoveTemp(lodMesh));
 	}

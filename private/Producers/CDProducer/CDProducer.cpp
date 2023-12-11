@@ -23,4 +23,19 @@ void CDProducer::Execute(cd::SceneDatabase* pSceneDatabase)
 	m_pCDProducerImpl->Execute(pSceneDatabase);
 }
 
+void CDProducer::EnableOption(CDProducerOptions option)
+{
+	m_pCDProducerImpl->GetOptions().Enable(option);
+}
+
+void CDProducer::DisableOption(CDProducerOptions option)
+{
+	m_pCDProducerImpl->GetOptions().Disable(option);
+}
+
+bool CDProducer::IsOptionEnabled(CDProducerOptions option) const
+{
+	return m_pCDProducerImpl->GetOptions().IsEnabled(option);
+}
+
 }

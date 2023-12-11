@@ -63,6 +63,7 @@ public:
 	void SetNodeCount(uint32_t nodeCount);
 	Node& GetNode(uint32_t index);
 	const Node& GetNode(uint32_t index) const;
+	Node* GetNodeByName(const char* pName);
 	const Node* GetNodeByName(const char* pName) const;
 	uint32_t GetNodeCount() const;
 
@@ -127,6 +128,7 @@ public:
 	void SetBoneCount(uint32_t boneCount);
 	Bone& GetBone(uint32_t index);
 	const Bone& GetBone(uint32_t index) const;
+	Bone* GetBoneByName(const char* pName);
 	const Bone* GetBoneByName(const char* pName) const;
 	uint32_t GetBoneCount() const;
 

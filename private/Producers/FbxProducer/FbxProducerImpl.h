@@ -28,10 +28,8 @@ class FbxSurfaceMaterial;
 namespace cd
 {
 
-class Bone;
 class Material;
 class Mesh;
-class Node;
 class SceneDatabase;
 
 }
@@ -74,9 +72,6 @@ private:
 	int GetSceneNodeCount(const fbxsdk::FbxNode* pSceneNode);
 	void TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase);
 
-	int GetSceneBoneCount(const fbxsdk::FbxNode* pSceneNode);
-	//void TraverseBoneRecursively(fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxScene* pSDKScene, cd::Bone* pParentNode, cd::SceneDatabase* pSceneDatabase);
-
 	void AddMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial);
 	void AddMaterialTexture(const fbxsdk::FbxProperty& sdkProperty, cd::MaterialTextureType textureType, cd::Material& material, cd::SceneDatabase* pSceneDatabase);
 	cd::MaterialID AddMaterial(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, cd::SceneDatabase* pSceneDatabase);
@@ -87,9 +82,9 @@ private:
 	std::vector<cd::MorphID> AddMorphs(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, const std::map<uint32_t, uint32_t>& mapVertexIDToControlPointIndex, cd::SceneDatabase* pSceneDatabase);
 
 	cd::BoneID AddBone(const fbxsdk::FbxNode* pSDKNode, cd::BoneID parentBoneID, cd::SceneDatabase* pSceneDatabase);
-	//cd::TrackID AddTrack(const fbxsdk::FbxNode* pSDKNode, cd::Node* pParentNode, cd::SceneDatabase* pSceneDatabase);
 	cd::AnimationID AddAnimation(fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxScene* pSDKScene, cd::SceneDatabase* pSceneDatabase);
 
+	void ProcessAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase);
 private:
 	bool m_importMaterial = true;
 	bool m_importTexture = true;
@@ -103,7 +98,6 @@ private:
 	std::unique_ptr<fbxsdk::FbxGeometryConverter> m_pSDKGeometryConverter;
 
 	std::map<int32_t, uint32_t> m_fbxMaterialIndexToMaterialID;
-
 	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
 	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
 	cd::ObjectIDGenerator<cd::NodeID> m_nodeIDGenerator;
@@ -111,6 +105,8 @@ private:
 	cd::ObjectIDGenerator<cd::MeshID> m_meshIDGenerator;
 	cd::ObjectIDGenerator<cd::MorphID> m_morphIDGenerator;
 	cd::ObjectIDGenerator<cd::LightID> m_lightIDGenerator;
+	cd::ObjectIDGenerator<cd::AnimationID> m_animationIDGenerator;
+	cd::ObjectIDGenerator<cd::TrackID> m_trackIDGenerator;
 };
 
 }

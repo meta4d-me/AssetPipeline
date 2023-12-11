@@ -35,6 +35,13 @@ void Dump(const cd::Transform& transform)
 	details::Dump("\tScale", transform.GetScale());
 }
 
+void Dump(const char* label, const cd::Matrix4x4& matrix)
+{
+	details::Dump (label, matrix.GetTranslation());
+	details::Dump(label, cd::Quaternion::FromMatrix(matrix.GetRotation()));
+	details::Dump(label, matrix.GetScale());
+}
+
 }
 
 namespace cd
@@ -54,6 +61,19 @@ SceneDatabaseImpl::SceneDatabaseImpl()
 ///////////////////////////////////////////////////////////////////
 // Node
 ///////////////////////////////////////////////////////////////////
+Node* SceneDatabaseImpl::GetNodeByName(const char* pName)
+{
+	for (auto& node : m_nodes)
+	{
+		if (0 == strcmp(pName, node.GetName()))
+		{
+			return &node;
+		}
+	}
+
+	return nullptr;
+}
+
 const Node* SceneDatabaseImpl::GetNodeByName(const char* pName) const
 {
 	for (const auto& node : m_nodes)
@@ -70,6 +90,19 @@ const Node* SceneDatabaseImpl::GetNodeByName(const char* pName) const
 ///////////////////////////////////////////////////////////////////
 // Bone
 ///////////////////////////////////////////////////////////////////
+Bone* SceneDatabaseImpl::GetBoneByName(const char* pName)
+{
+	for (auto& bone : m_bones)
+	{
+		if (0 == strcmp(pName, bone.GetName()))
+		{
+			return &bone;
+		}
+	}
+
+	return nullptr;
+}
+
 const Bone* SceneDatabaseImpl::GetBoneByName(const char* pName) const
 {
 	for (const auto& bone : m_bones)
@@ -293,7 +326,7 @@ void SceneDatabaseImpl::Dump() const
 		for (const auto& bone : GetBones())
 		{
 			printf("[Bone %u] Name : %s, ParentID : %u\n", bone.GetID().Data(), bone.GetName(), bone.GetParentID().Data());
-			details::Dump(bone.GetTransform());
+			details::Dump("RestPost", bone.GetOffset().Inverse());
 
 			for (const cd::BoneID childNodeID : bone.GetChildIDs())
 			{

@@ -95,20 +95,12 @@ public:
 	constexpr TVector() = default;
 
 	// Single value constructor is used to initialize all components to the same value.
-	explicit constexpr TVector(T value) { std::fill(Begin(), End(), value); }
-
-	// Smaller size vector + single value constructor.
-	//explicit constexpr TVector(TVector<T, Size - 1> vector, T value)
-	//{
-	//	static_assert(N > 2);
-	//	std::fill(Begin(), Begin() + Size - 1, value);
-	//	data[Size - 1] = value;
-	//}
+	explicit constexpr TVector(T value) { std::fill(begin(), end(), value); }
 
 	// N parameters constructor.
 	template <typename... Args>
 	explicit constexpr TVector(Args... args) :
-		data { static_cast<T>(args)... }
+		m_data { static_cast<T>(args)... }
 	{
 		static_assert(sizeof...(Args) == N);
 	}
@@ -120,32 +112,32 @@ public:
 	~TVector() = default;
 
 	// Set
-	void Set(T value) { std::fill(Begin(), End(), value); }
+	void Set(T value) { std::fill(begin(), end(), value); }
 
 	template <typename... Args>
 	void Set(Args... args)
 	{
 		static_assert(sizeof...(Args) == N);
-		data = { static_cast<T>(args)... };
+		m_data = { static_cast<T>(args)... };
 	}
 
-	void Clear() { std::memset(data, 0, Size * sizeof(float)); }
+	void Clear() { std::memset(m_data, 0, Size * sizeof(float)); }
 
 	// Get
-	CD_FORCEINLINE Iterator Begin() { return &data[0]; }
-	CD_FORCEINLINE Iterator End() { return &data[0] + Size; }
-	CD_FORCEINLINE ConstIterator Begin() const { return &data[0]; }
-	CD_FORCEINLINE ConstIterator End() const { return &data[0] + Size; }
-	CD_FORCEINLINE constexpr T& operator[](std::size_t index) { return data[index]; }
-	CD_FORCEINLINE constexpr const T& operator[](std::size_t index) const { return data[index]; }
-	CD_FORCEINLINE constexpr T& x() { static_assert(1 <= N); return data[0]; }
-	CD_FORCEINLINE constexpr const T& x() const { static_assert(1 <= N); return data[0]; }
-	CD_FORCEINLINE constexpr T& y() { static_assert(2 <= N); return data[1]; }
-	CD_FORCEINLINE constexpr const T& y() const { static_assert(2 <= N); return data[1]; }
-	CD_FORCEINLINE constexpr T& z() { static_assert(3 <= N); return data[2]; }
-	CD_FORCEINLINE constexpr const T& z() const { static_assert(3 <= N); return data[2]; }
-	CD_FORCEINLINE constexpr T& w() { static_assert(4 <= N); return data[3]; }
-	CD_FORCEINLINE constexpr const T& w() const { static_assert(4 <= N); return data[3]; }
+	CD_FORCEINLINE Iterator begin() { return &m_data[0]; }
+	CD_FORCEINLINE Iterator end() { return &m_data[0] + Size; }
+	CD_FORCEINLINE ConstIterator begin() const { return &m_data[0]; }
+	CD_FORCEINLINE ConstIterator end() const { return &m_data[0] + Size; }
+	CD_FORCEINLINE constexpr T& operator[](std::size_t index) { return m_data[index]; }
+	CD_FORCEINLINE constexpr const T& operator[](std::size_t index) const { return m_data[index]; }
+	CD_FORCEINLINE constexpr T& x() { static_assert(1 <= N); return m_data[0]; }
+	CD_FORCEINLINE constexpr const T& x() const { static_assert(1 <= N); return m_data[0]; }
+	CD_FORCEINLINE constexpr T& y() { static_assert(2 <= N); return m_data[1]; }
+	CD_FORCEINLINE constexpr const T& y() const { static_assert(2 <= N); return m_data[1]; }
+	CD_FORCEINLINE constexpr T& z() { static_assert(3 <= N); return m_data[2]; }
+	CD_FORCEINLINE constexpr const T& z() const { static_assert(3 <= N); return m_data[2]; }
+	CD_FORCEINLINE constexpr T& w() { static_assert(4 <= N); return m_data[3]; }
+	CD_FORCEINLINE constexpr const T& w() const { static_assert(4 <= N); return m_data[3]; }
 	CD_FORCEINLINE constexpr TVector<T, 3> xxx() const { static_assert(3 <= N); return TVector<T, 3>(x()); }
 	CD_FORCEINLINE constexpr TVector<T, 3> yyy() const { static_assert(3 <= N); return TVector<T, 3>(y()); }
 	CD_FORCEINLINE constexpr TVector<T, 3> zzz() const { static_assert(3 <= N); return TVector<T, 3>(z()); }
@@ -154,25 +146,22 @@ public:
 	// Validation
 	CD_FORCEINLINE bool IsValid() const
 	{
-		if constexpr (2 == N)
+		for (size_t index = 0; index < N; ++index)
 		{
-			return cd::Math::IsValid(x()) && cd::Math::IsValid(y());
+			if (!cd::Math::IsValid(m_data[index]))
+			{
+				return false;
+			}
 		}
-		else if constexpr (3 == N)
-		{
-			return cd::Math::IsValid(x()) && cd::Math::IsValid(y()) && cd::Math::IsValid(z());
-		}
-		else if constexpr (4 == N)
-		{
-			return cd::Math::IsValid(x()) && cd::Math::IsValid(y()) && cd::Math::IsValid(z()) && cd::Math::IsValid(w());
-		}
+
+		return true;
 	}
 
 	CD_FORCEINLINE bool SameWith(T value) const
 	{
 		for (size_t index = 0; index < N; ++index)
 		{
-			if (!Math::IsEqualTo(data[index], value))
+			if (!Math::IsEqualTo(m_data[index], value))
 			{
 				return false;
 			}
@@ -185,7 +174,7 @@ public:
 	{
 		for (size_t index = 0; index < N; ++index)
 		{
-			if (std::isnan(data[index]))
+			if (std::isnan(m_data[index]))
 			{
 				return true;
 			}
@@ -198,7 +187,7 @@ public:
 	{
 		for (size_t index = 0; index < N; ++index)
 		{
-			if (Math::IsEqualTo(data[index], value))
+			if (Math::IsEqualTo(m_data[index], value))
 			{
 				return true;
 			}
@@ -210,32 +199,30 @@ public:
 	// Calculation
 	CD_FORCEINLINE T Sum() const
 	{
-		if constexpr (2 == N)
-		{
-			return x() + y();
-		}
-		else if constexpr (3 == N)
-		{
-			return x() + y() + z();
-		}
-		else if constexpr (4 == N)
-		{
-			return x() + y() + z() + w();
-		}
+		T result = static_cast<T>(0);
+		std::for_each(begin(), end(), [&result](const T& component) { result += component; });
+		return result;
 	}
 
 	CD_FORCEINLINE T Length() const { return std::sqrt(LengthSquare()); }
 	T LengthSquare() const
 	{
 		T result = static_cast<T>(0);
-		std::for_each(Begin(), End(), [&result](const T& component) { result += component * component; });
+		std::for_each(begin(), end(), [&result](const T& component) { result += component * component; });
 		return result;
 	}
 
 	TVector& Normalize()
 	{
-		T invLength = 1.0f / Length();
-		std::for_each(Begin(), End(), [&invLength](T& component) { component *= invLength; });
+		float length = Length();
+		if (cd::Math::IsEqualToZero(length))
+		{
+			// avoid devide zero nan.
+			return *this;
+		}
+
+		T invLength = static_cast<T>(1) / length;
+		std::for_each(begin(), end(), [&invLength](T& component) { component *= invLength; });
 		return *this;
 	}
 
@@ -253,11 +240,6 @@ public:
 							 x() * rhs.y() - y() * rhs.x());
 	}
 
-	uint32_t GetTypeHash() const
-	{
-
-	}
-
 	// Operators
 	CD_FORCEINLINE bool operator!=(const TVector& rhs) const { return !(*this == rhs); }
 	bool operator==(const TVector& rhs) const
@@ -266,14 +248,14 @@ public:
 		{
 			if constexpr (std::is_floating_point<T>())
 			{
-				if (!cd::Math::IsEqualTo(data[index], rhs[index]))
+				if (!cd::Math::IsEqualTo(m_data[index], rhs[index]))
 				{
 					return false;
 				}
 			}
 			else
 			{
-				if (data[index] != rhs[index])
+				if (m_data[index] != rhs[index])
 				{
 					return false;
 				}
@@ -286,28 +268,28 @@ public:
 	CD_FORCEINLINE TVector operator+(T value) const { return TVector(*this) += value; }
 	TVector& operator+=(T value)
 	{
-		std::for_each(Begin(), End(), [&value](T& component) { component += value; });
+		std::for_each(begin(), end(), [&value](T& component) { component += value; });
 		return *this;
 	}
 	CD_FORCEINLINE TVector operator+(const TVector& rhs) const { return TVector(*this) += rhs; }
 	TVector& operator+=(const TVector& rhs)
 	{
 		int count = 0;
-		std::for_each(Begin(), End(), [&rhs, &count](T& component) { component += rhs[count++]; });
+		std::for_each(begin(), end(), [&rhs, &count](T& component) { component += rhs[count++]; });
 		return *this;
 	}
 
 	CD_FORCEINLINE TVector operator-(T value) const { return TVector(*this) -= value; }
 	TVector& operator-=(T value)
 	{
-		std::for_each(Begin(), End(), [&value](T& component) { component -= value; });
+		std::for_each(begin(), end(), [&value](T& component) { component -= value; });
 		return *this;
 	}
 	CD_FORCEINLINE TVector operator-(const TVector& rhs) const { return TVector(*this) -= rhs; }
 	TVector& operator-=(const TVector& rhs)
 	{
 		int count = 0;
-		std::for_each(Begin(), End(), [&rhs, &count](T& component) { component -= rhs[count++]; });
+		std::for_each(begin(), end(), [&rhs, &count](T& component) { component -= rhs[count++]; });
 		return *this;
 	}
 
@@ -315,35 +297,35 @@ public:
 	CD_FORCEINLINE TVector operator*(T value) const { return TVector(*this) *= value; }
 	TVector& operator*=(T value)
 	{
-		std::for_each(Begin(), End(), [&value](T& component) { component *= value; });
+		std::for_each(begin(), end(), [&value](T& component) { component *= value; });
 		return *this;
 	}
 	CD_FORCEINLINE TVector operator*(const TVector& rhs) const { return TVector(*this) *= rhs; }
 	TVector& operator*=(const TVector& rhs)
 	{
 		int count = 0;
-		std::for_each(Begin(), End(), [&rhs, &count](T& component) { component *= rhs[count++]; });
+		std::for_each(begin(), end(), [&rhs, &count](T& component) { component *= rhs[count++]; });
 		return *this;
 	}
 
 	CD_FORCEINLINE TVector operator/(T value) const { return TVector(*this) /= value; }
 	TVector& operator/=(T value)
 	{
-		std::for_each(Begin(), End(), [&value](T& component) { component /= value; });
+		std::for_each(begin(), end(), [&value](T& component) { component /= value; });
 		return *this;
 	}
 	CD_FORCEINLINE TVector operator/(const TVector& rhs) const { return TVector(*this) /= rhs; }
 	TVector& operator/=(const TVector& rhs)
 	{
 		int count = 0;
-		std::for_each(Begin(), End(), [&rhs, &count](T& component) { component /= rhs[count++]; });
+		std::for_each(begin(), end(), [&rhs, &count](T& component) { component /= rhs[count++]; });
 		return *this;
 	}
 
 private:
 	// Validations about template type parameters.
 	static_assert(N > 1);
-	T data[N];
+	T m_data[N];
 };
 
 using Vec2f = TVector<float, 2>;

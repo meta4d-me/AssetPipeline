@@ -2,6 +2,7 @@
 
 #include "Hashers/HashCombine.hpp"
 #include "Scene/Mesh.h"
+#include "Scene/VertexFormat.h"
 
 #include <cfloat>
 #include <unordered_map>
@@ -50,6 +51,20 @@ void ProgressiveMeshImpl::FromIndexedFaces(const std::vector<cd::Point>& vertice
 	}
 }
 
+void ProgressiveMeshImpl::InitBoundary(const cd::AABB& aabb)
+{
+	for (auto& v : m_vertices)
+	{
+		if (v.IsOnBoundary())
+		{
+			continue;
+		}
+		
+		bool isOnBoundary = aabb.IsPointInside(v.GetPosition());
+		v.SetIsOnBoundary(isOnBoundary);
+	}
+}
+
 void ProgressiveMeshImpl::InitBoundary(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons)
 {
 	auto GetVertexHash = [](const cd::Point& p)
@@ -67,6 +82,11 @@ void ProgressiveMeshImpl::InitBoundary(const std::vector<cd::Point>& vertices, c
 
 	for (auto& v : m_vertices)
 	{
+		if (v.IsOnBoundary())
+		{
+			continue;
+		}
+
 		uint32_t vertexHash = GetVertexHash(v.GetPosition());
 		bool isOnBoundary = mapBoundaryVertices.find(vertexHash) != mapBoundaryVertices.end();
 		v.SetIsOnBoundary(isOnBoundary);
@@ -325,10 +345,6 @@ float ProgressiveMeshImpl::ComputeEdgeCollapseCostAtEdge(VertexID v0ID, VertexID
 	}
 
 	float cost = edgeLength * curvature;
-	//if (v0.IsOnBoundary())
-	//{
-	//	cost += 1.0f;
-	//}
 	return cost;
 }
 
@@ -374,14 +390,21 @@ void ProgressiveMeshImpl::Collapse(VertexID v0ID, VertexID v1ID)
 	}
 }
 
-cd::Mesh ProgressiveMeshImpl::GenerateLodMesh(float percent)
+cd::Mesh ProgressiveMeshImpl::GenerateLodMesh(float percent, const cd::Mesh* pSourceMesh)
 {
 	assert(percent >= 0.0f && percent <= 1.0f);
 	uint32_t targetFaceCount = static_cast<uint32_t>(GetFaceCount() * percent);
-	return GenerateLodMesh(targetFaceCount);
+	return GenerateLodMesh(targetFaceCount, pSourceMesh);
 }
 
-cd::Mesh ProgressiveMeshImpl::GenerateLodMesh(uint32_t targetFaceCount)
+cd::Mesh ProgressiveMeshImpl::GenerateLodMesh(float percent, uint32_t minFaceCount, const cd::Mesh* pSourceMesh)
+{
+	assert(percent >= 0.0f && percent <= 1.0f);
+	uint32_t targetFaceCount = std::max(minFaceCount, static_cast<uint32_t>(GetFaceCount() * percent));
+	return GenerateLodMesh(targetFaceCount, pSourceMesh);
+}
+
+cd::Mesh ProgressiveMeshImpl::GenerateLodMesh(uint32_t targetFaceCount, const cd::Mesh* pSourceMesh)
 {
 	auto collapseInfoPair = BuildCollapseOperations();
 	std::vector<uint32_t> permutation = collapseInfoPair.first;
@@ -390,6 +413,16 @@ cd::Mesh ProgressiveMeshImpl::GenerateLodMesh(uint32_t targetFaceCount)
 	uint32_t targetVertexCount = targetFaceCount * 3U;
 	cd::Mesh mesh(targetVertexCount, targetFaceCount);
 
+	if (pSourceMesh)
+	{
+		mesh.SetVertexFormat(pSourceMesh->GetVertexFormat());
+	}
+	else
+	{
+		mesh.GetVertexFormat().AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
+	}
+
+	const auto& vertexFormat = mesh.GetVertexFormat();
 	for (uint32_t vertexIndex = 0U, totalVertexCount = GetVertexCount(); vertexIndex < totalVertexCount; ++vertexIndex)
 	{
 		uint32_t newVertexIndex = permutation[vertexIndex];
@@ -397,8 +430,60 @@ cd::Mesh ProgressiveMeshImpl::GenerateLodMesh(uint32_t targetFaceCount)
 
 		if (newVertexIndex < targetVertexCount)
 		{
-			const auto& vertex = GetVertex(vertexIndex);
-			mesh.SetVertexPosition(newVertexIndex, vertex.GetPosition());
+			// Vertex data can fetch from different data source :
+			// 1. ProgressiveMesh's source mesh if it is still alive to query.
+			// 2. Data stored in progressive mesh. Currently, only position is cached.
+			if (vertexFormat.Contains(cd::VertexAttributeType::Position))
+			{
+				const auto& vertex = GetVertex(vertexIndex);
+				mesh.SetVertexPosition(newVertexIndex, vertex.GetPosition());
+			}
+
+			if (pSourceMesh)
+			{
+				// SourceMesh vertex index should be same to initialized progressive mesh data.
+				if (vertexFormat.Contains(cd::VertexAttributeType::Normal))
+				{
+					mesh.SetVertexNormal(newVertexIndex, pSourceMesh->GetVertexNormal(vertexIndex));
+				}
+
+				if (vertexFormat.Contains(cd::VertexAttributeType::Tangent))
+				{
+					mesh.SetVertexTangent(newVertexIndex, pSourceMesh->GetVertexTangent(vertexIndex));
+				}
+
+				if (vertexFormat.Contains(cd::VertexAttributeType::Bitangent))
+				{
+					mesh.SetVertexBiTangent(newVertexIndex, pSourceMesh->GetVertexBiTangent(vertexIndex));
+				}
+
+				if (vertexFormat.Contains(cd::VertexAttributeType::UV))
+				{
+					mesh.SetVertexUVSetCount(pSourceMesh->GetVertexUVSetCount());
+					for (uint32_t setIndex = 0U; setIndex < mesh.GetVertexUVSetCount(); ++setIndex)
+					{
+						mesh.SetVertexUV(setIndex, newVertexIndex, pSourceMesh->GetVertexUV(setIndex, vertexIndex));
+					}
+				}
+
+				if (vertexFormat.Contains(cd::VertexAttributeType::Color))
+				{
+					mesh.SetVertexColorSetCount(pSourceMesh->GetVertexColorSetCount());
+					for (uint32_t setIndex = 0U; setIndex < mesh.GetVertexColorSetCount(); ++setIndex)
+					{
+						mesh.SetVertexColor(setIndex, newVertexIndex, pSourceMesh->GetVertexColor(setIndex, vertexIndex));
+					}
+				}
+
+				if (vertexFormat.Contains(cd::VertexAttributeType::BoneIndex) && vertexFormat.Contains(cd::VertexAttributeType::BoneWeight))
+				{
+					mesh.SetVertexInfluenceCount(pSourceMesh->GetVertexInfluenceCount());
+					for (uint32_t boneIndex = 0U; boneIndex < mesh.GetVertexInfluenceCount(); ++boneIndex)
+					{
+						mesh.SetVertexBoneWeight(boneIndex, newVertexIndex, pSourceMesh->GetVertexBoneID(boneIndex, vertexIndex), pSourceMesh->GetVertexWeight(boneIndex, vertexIndex));
+					}
+				}
+			}
 		}
 	}
 
