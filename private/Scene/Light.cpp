@@ -177,7 +177,7 @@ const cd::Point& Light::GetPosition() const
 	return m_pLightImpl->GetPosition();
 }
 
-void Light::SetColor(const cd::Vec3f color)
+void Light::SetColor(cd::Vec3f color)
 {
 	m_pLightImpl->SetColor(cd::MoveTemp(color));
 }
@@ -207,7 +207,7 @@ const cd::Direction& Light::GetDirection() const
 	return m_pLightImpl->GetDirection();
 }
 
-void Light::SetUp(const cd::Direction up)
+void Light::SetUp(cd::Direction up)
 {
 	m_pLightImpl->SetUp(cd::MoveTemp(up));
 }
