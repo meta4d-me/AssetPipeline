@@ -43,17 +43,12 @@ ParticleEmitter::~ParticleEmitter()
 PIMPL_ID_APIS(ParticleEmitter);
 PIMPL_NAME_APIS(ParticleEmitter);
 
-void ParticleEmitter::SetType(int type)
+void ParticleEmitter::SetType(ParticleEmitterType type)
 {
-    m_pParticleEmitterImpl->SetType(cd::MoveTemp(type));
+    m_pParticleEmitterImpl->SetType(type);
 }
 
-int& ParticleEmitter::GetType()
-{
-    return m_pParticleEmitterImpl->GetType();
-}
-
-const int& ParticleEmitter::GetType() const
+ParticleEmitterType ParticleEmitter::GetType() const
 {
     return m_pParticleEmitterImpl->GetType();
 }

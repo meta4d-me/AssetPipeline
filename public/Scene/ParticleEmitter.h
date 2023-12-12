@@ -8,6 +8,17 @@
 namespace cd
 {
 
+enum class ParticleEmitterType
+{
+	Root,
+	None,
+	Sprite,
+	Ribbon,
+	Ring,
+	Model,
+	Track
+};
+
 class ParticleEmitterImpl;
 
 class CORE_API ParticleEmitter final
@@ -29,9 +40,8 @@ public:
 	EXPORT_OBJECT_ID_APIS(ParticleEmitterID);
 	EXPORT_NAME_APIS();
 
-	void SetType(int type);
-	int& GetType();
-	const int& GetType() const;
+	void SetType(ParticleEmitterType type);
+	ParticleEmitterType GetType() const;
 
 	void SetPosition(cd::Vec3f position);
 	Vec3f& GetPosition();

@@ -4,6 +4,7 @@
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
 #include "Scene/ObjectID.h"
+#include "Scene/ParticleEmitter.h"
 #include "Scene/VertexFormat.h"
 
 namespace cd
@@ -30,9 +31,8 @@ public:
 	IMPLEMENT_ID_APIS(ParticleEmitterID, m_id);
 	IMPLEMENT_NAME_APIS(m_name);
 
-	void SetType(int Type) { m_type = MoveTemp(Type); }
-	int& GetType() { return m_type; }
-	const int& GetType() const { return m_type; }
+	void SetType(ParticleEmitterType type) { m_type = type; }
+	ParticleEmitterType GetType() const { return m_type; }
 
 	void SetPosition(Vec3f position) { m_position = MoveTemp(position); }
 	Vec3f& GetPosition() { return m_position; }
@@ -63,9 +63,11 @@ public:
 	{
 		uint32_t emitterID;
 		std::string emitterName;
-		inputArchive >> emitterID >> emitterName;
+		uint32_t emitterType;
+		inputArchive >> emitterID >> emitterName >> emitterType;
 		Init(ParticleEmitterID(emitterID), cd::MoveTemp(emitterName));
-		inputArchive >> GetType() >> GetPosition() >> GetVelocity() >> GetAccelerate()
+		SetType(static_cast<ParticleEmitterType>(emitterType));
+		inputArchive >> GetPosition() >> GetVelocity() >> GetAccelerate()
 			>> GetColor() >> GetFixedRotation() >> GetFixedScale();
 		return *this;
 	}
@@ -73,7 +75,7 @@ public:
 	template<bool SwapBytesOrder>
 	const ParticleEmitterImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetID().Data() << GetName() << GetType()
+		outputArchive << GetID().Data() << GetName() << static_cast<uint32_t>(GetType())
 			<< GetPosition() << GetVelocity() << GetAccelerate()
 			<< GetColor() << GetFixedRotation() << GetFixedScale();
 		return *this;
@@ -84,7 +86,7 @@ private:
 	std::string m_name;
 
 	cd::VertexFormat m_vertexFormat;
-	int m_type;
+	cd::ParticleEmitterType m_type;
 	cd::Vec3f m_position;
 	cd::Vec3f m_velocity;
 	cd::Vec3f m_accelerate;

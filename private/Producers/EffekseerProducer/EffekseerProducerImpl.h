@@ -48,16 +48,6 @@ private:
 	std::vector<Effekseer::Vector3D> m_fixedRotation;
 	std::vector<Effekseer::Vector3D> m_fixedScale;
 
-	const std::unordered_map<std::string, int> m_typeNames = {
-		{ "Root", static_cast<int>(Effekseer::EffectNodeType::Root) },
-		{ "NoneType", static_cast<int>(Effekseer::EffectNodeType::NoneType) },
-		{ "Sprite", static_cast<int>(Effekseer::EffectNodeType::Sprite) },
-		{ "Ribbon", static_cast<int>(Effekseer::EffectNodeType::Ribbon) },
-		{ "Ring", static_cast<int>(Effekseer::EffectNodeType::Ring) },
-		{ "Model", static_cast<int>(Effekseer::EffectNodeType::Model) },
-		{ "Track", static_cast<int>(Effekseer::EffectNodeType::Track) },
-	};
-
 	cd::ObjectIDGenerator<cd::ParticleEmitterID> m_particleEmitterIDGenerator;
 };
 
