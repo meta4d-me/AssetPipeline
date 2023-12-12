@@ -152,20 +152,11 @@ void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		std::string particleEmitterNameWithID = std::string(pAllParticleEmitterName) + std::to_string(i);
 		const char* particleEmitterName = particleEmitterNameWithID.c_str();
 		cd::ParticleEmitter particleEmitter(particleEmitterID, particleEmitterName);
-		if (m_particleType[i] == Effekseer::EffectNodeType::Root) { particleEmitter.SetType(particleType::Root); }
-		else if (m_particleType[i] == Effekseer::EffectNodeType::NoneType) { particleEmitter.SetType(particleType::NoneType); }
-		else if (m_particleType[i] == Effekseer::EffectNodeType::Sprite) { particleEmitter.SetType(particleType::Sprite); }
-		else if (m_particleType[i] == Effekseer::EffectNodeType::Ribbon) { particleEmitter.SetType(particleType::Ribbon); }
-		else if (m_particleType[i] == Effekseer::EffectNodeType::Model) { particleEmitter.SetType(particleType::Model); }
-		else if (m_particleType[i] == Effekseer::EffectNodeType::Track) { particleEmitter.SetType(particleType::Track); }
-		//particleEmitter.SetType(static_cast<int>(m_particleType[i]));
-		//if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Root)) { particleEmitter.SetTypeName("Root"); }
-		//else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::NoneType)) { particleEmitter.SetTypeName("NoneType"); }
-		//else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Sprite)) { particleEmitter.SetTypeName("Sprite"); }
-		//else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Ribbon)) { particleEmitter.SetTypeName("Ribbon"); }
-		//else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Ring)) { particleEmitter.SetTypeName("Ring"); }
-		//else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Model)) { particleEmitter.SetTypeName("Model"); }
-		//else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Track)) { particleEmitter.SetTypeName("Track"); }
+		for (auto type : m_typeNames)
+		{
+			if(type.first == nameof::nameof_enum(m_particleType[i]))
+				particleEmitter.SetType(type.second);
+		}
 		particleEmitter.SetPosition(MeanXYZ(m_particlePos[i].max, m_particlePos[i].min));
 		particleEmitter.SetVelocity(MeanXYZ(m_particleVelocity[i].max, m_particleVelocity[i].min));
 		particleEmitter.SetAccelerate(MeanXYZ(m_particleAccelerate[i].max, m_particleAccelerate[i].min));

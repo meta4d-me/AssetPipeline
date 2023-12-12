@@ -1,5 +1,4 @@
 #include "SceneDatabaseImpl.h"
-#include "Producers/EffekseerProducer/EffekseerProducer.h"
 
 #include "Base/NameOf.h"
 
@@ -334,13 +333,13 @@ void SceneDatabaseImpl::Dump() const
 		for (const auto& particle : GetParticleEmitters())
 		{
 			printf("[ParticleEmitter %u] Name : %s\n", particle.GetID().Data(), particle.GetName());
-			if (particle.GetType() == cdtools::particleType::Root) { printf("\tType: Root\n"); }
-			else if (particle.GetType() == cdtools::particleType::NoneType) { printf("\tType: NoneType\n"); }
-			else if (particle.GetType() == cdtools::particleType::Sprite) { printf("\tType: Sprite\n"); }
-			else if (particle.GetType() == cdtools::particleType::Ribbon) { printf("\tType: Ribbon\n"); }
-			else if (particle.GetType() == cdtools::particleType::Ring) { printf("\tType: Ring\n"); }
-			else if (particle.GetType() == cdtools::particleType::Model) { printf("\tType: Model\n"); }
-			else if (particle.GetType() == cdtools::particleType::Track) { printf("\tType: Track\n"); }
+			if (particle.GetType() == -1) { printf("\tType: Root\n"); }
+			else if (particle.GetType() == 0) { printf("\tType: NoneType\n"); }
+			else if (particle.GetType() == 2) { printf("\tType: Sprite\n"); }
+			else if (particle.GetType() == 3) { printf("\tType: Ribbon\n"); }
+			else if (particle.GetType() == 4) { printf("\tType: Ring\n"); }
+			else if (particle.GetType() == 5) { printf("\tType: Model\n"); }
+			else if (particle.GetType() == 6) { printf("\tType: Track\n"); }
 			details::Dump("\tPosition", particle.GetPosition());
 			details::Dump("\tVelocity", particle.GetVelocity());
 			details::Dump("\tAccelerate", particle.GetAccelerate());
