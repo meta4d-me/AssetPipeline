@@ -34,40 +34,29 @@ public:
 	int& GetType() { return m_type; }
 	const int& GetType() const { return m_type; }
 
-	//Position
 	void SetPosition(Vec3f position) { m_position = MoveTemp(position); }
 	Vec3f& GetPosition() { return m_position; }
 	const Vec3f& GetPosition() const { return m_position; }
 
-	//Veloctity
 	void SetVelocity(Vec3f velocity) { m_velocity = MoveTemp(velocity); }
 	Vec3f& GetVelocity() { return m_velocity; }
 	const Vec3f& GetVelocity() const { return m_velocity; }
 
-	//Accelerate
 	void SetAccelerate(Vec3f accelerate) { m_accelerate = MoveTemp(accelerate); }
 	Vec3f& GetAccelerate() { return m_accelerate; }
 	const Vec3f& GetAccelerate() const { return m_accelerate; }
 
-	//Color
 	void SetColor(Vec4f color) { m_color = MoveTemp(color); }
 	Vec4f& GetColor() { return m_color; }
 	const Vec4f& GetColor() const { return m_color; }
 
-	//FixedRotation
 	void SetFixedRotation(Vec3f rotation) { m_fixedRotation = MoveTemp(rotation); }
 	Vec3f& GetFixedRotation() { return m_fixedRotation; }
 	const Vec3f& GetFixedRotation() const { return m_fixedRotation; }
 
-	//FixedScale
 	void SetFixedScale(Vec3f scale) { m_fixedScale = MoveTemp(scale); }
 	Vec3f& GetFixedScale() { return m_fixedScale; }
 	const Vec3f& GetFixedScale() const { return m_fixedScale; }
-
-	//TypeName
-	void SetTypeName(std::string name) { m_typeName = MoveTemp(name); }
-	std::string & GetTypeName() { return m_typeName; }
-	const std::string& GetTypeName() const { return m_typeName; }
 
 	template<bool SwapBytesOrder>
 	ParticleEmitterImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
@@ -76,7 +65,7 @@ public:
 		std::string emitterName;
 		inputArchive >> emitterID >> emitterName;
 		Init(ParticleEmitterID(emitterID), cd::MoveTemp(emitterName));
-		inputArchive >> GetType() >> GetTypeName() >> GetPosition() >> GetVelocity() >> GetAccelerate()
+		inputArchive >> GetType() >> GetPosition() >> GetVelocity() >> GetAccelerate()
 			>> GetColor() >> GetFixedRotation() >> GetFixedScale();
 		return *this;
 	}
@@ -84,7 +73,7 @@ public:
 	template<bool SwapBytesOrder>
 	const ParticleEmitterImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetID().Data() << GetName() << GetType() << GetTypeName()
+		outputArchive << GetID().Data() << GetName() << GetType()
 			<< GetPosition() << GetVelocity() << GetAccelerate()
 			<< GetColor() << GetFixedRotation() << GetFixedScale();
 		return *this;
@@ -102,7 +91,6 @@ private:
 	cd::Vec4f m_color;
 	cd::Vec3f m_fixedRotation;
 	cd::Vec3f m_fixedScale;
-	std::string m_typeName;
 };
 
 }

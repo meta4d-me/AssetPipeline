@@ -13,9 +13,9 @@
 #include "Scene/Mesh.h"
 #include "Scene/Morph.h"
 #include "Scene/Node.h"
+#include "Scene/ParticleEmitter.h"
 #include "Scene/Texture.h"
 #include "Scene/Track.h"
-#include "Scene/ParticleEmitter.h"
 
 #include <vector>
 

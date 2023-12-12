@@ -54,12 +54,8 @@ public:
 	const cd::Vec3f& GetFixedRotation() const;
 
 	void SetFixedScale(cd::Vec3f scale);
-	Vec3f& GetFixedScale ();
+	Vec3f& GetFixedScale();
 	const cd::Vec3f& GetFixedScale() const;
-
-	void SetTypeName(std::string name);
-	std::string& GetTypeName();
-	const std::string& GetTypeName() const;
 
 	ParticleEmitter& operator<<(InputArchive& inputArchive);
 	ParticleEmitter& operator<<(InputArchiveSwapBytes& inputArchive);
