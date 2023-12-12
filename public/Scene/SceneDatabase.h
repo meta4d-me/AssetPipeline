@@ -13,6 +13,7 @@
 #include "Scene/Mesh.h"
 #include "Scene/Morph.h"
 #include "Scene/Node.h"
+#include "Scene/ParticleEmitter.h"
 #include "Scene/Texture.h"
 #include "Scene/Track.h"
 
@@ -149,6 +150,15 @@ public:
 	const Track& GetTrack(uint32_t index) const;
 	const Track* GetTrackByName(const char* pName) const;
 	uint32_t GetTrackCount() const;
+
+	//ParticleEmitter
+	void AddParticleEmitter(ParticleEmitter emitter);
+	std::vector<ParticleEmitter>& GetParticleEmitters();
+	const std::vector<ParticleEmitter>& GetParticleEmitters() const;
+	void SetParticleEmitterCount(uint32_t emitterCount);
+	ParticleEmitter& GetParticleEmitter(uint32_t index);
+	const ParticleEmitter& GetParticleEmitter(uint32_t index) const;
+	uint32_t GetParticleEmitterCount() const;
 
 	// Operations
 	void Dump() const;

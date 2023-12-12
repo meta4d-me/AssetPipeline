@@ -13,6 +13,7 @@
 #include "Scene/Node.h"
 #include "Scene/Texture.h"
 #include "Scene/Track.h"
+#include "Scene/ParticleEmitter.h"
 
 #include <optional>
 #include <unordered_map>
@@ -147,6 +148,15 @@ public:
 	const Track* GetTrackByName(const char* pName) const;
 	uint32_t GetTrackCount() const { return static_cast<uint32_t>(m_tracks.size()); }
 
+	// ParticleEmitter
+	void AddParticleEmitter(ParticleEmitter emitter) { m_particleEmitters.emplace_back(MoveTemp(emitter)); }
+	std::vector<ParticleEmitter>& GetParticleEmitters() { return m_particleEmitters; }
+	const std::vector<ParticleEmitter>& GetParticleEmitters() const { return m_particleEmitters; }
+	void SetParticleEmitterCount(uint32_t count) { m_particleEmitters.reserve(count); }
+	ParticleEmitter& GetParticleEmitter(uint32_t index) { return m_particleEmitters[index]; }
+	const ParticleEmitter& GetParticleEmitter(uint32_t index) const { return m_particleEmitters[index]; }
+	uint32_t GetParticleEmitterCount() const { return static_cast<uint32_t>(m_particleEmitters.size()); }
+
 	void Dump() const;
 	void Validate() const;
 	void Merge(cd::SceneDatabaseImpl&& sceneDatabaseImpl);
@@ -181,11 +191,12 @@ public:
 		uint32_t animationCount;
 		uint32_t trackCount;
 		uint32_t morphCount;
+		uint32_t particleCount;
 
 		inputArchive >> nodeCount >> meshCount >> morphCount
 			>> materialCount >> textureCount
 			>> cameraCount >> lightCount
-			>> boneCount >> animationCount >> trackCount;
+			>> boneCount >> animationCount >> trackCount >> particleCount;
 
 		SetNodeCount(nodeCount);
 		SetMeshCount(meshCount);
@@ -197,6 +208,7 @@ public:
 		SetBoneCount(boneCount);
 		SetAnimationCount(animationCount);
 		SetTrackCount(trackCount);
+		SetParticleEmitterCount(particleCount);
 
 		for (uint32_t nodeIndex = 0U; nodeIndex < nodeCount; ++nodeIndex)
 		{
@@ -248,6 +260,11 @@ public:
 			AddTrack(Track(inputArchive));
 		}
 
+		for (uint32_t particleIndex = 0U; particleIndex < particleCount; ++particleIndex)
+		{
+			AddParticleEmitter(ParticleEmitter(inputArchive));
+		}
+
 		return *this;
 	}
 
@@ -258,7 +275,7 @@ public:
 			<< GetNodeCount() << GetMeshCount() << GetMorphCount()
 			<< GetMaterialCount() << GetTextureCount()
 			<< GetCameraCount() << GetLightCount()
-			<< GetBoneCount() << GetAnimationCount() << GetTrackCount();
+			<< GetBoneCount() << GetAnimationCount() << GetTrackCount()<<GetParticleEmitterCount();
 
 		for (uint32_t nodeIndex = 0U; nodeIndex < GetNodeCount(); ++nodeIndex)
 		{
@@ -320,6 +337,12 @@ public:
 			track >> outputArchive;
 		}
 
+		for (uint32_t particleIndex = 0U; particleIndex < GetParticleEmitterCount(); ++particleIndex)
+		{
+			const ParticleEmitter& particle = GetParticleEmitter(particleIndex);
+			particle >> outputArchive;
+		}
+
 		return *this;
 	}
 
@@ -348,6 +371,9 @@ private:
 	std::vector<Bone> m_bones;
 	std::vector<Animation> m_animations;
 	std::vector<Track> m_tracks;
+
+	//Particle data
+	std::vector<ParticleEmitter> m_particleEmitters;
 };
 
 }
