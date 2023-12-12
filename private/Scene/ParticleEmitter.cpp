@@ -1,5 +1,6 @@
-#include "Scene/ParticleEmitter.h"
 #include "ParticleEmitterImpl.h"
+
+#include "Scene/ParticleEmitter.h"
 
 namespace cd
 {
@@ -145,21 +146,6 @@ Vec3f& ParticleEmitter::GetFixedScale()
 const cd::Vec3f& ParticleEmitter::GetFixedScale() const
 {
     return m_pParticleEmitterImpl->GetFixedScale();
-}
-
-void ParticleEmitter::SetTypeName(std::string name)
-{
-    m_pParticleEmitterImpl->SetTypeName(cd::MoveTemp(name));
-}
-
-std::string& ParticleEmitter::GetTypeName()
-{
-    return m_pParticleEmitterImpl->GetTypeName();
-}
-
-const std::string& ParticleEmitter::GetTypeName() const
-{
-    return m_pParticleEmitterImpl->GetTypeName();
 }
 
 ParticleEmitter& ParticleEmitter::operator<<(InputArchive& inputArchive)

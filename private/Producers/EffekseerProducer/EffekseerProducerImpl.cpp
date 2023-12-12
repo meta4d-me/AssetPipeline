@@ -1,8 +1,10 @@
 #include "EffekseerProducerImpl.h"
+#include "Producers/EffekseerProducer/EffekseerProducer.h"
 
-#include <codecvt>
 #include <Effekseer.h>
 #include <Effekseer.Modules.h>
+
+#include <codecvt>
 
 namespace cdtools
 {
@@ -12,73 +14,72 @@ EffekseerProducerImpl::EffekseerProducerImpl(const char16_t* pFilePath) :
 {
 }
 
-void EffekseerProducerImpl::PushAllColor(Effekseer::AllTypeColorParameter* AllColor)
+void EffekseerProducerImpl::PushAllColor(Effekseer::AllTypeColorParameter* pAllColor)
 {
-	//Color
-	if (AllColor->type ==AllColor->Fixed)
+	if (pAllColor->type == pAllColor->Fixed)
 	{
-		m_fixedColor .push_back(AllColor->fixed.all);
+		m_fixedColor.push_back(pAllColor->fixed.all);
 	}
-	else if (AllColor->type == AllColor->Random)
+	else if (pAllColor->type == pAllColor->Random)
 	{
 
 	}
-	else if (AllColor->type == AllColor->Easing)
+	else if (pAllColor->type == pAllColor->Easing)
 	{
 
 	}
 	//TODO : there still have some num to analysis
 }
 
-void EffekseerProducerImpl::JudgeRotationType(Effekseer::RotationParameter* Type)
+void EffekseerProducerImpl::JudgeRotationType(Effekseer::RotationParameter* pParameter)
 {
-	if (Type->RotationType == Effekseer::ParameterRotationType::ParameterRotationType_Fixed)
+	if (pParameter->RotationType == Effekseer::ParameterRotationType::ParameterRotationType_Fixed)
 	{
-		m_fixedRotation.push_back(Type->RotationFixed.Position);
+		m_fixedRotation.push_back(pParameter->RotationFixed.Position);
 	}
-	else if (Type->RotationType == Effekseer::ParameterRotationType::ParameterRotationType_PVA)
+	else if (pParameter->RotationType == Effekseer::ParameterRotationType::ParameterRotationType_PVA)
 	{
 
 	}
-	else if (Type->RotationType == Effekseer::ParameterRotationType::ParameterRotationType_Easing)
+	else if (pParameter->RotationType == Effekseer::ParameterRotationType::ParameterRotationType_Easing)
 	{
 
 	}
 	///TODO:  there still some num to analysis
 }
 
-void EffekseerProducerImpl::PushRotate(Effekseer::EffectNodeSprite* node)
+void EffekseerProducerImpl::PushRotate(Effekseer::EffectNodeSprite* pNode)
 {
 
-	if (node->Billboard == Effekseer::BillboardType::Billboard)
+	if (pNode->Billboard == Effekseer::BillboardType::Billboard)
 	{
 		//NO Rotation
-		JudgeRotationType(&node->RotationParam);
+		JudgeRotationType(&pNode->RotationParam);
 	}
-	else if (node->Billboard == Effekseer::BillboardType::RotatedBillboard)
+	else if (pNode->Billboard == Effekseer::BillboardType::RotatedBillboard)
 	{
 		//Z Rotation
-		JudgeRotationType(&node->RotationParam);
+		JudgeRotationType(&pNode->RotationParam);
 	}
-	else if (node->Billboard == Effekseer::BillboardType::YAxisFixed)
+	else if (pNode->Billboard == Effekseer::BillboardType::YAxisFixed)
 	{
 		//Y Rotation
-		JudgeRotationType(&node->RotationParam);
+		JudgeRotationType(&pNode->RotationParam);
 	}
-	else if (node->Billboard == Effekseer::BillboardType::Fixed)
+	else if (pNode->Billboard == Effekseer::BillboardType::Fixed)
 	{
 		// XYZ Rotation
-		JudgeRotationType(&node->RotationParam);
+		JudgeRotationType(&pNode->RotationParam);
 	}
 }
 
-void EffekseerProducerImpl::PushScale(Effekseer::EffectNodeSprite* node)
+void EffekseerProducerImpl::PushScale(Effekseer::EffectNodeSprite* pNode)
 {
-	if (node->ScalingParam.ScalingType == Effekseer::ParameterScalingType::ParameterScalingType_Fixed)
+	if (pNode->ScalingParam.ScalingType == Effekseer::ParameterScalingType::ParameterScalingType_Fixed)
 	{
-		m_fixedScale.push_back(node->ScalingParam.ScalingFixed.Position);
+		m_fixedScale.push_back(pNode->ScalingParam.ScalingFixed.Position);
 	}
-	else if (node->ScalingParam.ScalingType == Effekseer::ParameterScalingType::ParameterScalingType_PVA)
+	else if (pNode->ScalingParam.ScalingType == Effekseer::ParameterScalingType::ParameterScalingType_PVA)
 	{
 
 	}
@@ -134,32 +135,40 @@ void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	auto* pEffectData = effect.Get();
 
 	//ID name
-	const char16_t* EffectName = pEffectData->GetName();
+	const char16_t* pEffectName = pEffectData->GetName();
 	std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
-	std::u16string u16str = EffectName;
+	std::u16string u16str = pEffectName;
 	std::string str = converter.to_bytes(u16str);
-	const char* pParticleEmitterName = str.c_str();
+	const char* pAllParticleEmitterName = str.c_str();
 
 	//pos velocity scale
 	//may be  get all?????
 	TraverseNodeRecursively(pEffectData->GetRoot());
 	for (int i = 0; i < pEffectData->GetRoot()->GetChildrenCount(); i++)
 	{
-		cd::ParticleEmitterID::ValueType particleEmitterHash = cd::StringHash<cd::ParticleEmitterID::ValueType>(pParticleEmitterName+i);
+		cd::ParticleEmitterID::ValueType particleEmitterHash = cd::StringHash<cd::ParticleEmitterID::ValueType>(pAllParticleEmitterName + i);
 		cd::ParticleEmitterID particleEmitterID = m_particleEmitterIDGenerator.AllocateID(particleEmitterHash);
 		//all Set
-		cd::ParticleEmitter particleEmitter(particleEmitterID, pParticleEmitterName);
-		particleEmitter.SetType(static_cast<int>(m_particleType[i]));
-		if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Root)) { particleEmitter.SetTypeName("Root"); }
-		else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::NoneType)) { particleEmitter.SetTypeName("NoneType"); }
-		else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Sprite)) { particleEmitter.SetTypeName("Sprite"); }
-		else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Ribbon)) { particleEmitter.SetTypeName("Ribbon"); }
-		else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Ring)) { particleEmitter.SetTypeName("Ring"); }
-		else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Model)) { particleEmitter.SetTypeName("Model"); }
-		else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Track)) { particleEmitter.SetTypeName("Track"); }
-		particleEmitter.SetPosition(cd::Vec3f(m_particlePos[i].max.x, m_particlePos[i].max.y, m_particlePos[i].max.z));
-		particleEmitter.SetVelocity(cd::Vec3f(m_particleVelocity[i].max.x, m_particleVelocity[i].max.y, m_particleVelocity[i].max.z));
-		particleEmitter.SetAccelerate(cd::Vec3f(m_particleAccelerate[i].max.x, m_particleAccelerate[i].max.y, m_particleAccelerate[i].max.z));
+		std::string particleEmitterNameWithID = std::string(pAllParticleEmitterName) + std::to_string(i);
+		const char* particleEmitterName = particleEmitterNameWithID.c_str();
+		cd::ParticleEmitter particleEmitter(particleEmitterID, particleEmitterName);
+		if (m_particleType[i] == Effekseer::EffectNodeType::Root) { particleEmitter.SetType(particleType::Root); }
+		else if (m_particleType[i] == Effekseer::EffectNodeType::NoneType) { particleEmitter.SetType(particleType::NoneType); }
+		else if (m_particleType[i] == Effekseer::EffectNodeType::Sprite) { particleEmitter.SetType(particleType::Sprite); }
+		else if (m_particleType[i] == Effekseer::EffectNodeType::Ribbon) { particleEmitter.SetType(particleType::Ribbon); }
+		else if (m_particleType[i] == Effekseer::EffectNodeType::Model) { particleEmitter.SetType(particleType::Model); }
+		else if (m_particleType[i] == Effekseer::EffectNodeType::Track) { particleEmitter.SetType(particleType::Track); }
+		//particleEmitter.SetType(static_cast<int>(m_particleType[i]));
+		//if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Root)) { particleEmitter.SetTypeName("Root"); }
+		//else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::NoneType)) { particleEmitter.SetTypeName("NoneType"); }
+		//else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Sprite)) { particleEmitter.SetTypeName("Sprite"); }
+		//else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Ribbon)) { particleEmitter.SetTypeName("Ribbon"); }
+		//else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Ring)) { particleEmitter.SetTypeName("Ring"); }
+		//else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Model)) { particleEmitter.SetTypeName("Model"); }
+		//else if (particleEmitter.GetType() == static_cast<int>(Effekseer::EffectNodeType::Track)) { particleEmitter.SetTypeName("Track"); }
+		particleEmitter.SetPosition(MeanXYZ(m_particlePos[i].max, m_particlePos[i].min));
+		particleEmitter.SetVelocity(MeanXYZ(m_particleVelocity[i].max, m_particleVelocity[i].min));
+		particleEmitter.SetAccelerate(MeanXYZ(m_particleAccelerate[i].max, m_particleAccelerate[i].min));
 		particleEmitter.SetColor(cd::Vec4f(m_fixedColor[i].R, m_fixedColor[i].G, m_fixedColor[i].B, m_fixedColor[i].A));
 		particleEmitter.SetFixedRotation(cd::Vec3f(m_fixedRotation[i].X, m_fixedRotation[i].Y, m_fixedRotation[i].Z));
 		particleEmitter.SetFixedScale(cd::Vec3f(m_fixedScale[i].X, m_fixedScale[i].Y, m_fixedScale[i].Z));

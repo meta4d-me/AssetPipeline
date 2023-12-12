@@ -5,6 +5,17 @@
 namespace cdtools
 {
 
+enum particleType
+{
+	Root = -1,
+	NoneType = 0,
+	Sprite = 2,
+	Ribbon = 3,
+	Ring = 4,
+	Model = 5,
+	Track = 6,
+};
+
 class EffekseerProducerImpl;
 
 class TOOL_API EffekseerProducer final : public IProducer
