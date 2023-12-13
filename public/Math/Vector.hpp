@@ -214,7 +214,7 @@ public:
 
 	TVector& Normalize()
 	{
-		float length = Length();
+		T length = Length();
 		if (cd::Math::IsEqualToZero(length))
 		{
 			// avoid devide zero nan.
