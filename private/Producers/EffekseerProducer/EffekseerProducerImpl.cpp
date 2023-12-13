@@ -9,6 +9,16 @@
 namespace cdtools
 {
 
+static std::map<Effekseer::EffectNodeType, cd::ParticleEmitterType> EffectNodeTypeMapping = {
+	{ Effekseer::EffectNodeType::Root, cd::ParticleEmitterType::Root },
+	{ Effekseer::EffectNodeType::NoneType, cd::ParticleEmitterType::None },
+	{ Effekseer::EffectNodeType::Sprite, cd::ParticleEmitterType::Sprite },
+	{ Effekseer::EffectNodeType::Ribbon, cd::ParticleEmitterType::Ribbon },
+	{ Effekseer::EffectNodeType::Ring, cd::ParticleEmitterType::Ring },
+	{ Effekseer::EffectNodeType::Model, cd::ParticleEmitterType::Model },
+	{ Effekseer::EffectNodeType::Track, cd::ParticleEmitterType::Track },
+};
+
 EffekseerProducerImpl::EffekseerProducerImpl(const char16_t* pFilePath) :
 	m_pFilePath(pFilePath)
 {
@@ -148,15 +158,9 @@ void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	{
 		cd::ParticleEmitterID::ValueType particleEmitterHash = cd::StringHash<cd::ParticleEmitterID::ValueType>(pAllParticleEmitterName + i);
 		cd::ParticleEmitterID particleEmitterID = m_particleEmitterIDGenerator.AllocateID(particleEmitterHash);
-		//all Set
-		std::string particleEmitterNameWithID = std::string(pAllParticleEmitterName) + std::to_string(i);
-		const char* particleEmitterName = particleEmitterNameWithID.c_str();
-		cd::ParticleEmitter particleEmitter(particleEmitterID, particleEmitterName);
-		for (auto type : m_typeNames)
-		{
-			if(type.first == nameof::nameof_enum(m_particleType[i]))
-				particleEmitter.SetType(type.second);
-		}
+
+		cd::ParticleEmitter particleEmitter(particleEmitterID, std::format("{}{}", pAllParticleEmitterName, i).c_str());
+		particleEmitter.SetType(EffectNodeTypeMapping[static_cast<Effekseer::EffectNodeType>(m_particleType[i])]);
 		particleEmitter.SetPosition(MeanXYZ(m_particlePos[i].max, m_particlePos[i].min));
 		particleEmitter.SetVelocity(MeanXYZ(m_particleVelocity[i].max, m_particleVelocity[i].min));
 		particleEmitter.SetAccelerate(MeanXYZ(m_particleAccelerate[i].max, m_particleAccelerate[i].min));
