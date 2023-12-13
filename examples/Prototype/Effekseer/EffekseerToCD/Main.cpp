@@ -18,7 +18,7 @@ int main(int argc, char** argv)
 	PerformanceProfiler profiler("AssetPipeline");
 
 	// TODO : how to input char16_t string from argv?
-	const char16_t* pInputFilePath = u"S:/Effekseer/Examples/Resources/Laser01.efkefc";
+	const char16_t* pInputFilePath = u"D:/Effekseer/sample/03_01_Sample/03_01_Sample/effect.efkefc";
 	const char* pOutputFilePath = argv[2];
 	EffekseerProducer producer(pInputFilePath);
 	CDConsumer consumer(pOutputFilePath);

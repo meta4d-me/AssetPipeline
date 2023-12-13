@@ -158,6 +158,7 @@ void SceneDatabaseImpl::Dump() const
 	printf("\tBone count : %d\n", GetBoneCount());
 	printf("\tAnimation count : %d\n", GetAnimationCount());
 	printf("\tTrack count : %d\n", GetTrackCount());
+	printf("\tParticleEmitter count : %d\n", GetParticleEmitterCount());
 	if (GetNodeCount() > 0U)
 	{
 		printf("\n");
@@ -358,6 +359,22 @@ void SceneDatabaseImpl::Dump() const
 			details::Dump("\tFirstScaleKey", track.GetScaleKeys()[0].GetValue());
 		}
 	}
+
+	if (GetParticleEmitterCount() > 0U)
+	{
+		printf("\n");
+		for (const auto& particle : GetParticleEmitters())
+		{
+			printf("[ParticleEmitter %u] Name : %s\n", particle.GetID().Data(), particle.GetName());
+			printf("\tType : %s\n", nameof::nameof_enum(particle.GetType()).data());
+			details::Dump("\tPosition", particle.GetPosition());
+			details::Dump("\tVelocity", particle.GetVelocity());
+			details::Dump("\tAccelerate", particle.GetAccelerate());
+			details::Dump("\tColor", particle.GetColor());
+			details::Dump("\tRotation", particle.GetFixedRotation());
+			details::Dump("\tScale", particle.GetFixedScale());
+		}
+	}
 }
 
 void SceneDatabaseImpl::Validate() const
@@ -440,6 +457,12 @@ void SceneDatabaseImpl::Validate() const
 
 		//assert(GetBoneByName(track.GetName()));
 		CheckKeyFramesTimeOrder(track);
+	}
+
+	for (uint32_t particleIndex = 0U; particleIndex < GetParticleEmitterCount(); ++particleIndex)
+	{
+		const cd::ParticleEmitter& PE = GetParticleEmitter(particleIndex);
+		assert(particleIndex == PE.GetID().Data());
 	}
 }
 
@@ -543,6 +566,12 @@ void SceneDatabaseImpl::Merge(cd::SceneDatabaseImpl&& sceneDatabaseImpl)
 	{
 		light.SetID(GetCameraCount());
 		AddLight(cd::MoveTemp(light));
+	}
+
+	for (auto& particle : sceneDatabaseImpl.GetParticleEmitters())
+	{
+		particle.SetID(GetParticleEmitterCount());
+		AddParticleEmitter(cd::MoveTemp(particle));
 	}
 }
 
