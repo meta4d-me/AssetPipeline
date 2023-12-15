@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Math/Transform.hpp"
+#include "Scene/APIMacros.h"
 #include "Scene/KeyFrame.hpp"
 #include "Scene/LightType.h"
 #include "Scene/MaterialTextureType.h"

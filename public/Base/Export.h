@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Base/APIMacros.h"
 #include "Base/Template.h"
 
 #ifdef CORE_BUILD_SHARED
