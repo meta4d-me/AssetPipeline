@@ -39,113 +39,15 @@ Camera::~Camera()
     }
 }
 
-PIMPL_ID_APIS(Camera);
-PIMPL_NAME_APIS(Camera);
-
-void Camera::SetEye(Vec3f eye)
-{
-    m_pCameraImpl->SetEye(cd::MoveTemp(eye));
-}
-
-Vec3f& Camera::GetEye()
-{
-    return m_pCameraImpl->GetEye();
-}
-
-const Vec3f& Camera::GetEye() const
-{
-    return m_pCameraImpl->GetEye();
-}
-
-void Camera::SetLookAt(Vec3f lookAt)
-{
-    m_pCameraImpl->SetLookAt(cd::MoveTemp(lookAt));
-}
-
-Vec3f& Camera::GetLookAt()
-{
-    return m_pCameraImpl->GetLookAt();
-}
-
-const Vec3f& Camera::GetLookAt() const
-{
-    return m_pCameraImpl->GetLookAt();
-}
-
-void Camera::SetUp(Vec3f up)
-{
-    m_pCameraImpl->SetUp(cd::MoveTemp(up));
-}
-
-Vec3f& Camera::GetUp()
-{
-    return m_pCameraImpl->GetUp();
-}
-
-const Vec3f& Camera::GetUp() const
-{
-    return m_pCameraImpl->GetUp();
-}
-
-void Camera::SetAspect(float aspect)
-{
-    m_pCameraImpl->SetAspect(aspect);
-}
-
-float& Camera::GetAspect()
-{
-    return m_pCameraImpl->GetAspect();
-}
-
-float Camera::GetAspect() const
-{
-    return m_pCameraImpl->GetAspect();
-}
-
-void Camera::SetFov(float fov)
-{
-    m_pCameraImpl->SetFov(fov);
-}
-
-float& Camera::GetFov()
-{
-    return m_pCameraImpl->GetFov();
-}
-
-float Camera::GetFov() const
-{
-    return m_pCameraImpl->GetFov();
-}
-
-void Camera::SetNearPlane(float near)
-{
-    m_pCameraImpl->SetNearPlane(near);
-}
-
-float& Camera::GetNearPlane()
-{
-    return m_pCameraImpl->GetNearPlane();
-}
-
-float Camera::GetNearPlane() const
-{
-    return m_pCameraImpl->GetNearPlane();
-}
-
-void Camera::SetFarPlane(float far)
-{
-    m_pCameraImpl->SetFarPlane(far);
-}
-
-float& Camera::GetFarPlane()
-{
-    return m_pCameraImpl->GetFarPlane();
-}
-
-float Camera::GetFarPlane() const
-{
-    return m_pCameraImpl->GetFarPlane();
-}
+PIMPL_SIMPLE_TYPE_APIS(Camera, ID);
+PIMPL_SIMPLE_TYPE_APIS(Camera, Aspect);
+PIMPL_SIMPLE_TYPE_APIS(Camera, Fov);
+PIMPL_SIMPLE_TYPE_APIS(Camera, NearPlane);
+PIMPL_SIMPLE_TYPE_APIS(Camera, FarPlane);
+PIMPL_COMPLEX_TYPE_APIS(Camera, Eye);
+PIMPL_COMPLEX_TYPE_APIS(Camera, LookAt);
+PIMPL_COMPLEX_TYPE_APIS(Camera, Up);
+PIMPL_STRING_TYPE_APIS(Camera, Name);
 
 Camera& Camera::operator<<(InputArchive& inputArchive)
 {

@@ -4,7 +4,7 @@
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
 #include "Scene/KeyFrame.hpp"
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
 #include <vector>
 #include <string>
@@ -32,19 +32,11 @@ public:
 
 	void Init(AnimationID id, std::string name);
 
-	EXPORT_OBJECT_ID_APIS(AnimationID);
-	EXPORT_NAME_APIS();
-
-	void SetDuration(float duration);
-	float GetDuration() const;
-
-	void SetTicksPerSecond(float ticksPerSecond);
-	float GetTicksPerSecnod() const;
-
-	void AddBoneTrackID(uint32_t trackID);
-	uint32_t GetBoneTrackCount() const;
-	std::vector<TrackID>& GetBoneTrackIDs();
-	const std::vector<TrackID>& GetBoneTrackIDs() const;
+	EXPORT_SIMPLE_TYPE_APIS(Animation, ID);
+	EXPORT_SIMPLE_TYPE_APIS(Animation, Duration);
+	EXPORT_SIMPLE_TYPE_APIS(Animation, TicksPerSecond);
+	EXPORT_VECTOR_TYPE_APIS(Animation, BoneTrackID);
+	EXPORT_STRING_TYPE_APIS(Animation, Name);
 
 	Animation& operator<<(InputArchive& inputArchive);
 	Animation& operator<<(InputArchiveSwapBytes& inputArchive);

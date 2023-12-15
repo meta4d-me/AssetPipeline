@@ -25,7 +25,7 @@ void CalculateNodeTransforms(std::vector<cd::Matrix4x4>& nodeFinalTransforms, co
 	nodeFinalTransforms[node.GetID().Data()] = parentTransform * localTransform;
 
 	const std::vector<cd::NodeID>& childIDs = node.GetChildIDs();
-	for (uint32_t childIndex = 0U; childIndex < node.GetChildCount(); ++childIndex)
+	for (uint32_t childIndex = 0U; childIndex < node.GetChildIDCount(); ++childIndex)
 	{
 		cd::NodeID childNodeID = childIDs[childIndex];
 		CalculateNodeTransforms(nodeFinalTransforms, pSceneDatabase, pSceneDatabase->GetNode(childNodeID.Data()));
@@ -258,7 +258,7 @@ void ProcessorImpl::FlattenSceneDatabase()
 	{
 		const cd::Node& node = m_pCurrentSceneDatabase->GetNode(nodeIndex);
 		const std::vector<cd::MeshID>& nodeMeshIDs = node.GetMeshIDs();
-		for (uint32_t nodeMeshIndex = 0U; nodeMeshIndex < node.GetMeshCount(); ++nodeMeshIndex)
+		for (uint32_t nodeMeshIndex = 0U; nodeMeshIndex < node.GetMeshIDCount(); ++nodeMeshIndex)
 		{
 			mapMeshIDToAssociatedNodeID[nodeMeshIDs[nodeMeshIndex].Data()] = nodeIndex;
 		}
@@ -330,7 +330,7 @@ void ProcessorImpl::EmbedTextureFiles()
 {
 	for (auto& texture : m_pCurrentSceneDatabase->GetTextures())
 	{
-		if (texture.ExistRawData())
+		if (texture.GetRawData().empty())
 		{
 			continue;
 		}

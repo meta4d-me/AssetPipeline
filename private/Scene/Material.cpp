@@ -44,18 +44,9 @@ void Material::Init(MaterialID materialID, const char* pMaterialName, MaterialTy
 	m_pMaterialImpl->Init(materialID, pMaterialName, type);
 }
 
-PIMPL_ID_APIS(Material);
-PIMPL_NAME_APIS(Material);
-
-MaterialType Material::GetType() const
-{
-	return m_pMaterialImpl->GetType();
-}
-
-void Material::SetType(MaterialType type)
-{
-	m_pMaterialImpl->SetType(type);
-}
+PIMPL_SIMPLE_TYPE_APIS(Material, ID);
+PIMPL_SIMPLE_TYPE_APIS(Material, Type);
+PIMPL_STRING_TYPE_APIS(Material, Name);
 
 const PropertyMap& Material::GetPropertyGroups() const
 {

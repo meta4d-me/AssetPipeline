@@ -5,7 +5,7 @@
 #include "IO/OutputArchive.hpp"
 #include "Math/Matrix.hpp"
 #include "Math/Transform.hpp"
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
 #include <vector>
 
@@ -30,25 +30,12 @@ public:
 
 	void Init(NodeID nodeID, std::string name);
 
-	IMPLEMENT_ID_APIS(NodeID, m_id);
-	IMPLEMENT_NAME_APIS(m_name);
-
-	void SetParentID(NodeID parentID) { m_parentID = parentID; }
-	NodeID GetParentID() const { return m_parentID; }
-
-	void AddChildID(NodeID childID) { m_childIDs.push_back(childID); }
-	uint32_t GetChildCount() const { return static_cast<uint32_t>(m_childIDs.size()); }
-	std::vector<NodeID>& GetChildIDs() { return m_childIDs; }
-	const std::vector<NodeID>& GetChildIDs() const { return m_childIDs; }
-
-	void AddMeshID(MeshID meshID) { m_meshIDs.push_back(meshID); }
-	uint32_t GetMeshCount() const { return static_cast<uint32_t>(m_meshIDs.size()); }
-	std::vector<MeshID>& GetMeshIDs() { return m_meshIDs; }
-	const std::vector<MeshID>& GetMeshIDs() const { return m_meshIDs; }
-
-	void SetTransform(Transform transform) { m_transform = cd::MoveTemp(transform); }
-	Transform& GetTransform() { return m_transform; }
-	const Transform& GetTransform() const { return m_transform; }
+	IMPLEMENT_SIMPLE_TYPE_APIS(Node, ID);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Node, ParentID);
+	IMPLEMENT_COMPLEX_TYPE_APIS(Node, Transform);
+	IMPLEMENT_VECTOR_TYPE_APIS(Node, ChildID);
+	IMPLEMENT_VECTOR_TYPE_APIS(Node, MeshID);
+	IMPLEMENT_STRING_TYPE_APIS(Node, Name);
 
 	template<bool SwapBytesOrder>
 	NodeImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
@@ -68,10 +55,10 @@ public:
 		SetParentID(NodeID(parentID));
 		SetTransform(cd::MoveTemp(transform));
 
-		m_childIDs.resize(childCount);
+		GetChildIDs().resize(childCount);
 		inputArchive.ImportBuffer(GetChildIDs().data());
 
-		m_meshIDs.resize(meshCount);
+		GetMeshIDs().resize(meshCount);
 		inputArchive.ImportBuffer(GetMeshIDs().data());
 
 		return *this;
@@ -82,21 +69,12 @@ public:
 	{
 		outputArchive << GetID().Data() << GetParentID().Data();
 		outputArchive << GetName() << GetTransform();
-		outputArchive << GetChildCount() << GetMeshCount();
+		outputArchive << GetChildIDCount() << GetMeshIDCount();
 		outputArchive.ExportBuffer(GetChildIDs().data(), GetChildIDs().size());
 		outputArchive.ExportBuffer(GetMeshIDs().data(), GetMeshIDs().size());
 
 		return *this;
 	}
-
-private:
-	NodeID m_id;
-	NodeID m_parentID;
-	std::vector<NodeID> m_childIDs;
-	std::vector<MeshID> m_meshIDs;
-	
-	std::string m_name;
-	Transform m_transform;
 };
 
 }

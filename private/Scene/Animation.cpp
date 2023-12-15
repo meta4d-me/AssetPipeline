@@ -44,48 +44,11 @@ void Animation::Init(AnimationID id, std::string name)
     m_pAnimationImpl->Init(id, cd::MoveTemp(name));
 }
 
-PIMPL_ID_APIS(Animation);
-PIMPL_NAME_APIS(Animation);
-
-void Animation::SetDuration(float duration)
-{
-    m_pAnimationImpl->SetDuration(duration);
-}
-
-float Animation::GetDuration() const
-{
-    return m_pAnimationImpl->GetDuration();
-}
-
-void Animation::SetTicksPerSecond(float ticksPerSecond)
-{
-    m_pAnimationImpl->SetTicksPerSecond(ticksPerSecond);
-}
-
-float Animation::GetTicksPerSecnod() const
-{
-    return m_pAnimationImpl->GetTicksPerSecnod();
-}
-
-void Animation::AddBoneTrackID(uint32_t trackID)
-{
-    m_pAnimationImpl->AddBoneTrackID(trackID);
-}
-
-uint32_t Animation::GetBoneTrackCount() const
-{
-    return m_pAnimationImpl->GetBoneTrackCount();
-}
-
-std::vector<TrackID>& Animation::GetBoneTrackIDs()
-{
-    return m_pAnimationImpl->GetBoneTrackIDs();
-}
-
-const std::vector<TrackID>& Animation::GetBoneTrackIDs() const
-{
-    return m_pAnimationImpl->GetBoneTrackIDs();
-}
+PIMPL_SIMPLE_TYPE_APIS(Animation, ID);
+PIMPL_SIMPLE_TYPE_APIS(Animation, Duration);
+PIMPL_SIMPLE_TYPE_APIS(Animation, TicksPerSecond);
+PIMPL_VECTOR_TYPE_APIS(Animation, BoneTrackID);
+PIMPL_STRING_TYPE_APIS(Animation, Name);
 
 Animation& Animation::operator<<(InputArchive& inputArchive)
 {

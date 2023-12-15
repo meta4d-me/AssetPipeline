@@ -4,8 +4,8 @@
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
 #include "Scene/MaterialTextureType.h"
-#include "Scene/ObjectID.h"
 #include "Scene/TextureFormat.h"
+#include "Scene/Types.h"
 
 #include <string>
 #include <vector>
@@ -31,56 +31,20 @@ public:
 
 	void Init(TextureID textureID, std::string name, MaterialTextureType textureType);
 
-	IMPLEMENT_ID_APIS(TextureID, m_id);
-	IMPLEMENT_NAME_APIS(m_name);
-
-	cd::MaterialTextureType GetType() const { return m_type; }
-	void SetType(cd::MaterialTextureType type) { m_type = type; }
-
-	// Texture sampler data
-	cd::TextureMapMode GetUMapMode() const { return m_uvMapMode[0]; }
-	void SetUMapMode(cd::TextureMapMode mapMode) { m_uvMapMode[0] = mapMode; }
-
-	cd::TextureMapMode GetVMapMode() const { return m_uvMapMode[1]; }
-	void SetVMapMode(cd::TextureMapMode mapMode) { m_uvMapMode[1] = mapMode; }
-
-	const cd::Vec2f& GetUVOffset() const { return m_uvOffset; }
-	cd::Vec2f& GetUVOffset() { return m_uvOffset; }
-	void SetUVOffset(cd::Vec2f uvOffset) { m_uvOffset = cd::MoveTemp(uvOffset); }
-
-	const cd::Vec2f& GetUVScale() const { return m_uvScale; }
-	cd::Vec2f& GetUVScale() { return m_uvScale; }
-	void SetUVScale(cd::Vec2f uvScale) { m_uvScale = cd::MoveTemp(uvScale); }
-
-	// File texture data
-	const std::string& GetPath() const { return m_path; }
-	std::string& GetPath() { return m_path; }
-	void SetPath(std::string filePath) { m_path = MoveTemp(filePath); }
-
-	// Texture performance data
-	bool UseMipMap() const { return m_useMipMap; }
-	void SetUseMipMap(bool use) { m_useMipMap = use; }
-
-	void SetFormat(cd::TextureFormat format) { m_format = format; }
-	const cd::TextureFormat GetFormat() const { return m_format; }
-
-	// Detailed texture data
-	uint32_t GetWidth() const { return m_width; }
-	uint32_t& GetWidth() { return m_width; }
-	void SetWidth(uint32_t width) { m_width = width; }
-
-	uint32_t GetHeight() const { return m_height; }
-	uint32_t& GetHeight() { return m_height; }
-	void SetHeight(uint32_t height) { m_height = height; }
-
-	uint32_t GetDepth() const { return m_depth; }
-	uint32_t& GetDepth() { return m_depth; }
-	void SetDepth(uint32_t depth) { m_depth = depth; }
-
-	const std::vector<std::byte>& GetRawData() const { return m_rawData; }
-	void SetRawData(std::vector<std::byte> rawData) { m_rawData = cd::MoveTemp(rawData); }
-	void ClearRawData();
-	bool ExistRawData() const { return !m_rawData.empty(); }
+	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, ID);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, Type);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, Format);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, UMapMode);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, VMapMode);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, UseMipMap);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, Width);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, Height);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, Depth);
+	IMPLEMENT_COMPLEX_TYPE_APIS(Texture, UVOffset);
+	IMPLEMENT_COMPLEX_TYPE_APIS(Texture, UVScale);
+	IMPLEMENT_COMPLEX_TYPE_APIS(Texture, RawData);
+	IMPLEMENT_STRING_TYPE_APIS(Texture, Name);
+	IMPLEMENT_STRING_TYPE_APIS(Texture, Path);
 
 	// Serialization
 	template<bool SwapBytesOrder>
@@ -106,8 +70,8 @@ public:
 
 		size_t rawDataSize;
 		inputArchive >> GetPath() >> GetWidth() >> GetHeight() >> GetDepth() >> rawDataSize;
-		m_rawData.resize(rawDataSize);
-		inputArchive.ImportBuffer(m_rawData.data());
+		GetRawData().resize(rawDataSize);
+		inputArchive.ImportBuffer(GetRawData().data());
 
 		return *this;
 	}
@@ -117,37 +81,13 @@ public:
 	{
 		outputArchive << GetID().Data() << GetName() << static_cast<uint8_t>(GetType()) <<
 			static_cast<uint8_t>(GetUMapMode()) << static_cast<uint8_t>(GetVMapMode()) << GetUVOffset() << GetUVScale() <<
-			static_cast<uint32_t>(m_format) << UseMipMap();
+			static_cast<uint32_t>(GetFormat()) << GetUseMipMap();
 
-		outputArchive << GetPath() << GetWidth() << GetHeight() << GetDepth() << m_rawData.size();
-		outputArchive.ExportBuffer(m_rawData.data(), m_rawData.size());
+		outputArchive << GetPath() << GetWidth() << GetHeight() << GetDepth();
+		outputArchive.ExportBuffer(GetRawData().data(), GetRawData().size());
 
 		return *this;
 	}
-
-private:
-	// Texture basic information
-	TextureID m_id;
-	std::string m_name;
-	cd::MaterialTextureType m_type;
-	
-	// Texture sampler data
-	cd::TextureMapMode m_uvMapMode[2];
-	cd::Vec2f m_uvOffset;
-	cd::Vec2f m_uvScale;
-
-	// Texture performance data
-	cd::TextureFormat m_format;
-	bool m_useMipMap;
-
-	// File Texture data
-	std::string m_path;
-
-	// Detailed Texture data
-	uint32_t m_width;
-	uint32_t m_height;
-	uint32_t m_depth;
-	std::vector<std::byte> m_rawData;
 };
 
 }

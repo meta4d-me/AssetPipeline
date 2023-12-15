@@ -3,21 +3,10 @@
 #include "Base/Export.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
 namespace cd
 {
-
-enum class ParticleEmitterType
-{
-	Root,
-	None,
-	Sprite,
-	Ribbon,
-	Ring,
-	Model,
-	Track
-};
 
 class ParticleEmitterImpl;
 
@@ -37,35 +26,15 @@ public:
 	ParticleEmitter& operator=(ParticleEmitter&&);
 	~ParticleEmitter();
 
-	EXPORT_OBJECT_ID_APIS(ParticleEmitterID);
-	EXPORT_NAME_APIS();
-
-	void SetType(ParticleEmitterType type);
-	ParticleEmitterType GetType() const;
-
-	void SetPosition(cd::Vec3f position);
-	Vec3f& GetPosition();
-	const cd::Vec3f& GetPosition() const;
-
-	void SetVelocity(cd::Vec3f velocity);
-	Vec3f& GetVelocity();
-	const cd::Vec3f& GetVelocity() const;
-
-	void SetAccelerate(cd::Vec3f accelerate);
-	Vec3f& GetAccelerate();
-	const cd::Vec3f& GetAccelerate() const;
-
-	void SetColor(cd::Vec4f color);
-	Vec4f& GetColor();
-	const cd::Vec4f& GetColor() const;
-
-	void SetFixedRotation(cd::Vec3f rotation);
-	Vec3f& GetFixedRotation();
-	const cd::Vec3f& GetFixedRotation() const;
-
-	void SetFixedScale(cd::Vec3f scale);
-	Vec3f& GetFixedScale();
-	const cd::Vec3f& GetFixedScale() const;
+	EXPORT_SIMPLE_TYPE_APIS(ParticleEmitter, ID);
+	EXPORT_SIMPLE_TYPE_APIS(ParticleEmitter, Type);
+	EXPORT_COMPLEX_TYPE_APIS(ParticleEmitter, Position);
+	EXPORT_COMPLEX_TYPE_APIS(ParticleEmitter, Velocity);
+	EXPORT_COMPLEX_TYPE_APIS(ParticleEmitter, Accelerate);
+	EXPORT_COMPLEX_TYPE_APIS(ParticleEmitter, Color);
+	EXPORT_COMPLEX_TYPE_APIS(ParticleEmitter, FixedRotation);
+	EXPORT_COMPLEX_TYPE_APIS(ParticleEmitter, FixedScale);
+	EXPORT_STRING_TYPE_APIS(ParticleEmitter, Name);
 
 	ParticleEmitter& operator<<(InputArchive& inputArchive);
 	ParticleEmitter& operator<<(InputArchiveSwapBytes& inputArchive);

@@ -44,11 +44,11 @@ void Track::Init(TrackID id, std::string name)
     m_pTrackImpl->Init(id, cd::MoveTemp(name));
 }
 
-PIMPL_ID_APIS(Track);
-PIMPL_NAME_APIS(Track);
-PIMPL_VECTOR_DATA_APIS(Track, TranslationKey);
-PIMPL_VECTOR_DATA_APIS(Track, RotationKey);
-PIMPL_VECTOR_DATA_APIS(Track, ScaleKey);
+PIMPL_SIMPLE_TYPE_APIS(Track, ID);
+PIMPL_STRING_TYPE_APIS(Track, Name);
+PIMPL_VECTOR_TYPE_APIS(Track, TranslationKey);
+PIMPL_VECTOR_TYPE_APIS(Track, RotationKey);
+PIMPL_VECTOR_TYPE_APIS(Track, ScaleKey);
 
 Track& Track::operator<<(InputArchive& inputArchive)
 {

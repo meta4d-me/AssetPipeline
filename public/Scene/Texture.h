@@ -4,8 +4,8 @@
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
 #include "Scene/MaterialTextureType.h"
-#include "Scene/ObjectID.h"
 #include "Scene/TextureFormat.h"
+#include "Scene/Types.h"
 
 #include <vector>
 
@@ -30,45 +30,21 @@ public:
 	Texture& operator=(Texture&&) noexcept;
 	~Texture();
 
-	EXPORT_OBJECT_ID_APIS(TextureID);
-	EXPORT_NAME_APIS();
-	
-	cd::MaterialTextureType GetType() const;
-	void SetType(MaterialTextureType type);
+	EXPORT_SIMPLE_TYPE_APIS(Texture, ID);
+	EXPORT_SIMPLE_TYPE_APIS(Texture, Type);
+	EXPORT_SIMPLE_TYPE_APIS(Texture, Format);
+	EXPORT_SIMPLE_TYPE_APIS(Texture, UMapMode);
+	EXPORT_SIMPLE_TYPE_APIS(Texture, VMapMode);
+	EXPORT_SIMPLE_TYPE_APIS(Texture, UseMipMap);
+	EXPORT_SIMPLE_TYPE_APIS(Texture, Width);
+	EXPORT_SIMPLE_TYPE_APIS(Texture, Height);
+	EXPORT_SIMPLE_TYPE_APIS(Texture, Depth);
+	EXPORT_COMPLEX_TYPE_APIS(Texture, UVOffset);
+	EXPORT_COMPLEX_TYPE_APIS(Texture, UVScale);
+	EXPORT_COMPLEX_TYPE_APIS(Texture, RawData);
+	EXPORT_STRING_TYPE_APIS(Texture, Name);
+	EXPORT_STRING_TYPE_APIS(Texture, Path);
 
-	// Texture sampler data
-	cd::TextureMapMode GetUMapMode() const;
-	void SetUMapMode(cd::TextureMapMode mapMode);
-
-	cd::TextureMapMode GetVMapMode() const;
-	void SetVMapMode(cd::TextureMapMode mapMode);
-
-	// File texture data
-	const char* GetPath() const;
-	void SetPath(const char* pFilePath);
-
-	// Texture performance data
-	bool UseMipMap() const;
-	void SetUseMipMap(bool use);
-
-	void SetFormat(cd::TextureFormat format);
-	cd::TextureFormat GetFormat() const;
-
-	// Detailed texture data
-	uint32_t GetWidth() const;
-	void SetWidth(uint32_t width);
-
-	uint32_t GetHeight() const;
-	void SetHeight(uint32_t height);
-
-	uint32_t GetDepth() const;
-	void SetDepth(uint32_t depth);
-
-	const std::vector<std::byte>& GetRawData() const;
-	void SetRawData(std::vector<std::byte> rawData);
-	void ClearRawData();
-	bool ExistRawData() const;
-	
 	Texture& operator<<(InputArchive& inputArchive);
 	Texture& operator<<(InputArchiveSwapBytes& inputArchive);
 	const Texture& operator>>(OutputArchive& outputArchive) const;

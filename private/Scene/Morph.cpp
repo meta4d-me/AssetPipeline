@@ -56,38 +56,16 @@ void Morph::Init(MorphID id, const char* pName, uint32_t vertexCount)
 	m_pMorphImpl->Init(id, pName, vertexCount);
 }
 
-void Morph::SetSourceMeshID(MeshID meshID)
-{
-	m_pMorphImpl->SetSourceMeshID(meshID);
-}
-
-MeshID Morph::GetSourceMeshID() const
-{
-	return m_pMorphImpl->GetSourceMeshID();
-}
-
-void Morph::SetWeight(float weight)
-{
-	m_pMorphImpl->SetWeight(weight);
-}
-
-float Morph::GetWeight() const
-{
-	return m_pMorphImpl->GetWeight();
-}
-
-uint32_t Morph::GetVertexCount() const
-{
-	return m_pMorphImpl->GetVertexCount();
-}
-
-PIMPL_ID_APIS(Morph);
-PIMPL_NAME_APIS(Morph);
-PIMPL_VECTOR_DATA_APIS(Morph, VertexSourceID);
-PIMPL_VECTOR_DATA_APIS(Morph, VertexPosition);
-PIMPL_VECTOR_DATA_APIS(Morph, VertexNormal);
-PIMPL_VECTOR_DATA_APIS(Morph, VertexTangent);
-PIMPL_VECTOR_DATA_APIS(Morph, VertexBiTangent);
+PIMPL_SIMPLE_TYPE_APIS(Morph, ID);
+PIMPL_SIMPLE_TYPE_APIS(Morph, SourceMeshID);
+PIMPL_SIMPLE_TYPE_APIS(Morph, Weight);
+PIMPL_SIMPLE_TYPE_APIS(Morph, VertexCount);
+PIMPL_VECTOR_TYPE_APIS(Morph, VertexSourceID);
+PIMPL_VECTOR_TYPE_APIS(Morph, VertexPosition);
+PIMPL_VECTOR_TYPE_APIS(Morph, VertexNormal);
+PIMPL_VECTOR_TYPE_APIS(Morph, VertexTangent);
+PIMPL_VECTOR_TYPE_APIS(Morph, VertexBiTangent);
+PIMPL_STRING_TYPE_APIS(Morph, Name);
 
 Morph& Morph::operator<<(InputArchive& inputArchive)
 {
@@ -112,6 +90,5 @@ const Morph& Morph::operator>>(OutputArchiveSwapBytes& outputArchive) const
 	*m_pMorphImpl >> outputArchive;
 	return *this;
 }
-
 
 }

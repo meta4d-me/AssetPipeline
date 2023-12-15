@@ -10,8 +10,8 @@ NodeImpl::NodeImpl(NodeID nodeID, std::string name)
 
 void NodeImpl::Init(NodeID nodeID, std::string name)
 {
-	m_id = nodeID;
-	m_name = cd::MoveTemp(name);
+	SetID(nodeID);
+	SetName(cd::MoveTemp(name));
 }
 
 }

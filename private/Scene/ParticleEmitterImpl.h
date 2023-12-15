@@ -3,9 +3,9 @@
 #include "Base/Template.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
-#include "Scene/ObjectID.h"
 #include "Scene/ParticleEmitter.h"
 #include "Scene/VertexFormat.h"
+#include "Scene/Types.h"
 
 namespace cd
 {
@@ -28,35 +28,15 @@ public:
 
 	void Init(ParticleEmitterID id, std::string name);
 
-	IMPLEMENT_ID_APIS(ParticleEmitterID, m_id);
-	IMPLEMENT_NAME_APIS(m_name);
-
-	void SetType(ParticleEmitterType type) { m_type = type; }
-	ParticleEmitterType GetType() const { return m_type; }
-
-	void SetPosition(Vec3f position) { m_position = MoveTemp(position); }
-	Vec3f& GetPosition() { return m_position; }
-	const Vec3f& GetPosition() const { return m_position; }
-
-	void SetVelocity(Vec3f velocity) { m_velocity = MoveTemp(velocity); }
-	Vec3f& GetVelocity() { return m_velocity; }
-	const Vec3f& GetVelocity() const { return m_velocity; }
-
-	void SetAccelerate(Vec3f accelerate) { m_accelerate = MoveTemp(accelerate); }
-	Vec3f& GetAccelerate() { return m_accelerate; }
-	const Vec3f& GetAccelerate() const { return m_accelerate; }
-
-	void SetColor(Vec4f color) { m_color = MoveTemp(color); }
-	Vec4f& GetColor() { return m_color; }
-	const Vec4f& GetColor() const { return m_color; }
-
-	void SetFixedRotation(Vec3f rotation) { m_fixedRotation = MoveTemp(rotation); }
-	Vec3f& GetFixedRotation() { return m_fixedRotation; }
-	const Vec3f& GetFixedRotation() const { return m_fixedRotation; }
-
-	void SetFixedScale(Vec3f scale) { m_fixedScale = MoveTemp(scale); }
-	Vec3f& GetFixedScale() { return m_fixedScale; }
-	const Vec3f& GetFixedScale() const { return m_fixedScale; }
+	IMPLEMENT_SIMPLE_TYPE_APIS(ParticleEmitter, ID);
+	IMPLEMENT_SIMPLE_TYPE_APIS(ParticleEmitter, Type);
+	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, Position);
+	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, Velocity);
+	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, Accelerate);
+	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, Color);
+	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, FixedRotation);
+	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, FixedScale);
+	IMPLEMENT_STRING_TYPE_APIS(ParticleEmitter, Name);
 
 	template<bool SwapBytesOrder>
 	ParticleEmitterImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
@@ -80,19 +60,6 @@ public:
 			<< GetColor() << GetFixedRotation() << GetFixedScale();
 		return *this;
 	}
-
-private:
-	ParticleEmitterID m_id;
-	std::string m_name;
-
-	cd::VertexFormat m_vertexFormat;
-	cd::ParticleEmitterType m_type;
-	cd::Vec3f m_position;
-	cd::Vec3f m_velocity;
-	cd::Vec3f m_accelerate;
-	cd::Vec4f m_color;
-	cd::Vec3f m_fixedRotation;
-	cd::Vec3f m_fixedScale;
 };
 
 }

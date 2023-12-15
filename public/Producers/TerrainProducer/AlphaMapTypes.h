@@ -2,9 +2,9 @@
 
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace cdtools
 {

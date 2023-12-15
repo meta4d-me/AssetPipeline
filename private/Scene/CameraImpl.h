@@ -3,7 +3,7 @@
 #include "Base/Template.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
 #include <vector>
 #include <string>
@@ -29,36 +29,15 @@ public:
 
 	void Init(CameraID id, std::string name);
 
-	IMPLEMENT_ID_APIS(CameraID, m_id);
-	IMPLEMENT_NAME_APIS(m_name);
-
-	void SetEye(Vec3f eye) { m_eye = MoveTemp(eye); }
-	Vec3f& GetEye() { return m_eye; }
-	const Vec3f& GetEye() const { return m_eye; }
-
-	void SetLookAt(Vec3f lookAt) { m_lookAt = MoveTemp(lookAt); }
-	Vec3f& GetLookAt() { return m_lookAt; }
-	const Vec3f& GetLookAt() const { return m_lookAt; }
-
-	void SetUp(Vec3f up) { m_up = MoveTemp(up); }
-	Vec3f& GetUp() { return m_up; }
-	const Vec3f& GetUp() const { return m_up; }
-
-	void SetAspect(float aspect) { m_aspect = aspect; }
-	float& GetAspect() { return m_aspect; }
-	float GetAspect() const { return m_aspect; }
-
-	void SetFov(float fov) { m_fov = fov; }
-	float& GetFov() { return m_fov; }
-	float GetFov() const { return m_fov; }
-
-	void SetNearPlane(float near) { m_near = near; }
-	float& GetNearPlane() { return m_near; }
-	float GetNearPlane() const { return m_near; }
-
-	void SetFarPlane(float far) { m_far = far; }
-	float& GetFarPlane() { return m_far; }
-	float GetFarPlane() const { return m_far; }
+	IMPLEMENT_SIMPLE_TYPE_APIS(Camera, ID);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Camera, Aspect);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Camera, Fov);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Camera, NearPlane);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Camera, FarPlane);
+	IMPLEMENT_COMPLEX_TYPE_APIS(Camera, Eye);
+	IMPLEMENT_COMPLEX_TYPE_APIS(Camera, LookAt);
+	IMPLEMENT_COMPLEX_TYPE_APIS(Camera, Up);
+	IMPLEMENT_STRING_TYPE_APIS(Camera, Name);
 
 	template<bool SwapBytesOrder>
 	CameraImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
@@ -82,18 +61,6 @@ public:
 
 		return *this;
 	}
-
-private:
-	CameraID m_id;
-	std::string m_name;
-
-	Vec3f m_eye;
-	Vec3f m_lookAt;
-	Vec3f m_up;
-	float m_aspect;
-	float m_fov;
-	float m_near;
-	float m_far;
 };
 
 }

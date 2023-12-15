@@ -4,7 +4,7 @@
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
 #include "Math/Transform.hpp"
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
 #include <vector>
 #include <string>
@@ -32,25 +32,12 @@ public:
 	
 	void Init(NodeID nodeID, std::string name);
 
-	EXPORT_OBJECT_ID_APIS(NodeID);
-	EXPORT_NAME_APIS();
-
-	void SetParentID(NodeID parentID);
-	NodeID GetParentID() const;
-
-	void AddChildID(NodeID childID);
-	uint32_t GetChildCount() const;
-	std::vector<NodeID>& GetChildIDs();
-	const std::vector<NodeID>& GetChildIDs() const;
-
-	void AddMeshID(MeshID meshID);
-	uint32_t GetMeshCount() const;
-	std::vector<MeshID>& GetMeshIDs();
-	const std::vector<MeshID>& GetMeshIDs() const;
-
-	void SetTransform(Transform transform);
-	Transform& GetTransform();
-	const Transform& GetTransform() const;
+	EXPORT_SIMPLE_TYPE_APIS(Node, ID);
+	EXPORT_SIMPLE_TYPE_APIS(Node, ParentID);
+	EXPORT_COMPLEX_TYPE_APIS(Node, Transform);
+	EXPORT_VECTOR_TYPE_APIS(Node, ChildID);
+	EXPORT_VECTOR_TYPE_APIS(Node, MeshID);
+	EXPORT_STRING_TYPE_APIS(Node, Name);
 
 	Node& operator<<(InputArchive& inputArchive);
 	Node& operator<<(InputArchiveSwapBytes& inputArchive);

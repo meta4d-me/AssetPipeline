@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
 #include <assert.h>
 #include <optional>

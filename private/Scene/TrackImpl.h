@@ -4,7 +4,7 @@
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
 #include "Scene/KeyFrame.hpp"
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
 #include <vector>
 #include <string>
@@ -30,11 +30,11 @@ public:
 
 	void Init(TrackID id, std::string name);
 
-	IMPLEMENT_ID_APIS(TrackID, m_id);
-	IMPLEMENT_NAME_APIS(m_name);
-	IMPLEMENT_VECTOR_DATA_APIS(TranslationKey, m_translationKeys);
-	IMPLEMENT_VECTOR_DATA_APIS(RotationKey, m_rotationKeys);
-	IMPLEMENT_VECTOR_DATA_APIS(ScaleKey, m_scaleKeys);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Track, ID);
+	IMPLEMENT_STRING_TYPE_APIS(Track, Name);
+	IMPLEMENT_VECTOR_TYPE_APIS(Track, TranslationKey);
+	IMPLEMENT_VECTOR_TYPE_APIS(Track, RotationKey);
+	IMPLEMENT_VECTOR_TYPE_APIS(Track, ScaleKey);
 
 	template<bool SwapBytesOrder>
 	TrackImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
@@ -74,14 +74,6 @@ public:
 
 		return *this;
 	}
-
-private:
-	TrackID m_id;
-	std::string m_name;
-
-	std::vector<TranslationKey> m_translationKeys;
-	std::vector<RotationKey> m_rotationKeys;
-	std::vector<ScaleKey> m_scaleKeys;
 };
 
 }

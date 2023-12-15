@@ -326,7 +326,7 @@ void SceneDatabaseImpl::Dump() const
 		for (const auto& bone : GetBones())
 		{
 			printf("[Bone %u] Name : %s, ParentID : %u\n", bone.GetID().Data(), bone.GetName(), bone.GetParentID().Data());
-			details::Dump("RestPost", bone.GetOffset().Inverse());
+			details::Dump("\tRestPost", bone.GetOffset().Inverse());
 
 			for (const cd::BoneID childNodeID : bone.GetChildIDs())
 			{
@@ -341,7 +341,7 @@ void SceneDatabaseImpl::Dump() const
 		for (const auto& animation : GetAnimations())
 		{
 			printf("[Animation %u] Name : %s\n", animation.GetID().Data(), animation.GetName());
-			printf("\tDuration : %f, TicksPerSecond : %f\n", animation.GetDuration(), animation.GetTicksPerSecnod());
+			printf("\tDuration : %f, TicksPerSecond : %f\n", animation.GetDuration(), animation.GetTicksPerSecond());
 		}
 	}
 

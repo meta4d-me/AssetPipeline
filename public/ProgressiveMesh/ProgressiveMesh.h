@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Math/Box.hpp"
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
 namespace cd
 {

@@ -3,7 +3,7 @@
 #include "Base/Template.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
 #include <array>
 #include <string>
@@ -35,23 +35,16 @@ public:
 	void Init(uint32_t vertexCount);
 	void Init(MorphID id, std::string name, uint32_t vertexCount);
 	
-	IMPLEMENT_ID_APIS(MorphID, m_id);
-	IMPLEMENT_NAME_APIS(m_name);
-
-	void SetSourceMeshID(MeshID meshID) { m_sourceMeshID = meshID; }
-	MeshID GetSourceMeshID() const { return m_sourceMeshID; }
-
-	void SetWeight(float weight) { m_weight = weight; }
-	float& GetWeight() { return m_weight; } 
-	float GetWeight() const { return m_weight; }
-
-	uint32_t GetVertexCount() const { return m_vertexCount; }
-
-	IMPLEMENT_VECTOR_DATA_APIS(VertexSourceID, m_vertexSourceIDs);
-	IMPLEMENT_VECTOR_DATA_APIS(VertexPosition, m_vertexPositions);
-	IMPLEMENT_VECTOR_DATA_APIS(VertexNormal, m_vertexNormals);
-	IMPLEMENT_VECTOR_DATA_APIS(VertexTangent, m_vertexTangents);
-	IMPLEMENT_VECTOR_DATA_APIS(VertexBiTangent, m_vertexBiTangents);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Morph, ID);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Morph, SourceMeshID);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Morph, Weight);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Morph, VertexCount);
+	IMPLEMENT_VECTOR_TYPE_APIS(Morph, VertexSourceID);
+	IMPLEMENT_VECTOR_TYPE_APIS(Morph, VertexPosition);
+	IMPLEMENT_VECTOR_TYPE_APIS(Morph, VertexNormal);
+	IMPLEMENT_VECTOR_TYPE_APIS(Morph, VertexTangent);
+	IMPLEMENT_VECTOR_TYPE_APIS(Morph, VertexBiTangent);
+	IMPLEMENT_STRING_TYPE_APIS(Morph, Name);
 
 	template<bool SwapBytesOrder>
 	MorphImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
@@ -84,21 +77,6 @@ public:
 
 		return *this;
 	}
-
-private:
-	std::string					m_name;
-	MorphID						m_id;
-	MeshID						m_sourceMeshID;
-	float						m_weight;
-
-	uint32_t					m_vertexCount;
-	std::vector<VertexID>		m_vertexSourceIDs;
-
-	// vertex geometry data
-	std::vector<Point>			m_vertexPositions;
-	std::vector<Direction>		m_vertexNormals;
-	std::vector<Direction>		m_vertexTangents;
-	std::vector<Direction>		m_vertexBiTangents;
 };
 
 }

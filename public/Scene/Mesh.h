@@ -36,29 +36,20 @@ public:
 
 	void Init(uint32_t vertexCount, uint32_t polygonCount);
 
-	EXPORT_OBJECT_ID_APIS(MeshID);
-	EXPORT_NAME_APIS();
-	EXPORT_VECTOR_DATA_APIS(MorphID);
-	EXPORT_VECTOR_DATA_APIS(VertexPosition);
-	EXPORT_VECTOR_DATA_APIS(VertexNormal);
-	EXPORT_VECTOR_DATA_APIS(VertexTangent);
-	EXPORT_VECTOR_DATA_APIS(VertexBiTangent);
+	EXPORT_SIMPLE_TYPE_APIS(Mesh, ID);
+	EXPORT_SIMPLE_TYPE_APIS(Mesh, MaterialID);
+	EXPORT_SIMPLE_TYPE_APIS(Mesh, VertexCount);
+	EXPORT_SIMPLE_TYPE_APIS(Mesh, PolygonCount);
+	EXPORT_COMPLEX_TYPE_APIS(Mesh, AABB);
+	EXPORT_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
+	EXPORT_VECTOR_TYPE_APIS(Mesh, MorphID);
+	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexPosition);
+	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexNormal);
+	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexTangent);
+	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
+	EXPORT_STRING_TYPE_APIS(Mesh, Name);
 
-	uint32_t GetVertexCount() const;
-	uint32_t GetPolygonCount() const;
-
-	void SetVertexFormat(VertexFormat vertexFormat);
-	VertexFormat& GetVertexFormat();
-	const VertexFormat& GetVertexFormat() const;
-
-	void SetAABB(AABB aabb);
-	AABB& GetAABB();
-	const AABB& GetAABB() const;
 	void UpdateAABB();
-
-	void SetMaterialID(MaterialID materialID);
-	MaterialID GetMaterialID() const;
-
 	void ComputeVertexNormals();
 	void ComputeVertexTangents();
 

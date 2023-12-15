@@ -3,10 +3,10 @@
 #include "Base/Template.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
+#include "Math/Vector.hpp"
 #include "PropertyMap/PropertyMap.hpp"
 #include "Scene/MaterialTextureType.h"
-#include "Scene/ObjectID.h"
-#include "Math/Vector.hpp"
+#include "Scene/Types.h"
 
 #include <map>
 #include <optional>
@@ -34,11 +34,9 @@ public:
 	void Init(MaterialID materialID, std::string materialName, MaterialType materialType);
 	void InitBasePBR();
 
-	IMPLEMENT_ID_APIS(MaterialID, m_id);
-	IMPLEMENT_NAME_APIS(m_name);
-
-	MaterialType GetType() const { return m_type; }
-	void SetType(MaterialType materialType) { m_type = materialType; }
+	IMPLEMENT_SIMPLE_TYPE_APIS(Material, ID);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Material, Type);
+	IMPLEMENT_STRING_TYPE_APIS(Material, Name);
 
 	PropertyMap& GetPropertyGroups() { return m_propertyGroups; }
 	const PropertyMap& GetPropertyGroups() const { return m_propertyGroups; }
@@ -89,10 +87,6 @@ public:
 	}
 
 private:
-	MaterialID m_id;
-	std::string m_name;
-	MaterialType m_type;
-	
 	PropertyMap m_propertyGroups;
 };
 

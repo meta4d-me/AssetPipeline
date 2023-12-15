@@ -54,40 +54,6 @@ private:
 	T m_id = InvalidID;
 };
 
-using VertexID = ObjectID<uint32_t, ObjectType::Vertex>;
-using EdgeID = ObjectID<uint32_t, ObjectType::Edge>;
-using HalfEdgeID = ObjectID<uint32_t, ObjectType::HalfEdge>;
-using FaceID = ObjectID<uint32_t, ObjectType::Face>;
-using PolygonID = ObjectID<uint32_t, ObjectType::Polygon>;
-using MeshID = ObjectID<uint32_t, ObjectType::Mesh>;
-using MaterialID = ObjectID<uint32_t, ObjectType::Material>;
-using TextureID = ObjectID<uint32_t, ObjectType::Texture>;
-using LightID = ObjectID<uint32_t, ObjectType::Light>;
-using NodeID = ObjectID<uint32_t, ObjectType::Node>;
-using CameraID = ObjectID<uint32_t, ObjectType::Camera>;
-using BoneID = ObjectID<uint32_t, ObjectType::Bone>;
-using AnimationID = ObjectID<uint32_t, ObjectType::Animation>;
-using TrackID = ObjectID<uint32_t, ObjectType::Track>;
-using MorphID = ObjectID<uint32_t, ObjectType::Morph>;
-using ParticleEmitterID = ObjectID<uint32_t, ObjectType::ParticleEmitter>;
-
-static_assert(sizeof(VertexID) == sizeof(uint32_t));
-
-using VertexIDArray = std::vector<VertexID>;
-using PolygonIDArray = std::vector<PolygonID>;
-
-using EdgePair = std::pair<VertexID, VertexID>;
-
-using Triangle = TVector<VertexID, 3>;
-using Quad = TVector<VertexID, 4>;
-using Polygon = std::vector<VertexID>;
-
-using VertexSourceID = VertexID;
-using VertexPosition = cd::Point;
-using VertexNormal = cd::Direction;
-using VertexTangent = cd::Direction;
-using VertexBiTangent = cd::Direction;
-
 }
 
 namespace std

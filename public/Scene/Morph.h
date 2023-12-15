@@ -3,7 +3,7 @@
 #include "Base/Export.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
 #include <vector>
 
@@ -33,22 +33,16 @@ public:
 	void Init(uint32_t vertexCount);
 	void Init(MorphID id, const char* pName, uint32_t vertexCount);
 
-	EXPORT_OBJECT_ID_APIS(MorphID);
-	EXPORT_NAME_APIS();
-
-	void SetSourceMeshID(MeshID meshID);
-	MeshID GetSourceMeshID() const;
-
-	void SetWeight(float weight);
-	float GetWeight() const;
-
-	uint32_t GetVertexCount() const;
-
-	EXPORT_VECTOR_DATA_APIS(VertexSourceID);
-	EXPORT_VECTOR_DATA_APIS(VertexPosition);
-	EXPORT_VECTOR_DATA_APIS(VertexNormal);
-	EXPORT_VECTOR_DATA_APIS(VertexTangent);
-	EXPORT_VECTOR_DATA_APIS(VertexBiTangent);
+	EXPORT_SIMPLE_TYPE_APIS(Morph, ID);
+	EXPORT_SIMPLE_TYPE_APIS(Morph, SourceMeshID);
+	EXPORT_SIMPLE_TYPE_APIS(Morph, Weight);
+	EXPORT_SIMPLE_TYPE_APIS(Morph, VertexCount);
+	EXPORT_VECTOR_TYPE_APIS(Morph, VertexSourceID);
+	EXPORT_VECTOR_TYPE_APIS(Morph, VertexPosition);
+	EXPORT_VECTOR_TYPE_APIS(Morph, VertexNormal);
+	EXPORT_VECTOR_TYPE_APIS(Morph, VertexTangent);
+	EXPORT_VECTOR_TYPE_APIS(Morph, VertexBiTangent);
+	EXPORT_STRING_TYPE_APIS(Morph, Name);
 
 	Morph& operator<<(InputArchive& inputArchive);
 	Morph& operator<<(InputArchiveSwapBytes& inputArchive);

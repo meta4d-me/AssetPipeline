@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Math/Vector.hpp"
-#include "Scene/ObjectID.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
+#include "Scene/Types.h"
 
 #include <cstdint>
 #include <map>

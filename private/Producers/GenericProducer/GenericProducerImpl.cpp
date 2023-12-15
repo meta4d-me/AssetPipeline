@@ -888,7 +888,7 @@ void GenericProducerImpl::KeepNodeIDAndIndexSame(cd::SceneDatabase* pSceneDataba
 			}
 
 			auto& childIDs = sceneNode.GetChildIDs();
-			for (uint32_t childIndex = 0U, childCount = sceneNode.GetChildCount(); childIndex < childCount; ++childIndex)
+			for (uint32_t childIndex = 0U, childCount = sceneNode.GetChildIDCount(); childIndex < childCount; ++childIndex)
 			{
 				uint32_t childNodeID = childIDs[childIndex].Data();
 				auto itModifiedIDNode = oldToNewNodeID.find(childNodeID);

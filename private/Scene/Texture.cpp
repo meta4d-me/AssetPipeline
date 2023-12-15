@@ -39,118 +39,20 @@ Texture::~Texture()
     }
 }
 
-PIMPL_ID_APIS(Texture);
-PIMPL_NAME_APIS(Texture);
-
-cd::MaterialTextureType Texture::GetType() const
-{
-    return m_pTextureImpl->GetType();
-}
-
-void Texture::SetType(MaterialTextureType type)
-{
-    m_pTextureImpl->SetType(type);
-}
-
-cd::TextureMapMode Texture::GetUMapMode() const
-{
-    return m_pTextureImpl->GetUMapMode();
-}
-
-void Texture::SetUMapMode(cd::TextureMapMode mapMode)
-{
-    m_pTextureImpl->SetUMapMode(mapMode);
-}
-
-cd::TextureMapMode Texture::GetVMapMode() const
-{
-    return m_pTextureImpl->GetVMapMode();
-}
-
-void Texture::SetVMapMode(cd::TextureMapMode mapMode)
-{
-    m_pTextureImpl->SetVMapMode(mapMode);
-}
-
-cd::TextureFormat Texture::GetFormat() const
-{
-    return m_pTextureImpl->GetFormat();
-}
-
-void Texture::SetFormat(cd::TextureFormat format)
-{
-    return m_pTextureImpl->SetFormat(format);
-}
-
-const char* Texture::GetPath() const
-{
-    return m_pTextureImpl->GetPath().c_str();
-}
-
-void Texture::SetPath(const char* pFilePath)
-{
-    return m_pTextureImpl->SetPath(pFilePath);
-}
-
-bool Texture::UseMipMap() const
-{
-    return m_pTextureImpl->UseMipMap();
-}
-
-void Texture::SetUseMipMap(bool use)
-{
-    m_pTextureImpl->SetUseMipMap(use);
-}
-
-uint32_t Texture::GetWidth() const
-{
-    return m_pTextureImpl->GetWidth();
-}
-
-void Texture::SetWidth(uint32_t width)
-{
-    m_pTextureImpl->SetWidth(width);
-}
-
-uint32_t Texture::GetHeight() const
-{
-    return m_pTextureImpl->GetHeight();
-}
-
-void Texture::SetHeight(uint32_t height)
-{
-    m_pTextureImpl->SetHeight(height);
-}
-
-uint32_t Texture::GetDepth() const
-{
-    return m_pTextureImpl->GetDepth();
-}
-
-void Texture::SetDepth(uint32_t depth)
-{
-    m_pTextureImpl->SetDepth(depth);
-}
-
-const std::vector<std::byte>& Texture::GetRawData() const
-{
-    return m_pTextureImpl->GetRawData();
-}
-
-void Texture::SetRawData(std::vector<std::byte> rawData)
-{
-    m_pTextureImpl->SetRawData(cd::MoveTemp(rawData));
-}
-
-void Texture::ClearRawData()
-{
-    m_pTextureImpl->ClearRawData();
-}
-
-bool Texture::ExistRawData() const
-{
-    return m_pTextureImpl->ExistRawData();
-}
+PIMPL_SIMPLE_TYPE_APIS(Texture, ID);
+PIMPL_SIMPLE_TYPE_APIS(Texture, Type);
+PIMPL_SIMPLE_TYPE_APIS(Texture, Format);
+PIMPL_SIMPLE_TYPE_APIS(Texture, UMapMode);
+PIMPL_SIMPLE_TYPE_APIS(Texture, VMapMode);
+PIMPL_SIMPLE_TYPE_APIS(Texture, UseMipMap);
+PIMPL_SIMPLE_TYPE_APIS(Texture, Width);
+PIMPL_SIMPLE_TYPE_APIS(Texture, Height);
+PIMPL_SIMPLE_TYPE_APIS(Texture, Depth);
+PIMPL_COMPLEX_TYPE_APIS(Texture, UVOffset);
+PIMPL_COMPLEX_TYPE_APIS(Texture, UVScale);
+PIMPL_COMPLEX_TYPE_APIS(Texture, RawData);
+PIMPL_STRING_TYPE_APIS(Texture, Name);
+PIMPL_STRING_TYPE_APIS(Texture, Path);
 
 Texture& Texture::operator<<(InputArchive& inputArchive)
 {
