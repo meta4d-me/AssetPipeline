@@ -3,7 +3,7 @@
 #include "HalfEdgeMesh/Vertex.h"
 #include "HalfEdgeMesh/Face.h"
 #include "HalfEdgeMesh/HalfEdge.h"
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
 #include <list>
 

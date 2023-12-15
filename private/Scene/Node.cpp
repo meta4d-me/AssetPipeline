@@ -44,73 +44,12 @@ void Node::Init(NodeID nodeID, std::string name)
     m_pNodeImpl->Init(nodeID, cd::MoveTemp(name));
 }
 
-PIMPL_ID_APIS(Node);
-PIMPL_NAME_APIS(Node);
-
-void Node::SetParentID(NodeID parentID)
-{
-    m_pNodeImpl->SetParentID(parentID);
-}
-
-NodeID Node::GetParentID() const
-{
-    return m_pNodeImpl->GetParentID();
-}
-
-void Node::AddChildID(NodeID childID)
-{
-    m_pNodeImpl->AddChildID(childID);
-}
-
-uint32_t Node::GetChildCount() const
-{
-    return m_pNodeImpl->GetChildCount();
-}
-
-std::vector<NodeID>& Node::GetChildIDs()
-{
-    return m_pNodeImpl->GetChildIDs();
-}
-
-const std::vector<NodeID>& Node::GetChildIDs() const
-{
-    return m_pNodeImpl->GetChildIDs();
-}
-
-void Node::AddMeshID(MeshID meshID)
-{
-    m_pNodeImpl->AddMeshID(meshID);
-}
-
-uint32_t Node::GetMeshCount() const
-{
-    return m_pNodeImpl->GetMeshCount();
-}
-
-std::vector<MeshID>& Node::GetMeshIDs()
-{
-    return m_pNodeImpl->GetMeshIDs();
-}
-
-const std::vector<MeshID>& Node::GetMeshIDs() const
-{
-    return m_pNodeImpl->GetMeshIDs();
-}
-
-void Node::SetTransform(Transform transform)
-{
-    return m_pNodeImpl->SetTransform(cd::MoveTemp(transform));
-}
-
-Transform& Node::GetTransform()
-{
-    return m_pNodeImpl->GetTransform();
-}
-
-const Transform& Node::GetTransform() const
-{
-    return m_pNodeImpl->GetTransform();
-}
+PIMPL_SIMPLE_TYPE_APIS(Node, ID);
+PIMPL_SIMPLE_TYPE_APIS(Node, ParentID);
+PIMPL_COMPLEX_TYPE_APIS(Node, Transform);
+PIMPL_VECTOR_TYPE_APIS(Node, ChildID);
+PIMPL_VECTOR_TYPE_APIS(Node, MeshID);
+PIMPL_STRING_TYPE_APIS(Node, Name);
 
 Node& Node::operator<<(InputArchive& inputArchive)
 {

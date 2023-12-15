@@ -4,7 +4,6 @@
 #include "Hashers/FileHash.hpp"
 #include "Scene/Material.h"
 #include "Scene/Mesh.h"
-#include "Scene/ObjectID.h"
 #include "Scene/SceneDatabase.h"
 #include "Scene/Texture.h"
 

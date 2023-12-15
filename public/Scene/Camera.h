@@ -3,7 +3,7 @@
 #include "Base/Export.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
 #include <vector>
 
@@ -28,36 +28,15 @@ public:
 	Camera& operator=(Camera&&);
 	~Camera();
 	
-	EXPORT_OBJECT_ID_APIS(CameraID);
-	EXPORT_NAME_APIS();
-
-	void SetEye(Vec3f eye);
-	Vec3f& GetEye();
-	const Vec3f& GetEye() const;
-
-	void SetLookAt(Vec3f lookAt);
-	Vec3f& GetLookAt();
-	const Vec3f& GetLookAt() const;
-
-	void SetUp(Vec3f up);
-	Vec3f& GetUp();
-	const Vec3f& GetUp() const;
-
-	void SetAspect(float aspect);
-	float& GetAspect();
-	float GetAspect() const;
-
-	void SetFov(float fov);
-	float& GetFov();
-	float GetFov() const;
-
-	void SetNearPlane(float near);
-	float& GetNearPlane();
-	float GetNearPlane() const;
-
-	void SetFarPlane(float far);
-	float& GetFarPlane();
-	float GetFarPlane() const;
+	EXPORT_SIMPLE_TYPE_APIS(Camera, ID);
+	EXPORT_SIMPLE_TYPE_APIS(Camera, Aspect);
+	EXPORT_SIMPLE_TYPE_APIS(Camera, Fov);
+	EXPORT_SIMPLE_TYPE_APIS(Camera, NearPlane);
+	EXPORT_SIMPLE_TYPE_APIS(Camera, FarPlane);
+	EXPORT_COMPLEX_TYPE_APIS(Camera, Eye);
+	EXPORT_COMPLEX_TYPE_APIS(Camera, LookAt);
+	EXPORT_COMPLEX_TYPE_APIS(Camera, Up);
+	EXPORT_STRING_TYPE_APIS(Camera, Name);
 
 	Camera& operator<<(InputArchive& inputArchive);
 	Camera& operator<<(InputArchiveSwapBytes& inputArchive);

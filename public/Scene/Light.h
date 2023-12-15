@@ -5,7 +5,7 @@
 #include "IO/OutputArchive.hpp"
 #include "Math/Vector.hpp"
 #include "Scene/LightType.h"
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
 namespace cd
 {
@@ -30,54 +30,20 @@ public:
 
 	void Init(LightID lightID, LightType type);
 
-	EXPORT_OBJECT_ID_APIS(LightID);
-	EXPORT_NAME_APIS();
-
-	LightType GetType() const;
-
-	void SetIntensity(float intensity);
-	float& GetIntensity();
-	float GetIntensity() const;
-
-	void SetRange(float range);
-	float& GetRange();
-	float GetRange() const;
-
-	void SetRadius(float radius);
-	float& GetRadius();
-	float GetRadius() const;
-
-	void SetWidth(float width);
-	float& GetWidth();
-	float GetWidth() const;
-
-	void SetHeight(float height);
-	float& GetHeight();
-	float GetHeight() const;
-
-	void SetAngleScale(float angleScale);
-	float& GetAngleScale();
-	float GetAngleScale() const;
-
-	void SetAngleOffset(float angleOffset);
-	float& GetAngleOffset();
-	float GetAngleOffset() const;
-
-	void SetColor(cd::Vec3f color);
-	cd::Vec3f& GetColor();
-	const cd::Vec3f& GetColor() const;
-
-	void SetPosition(cd::Point position);
-	cd::Point& GetPosition();
-	const cd::Point& GetPosition() const;
-
-	void SetDirection(cd::Direction direction);
-	cd::Direction& GetDirection();
-	const cd::Direction& GetDirection() const;
-
-	void SetUp(cd::Direction up);
-	cd::Direction& GetUp();
-	const cd::Direction& GetUp() const;
+	EXPORT_SIMPLE_TYPE_APIS(Light, ID);
+	EXPORT_SIMPLE_TYPE_APIS(Light, Type);
+	EXPORT_SIMPLE_TYPE_APIS(Light, Intensity);
+	EXPORT_SIMPLE_TYPE_APIS(Light, Range);
+	EXPORT_SIMPLE_TYPE_APIS(Light, Radius);
+	EXPORT_SIMPLE_TYPE_APIS(Light, Width);
+	EXPORT_SIMPLE_TYPE_APIS(Light, Height);
+	EXPORT_SIMPLE_TYPE_APIS(Light, AngleScale);
+	EXPORT_SIMPLE_TYPE_APIS(Light, AngleOffset);
+	EXPORT_COMPLEX_TYPE_APIS(Light, Color);
+	EXPORT_COMPLEX_TYPE_APIS(Light, Position);
+	EXPORT_COMPLEX_TYPE_APIS(Light, Direction);
+	EXPORT_COMPLEX_TYPE_APIS(Light, Up);
+	EXPORT_STRING_TYPE_APIS(Light, Name);
 
 	std::pair<float, float> CalculateScaleAndOffset(float innerAngle, float outerAngle) const;
 

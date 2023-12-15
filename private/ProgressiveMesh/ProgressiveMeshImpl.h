@@ -3,7 +3,6 @@
 #include "Face.h"
 #include "Vertex.h"
 #include "Math/Box.hpp"
-#include "Scene/ObjectID.h"
 
 #include <set>
 

@@ -4,8 +4,8 @@
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
 #include "Scene/KeyFrame.hpp"
-#include "Scene/ObjectID.h"
 #include "Scene/Track.h"
+#include "Scene/Types.h"
 
 #include <vector>
 #include <string>
@@ -31,19 +31,11 @@ public:
 
 	void Init(AnimationID id, std::string name);
 
-	IMPLEMENT_ID_APIS(AnimationID, m_id);
-	IMPLEMENT_NAME_APIS(m_name);
-
-	void SetDuration(float duration) { m_duration = duration; }
-	float GetDuration() const { return m_duration; }
-
-	void SetTicksPerSecond(float ticksPerSecond) { m_ticksPerSecond = ticksPerSecond; }
-	float GetTicksPerSecnod() const { return m_ticksPerSecond; }
-
-	void AddBoneTrackID(uint32_t trackID) { m_boneTrackIDs.push_back(TrackID(trackID)); }
-	uint32_t GetBoneTrackCount() const { return static_cast<uint32_t>(m_boneTrackIDs.size()); }
-	std::vector<TrackID>& GetBoneTrackIDs() { return m_boneTrackIDs; }
-	const std::vector<TrackID>& GetBoneTrackIDs() const { return m_boneTrackIDs; }
+	IMPLEMENT_SIMPLE_TYPE_APIS(Animation, ID);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Animation, Duration);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Animation, TicksPerSecond);
+	IMPLEMENT_VECTOR_TYPE_APIS(Animation, BoneTrackID);
+	IMPLEMENT_STRING_TYPE_APIS(Animation, Name);
 
 	template<bool SwapBytesOrder>
 	AnimationImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
@@ -60,8 +52,8 @@ public:
 		SetDuration(duration);
 		SetTicksPerSecond(ticksPerSecond);
 
-		m_boneTrackIDs.resize(boneTrackCount);
-		inputArchive.ImportBuffer(m_boneTrackIDs.data());
+		GetBoneTrackIDs().resize(boneTrackCount);
+		inputArchive.ImportBuffer(GetBoneTrackIDs().data());
 
 		return *this;
 	}
@@ -69,19 +61,11 @@ public:
 	template<bool SwapBytesOrder>
 	const AnimationImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetID().Data() << GetName() << GetDuration() << GetTicksPerSecnod() << GetBoneTrackCount();
+		outputArchive << GetID().Data() << GetName() << GetDuration() << GetTicksPerSecond() << GetBoneTrackIDCount();
 		outputArchive.ExportBuffer(GetBoneTrackIDs().data(), GetBoneTrackIDs().size());
 
 		return *this;
 	}
-
-private:
-	AnimationID m_id;
-	float m_duration;
-	float m_ticksPerSecond;
-
-	std::string m_name;
-	std::vector<TrackID> m_boneTrackIDs;
 };
 
 }

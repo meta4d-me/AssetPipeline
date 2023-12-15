@@ -40,29 +40,20 @@ public:
 
 	void Init(uint32_t vertexCount, uint32_t polygonCount);
 	
-	IMPLEMENT_ID_APIS(MeshID, m_id);
-	IMPLEMENT_NAME_APIS(m_name);
-	IMPLEMENT_VECTOR_DATA_APIS(MorphID, m_morphTargetIDs);
-	IMPLEMENT_VECTOR_DATA_APIS(VertexPosition, m_vertexPositions);
-	IMPLEMENT_VECTOR_DATA_APIS(VertexNormal, m_vertexNormals);
-	IMPLEMENT_VECTOR_DATA_APIS(VertexTangent, m_vertexTangents);
-	IMPLEMENT_VECTOR_DATA_APIS(VertexBiTangent, m_vertexBiTangents);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, ID);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, MaterialID);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, VertexCount);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, PolygonCount);
+	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, AABB);
+	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
+	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, MorphID);
+	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexPosition);
+	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexNormal);
+	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexTangent);
+	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
+	IMPLEMENT_STRING_TYPE_APIS(Mesh, Name);
 
-	uint32_t GetVertexCount() const { return m_vertexCount; }
-	uint32_t GetPolygonCount() const { return m_polygonCount; }
-
-	void SetVertexFormat(VertexFormat vertexFormat) { m_vertexFormat = MoveTemp(vertexFormat); }
-	VertexFormat& GetVertexFormat() { return m_vertexFormat; }
-	const VertexFormat& GetVertexFormat() const { return m_vertexFormat; }
-
-	void SetAABB(AABB aabb) { m_aabb = MoveTemp(aabb); }
-	AABB& GetAABB() { return m_aabb; }
-	const AABB& GetAABB() const { return m_aabb; }
 	void UpdateAABB();
-
-	void SetMaterialID(MaterialID materialID) { m_materialID = materialID; }
-	MaterialID GetMaterialID() const { return m_materialID; }
-
 	void ComputeVertexNormals();
 	void ComputeVertexTangents();
 
@@ -201,28 +192,9 @@ public:
 	}
 
 private:
-	uint32_t					m_vertexCount = 0U;
 	uint32_t					m_vertexUVSetCount = 0U;
 	uint32_t					m_vertexColorSetCount = 0U;
 	uint32_t					m_vertexInfluenceCount = 0U;
-	uint32_t					m_polygonCount = 0U;
-
-	MeshID						m_id;
-	MaterialID					m_materialID;
-	std::string					m_name;
-	AABB						m_aabb;
-
-	// morph targets
-	std::vector<MorphID>		m_morphTargetIDs;
-
-	// vertex geometry data
-	// TODO : Remove m_vertexFormat.
-	// We can generate VertexFormat immediately based on current vertex data types.
-	VertexFormat				m_vertexFormat;
-	std::vector<Point>			m_vertexPositions;
-	std::vector<Direction>		m_vertexNormals;
-	std::vector<Direction>		m_vertexTangents;
-	std::vector<Direction>		m_vertexBiTangents;
 
 	// vertex texture data
 	std::vector<UV>				m_vertexUVSets[MaxUVSetCount];

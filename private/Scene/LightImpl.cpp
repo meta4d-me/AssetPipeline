@@ -20,8 +20,8 @@ LightImpl::LightImpl(LightID lightID, LightType type)
 
 void LightImpl::Init(LightID lightID, LightType type)
 {
-	m_id = lightID;
-	m_type = type;
+	SetID(lightID);
+	SetType(type);
 }
 
 std::pair<float, float> LightImpl::CalculateScaleAndOffset(float innerAngle, float outerAngle) const

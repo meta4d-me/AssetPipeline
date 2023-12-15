@@ -44,68 +44,12 @@ void Bone::Init(BoneID id, std::string name)
     m_pBoneImpl->Init(id, MoveTemp(name));
 }
 
-PIMPL_ID_APIS(Bone);
-PIMPL_NAME_APIS(Bone);
-
-void Bone::SetParentID(BoneID parentID)
-{
-    m_pBoneImpl->SetParentID(parentID);
-}
-
-BoneID Bone::GetParentID() const
-{
-    return m_pBoneImpl->GetParentID();
-}
-
-void Bone::AddChildID(BoneID childID)
-{
-    m_pBoneImpl->AddChildID(childID);
-}
-
-uint32_t Bone::GetChildCount() const
-{
-    return m_pBoneImpl->GetChildCount();
-}
-
-std::vector<BoneID>& Bone::GetChildIDs()
-{
-    return m_pBoneImpl->GetChildIDs();
-}
-
-const std::vector<BoneID>& Bone::GetChildIDs() const
-{
-    return m_pBoneImpl->GetChildIDs();
-}
-
-void Bone::SetOffset(Matrix4x4 offset)
-{
-    m_pBoneImpl->SetOffset(MoveTemp(offset));
-}
-
-Matrix4x4& Bone::GetOffset()
-{
-    return m_pBoneImpl->GetOffset();
-}
-
-const Matrix4x4& Bone::GetOffset() const
-{
-    return m_pBoneImpl->GetOffset();
-}
-
-void Bone::SetTransform(Transform transform)
-{
-    return m_pBoneImpl->SetTransform(MoveTemp(transform));
-}
-
-Transform& Bone::GetTransform()
-{
-    return m_pBoneImpl->GetTransform();
-}
-
-const Transform& Bone::GetTransform() const
-{
-    return m_pBoneImpl->GetTransform();
-}
+PIMPL_SIMPLE_TYPE_APIS(Bone, ID);
+PIMPL_SIMPLE_TYPE_APIS(Bone, ParentID);
+PIMPL_COMPLEX_TYPE_APIS(Bone, Offset);
+PIMPL_COMPLEX_TYPE_APIS(Bone, Transform);
+PIMPL_VECTOR_TYPE_APIS(Bone, ChildID);
+PIMPL_STRING_TYPE_APIS(Bone, Name);
 
 Bone& Bone::operator<<(InputArchive& inputArchive)
 {

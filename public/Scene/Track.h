@@ -4,7 +4,7 @@
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
 #include "Scene/KeyFrame.hpp"
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
 #include <vector>
 #include <string>
@@ -32,12 +32,11 @@ public:
 
 	void Init(TrackID id, std::string name);
 
-	EXPORT_OBJECT_ID_APIS(TrackID);
-	EXPORT_NAME_APIS();
-
-	EXPORT_VECTOR_DATA_APIS(TranslationKey);
-	EXPORT_VECTOR_DATA_APIS(RotationKey);
-	EXPORT_VECTOR_DATA_APIS(ScaleKey);
+	EXPORT_SIMPLE_TYPE_APIS(Track, ID);
+	EXPORT_STRING_TYPE_APIS(Track, Name);
+	EXPORT_VECTOR_TYPE_APIS(Track, TranslationKey);
+	EXPORT_VECTOR_TYPE_APIS(Track, RotationKey);
+	EXPORT_VECTOR_TYPE_APIS(Track, ScaleKey);
 
 	Track& operator<<(InputArchive& inputArchive);
 	Track& operator<<(InputArchiveSwapBytes& inputArchive);

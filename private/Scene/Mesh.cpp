@@ -62,67 +62,22 @@ void Mesh::Init(uint32_t vertexCount, uint32_t polygonCount)
 	m_pMeshImpl->Init(vertexCount, polygonCount);
 }
 
-PIMPL_ID_APIS(Mesh);
-PIMPL_NAME_APIS(Mesh);
-PIMPL_VECTOR_DATA_APIS(Mesh, MorphID);
-PIMPL_VECTOR_DATA_APIS(Mesh, VertexPosition);
-PIMPL_VECTOR_DATA_APIS(Mesh, VertexNormal);
-PIMPL_VECTOR_DATA_APIS(Mesh, VertexTangent);
-PIMPL_VECTOR_DATA_APIS(Mesh, VertexBiTangent);
-
-uint32_t Mesh::GetVertexCount() const
-{
-	return m_pMeshImpl->GetVertexCount();
-}
-
-uint32_t Mesh::GetPolygonCount() const
-{
-	return m_pMeshImpl->GetPolygonCount();
-}
-
-void Mesh::SetVertexFormat(VertexFormat vertexFormat)
-{
-	return m_pMeshImpl->SetVertexFormat(cd::MoveTemp(vertexFormat));
-}
-
-VertexFormat& Mesh::GetVertexFormat()
-{
-	return m_pMeshImpl->GetVertexFormat();
-}
-
-const VertexFormat& Mesh::GetVertexFormat() const
-{
-	return m_pMeshImpl->GetVertexFormat();
-}
-
-void Mesh::SetAABB(AABB aabb)
-{
-	return m_pMeshImpl->SetAABB(cd::MoveTemp(aabb));
-}
-
-AABB& Mesh::GetAABB()
-{
-	return m_pMeshImpl->GetAABB();
-}
-
-const AABB& Mesh::GetAABB() const
-{
-	return m_pMeshImpl->GetAABB();
-}
+PIMPL_SIMPLE_TYPE_APIS(Mesh, ID);
+PIMPL_SIMPLE_TYPE_APIS(Mesh, MaterialID);
+PIMPL_SIMPLE_TYPE_APIS(Mesh, VertexCount);
+PIMPL_SIMPLE_TYPE_APIS(Mesh, PolygonCount);
+PIMPL_COMPLEX_TYPE_APIS(Mesh, AABB);
+PIMPL_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
+PIMPL_VECTOR_TYPE_APIS(Mesh, MorphID);
+PIMPL_VECTOR_TYPE_APIS(Mesh, VertexPosition);
+PIMPL_VECTOR_TYPE_APIS(Mesh, VertexNormal);
+PIMPL_VECTOR_TYPE_APIS(Mesh, VertexTangent);
+PIMPL_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
+PIMPL_STRING_TYPE_APIS(Mesh, Name);
 
 void Mesh::UpdateAABB()
 {
 	m_pMeshImpl->UpdateAABB();
-}
-
-void Mesh::SetMaterialID(MaterialID materialID)
-{
-	return m_pMeshImpl->SetMaterialID(materialID);
-}
-
-MaterialID Mesh::GetMaterialID() const
-{
-	return m_pMeshImpl->GetMaterialID();
 }
 
 //////////////////////////////////////////////////////////////////////////

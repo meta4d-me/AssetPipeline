@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Math/Vector.hpp"
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
 #include <cassert>
 #include <functional>

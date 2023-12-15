@@ -10,8 +10,8 @@ CameraImpl::CameraImpl(CameraID id, std::string name)
 
 void CameraImpl::Init(CameraID id, std::string name)
 {
-	m_id = id;
-	m_name = cd::MoveTemp(name);
+	SetID(id);
+	SetName(cd::MoveTemp(name));
 }
 
 }

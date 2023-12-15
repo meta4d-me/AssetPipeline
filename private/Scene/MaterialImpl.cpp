@@ -23,9 +23,9 @@ MaterialImpl::MaterialImpl(MaterialID materialID, std::string materialName, Mate
 
 void MaterialImpl::Init(MaterialID materialID, std::string materialName, MaterialType materialType)
 {
-	m_id = materialID;
-	m_name = MoveTemp(materialName);
-	m_type = materialType;
+	SetID(materialID);
+	SetName(cd::MoveTemp(materialName));
+	SetType(materialType);
 }
 
 void MaterialImpl::InitBasePBR()

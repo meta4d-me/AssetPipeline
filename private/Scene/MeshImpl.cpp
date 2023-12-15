@@ -15,6 +15,10 @@ void MeshImpl::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrateg
 {
 	m_vertexUVSetCount = 1U;
 
+	auto& vertexPositions = GetVertexPositions();
+	auto& vertexNormals = GetVertexNormals();
+	auto& polygons = GetPolygons();
+
 	if (ConvertStrategy::ShadingFirst == strategy)
 	{
 		uint32_t vertexIndex = 0U;
@@ -29,8 +33,8 @@ void MeshImpl::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrateg
 			hem::HalfEdgeCRef h = face.GetHalfEdge();
 			do
 			{
-				m_vertexPositions.emplace_back(h->GetVertex()->GetPosition());
-				m_vertexNormals.emplace_back(h->GetCornerNormal());
+				vertexPositions.emplace_back(h->GetVertex()->GetPosition());
+				vertexNormals.emplace_back(h->GetCornerNormal());
 				m_vertexUVSets[0].emplace_back(h->GetCornerUV());
 
 				++vertexIndex;
@@ -40,7 +44,7 @@ void MeshImpl::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrateg
 			uint32_t endVertexIndex = vertexIndex;
 			for (uint32_t cornerIndex = beginVertexIndex + 1; cornerIndex < endVertexIndex - 1; ++cornerIndex)
 			{
-				m_polygons.emplace_back(cd::Polygon{beginVertexIndex, cornerIndex, cornerIndex + 1 });
+				polygons.emplace_back(cd::Polygon{beginVertexIndex, cornerIndex, cornerIndex + 1 });
 			}
 		}
 	}
@@ -51,13 +55,13 @@ void MeshImpl::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrateg
 		const auto& vertices = halfEdgeMesh.GetVertices();
 		for (hem::VertexCRef vertex = vertices.begin(); vertex != vertices.end(); ++vertex)
 		{
-			m_vertexPositions.emplace_back(vertex->GetPosition());
+			vertexPositions.emplace_back(vertex->GetPosition());
 
 			// Fill normal/uv data later by looping through half edges.
-			m_vertexNormals.emplace_back(0.0f);
+			vertexNormals.emplace_back(0.0f);
 			m_vertexUVSets[0].emplace_back(0.0f);
 
-			auto result = vertexRefToIndex.emplace(vertex, static_cast<uint32_t>(m_vertexPositions.size() - 1));
+			auto result = vertexRefToIndex.emplace(vertex, static_cast<uint32_t>(vertexPositions.size() - 1));
 			assert(result.second); // Make sure it is unique.
 		}
 
@@ -82,7 +86,7 @@ void MeshImpl::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrateg
 				faceIndexes.emplace_back(vertexIndex);
 
 				// Add corners' normal/uv data to previously created vertex.
-				m_vertexNormals[vertexIndex] += h->GetCornerNormal();
+				vertexNormals[vertexIndex] += h->GetCornerNormal();
 				m_vertexUVSets[0][vertexIndex] += h->GetCornerUV();
 				cornerCountInVertex[vertexIndex] += 1U;
 
@@ -92,7 +96,7 @@ void MeshImpl::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrateg
 			assert(faceIndexes.size() >= 3);
 			for (uint32_t cornerIndex = 1; cornerIndex < faceIndexes.size() - 1; ++cornerIndex)
 			{
-				m_polygons.emplace_back(cd::Polygon{faceIndexes[0], faceIndexes[cornerIndex], faceIndexes[cornerIndex + 1]});
+				polygons.emplace_back(cd::Polygon{faceIndexes[0], faceIndexes[cornerIndex], faceIndexes[cornerIndex + 1]});
 			}
 		}
 
@@ -102,7 +106,7 @@ void MeshImpl::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrateg
 			uint32_t cornerCount = cornerCountInVertex[vertexIndex];
 			if (cornerCount > 1U)
 			{
-				m_vertexNormals[vertexIndex].Normalize();
+				vertexNormals[vertexIndex].Normalize();
 				m_vertexUVSets[0][vertexIndex] /= static_cast<float>(cornerCount);
 			}
 		}
@@ -121,8 +125,8 @@ void MeshImpl::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrateg
 			hem::HalfEdgeCRef h = face.GetHalfEdge();
 			do
 			{
-				m_vertexPositions.emplace_back(h->GetVertex()->GetPosition());
-				m_vertexNormals.emplace_back(h->GetCornerNormal());
+				vertexPositions.emplace_back(h->GetVertex()->GetPosition());
+				vertexNormals.emplace_back(h->GetCornerNormal());
 				m_vertexUVSets[0].emplace_back(h->GetCornerUV());
 
 				++vertexIndex;
@@ -137,7 +141,7 @@ void MeshImpl::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrateg
 				polygon.emplace_back(index);
 			}
 
-			m_polygons.emplace_back(cd::MoveTemp(polygon));
+			polygons.emplace_back(cd::MoveTemp(polygon));
 		}
 	}
 	else
@@ -146,19 +150,19 @@ void MeshImpl::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrateg
 	}
 
 	// Make capcity same with actual size.
-	m_vertexPositions.shrink_to_fit();
-	m_vertexNormals.shrink_to_fit();
+	vertexPositions.shrink_to_fit();
+	vertexNormals.shrink_to_fit();
 	m_vertexUVSets[0].shrink_to_fit();
-	m_polygons.shrink_to_fit();
+	polygons.shrink_to_fit();
 
-	m_vertexCount = static_cast<uint32_t>(m_vertexPositions.size());
-	m_polygonCount = static_cast<uint32_t>(m_polygons.size());
+	SetVertexCount(static_cast<uint32_t>(vertexPositions.size()));
+	SetPolygonCount(static_cast<uint32_t>(polygons.size()));
 }
 
 void MeshImpl::Init(uint32_t vertexCount, uint32_t polygonCount)
 {
-	m_vertexCount = vertexCount;
-	m_polygonCount = polygonCount;
+	SetVertexCount(vertexCount);
+	SetPolygonCount(polygonCount);
 
 	assert(vertexCount > 0 && "No need to create an empty mesh.");
 	assert(polygonCount > 0 && "Expect to generate index buffer by ourselves?");
@@ -169,12 +173,12 @@ void MeshImpl::Init(uint32_t vertexCount, uint32_t polygonCount)
 	// For example, you already get a byte stream and would like to use it to init Mesh's vertex buffers and index buffer.
 	// You can't write data directly to std::vector as its size is 0.
 	// The solution is to write a customized template dynamic array.
-	m_vertexPositions.resize(vertexCount);
-	m_vertexNormals.resize(vertexCount);
-	m_vertexTangents.resize(vertexCount);
-	m_vertexBiTangents.resize(vertexCount);
+	GetVertexPositions().resize(vertexCount);
+	GetVertexNormals().resize(vertexCount);
+	GetVertexTangents().resize(vertexCount);
+	GetVertexBiTangents().resize(vertexCount);
 
-	m_polygons.resize(polygonCount);
+	GetPolygons().resize(polygonCount);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -293,7 +297,7 @@ void MeshImpl::SetVertexUVSetCount(uint32_t setCount)
 	m_vertexUVSetCount = setCount;
 	for(uint32_t setIndex = 0U; setIndex < m_vertexUVSetCount; ++setIndex)
 	{
-		m_vertexUVSets[setIndex].resize(m_vertexCount);
+		m_vertexUVSets[setIndex].resize(GetVertexCount());
 	}
 }
 
@@ -307,7 +311,7 @@ void MeshImpl::SetVertexColorSetCount(uint32_t setCount)
 	m_vertexColorSetCount = setCount;
 	for (uint32_t setIndex = 0U; setIndex < m_vertexColorSetCount; ++setIndex)
 	{
-		m_vertexColorSets[setIndex].resize(m_vertexCount);
+		m_vertexColorSets[setIndex].resize(GetVertexCount());
 	}
 }
 
@@ -321,25 +325,25 @@ void MeshImpl::SetVertexColor(uint32_t setIndex, uint32_t vertexIndex, const Col
 ////////////////////////////////////////////////////////////////////////////////////
 void MeshImpl::SetVertexInfluenceCount(uint32_t influenceCount)
 {
-	assert(m_vertexCount != 0U);
+	assert(GetVertexCount() != 0U);
 
 	m_vertexInfluenceCount = influenceCount;
 	for (uint32_t influenceIndex = 0U; influenceIndex < influenceCount; ++influenceIndex)
 	{
-		m_vertexBoneIDs[influenceIndex].resize(m_vertexCount);
-		m_vertexWeights[influenceIndex].resize(m_vertexCount);
+		m_vertexBoneIDs[influenceIndex].resize(GetVertexCount());
+		m_vertexWeights[influenceIndex].resize(GetVertexCount());
 	}
 }
 
 void MeshImpl::SetVertexBoneWeight(uint32_t boneIndex, uint32_t vertexIndex, BoneID boneID, VertexWeight weight)
 {
-	assert(vertexIndex < m_vertexCount);
+	assert(vertexIndex < GetVertexCount());
 
 	if(m_vertexBoneIDs[boneIndex].empty() &&
 		m_vertexWeights[boneIndex].empty())
 	{
-		m_vertexBoneIDs[boneIndex].resize(m_vertexCount);
-		m_vertexWeights[boneIndex].resize(m_vertexCount);
+		m_vertexBoneIDs[boneIndex].resize(GetVertexCount());
+		m_vertexWeights[boneIndex].resize(GetVertexCount());
 
 		++m_vertexInfluenceCount;
 

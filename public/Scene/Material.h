@@ -6,7 +6,7 @@
 #include "MaterialTextureType.h"
 #include "Math/Vector.hpp"
 #include "PropertyMap/PropertyMap.hpp"
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
 #include <map>
 #include <optional>
@@ -34,12 +34,10 @@ public:
 
 	void Init(MaterialID materialID, const char* pMaterialName, MaterialType type);
 
-	EXPORT_OBJECT_ID_APIS(MaterialID);
-	EXPORT_NAME_APIS();
+	EXPORT_SIMPLE_TYPE_APIS(Material, ID);
+	EXPORT_SIMPLE_TYPE_APIS(Material, Type);
+	EXPORT_STRING_TYPE_APIS(Material, Name);
 	
-	MaterialType GetType() const;
-	void SetType(MaterialType type);
-
 	const PropertyMap& GetPropertyGroups() const;
 
 	void SetTextureID(MaterialPropertyGroup textureType, TextureID textureID);

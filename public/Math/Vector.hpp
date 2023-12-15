@@ -331,11 +331,6 @@ private:
 using Vec2f = TVector<float, 2>;
 using Vec3f = TVector<float, 3>;
 using Vec4f = TVector<float, 4>;
-using Point = Vec3f;
-using Direction = Vec3f;
-using Color = Vec4f;
-using UV = Vec2f;
-using RGB = Vec3f;
 
 static_assert(2 * sizeof(float) == sizeof(Vec2f));
 static_assert(3 * sizeof(float) == sizeof(Vec3f));

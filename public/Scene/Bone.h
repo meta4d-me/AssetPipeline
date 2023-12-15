@@ -3,7 +3,7 @@
 #include "Base/Export.h"
 #include "IO/InputArchive.hpp"
 #include "IO/OutputArchive.hpp"
-#include "Scene/ObjectID.h"
+#include "Scene/Types.h"
 
 #include <vector>
 #include <string>
@@ -31,24 +31,12 @@ public:
 	
 	void Init(BoneID id, std::string name);
 
-	EXPORT_OBJECT_ID_APIS(BoneID);
-	EXPORT_NAME_APIS();
-
-	void SetParentID(BoneID parentID);
-	BoneID GetParentID() const;
-
-	void AddChildID(BoneID childID);
-	uint32_t GetChildCount() const;
-	std::vector<BoneID>& GetChildIDs();
-	const std::vector<BoneID>& GetChildIDs() const;
-
-	void SetOffset(Matrix4x4 offset);
-	Matrix4x4& GetOffset();
-	const Matrix4x4& GetOffset() const;
-
-	void SetTransform(Transform transform);
-	Transform& GetTransform();
-	const Transform& GetTransform() const;
+	EXPORT_SIMPLE_TYPE_APIS(Bone, ID);
+	EXPORT_SIMPLE_TYPE_APIS(Bone, ParentID);
+	EXPORT_COMPLEX_TYPE_APIS(Bone, Offset);
+	EXPORT_COMPLEX_TYPE_APIS(Bone, Transform);
+	EXPORT_VECTOR_TYPE_APIS(Bone, ChildID);
+	EXPORT_STRING_TYPE_APIS(Bone, Name);
 
 	Bone& operator<<(InputArchive& inputArchive);
 	Bone& operator<<(InputArchiveSwapBytes& inputArchive);
