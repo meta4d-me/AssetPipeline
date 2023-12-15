@@ -49,13 +49,13 @@ namespace cd
 
 SceneDatabaseImpl::SceneDatabaseImpl()
 {
-	m_aabb.Clear();
+	GetAABB().Clear();
 
 	// By default, it will be CDEngine for conveniences.
 	// If you are outside user in other platforms, you can set it by yourself.
 	// TODO : add a update method to change axis system for SceneDatabase dynamicly.
-	m_axisSystem = AxisSystem::CDEngine();
-	m_unit = Unit::CenterMeter;
+	SetAxisSystem(AxisSystem::CDEngine());
+	SetUnit(Unit::CenterMeter);
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ SceneDatabaseImpl::SceneDatabaseImpl()
 ///////////////////////////////////////////////////////////////////
 Node* SceneDatabaseImpl::GetNodeByName(const char* pName)
 {
-	for (auto& node : m_nodes)
+	for (auto& node : GetNodes())
 	{
 		if (0 == strcmp(pName, node.GetName()))
 		{
@@ -76,7 +76,7 @@ Node* SceneDatabaseImpl::GetNodeByName(const char* pName)
 
 const Node* SceneDatabaseImpl::GetNodeByName(const char* pName) const
 {
-	for (const auto& node : m_nodes)
+	for (const auto& node : GetNodes())
 	{
 		if (0 == strcmp(pName, node.GetName()))
 		{
@@ -92,7 +92,7 @@ const Node* SceneDatabaseImpl::GetNodeByName(const char* pName) const
 ///////////////////////////////////////////////////////////////////
 Bone* SceneDatabaseImpl::GetBoneByName(const char* pName)
 {
-	for (auto& bone : m_bones)
+	for (auto& bone : GetBones())
 	{
 		if (0 == strcmp(pName, bone.GetName()))
 		{
@@ -105,7 +105,7 @@ Bone* SceneDatabaseImpl::GetBoneByName(const char* pName)
 
 const Bone* SceneDatabaseImpl::GetBoneByName(const char* pName) const
 {
-	for (const auto& bone : m_bones)
+	for (const auto& bone : GetBones())
 	{
 		if (0 == strcmp(pName, bone.GetName()))
 		{
@@ -119,9 +119,22 @@ const Bone* SceneDatabaseImpl::GetBoneByName(const char* pName) const
 ///////////////////////////////////////////////////////////////////
 // Track
 ///////////////////////////////////////////////////////////////////
+Track* SceneDatabaseImpl::GetTrackByName(const char* pName)
+{
+	for (auto& track : GetTracks())
+	{
+		if (0 == strcmp(pName, track.GetName()))
+		{
+			return &track;
+		}
+	}
+
+	return nullptr;
+}
+
 const Track* SceneDatabaseImpl::GetTrackByName(const char* pName) const
 {
-	for (const auto& track : m_tracks)
+	for (const auto& track : GetTracks())
 	{
 		if (0 == strcmp(pName, track.GetName()))
 		{

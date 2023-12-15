@@ -15,19 +15,9 @@ namespace cd
 class NodeImpl final
 {
 public:
-	NodeImpl() = delete;
-	template<bool SwapBytesOrder>
-	explicit NodeImpl(TInputArchive<SwapBytesOrder>& inputArchive)
-	{
-		*this << inputArchive;
-	}
-	explicit NodeImpl(NodeID nodeID, std::string name);
-	NodeImpl(const NodeImpl&) = default;
-	NodeImpl& operator=(const NodeImpl&) = default;
-	NodeImpl(NodeImpl&&) = default;
-	NodeImpl& operator=(NodeImpl&&) = default;
-	~NodeImpl() = default;
+	DECLARE_SCENE_IMPL_CLASS(Node);
 
+	explicit NodeImpl(NodeID nodeID, std::string name);
 	void Init(NodeID nodeID, std::string name);
 
 	IMPLEMENT_SIMPLE_TYPE_APIS(Node, ID);

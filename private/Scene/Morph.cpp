@@ -6,15 +6,7 @@
 namespace cd
 {
 
-Morph::Morph(InputArchive& inputArchive)
-{
-	m_pMorphImpl = new MorphImpl(inputArchive);
-}
-
-Morph::Morph(InputArchiveSwapBytes& inputArchive)
-{
-	m_pMorphImpl = new MorphImpl(inputArchive);
-}
+PIMPL_SCENE_CLASS(Morph);
 
 Morph::Morph(uint32_t vertexCount)
 {
@@ -24,26 +16,6 @@ Morph::Morph(uint32_t vertexCount)
 Morph::Morph(MorphID id, MeshID sourceMeshID, const char* pName, uint32_t vertexCount)
 {
 	m_pMorphImpl = new MorphImpl(id, sourceMeshID, pName, vertexCount);
-}
-
-Morph::Morph(Morph&& rhs)
-{
-	*this = cd::MoveTemp(rhs);
-}
-
-Morph& Morph::operator=(Morph&& rhs)
-{
-	std::swap(m_pMorphImpl, rhs.m_pMorphImpl);
-	return *this;
-}
-
-Morph::~Morph()
-{
-	if (m_pMorphImpl)
-	{
-		delete m_pMorphImpl;
-		m_pMorphImpl = nullptr;
-	}
 }
 
 void Morph::Init(uint32_t vertexCount)
@@ -66,29 +38,5 @@ PIMPL_VECTOR_TYPE_APIS(Morph, VertexNormal);
 PIMPL_VECTOR_TYPE_APIS(Morph, VertexTangent);
 PIMPL_VECTOR_TYPE_APIS(Morph, VertexBiTangent);
 PIMPL_STRING_TYPE_APIS(Morph, Name);
-
-Morph& Morph::operator<<(InputArchive& inputArchive)
-{
-	*m_pMorphImpl << inputArchive;
-	return *this;
-}
-
-Morph& Morph::operator<<(InputArchiveSwapBytes& inputArchive)
-{
-	*m_pMorphImpl << inputArchive;
-	return *this;
-}
-
-const Morph& Morph::operator>>(OutputArchive& outputArchive) const
-{
-	*m_pMorphImpl >> outputArchive;
-	return *this;
-}
-
-const Morph& Morph::operator>>(OutputArchiveSwapBytes& outputArchive) const
-{
-	*m_pMorphImpl >> outputArchive;
-	return *this;
-}
 
 }

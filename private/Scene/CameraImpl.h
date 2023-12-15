@@ -14,19 +14,9 @@ namespace cd
 class CameraImpl final
 {
 public:
-	CameraImpl() = delete;
-	template<bool SwapBytesOrder>
-	explicit CameraImpl(TInputArchive<SwapBytesOrder>& inputArchive)
-	{
-		*this << inputArchive;
-	}
-	explicit CameraImpl(CameraID id, std::string name);
-	CameraImpl(const CameraImpl&) = default;
-	CameraImpl& operator=(const CameraImpl&) = default;
-	CameraImpl(CameraImpl&&) = default;
-	CameraImpl& operator=(CameraImpl&&) = default;
-	~CameraImpl() = default;
+	DECLARE_SCENE_IMPL_CLASS(Camera);
 
+	explicit CameraImpl(CameraID id, std::string name);
 	void Init(CameraID id, std::string name);
 
 	IMPLEMENT_SIMPLE_TYPE_APIS(Camera, ID);

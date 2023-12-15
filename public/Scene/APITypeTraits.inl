@@ -1,5 +1,47 @@
 #pragma once
 
+namespace cd
+{
+
+class Animation;
+class Bone;
+class Camera;
+class Light;
+class Material;
+class Mesh;
+class Morph;
+class Node;
+class ParticleEmitter;
+class Texture;
+class Track;
+
+// SceneDatabase
+struct SceneDatabaseTypeTraits
+{
+	// Simple
+	using Unit = cd::Unit;
+
+	// Complex
+	using AABB = cd::AABB;
+	using AxisSystem = cd::AxisSystem;
+
+	// Vector
+	using Animation = cd::Animation;
+	using Bone = cd::Bone;
+	using Camera = cd::Camera;
+	using Light = cd::Light;
+	using Material = cd::Material;
+	using Mesh = cd::Mesh;
+	using Morph = cd::Morph;
+	using Node = cd::Node;
+	using ParticleEmitter = cd::ParticleEmitter;
+	using Texture = cd::Texture;
+	using Track = cd::Track;
+
+	// String
+	using Name = std::string;
+};
+
 // Animation
 struct AnimationTypeTraits
 {
@@ -205,3 +247,5 @@ struct TrackTypeTraits
 	// String
 	using Name = std::string;
 };
+
+}

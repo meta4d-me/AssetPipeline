@@ -19,19 +19,8 @@ class MaterialImpl;
 class CORE_API Material final
 {
 public:
-	static const char* GetClassName() { return "Material"; }
-
-public:
-	Material() = delete;
-	explicit Material(InputArchive& inputArchive);
-	explicit Material(InputArchiveSwapBytes& inputArchive);
+	DECLARE_SCENE_CLASS(Material);
 	explicit Material(MaterialID materialID, const char* pMaterialName, MaterialType type);
-	Material(const Material&) = delete;
-	Material& operator=(const Material&) = delete;
-	Material(Material&&);
-	Material& operator=(Material&&);
-	~Material();
-
 	void Init(MaterialID materialID, const char* pMaterialName, MaterialType type);
 
 	EXPORT_SIMPLE_TYPE_APIS(Material, ID);
@@ -69,14 +58,6 @@ public:
 	std::optional<cd::Vec2f> GetVec2fProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const;
 
 	bool ExistProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const;
-
-	Material& operator<<(InputArchive& inputArchive);
-	Material& operator<<(InputArchiveSwapBytes& inputArchive);
-	const Material& operator>>(OutputArchive& outputArchive) const;
-	const Material& operator>>(OutputArchiveSwapBytes& outputArchive) const;
-
-private:
-	MaterialImpl* m_pMaterialImpl = nullptr;
 };
 
 }

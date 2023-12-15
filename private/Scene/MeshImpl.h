@@ -24,19 +24,7 @@ public:
 	void FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy);
 
 public:
-	MeshImpl() = default;
-
-	template<bool SwapBytesOrder>
-	explicit MeshImpl(TInputArchive<SwapBytesOrder>& inputArchive)
-	{
-		*this << inputArchive;
-	}
-
-	MeshImpl(const MeshImpl&) = delete;
-	MeshImpl& operator=(const MeshImpl&) = delete;
-	MeshImpl(MeshImpl&&) = default;
-	MeshImpl& operator=(MeshImpl&&) = default;
-	~MeshImpl() = default;
+	DECLARE_SCENE_IMPL_CLASS(Mesh);
 
 	void Init(uint32_t vertexCount, uint32_t polygonCount);
 	

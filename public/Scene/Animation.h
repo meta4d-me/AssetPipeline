@@ -17,19 +17,8 @@ class AnimationImpl;
 class CORE_API Animation final
 {
 public:
-	static const char* GetClassName() { return "Animation"; }
-
-public:
-	Animation() = delete;
-	explicit Animation(InputArchive& inputArchive);
-	explicit Animation(InputArchiveSwapBytes& inputArchive);
+	DECLARE_SCENE_CLASS(Animation);
 	explicit Animation(AnimationID id, std::string name);
-	Animation(const Animation&) = delete;
-	Animation& operator=(const Animation&) = delete;
-	Animation(Animation&&);
-	Animation& operator=(Animation&&);
-	~Animation();
-
 	void Init(AnimationID id, std::string name);
 
 	EXPORT_SIMPLE_TYPE_APIS(Animation, ID);
@@ -37,14 +26,6 @@ public:
 	EXPORT_SIMPLE_TYPE_APIS(Animation, TicksPerSecond);
 	EXPORT_VECTOR_TYPE_APIS(Animation, BoneTrackID);
 	EXPORT_STRING_TYPE_APIS(Animation, Name);
-
-	Animation& operator<<(InputArchive& inputArchive);
-	Animation& operator<<(InputArchiveSwapBytes& inputArchive);
-	const Animation& operator>>(OutputArchive& outputArchive) const;
-	const Animation& operator>>(OutputArchiveSwapBytes& outputArchive) const;
-
-private:
-	AnimationImpl* m_pAnimationImpl = nullptr;
 };
 
 }

@@ -17,6 +17,7 @@
 
 #include <optional>
 #include <unordered_map>
+#include <vector>
 
 namespace cd
 {
@@ -34,128 +35,33 @@ public:
 	SceneDatabaseImpl& operator=(SceneDatabaseImpl&&) = default;
 	~SceneDatabaseImpl() = default;
 
-	// Identity
-	void SetName(std::string sceneName) { m_name = MoveTemp(sceneName); }
-	const std::string& GetName() const { return m_name; }
-	
-	// Volumn
-	void SetAABB(AABB aabb) { m_aabb = MoveTemp(aabb); }
-	AABB& GetAABB() { return m_aabb; }
-	const AABB& GetAABB() const { return m_aabb; }
-
-	// AxisSystem
-	void SetAxisSystem(AxisSystem axis) { m_axisSystem = MoveTemp(axis); }
-	AxisSystem& GetAxisSystem() { return m_axisSystem; }
-	const AxisSystem& GetAxisSystem() const { return m_axisSystem; }
-
-	// Unit
-	void SetUnit(Unit unit) { m_unit = unit; }
-	Unit& GetUnit() { return m_unit; }
-	Unit GetUnit() const { return m_unit; }
-
-	// Node
-	void AddNode(Node node) { m_nodes.emplace_back(MoveTemp(node)); }
-	std::vector<Node>& GetNodes() { return m_nodes; }
-	const std::vector<Node>& GetNodes() const { return m_nodes; }
-	void SetNodeCount(uint32_t count) { m_nodes.reserve(count); }
-	Node& GetNode(uint32_t index) { return m_nodes[index]; }
-	const Node& GetNode(uint32_t index) const { return m_nodes[index]; }
-	Node* GetNodeByName(const char* pName);
-	const Node* GetNodeByName(const char* pName) const;
-	uint32_t GetNodeCount() const { return static_cast<uint32_t>(m_nodes.size()); }
-
-	// Mesh
-	void AddMesh(Mesh mesh) { m_meshes.emplace_back(MoveTemp(mesh)); }
-	std::vector<Mesh>& GetMeshes() { return m_meshes; }
-	const std::vector<Mesh>& GetMeshes() const { return m_meshes; }
-	void SetMeshCount(uint32_t count) { m_meshes.reserve(count); }
-	Mesh& GetMesh(uint32_t index) { return m_meshes[index];  }
-	const Mesh& GetMesh(uint32_t index) const { return m_meshes[index];  }
-	uint32_t GetMeshCount() const { return static_cast<uint32_t>(m_meshes.size()); }
-
-	// Morph
-	void AddMorph(Morph morph) { m_morphs.emplace_back(MoveTemp(morph)); }
-	std::vector<Morph>& GetMorphs() { return m_morphs; }
-	const std::vector<Morph>& GetMorphs() const { return m_morphs; }
-	void SetMorphCount(uint32_t count) { m_morphs.reserve(count); }
-	Morph& GetMorph(uint32_t index) { return m_morphs[index]; }
-	const Morph& GetMorph(uint32_t index) const { return m_morphs[index]; }
-	uint32_t GetMorphCount() const { return static_cast<uint32_t>(m_morphs.size()); }
-
-	// Texture
-	void AddTexture(Texture texture) { m_textures.emplace_back(MoveTemp(texture)); }
-	std::vector<Texture>& GetTextures() { return m_textures; }
-	const std::vector<Texture>& GetTextures() const { return m_textures; }
-	void SetTextureCount(uint32_t count) { m_textures.reserve(count); }
-	Texture& GetTexture(uint32_t index) { return m_textures[index]; }
-	const Texture& GetTexture(uint32_t index) const { return m_textures[index]; }
-	uint32_t GetTextureCount() const { return static_cast<uint32_t>(m_textures.size()); }
-
-	// Material
-	void AddMaterial(Material material) { m_materials.emplace_back(MoveTemp(material)); }
-	std::vector<Material>& GetMaterials() { return m_materials; }
-	const std::vector<Material>& GetMaterials() const { return m_materials; }
-	void SetMaterialCount(uint32_t count) { m_materials.reserve(count); }
-	Material& GetMaterial(uint32_t index) { return m_materials[index]; }
-	const Material& GetMaterial(uint32_t index) const { return m_materials[index]; }
-	uint32_t GetMaterialCount() const { return static_cast<uint32_t>(m_materials.size()); }
-
-	// Camera
-	void AddCamera(Camera camera) { m_cameras.emplace_back(MoveTemp(camera)); }
-	std::vector<Camera>& GetCameras() { return m_cameras; }
-	const std::vector<Camera>& GetCameras() const { return m_cameras; }
-	void SetCameraCount(uint32_t count) { m_cameras.reserve(count); }
-	Camera& GetCamera(uint32_t index) { return m_cameras[index]; }
-	const Camera& GetCamera(uint32_t index) const { return m_cameras[index]; }
-	uint32_t GetCameraCount() const { return static_cast<uint32_t>(m_cameras.size()); }
-
-	// Light
-	void AddLight(Light light) { m_lights.emplace_back(MoveTemp(light)); }
-	std::vector<Light>& GetLights() { return m_lights; }
-	const std::vector<Light>& GetLights() const { return m_lights; }
-	void SetLightCount(uint32_t count) { m_lights.reserve(count); }
-	Light& GetLight(uint32_t index) { return m_lights[index]; }
-	const Light& GetLight(uint32_t index) const { return m_lights[index]; }
-	uint32_t GetLightCount() const { return static_cast<uint32_t>(m_lights.size()); }
+	IMPLEMENT_SIMPLE_TYPE_APIS(SceneDatabase, Unit);
+	IMPLEMENT_COMPLEX_TYPE_APIS(SceneDatabase, AABB);
+	IMPLEMENT_COMPLEX_TYPE_APIS(SceneDatabase, AxisSystem);
+	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Animation);
+	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Bone);
+	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Camera);
+	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Light);
+	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Material);
+	IMPLEMENT_VECTOR_TYPE_APIS_WITH_PLURAL(SceneDatabase, Mesh, es);
+	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Morph);
+	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Node);
+	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, ParticleEmitter);
+	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Texture);
+	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Track);
+	IMPLEMENT_STRING_TYPE_APIS(SceneDatabase, Name);
 
 	// Bone
-	void AddBone(Bone bone) { m_bones.emplace_back(MoveTemp(bone)); }
-	std::vector<Bone>& GetBones() { return m_bones; }
-	const std::vector<Bone>& GetBones() const { return m_bones; }
-	void SetBoneCount(uint32_t count) { m_bones.reserve(count); }
-	Bone& GetBone(uint32_t index) { return m_bones[index]; }
-	const Bone& GetBone(uint32_t index) const { return m_bones[index]; }
 	Bone* GetBoneByName(const char* pName);
 	const Bone* GetBoneByName(const char* pName) const;
-	uint32_t GetBoneCount() const { return static_cast<uint32_t>(m_bones.size()); }
 
-	// Animation
-	void AddAnimation(Animation animation) { m_animations.emplace_back(MoveTemp(animation)); }
-	std::vector<Animation>& GetAnimations() { return m_animations; }
-	const std::vector<Animation>& GetAnimations() const { return m_animations; }
-	void SetAnimationCount(uint32_t count) { m_animations.reserve(count); }
-	Animation& GetAnimation(uint32_t index) { return m_animations[index]; }
-	const Animation& GetAnimation(uint32_t index) const { return m_animations[index]; }
-	uint32_t GetAnimationCount() const { return static_cast<uint32_t>(m_animations.size()); }
+	// Node
+	Node* GetNodeByName(const char* pName);
+	const Node* GetNodeByName(const char* pName) const;
 
 	// Track
-	void AddTrack(Track Track) { m_tracks.emplace_back(MoveTemp(Track)); }
-	std::vector<Track>& GetTracks() { return m_tracks; }
-	const std::vector<Track>& GetTracks() const { return m_tracks; }
-	void SetTrackCount(uint32_t count) { m_tracks.reserve(count); }
-	Track& GetTrack(uint32_t index) { return m_tracks[index]; }
-	const Track& GetTrack(uint32_t index) const { return m_tracks[index]; }
+	Track* GetTrackByName(const char* pName);
 	const Track* GetTrackByName(const char* pName) const;
-	uint32_t GetTrackCount() const { return static_cast<uint32_t>(m_tracks.size()); }
-
-	// ParticleEmitter
-	void AddParticleEmitter(ParticleEmitter emitter) { m_particleEmitters.emplace_back(MoveTemp(emitter)); }
-	std::vector<ParticleEmitter>& GetParticleEmitters() { return m_particleEmitters; }
-	const std::vector<ParticleEmitter>& GetParticleEmitters() const { return m_particleEmitters; }
-	void SetParticleEmitterCount(uint32_t count) { m_particleEmitters.reserve(count); }
-	ParticleEmitter& GetParticleEmitter(uint32_t index) { return m_particleEmitters[index]; }
-	const ParticleEmitter& GetParticleEmitter(uint32_t index) const { return m_particleEmitters[index]; }
-	uint32_t GetParticleEmitterCount() const { return static_cast<uint32_t>(m_particleEmitters.size()); }
 
 	void Dump() const;
 	void Validate() const;
@@ -345,35 +251,6 @@ public:
 
 		return *this;
 	}
-
-private:
-	std::string m_name;
-	AABB m_aabb;
-	AxisSystem m_axisSystem;
-	Unit m_unit;
-
-	// Hierarchy data to present relationships between meshes.
-	std::vector<Node> m_nodes;
-
-	// Mesh data both for StatciMesh and SkinMesh.
-	std::vector<Mesh> m_meshes;
-	std::vector<Morph> m_morphs;
-
-	// Texturing data.
-	std::vector<Material> m_materials;
-	std::vector<Texture> m_textures;
-
-	// Scene objects.
-	std::vector<Camera> m_cameras;
-	std::vector<Light> m_lights;
-
-	// Animation data.
-	std::vector<Bone> m_bones;
-	std::vector<Animation> m_animations;
-	std::vector<Track> m_tracks;
-
-	//Particle data
-	std::vector<ParticleEmitter> m_particleEmitters;
 };
 
 }

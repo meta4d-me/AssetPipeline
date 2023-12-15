@@ -4,39 +4,11 @@
 namespace cd
 {
 
-Material::Material(InputArchive& inputArchive)
-{
-	m_pMaterialImpl = new MaterialImpl(inputArchive);
-}
-
-Material::Material(InputArchiveSwapBytes& inputArchive)
-{
-	m_pMaterialImpl = new MaterialImpl(inputArchive);
-}
+PIMPL_SCENE_CLASS(Material);
 
 Material::Material(MaterialID materialID, const char* pMaterialName, MaterialType type)
 {
 	m_pMaterialImpl = new MaterialImpl(materialID, pMaterialName, type);
-}
-
-Material::Material(Material&& rhs)
-{
-	*this = cd::MoveTemp(rhs);
-}
-
-Material& Material::operator=(Material&& rhs)
-{
-	std::swap(m_pMaterialImpl, rhs.m_pMaterialImpl);
-	return *this;
-}
-
-Material::~Material()
-{
-	if (m_pMaterialImpl)
-	{
-		delete m_pMaterialImpl;
-		m_pMaterialImpl = nullptr;
-	}
 }
 
 void Material::Init(MaterialID materialID, const char* pMaterialName, MaterialType type)
@@ -183,30 +155,6 @@ std::optional<cd::Vec2f> Material::GetVec2fProperty(MaterialPropertyGroup proper
 bool Material::ExistProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
 {
 	return m_pMaterialImpl->ExistProperty(propertyGroup, property);
-}
-
-Material& Material::operator<<(InputArchive& inputArchive)
-{
-	*m_pMaterialImpl << inputArchive;
-	return *this;
-}
-
-Material& Material::operator<<(InputArchiveSwapBytes& inputArchive)
-{
-	*m_pMaterialImpl << inputArchive;
-	return *this;
-}
-
-const Material& Material::operator>>(OutputArchive& outputArchive) const
-{
-	*m_pMaterialImpl >> outputArchive;
-	return *this;
-}
-
-const Material& Material::operator>>(OutputArchiveSwapBytes& outputArchive) const
-{
-	*m_pMaterialImpl >> outputArchive;
-	return *this;
 }
 
 }

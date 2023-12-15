@@ -16,19 +16,9 @@ namespace cd
 class AnimationImpl final
 {
 public:
-	AnimationImpl() = delete;
-	template<bool SwapBytesOrder>
-	explicit AnimationImpl(TInputArchive<SwapBytesOrder>& inputArchive)
-	{
-		*this << inputArchive;
-	}
-	explicit AnimationImpl(AnimationID id, std::string name);
-	AnimationImpl(const AnimationImpl&) = default;
-	AnimationImpl& operator=(const AnimationImpl&) = default;
-	AnimationImpl(AnimationImpl&&) = default;
-	AnimationImpl& operator=(AnimationImpl&&) = default;
-	~AnimationImpl() = default;
+	DECLARE_SCENE_IMPL_CLASS(Animation);
 
+	explicit AnimationImpl(AnimationID id, std::string name);
 	void Init(AnimationID id, std::string name);
 
 	IMPLEMENT_SIMPLE_TYPE_APIS(Animation, ID);

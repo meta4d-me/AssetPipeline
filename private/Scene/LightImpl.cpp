@@ -3,16 +3,6 @@
 namespace cd
 {
 
-LightImpl::LightImpl(InputArchive& inputArchive)
-{
-	*this << inputArchive;
-}
-
-LightImpl::LightImpl(InputArchiveSwapBytes& inputArchive)
-{
-	*this << inputArchive;
-}
-
 LightImpl::LightImpl(LightID lightID, LightType type)
 {
 	Init(lightID, type);

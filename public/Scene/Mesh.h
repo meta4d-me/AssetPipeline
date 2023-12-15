@@ -19,21 +19,12 @@ class VertexFormat;
 class CORE_API Mesh final
 {
 public:
-	static const char* GetClassName() { return "Mesh"; }
 	static Mesh FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy);
 
 public:
-	Mesh() = default;
-	explicit Mesh(InputArchive& inputArchive);
-	explicit Mesh(InputArchiveSwapBytes & inputArchive);
+	DECLARE_SCENE_CLASS(Mesh);
 	explicit Mesh(uint32_t vertexCount, uint32_t polygonCount);
 	explicit Mesh(MeshID id, const char* pName, uint32_t vertexCount, uint32_t polygonCount);
-	Mesh(const Mesh&) = delete;
-	Mesh& operator=(const Mesh&) = delete;
-	Mesh(Mesh&&);
-	Mesh& operator=(Mesh&&);
-	~Mesh();
-
 	void Init(uint32_t vertexCount, uint32_t polygonCount);
 
 	EXPORT_SIMPLE_TYPE_APIS(Mesh, ID);
@@ -86,14 +77,6 @@ public:
 	Polygon& GetPolygon(uint32_t polygonIndex);
 	const Polygon& GetPolygon(uint32_t polygonIndex) const;
 	cd::VertexID GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const;
-
-	Mesh& operator<<(InputArchive& inputArchive);
-	Mesh& operator<<(InputArchiveSwapBytes& inputArchive);
-	const Mesh& operator>>(OutputArchive& outputArchive) const;
-	const Mesh& operator>>(OutputArchiveSwapBytes& outputArchive) const;
-
-private:
-	MeshImpl* m_pMeshImpl = nullptr;
 };
 
 }

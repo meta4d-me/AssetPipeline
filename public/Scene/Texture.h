@@ -17,18 +17,8 @@ class TextureImpl;
 class CORE_API Texture final
 {
 public:
-	static const char* GetClassName() { return "Texture"; }
-
-public:
-	Texture() = delete;
-	explicit Texture(InputArchive& inputArchive);
-	explicit Texture(InputArchiveSwapBytes& inputArchive);
+	DECLARE_SCENE_CLASS(Texture);
 	explicit Texture(TextureID textureID, const char* pName, MaterialTextureType textureType);
-	Texture(const Texture&) = delete;
-	Texture& operator=(const Texture&) = delete;
-	Texture(Texture&&) noexcept;
-	Texture& operator=(Texture&&) noexcept;
-	~Texture();
 
 	EXPORT_SIMPLE_TYPE_APIS(Texture, ID);
 	EXPORT_SIMPLE_TYPE_APIS(Texture, Type);
@@ -44,14 +34,6 @@ public:
 	EXPORT_COMPLEX_TYPE_APIS(Texture, RawData);
 	EXPORT_STRING_TYPE_APIS(Texture, Name);
 	EXPORT_STRING_TYPE_APIS(Texture, Path);
-
-	Texture& operator<<(InputArchive& inputArchive);
-	Texture& operator<<(InputArchiveSwapBytes& inputArchive);
-	const Texture& operator>>(OutputArchive& outputArchive) const;
-	const Texture& operator>>(OutputArchiveSwapBytes& outputArchive) const;
-
-private:
-	TextureImpl* m_pTextureImpl = nullptr;
 };
 
 }

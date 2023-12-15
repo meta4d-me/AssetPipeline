@@ -17,19 +17,8 @@ class NodeImpl;
 class CORE_API Node final
 {
 public:
-	static const char* GetClassName() { return "Node"; }
-
-public:
-	Node() = delete;
-	explicit Node(InputArchive& inputArchive);
-	explicit Node(InputArchiveSwapBytes& inputArchive);
+	DECLARE_SCENE_CLASS(Node);
 	explicit Node(NodeID nodeID, std::string name);
-	Node(const Node&) = delete;
-	Node& operator=(const Node&) = delete;
-	Node(Node&&);
-	Node& operator=(Node&&);
-	~Node();
-	
 	void Init(NodeID nodeID, std::string name);
 
 	EXPORT_SIMPLE_TYPE_APIS(Node, ID);
@@ -38,14 +27,6 @@ public:
 	EXPORT_VECTOR_TYPE_APIS(Node, ChildID);
 	EXPORT_VECTOR_TYPE_APIS(Node, MeshID);
 	EXPORT_STRING_TYPE_APIS(Node, Name);
-
-	Node& operator<<(InputArchive& inputArchive);
-	Node& operator<<(InputArchiveSwapBytes& inputArchive);
-	const Node& operator>>(OutputArchive& outputArchive) const;
-	const Node& operator>>(OutputArchiveSwapBytes& outputArchive) const;
-
-private:
-	NodeImpl* m_pNodeImpl = nullptr;
 };
 
 }
