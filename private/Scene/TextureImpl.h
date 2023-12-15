@@ -16,19 +16,9 @@ namespace cd
 class TextureImpl final
 {
 public:
-	TextureImpl() = delete;
-	template<bool SwapBytesOrder>
-	explicit TextureImpl(TInputArchive<SwapBytesOrder>& inputArchive)
-	{
-		*this << inputArchive;
-	}
-	explicit TextureImpl(TextureID textureID, const char* pName, MaterialTextureType textureType);
-	TextureImpl(const TextureImpl&) = default;
-	TextureImpl& operator=(const TextureImpl&) = default;
-	TextureImpl(TextureImpl&&) = default;
-	TextureImpl& operator=(TextureImpl&&) = default;
-	~TextureImpl() = default;
+	DECLARE_SCENE_IMPL_CLASS(Texture);
 
+	explicit TextureImpl(TextureID textureID, const char* pName, MaterialTextureType textureType);
 	void Init(TextureID textureID, std::string name, MaterialTextureType textureType);
 
 	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, ID);

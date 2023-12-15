@@ -37,128 +37,33 @@ public:
 	SceneDatabase& operator=(SceneDatabase&&);
 	~SceneDatabase();
 
-	// Identify
-	void SetName(const char* pName);
-	const char* GetName() const;
-	
-	// Volumn
-	void SetAABB(AABB aabb);
-	AABB& GetAABB();
-	const AABB& GetAABB() const;
-
-	// AxisSystem
-	void SetAxisSystem(AxisSystem axis);
-	AxisSystem& GetAxisSystem();
-	const AxisSystem& GetAxisSystem() const;
-
-	// Unit
-	void SetUnit(Unit unit);
-	Unit& GetUnit();
-	Unit GetUnit() const;
-
-	// Node
-	void AddNode(Node node);
-	std::vector<Node>& GetNodes();
-	const std::vector<Node>& GetNodes() const;
-	void SetNodeCount(uint32_t nodeCount);
-	Node& GetNode(uint32_t index);
-	const Node& GetNode(uint32_t index) const;
-	Node* GetNodeByName(const char* pName);
-	const Node* GetNodeByName(const char* pName) const;
-	uint32_t GetNodeCount() const;
-
-	// Mesh
-	void AddMesh(Mesh mesh);
-	std::vector<Mesh>& GetMeshes();
-	const std::vector<Mesh>& GetMeshes() const;
-	void SetMeshCount(uint32_t meshCount);
-	Mesh& GetMesh(uint32_t index);
-	const Mesh& GetMesh(uint32_t index) const;
-	uint32_t GetMeshCount() const;
-
-	// Morph
-	void AddMorph(Morph morph);
-	std::vector<Morph>& GetMorphs();
-	const std::vector<Morph>& GetMorphs() const;
-	void SetMorphCount(uint32_t morphCount);
-	Morph& GetMorph(uint32_t index);
-	const Morph& GetMorph(uint32_t index) const;
-	uint32_t GetMorphCount() const;
-
-	// Material
-	void AddMaterial(Material material);
-	std::vector<Material>& GetMaterials();
-	const std::vector<Material>& GetMaterials() const;
-	void SetMaterialCount(uint32_t materialCount);
-	Material& GetMaterial(uint32_t index);
-	const Material& GetMaterial(uint32_t index) const;
-	uint32_t GetMaterialCount() const;
-
-	// Texture
-	void AddTexture(Texture texture);
-	std::vector<Texture>& GetTextures();
-	const std::vector<Texture>& GetTextures() const;
-	void SetTextureCount(uint32_t textureCount);
-	Texture& GetTexture(uint32_t index);
-	const Texture& GetTexture(uint32_t index) const;
-	uint32_t GetTextureCount() const;
-
-	// Camera
-	void AddCamera(Camera camera);
-	std::vector<Camera>& GetCameras();
-	const std::vector<Camera>& GetCameras() const;
-	void SetCameraCount(uint32_t cameraCount);
-	Camera& GetCamera(uint32_t index);
-	const Camera& GetCamera(uint32_t index) const;
-	uint32_t GetCameraCount() const;
-
-	// Light
-	void AddLight(Light light);
-	std::vector<Light>& GetLights();
-	const std::vector<Light>& GetLights() const;
-	void SetLightCount(uint32_t lightCount);
-	Light& GetLight(uint32_t index);
-	const Light& GetLight(uint32_t index) const;
-	uint32_t GetLightCount() const;
+	EXPORT_SIMPLE_TYPE_APIS(SceneDatabase, Unit);
+	EXPORT_COMPLEX_TYPE_APIS(SceneDatabase, AABB);
+	EXPORT_COMPLEX_TYPE_APIS(SceneDatabase, AxisSystem);
+	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Animation);
+	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Bone);
+	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Camera);
+	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Light);
+	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Material);
+	EXPORT_VECTOR_TYPE_APIS_WITH_PLURAL(SceneDatabase, Mesh, es);
+	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Morph);
+	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Node);
+	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, ParticleEmitter);
+	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Texture);
+	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Track);
+	EXPORT_STRING_TYPE_APIS(SceneDatabase, Name);
 
 	// Bone
-	void AddBone(Bone bone);
-	std::vector<Bone>& GetBones();
-	const std::vector<Bone>& GetBones() const;
-	void SetBoneCount(uint32_t boneCount);
-	Bone& GetBone(uint32_t index);
-	const Bone& GetBone(uint32_t index) const;
 	Bone* GetBoneByName(const char* pName);
 	const Bone* GetBoneByName(const char* pName) const;
-	uint32_t GetBoneCount() const;
 
-	// Animation
-	void AddAnimation(Animation animation);
-	std::vector<Animation>& GetAnimations();
-	const std::vector<Animation>& GetAnimations() const;
-	void SetAnimationCount(uint32_t animationCount);
-	Animation& GetAnimation(uint32_t index);
-	const Animation& GetAnimation(uint32_t index) const;
-	uint32_t GetAnimationCount() const;
+	// Node
+	Node* GetNodeByName(const char* pName);
+	const Node* GetNodeByName(const char* pName) const;
 
 	// Track
-	void AddTrack(Track Track);
-	std::vector<Track>& GetTracks();
-	const std::vector<Track>& GetTracks() const;
-	void SetTrackCount(uint32_t TrackCount);
-	Track& GetTrack(uint32_t index);
-	const Track& GetTrack(uint32_t index) const;
+	Track* GetTrackByName(const char* pName);
 	const Track* GetTrackByName(const char* pName) const;
-	uint32_t GetTrackCount() const;
-
-	//ParticleEmitter
-	void AddParticleEmitter(ParticleEmitter emitter);
-	std::vector<ParticleEmitter>& GetParticleEmitters();
-	const std::vector<ParticleEmitter>& GetParticleEmitters() const;
-	void SetParticleEmitterCount(uint32_t emitterCount);
-	ParticleEmitter& GetParticleEmitter(uint32_t index);
-	const ParticleEmitter& GetParticleEmitter(uint32_t index) const;
-	uint32_t GetParticleEmitterCount() const;
 
 	// Operations
 	void Dump() const;

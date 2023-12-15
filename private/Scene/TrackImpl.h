@@ -15,19 +15,9 @@ namespace cd
 class TrackImpl final
 {
 public:
-	TrackImpl() = delete;
-	template<bool SwapBytesOrder>
-	explicit TrackImpl(TInputArchive<SwapBytesOrder>& inputArchive)
-	{
-		*this << inputArchive;
-	}
-	explicit TrackImpl(TrackID id, std::string name);
-	TrackImpl(const TrackImpl&) = default;
-	TrackImpl& operator=(const TrackImpl&) = default;
-	TrackImpl(TrackImpl&&) = default;
-	TrackImpl& operator=(TrackImpl&&) = default;
-	~TrackImpl() = default;
+	DECLARE_SCENE_IMPL_CLASS(Track);
 
+	explicit TrackImpl(TrackID id, std::string name);
 	void Init(TrackID id, std::string name);
 
 	IMPLEMENT_SIMPLE_TYPE_APIS(Track, ID);

@@ -13,19 +13,9 @@ namespace cd
 class ParticleEmitterImpl final
 {
 public:
-	ParticleEmitterImpl() = delete;
-	template<bool SwapBytesOrder>
-	explicit ParticleEmitterImpl(TInputArchive<SwapBytesOrder>& inputArchive)
-	{
-		*this << inputArchive;
-	}
-	explicit ParticleEmitterImpl(ParticleEmitterID id, std::string name);
-	ParticleEmitterImpl(const ParticleEmitterImpl&) = default;
-	ParticleEmitterImpl& operator=(const ParticleEmitterImpl&) = default;
-	ParticleEmitterImpl(ParticleEmitterImpl&&) = default;
-	ParticleEmitterImpl& operator=(ParticleEmitterImpl&&) = default;
-	~ParticleEmitterImpl() = default;
+	DECLARE_SCENE_IMPL_CLASS(ParticleEmitter);
 
+	explicit ParticleEmitterImpl(ParticleEmitterID id, std::string name);
 	void Init(ParticleEmitterID id, std::string name);
 
 	IMPLEMENT_SIMPLE_TYPE_APIS(ParticleEmitter, ID);

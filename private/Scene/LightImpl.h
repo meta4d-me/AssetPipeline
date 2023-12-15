@@ -15,16 +15,9 @@ namespace cd
 class LightImpl final
 {
 public:
-	LightImpl() = delete;
-	explicit LightImpl(InputArchive& inputArchive);
-	explicit LightImpl(InputArchiveSwapBytes & inputArchive);
-	explicit LightImpl(LightID lightID, LightType type);
-	LightImpl(const LightImpl&) = default;
-	LightImpl& operator=(const LightImpl&) = default;
-	LightImpl(LightImpl&&) = default;
-	LightImpl& operator=(LightImpl&&) = default;
-	~LightImpl() = default;
+	DECLARE_SCENE_IMPL_CLASS(Light);
 
+	explicit LightImpl(LightID lightID, LightType type);
 	void Init(LightID lightID, LightType type);
 
 	IMPLEMENT_SIMPLE_TYPE_APIS(Light, ID);
@@ -54,6 +47,7 @@ public:
 		inputArchive >> GetName() >> GetIntensity() >> GetRange() >> GetRadius()
 			>> GetWidth() >> GetHeight() >> GetAngleScale() >> GetAngleOffset()
 			>> GetColor() >> GetPosition() >> GetDirection() >> GetUp();
+
 		return *this;
 	}
 

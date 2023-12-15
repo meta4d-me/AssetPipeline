@@ -13,18 +13,8 @@ class ParticleEmitterImpl;
 class CORE_API ParticleEmitter final
 {
 public:
-	static const char* GetClassName() { return "ParticleEmitter"; }
-
-public:
-	ParticleEmitter() = delete;
-	explicit ParticleEmitter(InputArchive& inputArchive);
-	explicit ParticleEmitter(InputArchiveSwapBytes& inputArchive);
+	DECLARE_SCENE_CLASS(ParticleEmitter);
 	explicit ParticleEmitter(ParticleEmitterID id, const char* pName);
-	ParticleEmitter(const ParticleEmitter&) = delete;
-	ParticleEmitter& operator=(const ParticleEmitter&) = delete;
-	ParticleEmitter(ParticleEmitter&&);
-	ParticleEmitter& operator=(ParticleEmitter&&);
-	~ParticleEmitter();
 
 	EXPORT_SIMPLE_TYPE_APIS(ParticleEmitter, ID);
 	EXPORT_SIMPLE_TYPE_APIS(ParticleEmitter, Type);
@@ -35,14 +25,6 @@ public:
 	EXPORT_COMPLEX_TYPE_APIS(ParticleEmitter, FixedRotation);
 	EXPORT_COMPLEX_TYPE_APIS(ParticleEmitter, FixedScale);
 	EXPORT_STRING_TYPE_APIS(ParticleEmitter, Name);
-
-	ParticleEmitter& operator<<(InputArchive& inputArchive);
-	ParticleEmitter& operator<<(InputArchiveSwapBytes& inputArchive);
-	const ParticleEmitter& operator>>(OutputArchive& outputArchive) const;
-	const ParticleEmitter& operator>>(OutputArchiveSwapBytes& outputArchive) const;
-
-private:
-	ParticleEmitterImpl* m_pParticleEmitterImpl = nullptr;
 };
 
 }

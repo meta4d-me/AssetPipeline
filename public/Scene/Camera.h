@@ -15,18 +15,8 @@ class CameraImpl;
 class CORE_API Camera final
 {
 public:
-	static const char* GetClassName() { return "Camera"; }
-
-public:
-	Camera() = delete;
-	explicit Camera(InputArchive& inputArchive);
-	explicit Camera(InputArchiveSwapBytes& inputArchive);
+	DECLARE_SCENE_CLASS(Camera);
 	explicit Camera(CameraID id, const char* pName);
-	Camera(const Camera&) = delete;
-	Camera& operator=(const Camera&) = delete;
-	Camera(Camera&&);
-	Camera& operator=(Camera&&);
-	~Camera();
 	
 	EXPORT_SIMPLE_TYPE_APIS(Camera, ID);
 	EXPORT_SIMPLE_TYPE_APIS(Camera, Aspect);
@@ -37,14 +27,6 @@ public:
 	EXPORT_COMPLEX_TYPE_APIS(Camera, LookAt);
 	EXPORT_COMPLEX_TYPE_APIS(Camera, Up);
 	EXPORT_STRING_TYPE_APIS(Camera, Name);
-
-	Camera& operator<<(InputArchive& inputArchive);
-	Camera& operator<<(InputArchiveSwapBytes& inputArchive);
-	const Camera& operator>>(OutputArchive& outputArchive) const;
-	const Camera& operator>>(OutputArchiveSwapBytes& outputArchive) const;
-
-private:
-	CameraImpl* m_pCameraImpl = nullptr;
 };
 
 }

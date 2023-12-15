@@ -4,39 +4,11 @@
 namespace cd
 {
 
-Animation::Animation(InputArchive& inputArchive)
-{
-    m_pAnimationImpl = new AnimationImpl(inputArchive);
-}
-
-Animation::Animation(InputArchiveSwapBytes& inputArchive)
-{
-    m_pAnimationImpl = new AnimationImpl(inputArchive);
-}
+PIMPL_SCENE_CLASS(Animation);
 
 Animation::Animation(AnimationID id, std::string name)
 {
     m_pAnimationImpl = new AnimationImpl(id, cd::MoveTemp(name));
-}
-
-Animation::Animation(Animation&& rhs)
-{
-    *this = cd::MoveTemp(rhs);
-}
-
-Animation& Animation::operator=(Animation&& rhs)
-{
-    std::swap(m_pAnimationImpl, rhs.m_pAnimationImpl);
-    return *this;
-}
-
-Animation::~Animation()
-{
-    if (m_pAnimationImpl)
-    {
-        delete m_pAnimationImpl;
-        m_pAnimationImpl = nullptr;
-    }
 }
 
 void Animation::Init(AnimationID id, std::string name)
@@ -49,29 +21,5 @@ PIMPL_SIMPLE_TYPE_APIS(Animation, Duration);
 PIMPL_SIMPLE_TYPE_APIS(Animation, TicksPerSecond);
 PIMPL_VECTOR_TYPE_APIS(Animation, BoneTrackID);
 PIMPL_STRING_TYPE_APIS(Animation, Name);
-
-Animation& Animation::operator<<(InputArchive& inputArchive)
-{
-    *m_pAnimationImpl << inputArchive;
-    return *this;
-}
-
-Animation& Animation::operator<<(InputArchiveSwapBytes& inputArchive)
-{
-    *m_pAnimationImpl << inputArchive;
-    return *this;
-}
-
-const Animation& Animation::operator>>(OutputArchive& outputArchive) const
-{
-    *m_pAnimationImpl >> outputArchive;
-    return *this;
-}
-
-const Animation& Animation::operator>>(OutputArchiveSwapBytes& outputArchive) const
-{
-    *m_pAnimationImpl >> outputArchive;
-    return *this;
-}
 
 }

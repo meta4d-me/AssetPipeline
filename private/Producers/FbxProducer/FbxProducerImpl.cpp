@@ -961,7 +961,8 @@ void FbxProducerImpl::ProcessAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabas
 		const char* pJointName = pSceneDatabase->GetBone(boneIndex).GetName();
 		bones.push_back(scene->FindNodeByName(pJointName));
 	}
-	const int animationCount = scene->GetSrcObjectCount<fbxsdk::FbxAnimStack>();
+
+	const uint32_t animationCount = scene->GetSrcObjectCount<fbxsdk::FbxAnimStack>();
 	for (uint32_t animationIndex = 0; animationIndex < animationCount; ++animationIndex)
 	{
 		// Single-take animation information.
@@ -976,14 +977,14 @@ void FbxProducerImpl::ProcessAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabas
 		cd::Animation animation(animationID, cd::MoveTemp(pAnimStackName));
 
 		float period = 1.f / 30.0f; // todo: it can make variable, like 24fps or 60fps...
-		int trackCount = static_cast<int>(std::ceil((end - start) / period + 1.0f));
+		uint32_t trackCount = static_cast<uint32_t>(std::ceil((end - start) / period + 1.0f));
 
 		std::vector<float> times;
 		times.resize(trackCount);
 
 		std::vector<std::vector<cd::Matrix4x4>> worldMatrices;
 		worldMatrices.resize(pSceneDatabase->GetBoneCount());
-		for (int i = 0; i < pSceneDatabase->GetBoneCount(); i++)
+		for (uint32_t i = 0; i < pSceneDatabase->GetBoneCount(); ++i)
 		{
 			worldMatrices[i].resize(trackCount);
 		}

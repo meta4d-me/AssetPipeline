@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Math/UnitSystem.hpp"
 #include "Math/Transform.hpp"
 #include "Scene/APIMacros.h"
 #include "Scene/KeyFrame.hpp"
@@ -50,7 +51,7 @@ using Color = cd::Vec4f;
 using UV = cd::Vec2f;
 using RGB = cd::Vec3f;
 
+}
+
 // Scene API
 #include "Scene/APITypeTraits.inl"
-
-}

@@ -18,19 +18,9 @@ namespace cd
 class MaterialImpl final
 {
 public:
-	MaterialImpl() = delete;
-	template<bool SwapBytesOrder>
-	explicit MaterialImpl(TInputArchive<SwapBytesOrder>& inputArchive)
-	{
-		*this << inputArchive;
-	}
-	explicit MaterialImpl(MaterialID materialID, std::string materialName, MaterialType materialType);
-	MaterialImpl(const MaterialImpl&) = delete;
-	MaterialImpl& operator=(const MaterialImpl&) = delete;
-	MaterialImpl(MaterialImpl&&) = default;
-	MaterialImpl& operator=(MaterialImpl&&) = default;
-	~MaterialImpl() = default;
+	DECLARE_SCENE_IMPL_CLASS(Material);
 
+	explicit MaterialImpl(MaterialID materialID, std::string materialName, MaterialType materialType);
 	void Init(MaterialID materialID, std::string materialName, MaterialType materialType);
 	void InitBasePBR();
 

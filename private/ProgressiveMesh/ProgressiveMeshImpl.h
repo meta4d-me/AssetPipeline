@@ -3,13 +3,12 @@
 #include "Face.h"
 #include "Vertex.h"
 #include "Math/Box.hpp"
+#include "Scene/Mesh.h"
 
 #include <set>
 
 namespace cd
 {
-
-class Mesh;
 
 namespace pm
 {

@@ -15,19 +15,8 @@ class LightImpl;
 class CORE_API Light final
 {
 public:
-	static const char* GetClassName() { return "Light"; }
-
-public:
-	Light() = delete;
-	explicit Light(InputArchive& inputArchive);
-	explicit Light(InputArchiveSwapBytes & inputArchive);
+	DECLARE_SCENE_CLASS(Light);
 	explicit Light(LightID lightID, LightType type);
-	Light(const Light&) = delete;
-	Light& operator=(const Light&) = delete;
-	Light(Light&&);
-	Light& operator=(Light&&);
-	~Light();
-
 	void Init(LightID lightID, LightType type);
 
 	EXPORT_SIMPLE_TYPE_APIS(Light, ID);
@@ -46,14 +35,6 @@ public:
 	EXPORT_STRING_TYPE_APIS(Light, Name);
 
 	std::pair<float, float> CalculateScaleAndOffset(float innerAngle, float outerAngle) const;
-
-	Light& operator<<(InputArchive& inputArchive);
-	Light& operator<<(InputArchiveSwapBytes& inputArchive);
-	const Light& operator>>(OutputArchive& outputArchive) const;
-	const Light& operator>>(OutputArchiveSwapBytes& outputArchive) const;
-
-private:
-	LightImpl* m_pLightImpl = nullptr;
 };
 
 }

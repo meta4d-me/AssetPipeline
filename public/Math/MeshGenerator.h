@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Base/Export.h"
+#include "Scene/Mesh.h"
 
 #include <cstdint>
 #include <optional>
@@ -11,8 +12,6 @@ namespace cd
 
 template<typename T, std::size_t N>
 class TBox;
-
-class Mesh;
 
 template<typename T>
 class TPlane;

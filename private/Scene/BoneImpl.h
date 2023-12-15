@@ -14,19 +14,9 @@ namespace cd
 class BoneImpl final
 {
 public:
-	BoneImpl() = delete;
-	template<bool SwapBytesOrder>
-	explicit BoneImpl(TInputArchive<SwapBytesOrder>& inputArchive)
-	{
-		*this << inputArchive;
-	}
-	explicit BoneImpl(BoneID id, std::string name);
-	BoneImpl(const BoneImpl&) = default;
-	BoneImpl& operator=(const BoneImpl&) = default;
-	BoneImpl(BoneImpl&&) = default;
-	BoneImpl& operator=(BoneImpl&&) = default;
-	~BoneImpl() = default;
+	DECLARE_SCENE_IMPL_CLASS(Bone);
 
+	explicit BoneImpl(BoneID id, std::string name);
 	void Init(BoneID id, std::string name);
 
 	IMPLEMENT_SIMPLE_TYPE_APIS(Bone, ID);

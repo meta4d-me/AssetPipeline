@@ -6,22 +6,14 @@
 namespace cd
 {
 
+PIMPL_SCENE_CLASS(Mesh);
+
 Mesh Mesh::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy)
 {
 	Mesh mesh;
 	mesh.m_pMeshImpl = new MeshImpl();
 	mesh.m_pMeshImpl->FromHalfEdgeMesh(halfEdgeMesh, strategy);
 	return mesh;
-}
-
-Mesh::Mesh(InputArchive& inputArchive)
-{
-	m_pMeshImpl = new MeshImpl(inputArchive);
-}
-
-Mesh::Mesh(InputArchiveSwapBytes& inputArchive)
-{
-	m_pMeshImpl = new MeshImpl(inputArchive);
 }
 
 Mesh::Mesh(uint32_t vertexCount, uint32_t polygonCount)
@@ -35,26 +27,6 @@ Mesh::Mesh(MeshID id, const char* pName, uint32_t vertexCount, uint32_t polygonC
 {
 	m_pMeshImpl->SetID(id);
 	m_pMeshImpl->SetName(pName);
-}
-
-Mesh::Mesh(Mesh&& rhs)
-{
-	*this = cd::MoveTemp(rhs);
-}
-
-Mesh& Mesh::operator=(Mesh&& rhs)
-{
-	std::swap(m_pMeshImpl, rhs.m_pMeshImpl);
-	return *this;
-}
-
-Mesh::~Mesh()
-{
-	if (m_pMeshImpl)
-	{
-		delete m_pMeshImpl;
-		m_pMeshImpl = nullptr;
-	}
 }
 
 void Mesh::Init(uint32_t vertexCount, uint32_t polygonCount)
@@ -250,33 +222,6 @@ const Polygon& Mesh::GetPolygon(uint32_t polygonIndex) const
 cd::VertexID Mesh::GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const
 {
 	return m_pMeshImpl->GetPolygonVertexID(polygonIndex, vertexIndex);
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Serialization
-//////////////////////////////////////////////////////////////////////////
-Mesh& Mesh::operator<<(InputArchive& inputArchive)
-{
-	*m_pMeshImpl << inputArchive;
-	return *this;
-}
-
-Mesh& Mesh::operator<<(InputArchiveSwapBytes& inputArchive)
-{
-	*m_pMeshImpl << inputArchive;
-	return *this;
-}
-
-const Mesh& Mesh::operator>>(OutputArchive& outputArchive) const
-{
-	*m_pMeshImpl >> outputArchive;
-	return *this;
-}
-
-const Mesh& Mesh::operator>>(OutputArchiveSwapBytes& outputArchive) const
-{
-	*m_pMeshImpl >> outputArchive;
-	return *this;
 }
 
 }

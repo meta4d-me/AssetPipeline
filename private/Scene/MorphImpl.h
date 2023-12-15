@@ -15,23 +15,10 @@ namespace cd
 class MorphImpl final
 {
 public:
-	MorphImpl() = delete;
-
-	template<bool SwapBytesOrder>
-	explicit MorphImpl(TInputArchive<SwapBytesOrder>& inputArchive)
-	{
-		*this << inputArchive;
-	}
+	DECLARE_SCENE_IMPL_CLASS(Morph);
 
 	explicit MorphImpl(uint32_t vertexCount);
 	explicit MorphImpl(MorphID id, MeshID sourceMeshID, std::string name, uint32_t vertexCount);
-
-	MorphImpl(const MorphImpl&) = default;
-	MorphImpl& operator=(const MorphImpl&) = default;
-	MorphImpl(MorphImpl&&) = default;
-	MorphImpl& operator=(MorphImpl&&) = default;
-	~MorphImpl() = default;
-
 	void Init(uint32_t vertexCount);
 	void Init(MorphID id, std::string name, uint32_t vertexCount);
 	
