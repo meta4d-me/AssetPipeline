@@ -172,10 +172,22 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 	cd::Material material(materialID, finalMaterialName.c_str(), cd::MaterialType::BasePBR);
 
 	// Process all parameters
+
+	// Albedo
+	aiColor4D aiColor;
+	cd::Vec3f cdColor{ 0.2f, 0.2f , 0.2f };
+	if (aiReturn_SUCCESS == aiGetMaterialColor(pSourceMaterial, AI_MATKEY_BASE_COLOR, &aiColor))
+	{
+		cdColor = cd::Vec3f{ aiColor.r, aiColor.g , aiColor.b };
+	}
+	material.SetVec3fProperty(cd::MaterialPropertyGroup::BaseColor, cd::MaterialProperty::Color, cdColor);
+
+	// Merallic
 	float metallic = 0.1f;
 	aiGetMaterialFloat(pSourceMaterial, AI_MATKEY_METALLIC_FACTOR, &metallic);
 	material.SetFloatProperty(cd::MaterialPropertyGroup::Metallic, cd::MaterialProperty::Factor, metallic);
 
+	// Roughness
 	float roughness = 0.9f;
 	aiGetMaterialFloat(pSourceMaterial, AI_MATKEY_ROUGHNESS_FACTOR, &roughness);
 	material.SetFloatProperty(cd::MaterialPropertyGroup::Roughness, cd::MaterialProperty::Factor, roughness);
@@ -224,6 +236,7 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 		uint32_t textureCount = aiGetMaterialTextureCount(pSourceMaterial, textureType);
 		if (0 == textureCount)
 		{
+			material.SetBoolProperty(materialTextureType, cd::MaterialProperty::UseTexture, false);
 			continue;
 		}
 
@@ -246,14 +259,11 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 			{
 				continue;
 			}
+			material.SetBoolProperty(materialTextureType, cd::MaterialProperty::UseTexture, true);
 
 			bool isTextureReused;
 			uint32_t textureHash = cd::StringHash<cd::TextureID::ValueType>(textureFilePath.C_Str());
 			cd::TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, &isTextureReused);
-
-			std::filesystem::path textureAbsolutePath = m_folderPath;
-			textureAbsolutePath.append(textureFilePath.C_Str());
-
 			material.SetTextureID(materialTextureType, textureID);
 
 			// Parse tiling parameters.
@@ -270,6 +280,9 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 				std::filesystem::path textureName = textureFilePath.C_Str();
 				textureName = textureName.filename();
 				cd::Texture materialTexture(textureID, textureName.string().c_str(), materialTextureType);
+
+				std::filesystem::path textureAbsolutePath = m_folderPath;
+				textureAbsolutePath.append(textureFilePath.C_Str());
 				materialTexture.SetPath(textureAbsolutePath.string().c_str());
 				ConvertAssimpTextureMapMode(textureMapMode[0]), ConvertAssimpTextureMapMode(textureMapMode[1]);
 				pSceneDatabase->AddTexture(cd::MoveTemp(materialTexture));
