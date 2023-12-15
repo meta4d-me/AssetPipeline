@@ -18,7 +18,6 @@ class CORE_API Track final
 {
 public:
 	DECLARE_SCENE_CLASS(Track);
-
 	explicit Track(TrackID id, std::string name);
 	void Init(TrackID id, std::string name);
 
