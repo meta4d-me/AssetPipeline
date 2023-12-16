@@ -33,6 +33,7 @@ public:
 	ObjectID& operator=(ObjectID&&) = default;
 	~ObjectID() = default;
 	T Data() const { return m_id; }
+	T& Data() { return m_id; }
 	void Set(T id) { m_id = id; }
 
 	ObjectID& operator=(T id) { m_id = id; return *this; } 

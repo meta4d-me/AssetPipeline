@@ -20,12 +20,14 @@ public:
 	template<bool SwapBytesOrder>
 	SkeletonImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
+		inputArchive >> GetID().Data() >> GetRootBoneID().Data() >> GetName();
 		return *this;
 	}
 
 	template<bool SwapBytesOrder>
 	const SkeletonImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
+		outputArchive << GetID().Data() << GetRootBoneID().Data() << GetName();
 		return *this;
 	}
 };

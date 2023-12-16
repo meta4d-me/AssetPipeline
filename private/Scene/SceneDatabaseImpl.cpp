@@ -340,11 +340,6 @@ void SceneDatabaseImpl::Dump() const
 		for (const auto& skeleton : GetSkeletons())
 		{
 			printf("[Skeleton %u] Name : %s\n", skeleton.GetID().Data(), skeleton.GetName());
-			
-			for (const cd::BoneID boneID : skeleton.GetRootBoneIDs())
-			{
-				printf("\t[RootBoneID %u]\n", boneID.Data());
-			}
 		}
 	}
 

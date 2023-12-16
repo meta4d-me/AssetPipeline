@@ -32,16 +32,11 @@ public:
 	{
 		uint32_t animationID;
 		std::string animationName;
-		float duration;
-		float ticksPerSecond;
-		uint32_t boneTrackCount;
-
-		inputArchive >> animationID >> animationName >> duration >> ticksPerSecond >> boneTrackCount;
-
+		inputArchive >> animationID >> animationName;
 		Init(AnimationID(animationID), cd::MoveTemp(animationName));
-		SetDuration(duration);
-		SetTicksPerSecond(ticksPerSecond);
 
+		uint32_t boneTrackCount;
+		inputArchive >> GetDuration() >> GetTicksPerSecond() >> boneTrackCount;
 		GetBoneTrackIDs().resize(boneTrackCount);
 		inputArchive.ImportBuffer(GetBoneTrackIDs().data());
 

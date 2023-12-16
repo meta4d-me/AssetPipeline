@@ -35,11 +35,9 @@ public:
 		uint32_t emitterID;
 		std::string emitterName;
 		uint32_t emitterType;
-		uint32_t meshID;
-		inputArchive >> emitterID >> emitterName >> emitterType >> meshID;
+		inputArchive >> emitterID >> emitterName >> emitterType >> GetMeshID().Data();
 		Init(ParticleEmitterID(emitterID), cd::MoveTemp(emitterName));
 		SetType(static_cast<ParticleEmitterType>(emitterType));
-		SetMeshID(meshID);
 		inputArchive >> GetPosition() >> GetVelocity() >> GetAccelerate()
 			>> GetColor() >> GetFixedRotation() >> GetFixedScale();
 		return *this;
