@@ -14,6 +14,7 @@ ParticleEmitter::ParticleEmitter(ParticleEmitterID id, const char* pName)
 
 PIMPL_SIMPLE_TYPE_APIS(ParticleEmitter, ID);
 PIMPL_SIMPLE_TYPE_APIS(ParticleEmitter, Type);
+PIMPL_SIMPLE_TYPE_APIS(ParticleEmitter, MeshID);
 PIMPL_COMPLEX_TYPE_APIS(ParticleEmitter, Position);
 PIMPL_COMPLEX_TYPE_APIS(ParticleEmitter, Velocity);
 PIMPL_COMPLEX_TYPE_APIS(ParticleEmitter, Accelerate);
