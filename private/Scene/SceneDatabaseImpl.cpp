@@ -168,6 +168,7 @@ void SceneDatabaseImpl::Dump() const
 	printf("\tTexture count : %d\n", GetTextureCount());
 	printf("\tCamera count : %d\n", GetCameraCount());
 	printf("\tLight count : %d\n", GetLightCount());
+	printf("\tSkeleton count : %d\n", GetSkeletonCount());
 	printf("\tBone count : %d\n", GetBoneCount());
 	printf("\tAnimation count : %d\n", GetAnimationCount());
 	printf("\tTrack count : %d\n", GetTrackCount());
@@ -330,6 +331,15 @@ void SceneDatabaseImpl::Dump() const
 			details::Dump("\tPosition", light.GetPosition());
 			details::Dump("\tDirection", light.GetDirection());
 			details::Dump("\tUp", light.GetUp());
+		}
+	}
+
+	if (GetSkeletonCount() > 0U)
+	{
+		printf("\n");
+		for (const auto& skeleton : GetSkeletons())
+		{
+			printf("[Skeleton %u] Name : %s\n", skeleton.GetID().Data(), skeleton.GetName());
 		}
 	}
 

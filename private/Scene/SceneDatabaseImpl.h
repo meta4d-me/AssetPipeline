@@ -11,6 +11,7 @@
 #include "Scene/Mesh.h"
 #include "Scene/Morph.h"
 #include "Scene/Node.h"
+#include "Scene/Skeleton.h"
 #include "Scene/Texture.h"
 #include "Scene/Track.h"
 #include "Scene/ParticleEmitter.h"
@@ -47,6 +48,7 @@ public:
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Morph);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Node);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, ParticleEmitter);
+	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Skeleton);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Texture);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Track);
 	IMPLEMENT_STRING_TYPE_APIS(SceneDatabase, Name);
@@ -93,16 +95,18 @@ public:
 		uint32_t materialCount;
 		uint32_t cameraCount;
 		uint32_t lightCount;
+		uint32_t skeletonCount;
 		uint32_t boneCount;
 		uint32_t animationCount;
 		uint32_t trackCount;
 		uint32_t morphCount;
-		uint32_t particleCount;
+		uint32_t particleEmitterCount;
 
 		inputArchive >> nodeCount >> meshCount >> morphCount
 			>> materialCount >> textureCount
 			>> cameraCount >> lightCount
-			>> boneCount >> animationCount >> trackCount >> particleCount;
+			>> skeletonCount >> boneCount >> animationCount >> trackCount
+			>> particleEmitterCount;
 
 		SetNodeCount(nodeCount);
 		SetMeshCount(meshCount);
@@ -111,10 +115,11 @@ public:
 		SetTextureCount(textureCount);
 		SetCameraCount(cameraCount);
 		SetLightCount(lightCount);
+		SetSkeletonCount(boneCount);
 		SetBoneCount(boneCount);
 		SetAnimationCount(animationCount);
 		SetTrackCount(trackCount);
-		SetParticleEmitterCount(particleCount);
+		SetParticleEmitterCount(particleEmitterCount);
 
 		for (uint32_t nodeIndex = 0U; nodeIndex < nodeCount; ++nodeIndex)
 		{
@@ -151,6 +156,11 @@ public:
 			AddLight(Light(inputArchive));
 		}
 
+		for (uint32_t skeletonIndex = 0U; skeletonIndex < skeletonCount; ++skeletonIndex)
+		{
+			AddSkeleton(Skeleton(inputArchive));
+		}
+
 		for (uint32_t boneIndex = 0U; boneIndex < boneCount; ++boneIndex)
 		{
 			AddBone(Bone(inputArchive));
@@ -166,7 +176,7 @@ public:
 			AddTrack(Track(inputArchive));
 		}
 
-		for (uint32_t particleIndex = 0U; particleIndex < particleCount; ++particleIndex)
+		for (uint32_t particleIndex = 0U; particleIndex < particleEmitterCount; ++particleIndex)
 		{
 			AddParticleEmitter(ParticleEmitter(inputArchive));
 		}
@@ -181,7 +191,8 @@ public:
 			<< GetNodeCount() << GetMeshCount() << GetMorphCount()
 			<< GetMaterialCount() << GetTextureCount()
 			<< GetCameraCount() << GetLightCount()
-			<< GetBoneCount() << GetAnimationCount() << GetTrackCount()<<GetParticleEmitterCount();
+			<< GetSkeletonCount() << GetBoneCount() << GetAnimationCount() << GetTrackCount()
+			<< GetParticleEmitterCount();
 
 		for (uint32_t nodeIndex = 0U; nodeIndex < GetNodeCount(); ++nodeIndex)
 		{
@@ -223,6 +234,12 @@ public:
 		{
 			const Light& light = GetLight(ligthIndex);
 			light >> outputArchive;
+		}
+
+		for (uint32_t skeletonIndex = 0U; skeletonIndex < GetSkeletonCount(); ++skeletonIndex)
+		{
+			const Skeleton& skeleton = GetSkeleton(skeletonIndex);
+			skeleton >> outputArchive;
 		}
 
 		for (uint32_t boneIndex = 0U; boneIndex < GetBoneCount(); ++boneIndex)

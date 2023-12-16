@@ -20,7 +20,8 @@ enum class ObjectType
 	Animation,
 	Track,
 	Morph,
-	ParticleEmitter
+	ParticleEmitter,
+	Skeleton
 };
 
 }

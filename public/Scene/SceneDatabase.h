@@ -14,6 +14,7 @@
 #include "Scene/Morph.h"
 #include "Scene/Node.h"
 #include "Scene/ParticleEmitter.h"
+#include "Scene/Skeleton.h"
 #include "Scene/Texture.h"
 #include "Scene/Track.h"
 
@@ -49,6 +50,7 @@ public:
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Morph);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Node);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, ParticleEmitter);
+	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Skeleton);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Texture);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Track);
 	EXPORT_STRING_TYPE_APIS(SceneDatabase, Name);
