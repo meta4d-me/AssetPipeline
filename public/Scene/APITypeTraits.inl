@@ -12,6 +12,7 @@ class Mesh;
 class Morph;
 class Node;
 class ParticleEmitter;
+class Skeleton;
 class Texture;
 class Track;
 
@@ -35,6 +36,7 @@ struct SceneDatabaseTypeTraits
 	using Morph = cd::Morph;
 	using Node = cd::Node;
 	using ParticleEmitter = cd::ParticleEmitter;
+	using Skeleton = cd::Skeleton;
 	using Texture = cd::Texture;
 	using Track = cd::Track;
 
@@ -205,6 +207,17 @@ struct ParticleEmitterTypeTraits
 	using Color = cd::Vec4f;
 	using FixedRotation = cd::Vec3f;
 	using FixedScale = cd::Vec3f;
+
+	// String
+	using Name = std::string;
+};
+
+// Skeleton
+struct SkeletonTypeTraits
+{
+	// Simple
+	using ID = cd::SkeletonID;
+	using RootBoneID = cd::BoneID;
 
 	// String
 	using Name = std::string;
