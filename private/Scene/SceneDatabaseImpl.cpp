@@ -168,7 +168,7 @@ void SceneDatabaseImpl::Dump() const
 	printf("\tTexture count : %d\n", GetTextureCount());
 	printf("\tCamera count : %d\n", GetCameraCount());
 	printf("\tLight count : %d\n", GetLightCount());
-	printf("\tSkeleton count : %d\n", GetBoneCount());
+	printf("\tSkeleton count : %d\n", GetSkeletonCount());
 	printf("\tBone count : %d\n", GetBoneCount());
 	printf("\tAnimation count : %d\n", GetAnimationCount());
 	printf("\tTrack count : %d\n", GetTrackCount());
