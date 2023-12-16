@@ -196,6 +196,7 @@ struct ParticleEmitterTypeTraits
 	// Simple
 	using ID = cd::ParticleEmitterID;
 	using Type = cd::ParticleEmitterType;
+	using MeshID = cd::MeshID;
 
 	// Complex
 	using Position = cd::Vec3f;

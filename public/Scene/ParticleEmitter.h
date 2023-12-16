@@ -18,6 +18,7 @@ public:
 
 	EXPORT_SIMPLE_TYPE_APIS(ParticleEmitter, ID);
 	EXPORT_SIMPLE_TYPE_APIS(ParticleEmitter, Type);
+	EXPORT_SIMPLE_TYPE_APIS(ParticleEmitter, MeshID);
 	EXPORT_COMPLEX_TYPE_APIS(ParticleEmitter, Position);
 	EXPORT_COMPLEX_TYPE_APIS(ParticleEmitter, Velocity);
 	EXPORT_COMPLEX_TYPE_APIS(ParticleEmitter, Accelerate);
