@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 		}
 
 		auto lodMesh = pm.GenerateLodMesh(0.1f, 2000, &mesh);
-		lodMesh.SetName(std::format("{}_reduced", mesh.GetName()));
+		lodMesh.SetName(std::format("{}_reduced", mesh.GetName()).c_str());
 		lodMesh.SetID(pSceneDatabase->GetMeshCount());
 		pSceneDatabase->AddMesh(cd::MoveTemp(lodMesh));
 	}
