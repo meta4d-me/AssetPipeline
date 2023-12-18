@@ -55,11 +55,11 @@ public: \
 // String Type
 ////////////////////////////////////////////////////////////////////////////////////////
 #define EXPORT_STRING_TYPE_APIS(Class, Type) \
-	void Set##Type(Class##TypeTraits::Type id); \
-	const char* Get##Type() const;
+	void Set##Type(const char* pValue); \
+	const char* Get##Type() const; \
 
 #define PIMPL_STRING_TYPE_APIS(Class, Type) \
-	void Class::Set##Type(Class##TypeTraits::Type value) { return m_p##Class##Impl->Set##Type(cd::MoveTemp(value)); } \
+	void Class::Set##Type(const char* pValue) { return m_p##Class##Impl->Set##Type(pValue); } \
 	const char* Class::Get##Type() const { return m_p##Class##Impl->Get##Type().c_str(); } \
 
 #define IMPLEMENT_STRING_TYPE_APIS(Class, Type) \
@@ -75,9 +75,9 @@ public: \
 // Simple Type : bool, char, int, uint, float, double, ... in small size
 ////////////////////////////////////////////////////////////////////////////////////////
 #define EXPORT_SIMPLE_TYPE_APIS(Class, Type) \
-	void Set##Type(Class##TypeTraits::Type id); \
+	void Set##Type(Class##TypeTraits::Type value); \
 	Class##TypeTraits::Type& Get##Type(); \
-	Class##TypeTraits::Type Get##Type() const;
+	Class##TypeTraits::Type Get##Type() const; \
 
 #define PIMPL_SIMPLE_TYPE_APIS(Class, Type) \
 	void Class::Set##Type(Class##TypeTraits::Type value) { return m_p##Class##Impl->Set##Type(cd::MoveTemp(value)); } \
@@ -97,9 +97,9 @@ public: \
 // Complex Type : customized class, ... in large size
 ////////////////////////////////////////////////////////////////////////////////////////
 #define EXPORT_COMPLEX_TYPE_APIS(Class, Type) \
-	void Set##Type(Class##TypeTraits::Type id); \
+	void Set##Type(Class##TypeTraits::Type value); \
 	Class##TypeTraits::Type& Get##Type(); \
-	const Class##TypeTraits::Type& Get##Type() const;
+	const Class##TypeTraits::Type& Get##Type() const; \
 
 #define PIMPL_COMPLEX_TYPE_APIS(Class, Type) \
 	void Class::Set##Type(Class##TypeTraits::Type value) { return m_p##Class##Impl->Set##Type(cd::MoveTemp(value)); } \
