@@ -589,8 +589,6 @@ void GenericProducerImpl::AddMaterials(cd::SceneDatabase* pSceneDatabase, const 
 	}
 
 	// Add materials and associated textures(a simple filepath or raw pixel data) to SceneDatabase.
-	uint32_t actualMaterialCount = optUsedMaterialIndexes.has_value() ? static_cast<uint32_t>(optUsedMaterialIndexes.value().size()) : pSourceScene->mNumMaterials;
-	pSceneDatabase->SetMaterialCount(actualMaterialCount);
 	for (uint32_t materialIndex = 0; materialIndex < pSourceScene->mNumMaterials; ++materialIndex)
 	{
 		if (optUsedMaterialIndexes.has_value() &&
@@ -644,7 +642,6 @@ void GenericProducerImpl::AddScene(cd::SceneDatabase* pSceneDatabase, const aiSc
 
 	if (pSourceScene->HasLights())
 	{
-		pSceneDatabase->SetLightCount(pSourceScene->mNumLights);
 		for (uint32_t lightIndex = 0U; lightIndex < pSourceScene->mNumLights; ++lightIndex)
 		{
 			AddLight(pSceneDatabase, pSourceScene->mLights[lightIndex]);
@@ -653,9 +650,6 @@ void GenericProducerImpl::AddScene(cd::SceneDatabase* pSceneDatabase, const aiSc
 
 	if (pSourceScene->HasMeshes())
 	{
-		pSceneDatabase->SetNodeCount(GetSceneNodesCount(pSourceScene->mRootNode));
-		pSceneDatabase->SetMeshCount(pSourceScene->mNumMeshes);
-
 		// Add nodes and associated meshes to SceneDatabase.
 		// For assimp, bones are also treated as nodes.
 		AddNodeRecursively(pSceneDatabase, pSourceScene, pSourceScene->mRootNode, m_nodeIDGenerator.AllocateID().Data());
@@ -670,7 +664,6 @@ void GenericProducerImpl::AddScene(cd::SceneDatabase* pSceneDatabase, const aiSc
 	// Add animations.
 	if (pSourceScene->HasAnimations())
 	{
-		pSceneDatabase->SetAnimationCount(pSourceScene->mNumAnimations);
 		for (uint32_t animationIndex = 0U; animationIndex < pSourceScene->mNumAnimations; ++animationIndex)
 		{
 			AddAnimation(pSceneDatabase, pSourceScene->mAnimations[animationIndex]);

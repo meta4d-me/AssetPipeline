@@ -80,13 +80,13 @@ public: \
 	Class##TypeTraits::Type Get##Type() const; \
 
 #define PIMPL_SIMPLE_TYPE_APIS(Class, Type) \
-	void Class::Set##Type(Class##TypeTraits::Type value) { return m_p##Class##Impl->Set##Type(cd::MoveTemp(value)); } \
+	void Class::Set##Type(Class##TypeTraits::Type value) { return m_p##Class##Impl->Set##Type(value); } \
 	Class##TypeTraits::Type& Class::Get##Type() { return m_p##Class##Impl->Get##Type(); } \
 	Class##TypeTraits::Type Class::Get##Type() const { return m_p##Class##Impl->Get##Type(); } \
 
 #define IMPLEMENT_SIMPLE_TYPE_APIS(Class, Type) \
 public: \
-	void Set##Type(Class##TypeTraits::Type value) { m_##Type = MoveTemp(value); } \
+	void Set##Type(Class##TypeTraits::Type value) { m_##Type = value; } \
 	Class##TypeTraits::Type& Get##Type() { return m_##Type; } \
 	Class##TypeTraits::Type Get##Type() const { return m_##Type; } \
 private: \
@@ -129,6 +129,8 @@ public: \
 	Class##TypeTraits::Type& Get##Type(uint32_t index); \
 	const Class##TypeTraits::Type& Get##Type(uint32_t index) const; \
 	void Add##Type(Class##TypeTraits::Type element); \
+	void Shrink##Type##Plural##ToFit(); \
+	void Clear##Type##Plural(); \
 
 #define PIMPL_VECTOR_TYPE_APIS_WITH_PLURAL(Class, Type, Plural) \
 	void Class::Set##Type##Capacity(uint32_t count) { m_p##Class##Impl->Set##Type##Capacity(count); } \
@@ -141,6 +143,8 @@ public: \
 	Class##TypeTraits::Type& Class::Get##Type(uint32_t index) { return m_p##Class##Impl->Get##Type(index); } \
 	const Class##TypeTraits::Type& Class::Get##Type(uint32_t index) const { return m_p##Class##Impl->Get##Type(index); } \
 	void Class::Add##Type(Class##TypeTraits::Type element) { m_p##Class##Impl->Add##Type(cd::MoveTemp(element)); } \
+	void Class::Shrink##Type##Plural##ToFit() { m_p##Class##Impl->Shrink##Type##Plural##ToFit(); } \
+	void Class::Clear##Type##Plural() { m_p##Class##Impl->Clear##Type##Plural(); } \
 
 #define IMPLEMENT_VECTOR_TYPE_APIS_WITH_PLURAL(Class, Type, Plural) \
 public: \
@@ -154,6 +158,8 @@ public: \
 	Class##TypeTraits::Type& Get##Type(uint32_t index) { return m_##Type##Plural[index]; } \
 	const Class##TypeTraits::Type& Get##Type(uint32_t index) const { return m_##Type##Plural[index]; } \
 	void Add##Type(Class##TypeTraits::Type element) { m_##Type##Plural.push_back(cd::MoveTemp(element)); } \
+	void Shrink##Type##Plural##ToFit() { m_##Type##Plural.shrink_to_fit(); } \
+	void Clear##Type##Plural() { m_##Type##Plural.clear(); } \
 private: \
 	std::vector<Class##TypeTraits::Type> m_##Type##Plural; \
 public: \
