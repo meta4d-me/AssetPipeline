@@ -36,6 +36,7 @@ void Mesh::Init(uint32_t vertexCount, uint32_t polygonCount)
 
 PIMPL_SIMPLE_TYPE_APIS(Mesh, ID);
 PIMPL_SIMPLE_TYPE_APIS(Mesh, MaterialID);
+PIMPL_SIMPLE_TYPE_APIS(Mesh, SkinID);
 PIMPL_SIMPLE_TYPE_APIS(Mesh, VertexCount);
 PIMPL_SIMPLE_TYPE_APIS(Mesh, PolygonCount);
 PIMPL_COMPLEX_TYPE_APIS(Mesh, AABB);

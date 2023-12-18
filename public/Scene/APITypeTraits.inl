@@ -13,6 +13,7 @@ class Morph;
 class Node;
 class ParticleEmitter;
 class Skeleton;
+class Skin;
 class Texture;
 class Track;
 
@@ -36,6 +37,7 @@ struct SceneDatabaseTypeTraits
 	using Morph = cd::Morph;
 	using Node = cd::Node;
 	using ParticleEmitter = cd::ParticleEmitter;
+	using Skin = cd::Skin;
 	using Skeleton = cd::Skeleton;
 	using Texture = cd::Texture;
 	using Track = cd::Track;
@@ -136,6 +138,7 @@ struct MeshTypeTraits
 	// Simple
 	using ID = cd::MeshID;
 	using MaterialID = cd::MaterialID;
+	using SkinID = cd::SkinID;
 	using VertexCount = uint32_t;
 	using PolygonCount = uint32_t;
 
@@ -218,6 +221,25 @@ struct SkeletonTypeTraits
 	// Simple
 	using ID = cd::SkeletonID;
 	using RootBoneID = cd::BoneID;
+
+	// Vector
+	using BoneID = cd::BoneID;
+
+	// String
+	using Name = std::string;
+};
+
+// Skin
+struct SkinTypeTraits
+{
+	// Simple
+	using ID = cd::SkinID;
+	using SkeletonID = cd::SkeletonID;
+
+	// Vector
+	using VertexInfluenceBoneID = uint8_t;
+	using VertexBoneIndex = uint8_t;
+	using VertexBoneWeight = float;
 
 	// String
 	using Name = std::string;

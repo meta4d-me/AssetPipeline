@@ -32,6 +32,7 @@ using TrackID = ObjectID<uint32_t, ObjectType::Track>;
 using MorphID = ObjectID<uint32_t, ObjectType::Morph>;
 using ParticleEmitterID = ObjectID<uint32_t, ObjectType::ParticleEmitter>;
 using SkeletonID = ObjectID<uint32_t, ObjectType::Skeleton>;
+using SkinID = ObjectID<uint32_t, ObjectType::Skin>;
 static_assert(sizeof(VertexID) == sizeof(uint32_t));
 
 // ID Array

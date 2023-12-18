@@ -11,6 +11,7 @@
 #include "Scene/Mesh.h"
 #include "Scene/Morph.h"
 #include "Scene/Node.h"
+#include "Scene/Skin.h"
 #include "Scene/Skeleton.h"
 #include "Scene/Texture.h"
 #include "Scene/Track.h"
@@ -49,6 +50,7 @@ public:
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Node);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, ParticleEmitter);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Skeleton);
+	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Skin);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Texture);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Track);
 	IMPLEMENT_STRING_TYPE_APIS(SceneDatabase, Name);
@@ -95,6 +97,7 @@ public:
 		uint32_t materialCount;
 		uint32_t cameraCount;
 		uint32_t lightCount;
+		uint32_t skinCount;
 		uint32_t skeletonCount;
 		uint32_t boneCount;
 		uint32_t animationCount;
@@ -105,7 +108,8 @@ public:
 		inputArchive >> nodeCount >> meshCount >> morphCount
 			>> materialCount >> textureCount
 			>> cameraCount >> lightCount
-			>> skeletonCount >> boneCount >> animationCount >> trackCount
+			>> skinCount >> skeletonCount >> boneCount
+			>> animationCount >> trackCount
 			>> particleEmitterCount;
 
 		SetNodeCount(nodeCount);
@@ -115,7 +119,8 @@ public:
 		SetTextureCount(textureCount);
 		SetCameraCount(cameraCount);
 		SetLightCount(lightCount);
-		SetSkeletonCount(boneCount);
+		SetSkinCount(skinCount);
+		SetSkeletonCount(skeletonCount);
 		SetBoneCount(boneCount);
 		SetAnimationCount(animationCount);
 		SetTrackCount(trackCount);
@@ -156,6 +161,11 @@ public:
 			AddLight(Light(inputArchive));
 		}
 
+		for (uint32_t skinIndex = 0U; skinIndex < skinCount; ++skinIndex)
+		{
+			AddSkin(Skin(inputArchive));
+		}
+
 		for (uint32_t skeletonIndex = 0U; skeletonIndex < skeletonCount; ++skeletonIndex)
 		{
 			AddSkeleton(Skeleton(inputArchive));
@@ -191,7 +201,8 @@ public:
 			<< GetNodeCount() << GetMeshCount() << GetMorphCount()
 			<< GetMaterialCount() << GetTextureCount()
 			<< GetCameraCount() << GetLightCount()
-			<< GetSkeletonCount() << GetBoneCount() << GetAnimationCount() << GetTrackCount()
+			<< GetSkinCount() << GetSkeletonCount() << GetBoneCount()
+			<< GetAnimationCount() << GetTrackCount()
 			<< GetParticleEmitterCount();
 
 		for (uint32_t nodeIndex = 0U; nodeIndex < GetNodeCount(); ++nodeIndex)
@@ -234,6 +245,12 @@ public:
 		{
 			const Light& light = GetLight(ligthIndex);
 			light >> outputArchive;
+		}
+
+		for (uint32_t skinIndex = 0U; skinIndex < GetSkinCount(); ++skinIndex)
+		{
+			const Skin& skin = GetSkin(skinIndex);
+			skin >> outputArchive;
 		}
 
 		for (uint32_t skeletonIndex = 0U; skeletonIndex < GetSkeletonCount(); ++skeletonIndex)

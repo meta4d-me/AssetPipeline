@@ -44,6 +44,7 @@ PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Morph);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Node);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, ParticleEmitter);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Skeleton);
+PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Skin);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Texture);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Track);
 PIMPL_STRING_TYPE_APIS(SceneDatabase, Name);

@@ -15,6 +15,7 @@ public:
 
 	IMPLEMENT_SIMPLE_TYPE_APIS(Skeleton, ID);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Skeleton, RootBoneID);
+	IMPLEMENT_VECTOR_TYPE_APIS(Skeleton, BoneID);
 	IMPLEMENT_STRING_TYPE_APIS(Skeleton, Name);
 	
 	template<bool SwapBytesOrder>

@@ -51,6 +51,7 @@ public:
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Node);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, ParticleEmitter);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Skeleton);
+	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Skin);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Texture);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Track);
 	EXPORT_STRING_TYPE_APIS(SceneDatabase, Name);

@@ -21,7 +21,8 @@ enum class ObjectType
 	Track,
 	Morph,
 	ParticleEmitter,
-	Skeleton
+	Skeleton,
+	Skin
 };
 
 }

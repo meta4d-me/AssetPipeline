@@ -30,6 +30,7 @@ public:
 	
 	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, ID);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, MaterialID);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, SkinID);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, VertexCount);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, PolygonCount);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, AABB);
@@ -82,25 +83,17 @@ public:
 	template<bool SwapBytesOrder>
 	MeshImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
-		std::string meshName;
-		uint32_t meshID;
-		uint32_t meshMaterialID;
 		uint32_t vertexCount;
 		uint32_t vertexUVSetCount;
 		uint32_t vertexColorSetCount;
 		uint32_t vertexInfluenceCount;
 		uint32_t polygonCount;
 
-		inputArchive >> meshName >> meshID >> meshMaterialID
-			>> vertexCount
-			>> vertexUVSetCount >> vertexColorSetCount
-			>> vertexInfluenceCount
+		inputArchive >> GetName() >> GetID().Data() >> GetMaterialID().Data() >> GetSkinID().Data()
+			>> vertexCount >> vertexUVSetCount >> vertexColorSetCount >> vertexInfluenceCount
 			>> polygonCount;
 
-		SetID(meshID);
-		SetName(MoveTemp(meshName));
 		Init(vertexCount, polygonCount);
-		SetMaterialID(MaterialID(meshMaterialID));
 		SetVertexUVSetCount(vertexUVSetCount);
 		SetVertexColorSetCount(vertexColorSetCount);
 		SetVertexInfluenceCount(vertexInfluenceCount);
@@ -142,10 +135,8 @@ public:
 	template<bool SwapBytesOrder>
 	const MeshImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetName() << GetID().Data() << GetMaterialID().Data()
-			<< GetVertexCount()
-			<< GetVertexUVSetCount() << GetVertexColorSetCount()
-			<< GetVertexInfluenceCount()
+		outputArchive << GetName() << GetID().Data() << GetMaterialID().Data() << GetSkinID().Data()
+			<< GetVertexCount() << GetVertexUVSetCount() << GetVertexColorSetCount() << GetVertexInfluenceCount()
 			<< GetPolygonCount();
 
 		outputArchive << GetAABB();
