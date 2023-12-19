@@ -28,17 +28,18 @@ public:
 	void Init(uint32_t vertexCount, uint32_t polygonCount);
 
 	EXPORT_SIMPLE_TYPE_APIS(Mesh, ID);
-	EXPORT_SIMPLE_TYPE_APIS(Mesh, MaterialID);
 	EXPORT_SIMPLE_TYPE_APIS(Mesh, SkinID);
 	EXPORT_SIMPLE_TYPE_APIS(Mesh, VertexCount);
 	EXPORT_SIMPLE_TYPE_APIS(Mesh, PolygonCount);
 	EXPORT_COMPLEX_TYPE_APIS(Mesh, AABB);
 	EXPORT_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
+	EXPORT_VECTOR_TYPE_APIS(Mesh, MaterialID);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, MorphID);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexPosition);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexNormal);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexTangent);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
+	EXPORT_VECTOR_TYPE_APIS(Mesh, PolygonGroup);
 	EXPORT_STRING_TYPE_APIS(Mesh, Name);
 
 	void UpdateAABB();
@@ -71,13 +72,6 @@ public:
 	const std::vector<VertexWeight>& GetVertexWeights(uint32_t boneIndex) const;
 	VertexWeight& GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex);
 	const VertexWeight& GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex) const;
-
-	void SetPolygon(uint32_t polygonIndex, Polygon polygon);
-	std::vector<Polygon>& GetPolygons();
-	const std::vector<Polygon>& GetPolygons() const;
-	Polygon& GetPolygon(uint32_t polygonIndex);
-	const Polygon& GetPolygon(uint32_t polygonIndex) const;
-	cd::VertexID GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const;
 };
 
 }

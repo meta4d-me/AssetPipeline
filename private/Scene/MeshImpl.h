@@ -29,17 +29,18 @@ public:
 	void Init(uint32_t vertexCount, uint32_t polygonCount);
 	
 	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, ID);
-	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, MaterialID);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, SkinID);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, VertexCount);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, PolygonCount);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, AABB);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
+	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, MaterialID);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, MorphID);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexPosition);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexNormal);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexTangent);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
+	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, PolygonGroup);
 	IMPLEMENT_STRING_TYPE_APIS(Mesh, Name);
 
 	void UpdateAABB();
@@ -73,13 +74,6 @@ public:
 	std::vector<VertexWeight>& GetVertexWeights(uint32_t boneIndex) { return m_vertexWeights[boneIndex]; }
 	const std::vector<VertexWeight>& GetVertexWeights(uint32_t boneIndex) const { return m_vertexWeights[boneIndex]; }
 
-	void SetPolygon(uint32_t polygonIndex, cd::Polygon polygon);
-	std::vector<Polygon>& GetPolygons() { return m_polygons; }
-	const std::vector<Polygon>& GetPolygons() const { return m_polygons; }
-	Polygon& GetPolygon(uint32_t polygonIndex) { return m_polygons[polygonIndex]; }
-	const Polygon& GetPolygon(uint32_t polygonIndex) const { return m_polygons[polygonIndex]; }
-	cd::VertexID GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const;
-
 	template<bool SwapBytesOrder>
 	MeshImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
@@ -89,7 +83,7 @@ public:
 		uint32_t vertexInfluenceCount;
 		uint32_t polygonCount;
 
-		inputArchive >> GetName() >> GetID().Data() >> GetMaterialID().Data() >> GetSkinID().Data()
+		inputArchive >> GetName() >> GetID().Data() >> GetSkinID().Data()
 			>> vertexCount >> vertexUVSetCount >> vertexColorSetCount >> vertexInfluenceCount
 			>> polygonCount;
 
@@ -121,13 +115,13 @@ public:
 			inputArchive.ImportBuffer(GetVertexWeights(boneIndex).data());
 		}
 
-		for (uint32_t polygonIndex = 0U; polygonIndex < GetPolygonCount(); ++polygonIndex)
-		{
-			auto& polygon = GetPolygon(polygonIndex);
-			uint64_t bufferSize = inputArchive.FetchBufferSize();
-			polygon.resize(bufferSize / sizeof(uint32_t));
-			inputArchive.ImportBuffer(polygon.data(), bufferSize);
-		}
+		//for (uint32_t polygonIndex = 0U; polygonIndex < GetPolygonCount(); ++polygonIndex)
+		//{
+		//	auto& polygon = GetPolygon(polygonIndex);
+		//	uint64_t bufferSize = inputArchive.FetchBufferSize();
+		//	polygon.resize(bufferSize / sizeof(uint32_t));
+		//	inputArchive.ImportBuffer(polygon.data(), bufferSize);
+		//}
 
 		return *this;
 	}
@@ -135,7 +129,7 @@ public:
 	template<bool SwapBytesOrder>
 	const MeshImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetName() << GetID().Data() << GetMaterialID().Data() << GetSkinID().Data()
+		outputArchive << GetName() << GetID().Data() << GetSkinID().Data()
 			<< GetVertexCount() << GetVertexUVSetCount() << GetVertexColorSetCount() << GetVertexInfluenceCount()
 			<< GetPolygonCount();
 
@@ -162,10 +156,10 @@ public:
 			outputArchive.ExportBuffer(GetVertexWeights(boneIndex).data(), GetVertexWeights(boneIndex).size());
 		}
 
-		for (uint32_t polygonIndex = 0U; polygonIndex < GetPolygonCount(); ++polygonIndex)
-		{
-			outputArchive.ExportBuffer(GetPolygon(polygonIndex).data(), GetPolygon(polygonIndex).size());
-		}
+		//for (uint32_t polygonIndex = 0U; polygonIndex < GetPolygonCount(); ++polygonIndex)
+		//{
+		//	outputArchive.ExportBuffer(GetPolygon(polygonIndex).data(), GetPolygon(polygonIndex).size());
+		//}
 
 		return *this;
 	}
@@ -182,9 +176,6 @@ private:
 	// vertex skin data
 	std::vector<BoneID>			m_vertexBoneIDs[MaxBoneInfluenceCount];
 	std::vector<VertexWeight>	m_vertexWeights[MaxBoneInfluenceCount];
-
-	// polygon data
-	std::vector<Polygon>		m_polygons;
 };
 
 }

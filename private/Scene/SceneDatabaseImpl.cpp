@@ -188,19 +188,24 @@ void SceneDatabaseImpl::Dump() const
 		}
 	}
 
-	std::map<uint32_t, std::vector<uint32_t>> materialDrawMeshIDs;
+	std::map<MaterialID, std::map<MeshID, std::vector<uint32_t>>> materialDrawMeshPolygonGroupIDs;
 	if (GetMeshCount() > 0U)
 	{
 		printf("\n");
 		for (const auto& mesh : GetMeshes())
 		{
-			printf("[Mesh %u] Name = %s\n", mesh.GetID().Data(), mesh.GetName());
-			printf("\tVertexCount = %u, TriangleCount = %u\n", mesh.GetVertexCount(), mesh.GetPolygonCount());
-			if (mesh.GetMaterialID().IsValid())
+			printf("[Mesh %u] Name = %s, VertexCount = %u\n", mesh.GetID().Data(), mesh.GetName(), mesh.GetVertexCount());
+			const auto& polygonGroups = mesh.GetPolygonGroups();
+			for (uint32_t polygonGroupIndex = 0U; polygonGroupIndex < polygonGroups.size(); ++polygonGroupIndex)
 			{
-				printf("\t[Associated Material %u]\n", mesh.GetMaterialID().Data());
+				auto& polygonGroup = polygonGroups[polygonGroupIndex];
+				printf("\t[PolygonGroup %u] PolygonCount = %u\n", polygonGroupIndex, static_cast<uint32_t>(polygonGroup.size()));
+				if (auto materialID = mesh.GetMaterialID(polygonGroupIndex); materialID.IsValid())
+				{
+					printf("\t\t[Associated Material %u]\n", materialID.Data());
 
-				materialDrawMeshIDs[mesh.GetMaterialID().Data()].push_back(mesh.GetID().Data());
+					materialDrawMeshPolygonGroupIDs[materialID][mesh.GetID()].push_back(polygonGroupIndex);
+				}
 			}
 		}
 	}
@@ -279,13 +284,17 @@ void SceneDatabaseImpl::Dump() const
 				}
 			}
 
-			if (auto itDrawMeshes = materialDrawMeshIDs.find(material.GetID().Data());
-				itDrawMeshes != materialDrawMeshIDs.end())
+			if (auto itDrawMeshPolygonGroups = materialDrawMeshPolygonGroupIDs.find(material.GetID().Data());
+				itDrawMeshPolygonGroups != materialDrawMeshPolygonGroupIDs.end())
 			{
-				for (uint32_t drawMeshID : itDrawMeshes->second)
+				for (const auto& [drawMeshID, drawPolygonGroupIndexes] : itDrawMeshPolygonGroups->second)
 				{
-					const auto& mesh = GetMesh(drawMeshID);
-					printf("\t[Associated Mesh %u] %s \n", drawMeshID, mesh.GetName());
+					const auto& mesh = GetMesh(drawMeshID.Data());
+					printf("\t[Associated Mesh %u] %s \n", drawMeshID.Data(), mesh.GetName());
+					for (uint32_t drawPolygonGroupIndex : drawPolygonGroupIndexes)
+					{
+						printf("\t\tPolygonGroup Index = %u\n", drawPolygonGroupIndex);
+					}
 				}
 			}
 		}
@@ -517,7 +526,10 @@ void SceneDatabaseImpl::Merge(cd::SceneDatabaseImpl&& sceneDatabaseImpl)
 	for (auto& mesh : sceneDatabaseImpl.GetMeshes())
 	{
 		mesh.SetID(GetMeshCount());
-		mesh.SetMaterialID(mesh.GetMaterialID().Data() + originMaterialCount);
+		for (auto& materialID : mesh.GetMaterialIDs())
+		{
+			materialID.Set(materialID.Data() + originMaterialCount);
+		}
 		for (auto& morphID : mesh.GetMorphIDs())
 		{
 			morphID.Set(morphID.Data() + originMorphCount);

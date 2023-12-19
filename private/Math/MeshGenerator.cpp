@@ -94,10 +94,12 @@ std::optional<Mesh> MeshGenerator::Generate(const Box& box, const VertexFormat& 
 		mesh.SetVertexPosition(i, positions[i]);
 	}
 
+	cd::PolygonGroup polygonGroup;
 	for (uint32_t i = 0U; i < polygons.size(); ++i)
 	{
-		mesh.SetPolygon(i, polygons[i]);
+		polygonGroup.push_back(polygons[i]);
 	}
+	mesh.AddPolygonGroup(cd::MoveTemp(polygonGroup));
 
 	cd::VertexFormat meshVertexFormat;
 	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
@@ -211,14 +213,13 @@ std::optional<Mesh> MeshGenerator::Generate(const Sphere& sphere, uint32_t numSt
 	}
 
 	// Generate indices
-	uint32_t polygonIndex = 0U;
-
 	uint32_t stackIndex = 0U;
 	uint32_t stackStart = stackIndex * (numSlices + 1);
 	uint32_t stackEnd = stackStart + numSlices + 1;
+	cd::PolygonGroup polygonGroup;
 	for (uint32_t sliceIndex = 0U; sliceIndex < numSlices; ++sliceIndex)
 	{
-		mesh.SetPolygon(polygonIndex++, { stackStart + sliceIndex, stackEnd + sliceIndex, stackEnd + sliceIndex + 1 });
+		polygonGroup.push_back({ stackStart + sliceIndex, stackEnd + sliceIndex, stackEnd + sliceIndex + 1 });
 	}
 
 	for (stackIndex = 1U; stackIndex < numStacks - 1; ++stackIndex)
@@ -228,8 +229,8 @@ std::optional<Mesh> MeshGenerator::Generate(const Sphere& sphere, uint32_t numSt
 
 		for (uint32_t sliceIndex = 0U; sliceIndex < numSlices; ++sliceIndex)
 		{
-			mesh.SetPolygon(polygonIndex++, { stackStart + sliceIndex, stackEnd + sliceIndex, stackEnd + sliceIndex + 1 });
-			mesh.SetPolygon(polygonIndex++, { stackStart + sliceIndex, stackEnd + sliceIndex + 1, stackStart + sliceIndex + 1 });
+			polygonGroup.push_back({ stackStart + sliceIndex, stackEnd + sliceIndex, stackEnd + sliceIndex + 1 });
+			polygonGroup.push_back({ stackStart + sliceIndex, stackEnd + sliceIndex + 1, stackStart + sliceIndex + 1 });
 		}
 	}
 
@@ -237,8 +238,9 @@ std::optional<Mesh> MeshGenerator::Generate(const Sphere& sphere, uint32_t numSt
 	stackEnd = stackStart + numSlices + 1;
 	for (uint32_t sliceIndex = 0U; sliceIndex < numSlices; ++sliceIndex)
 	{
-		mesh.SetPolygon(polygonIndex++, { stackStart + sliceIndex, stackEnd + sliceIndex, stackStart + sliceIndex + 1 });
+		polygonGroup.push_back({ stackStart + sliceIndex, stackEnd + sliceIndex, stackStart + sliceIndex + 1 });
 	}
+	mesh.AddPolygonGroup(cd::MoveTemp(polygonGroup));
 
 	// Add other vertex attributes.
 	if (vertexFormat.Contains(VertexAttributeType::Normal))

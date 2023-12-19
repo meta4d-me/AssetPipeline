@@ -6,6 +6,7 @@ namespace cdtools
 enum class FbxProducerOptions
 {
 	ImportAnimation,
+	ImportBlendShape,
 	ImportMaterial,
 	ImportTexture,
 	ImportLight,

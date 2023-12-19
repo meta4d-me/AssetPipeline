@@ -149,7 +149,9 @@ void GenericProducerImpl::AddNodeRecursively(cd::SceneDatabase* pSceneDatabase, 
 	for (uint32_t meshIndex = 0; meshIndex < pSourceNode->mNumMeshes; ++meshIndex)
 	{
 		uint32_t sceneMeshIndex = pSourceNode->mMeshes[meshIndex];
-		cd::MeshID meshID = AddMesh(pSceneDatabase, pSourceScene->mMeshes[sceneMeshIndex]);
+		const aiMesh* pSourceMesh = pSourceScene->mMeshes[sceneMeshIndex];
+		const aiMaterial* pSourceMaterial = pSourceScene->mMaterials[pSourceMesh->mMaterialIndex];
+		cd::MeshID meshID = AddMesh(pSceneDatabase, pSourceMesh, GetMaterialID(pSourceMaterial));
 		sceneNode.AddMeshID(meshID);
 	}
 
@@ -170,7 +172,7 @@ void GenericProducerImpl::AddNodeRecursively(cd::SceneDatabase* pSceneDatabase, 
 	}
 }
 
-cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh)
+cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh, cd::MaterialID materialID)
 {
 	assert(pSourceMesh->mFaces && pSourceMesh->mNumFaces > 0 && "No polygon data.");
 
@@ -185,8 +187,7 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 	cd::MeshID::ValueType meshHash = cd::StringHash<cd::MeshID::ValueType>(meshHashString.str());
 	cd::MeshID meshID = m_meshIDGenerator.AllocateID(meshHash);
 	cd::Mesh mesh(meshID, pSourceMesh->mName.C_Str(), numVertices, pSourceMesh->mNumFaces);
-	mesh.SetMaterialID(cd::MaterialID(m_materialIDGenerator.GetCurrentID() + pSourceMesh->mMaterialIndex));
-
+	
 	// By default, aabb will be empty.
 	if (IsOptionEnabled(GenericProducerOptions::GenerateBoundingBox))
 	{
@@ -195,13 +196,17 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 		mesh.SetAABB(cd::MoveTemp(meshAABB));
 	}
 
+	// Assimp seems not to create concepts for polygon groups. Only one material and one polygon group will be created.
+	cd::PolygonGroup polygonGroup;
 	for (uint32_t faceIndex = 0; faceIndex < pSourceMesh->mNumFaces; ++faceIndex)
 	{
 		const aiFace& face = pSourceMesh->mFaces[faceIndex];
 		assert(face.mNumIndices == 3 && "Do you forget to open importer's triangulate flag?");
 
-		mesh.SetPolygon(faceIndex, { face.mIndices[0], face.mIndices[1], face.mIndices[2] });
+		polygonGroup.emplace_back(cd::Polygon{ face.mIndices[0], face.mIndices[1], face.mIndices[2] });
 	}
+	mesh.AddMaterialID(materialID);
+	mesh.AddPolygonGroup(cd::MoveTemp(polygonGroup));
 
 	cd::VertexFormat meshVertexFormat;
 	assert(pSourceMesh->HasPositions() && "Mesh doesn't have vertex positions.");
@@ -287,6 +292,33 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 	return meshID;
 }
 
+std::string GenericProducerImpl::GetMaterialName(const aiMaterial* pSourceMaterial) const
+{
+	aiString materialName;
+	if (aiReturn_SUCCESS != aiGetMaterialString(pSourceMaterial, AI_MATKEY_NAME, &materialName))
+	{
+		assert("\tMaterial name is not found.\n");
+	}
+
+	std::string finalMaterialName;
+	if (materialName.length > 0)
+	{
+		finalMaterialName = materialName.C_Str();
+	}
+	else
+	{
+		finalMaterialName = "unnamed";
+	}
+
+	return finalMaterialName;
+}
+
+cd::MaterialID GenericProducerImpl::GetMaterialID(const aiMaterial* pSourceMaterial)
+{
+	cd::MaterialID::ValueType materialHash = cd::StringHash<cd::MaterialID::ValueType>(GetMaterialName(pSourceMaterial));
+	return m_materialIDGenerator.AllocateID(materialHash);
+}
+
 cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial)
 {
 	// Mapping assimp material key to pbr based material key.
@@ -302,23 +334,7 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 	materialTextureMapping[aiTextureType_AMBIENT_OCCLUSION] = cd::MaterialTextureType::Occlusion;
 	materialTextureMapping[aiTextureType_LIGHTMAP] = cd::MaterialTextureType::Occlusion;
 
-	aiString materialName;
-	if (aiReturn_SUCCESS != aiGetMaterialString(pSourceMaterial, AI_MATKEY_NAME, &materialName))
-	{
-		assert("\tMaterial name is not found.\n");
-	}
-
-	std::string finalMaterialName;
-	if (materialName.length > 0)
-	{
-		finalMaterialName = materialName.C_Str();
-	}
-	else
-	{
-		finalMaterialName = "untitled_";
-		finalMaterialName += std::to_string(pSceneDatabase->GetMaterialCount());
-	}
-
+	std::string finalMaterialName = GetMaterialName(pSourceMaterial);
 	bool isMaterialReused;
 	cd::MaterialID::ValueType materialHash = cd::StringHash<cd::MaterialID::ValueType>(finalMaterialName);
 	cd::MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, &isMaterialReused);
@@ -467,33 +483,38 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 
 void GenericProducerImpl::AddMaterials(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene)
 {
-	std::optional<std::set<uint32_t>> optUsedMaterialIndexes = std::nullopt;
+	std::optional<std::set<cd::MaterialID>> optUsedMaterialIDs = std::nullopt;
 	if (IsOptionEnabled(GenericProducerOptions::CleanUnusedObjects))
 	{
-		optUsedMaterialIndexes = std::set<uint32_t>();
+		optUsedMaterialIDs = std::set<cd::MaterialID>();
 	}
 
 	// As we parsed meshes at first, so we can analyze how many materials are actually used.
 	for (const auto& mesh : pSceneDatabase->GetMeshes())
 	{
 		// Query mesh used material indexes.
-		if (optUsedMaterialIndexes.has_value())
+		if (optUsedMaterialIDs.has_value())
 		{
-			optUsedMaterialIndexes.value().insert(mesh.GetMaterialID().Data());
+			for (auto usedMaterialID : mesh.GetMaterialIDs())
+			{
+				optUsedMaterialIDs.value().insert(usedMaterialID.Data());
+			}
 		}
 	}
 
 	// Add materials and associated textures(a simple filepath or raw pixel data) to SceneDatabase.
 	for (uint32_t materialIndex = 0; materialIndex < pSourceScene->mNumMaterials; ++materialIndex)
 	{
-		if (optUsedMaterialIndexes.has_value() &&
-			!optUsedMaterialIndexes.value().contains(materialIndex))
+		const auto& pSourceMaterial = pSourceScene->mNumMaterials[materialIndex];
+		cd::MaterialID materialID = GetMaterialID(pSourceMaterial);
+		if (optUsedMaterialIDs.has_value() &&
+			!optUsedMaterialIDs.value().contains(materialID))
 		{
 			// Skip parsing unused materials.
 			continue;
 		}
 
-		AddMaterial(pSceneDatabase, pSourceScene->mMaterials[materialIndex]);
+		AddMaterial(pSceneDatabase, pSourceMaterial);
 	}
 }
 

@@ -122,12 +122,15 @@ void ProcessorImpl::Run()
 		m_pProducer->Execute(m_pCurrentSceneDatabase);
 	}
 
-	ConvertAxisSystem();
-
 	// Adding post processing here.
 	// SceneDatabaseValidator will help to validate if data is correct before and after.
 	{
 		details::SceneDatabaseValidator validator(this);
+
+		if (m_options.IsEnabled(ProcessorOptions::ConvertAxisSystem))
+		{
+			ConvertAxisSystem();
+		}
 
 		if (m_options.IsEnabled(ProcessorOptions::FlattenHierarchy))
 		{
@@ -200,14 +203,19 @@ void ProcessorImpl::ConvertAxisSystem()
 				bitangent.z() = -bitangent.z();
 			}
 
-			for (uint32_t polygonIndex = 0U; polygonIndex < mesh.GetPolygonCount(); ++polygonIndex)
+			for (uint32_t polygonGroupIndex = 0U; polygonGroupIndex < mesh.GetPolygonGroupCount(); ++polygonGroupIndex)
 			{
-				auto& polygon = mesh.GetPolygon(polygonIndex);
-				uint32_t polygonVertexCount = static_cast<uint32_t>(polygon.size());
-				uint32_t polygonVertexHalfCount = polygonVertexCount >> 1;
-				for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexHalfCount; ++polygonVertexIndex)
+				auto& polygonGroup = mesh.GetPolygonGroup(polygonGroupIndex);
+
+				for (uint32_t polygonIndex = 0U; polygonIndex < polygonGroup.size(); ++polygonIndex)
 				{
-					std::swap(polygon[polygonVertexIndex], polygon[polygonVertexCount - 1 - polygonVertexIndex]);
+					auto& polygon = polygonGroup[polygonIndex];
+					uint32_t polygonVertexCount = static_cast<uint32_t>(polygon.size());
+					uint32_t polygonVertexHalfCount = polygonVertexCount >> 1;
+					for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexHalfCount; ++polygonVertexIndex)
+					{
+						std::swap(polygon[polygonVertexIndex], polygon[polygonVertexCount - 1 - polygonVertexIndex]);
+					}
 				}
 			}
 		}

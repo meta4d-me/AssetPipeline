@@ -10,6 +10,7 @@ enum class ProcessorOptions
 	CalculateAABB,
 	FlattenHierarchy,
 	EmbedTextureFiles,
+	ConvertAxisSystem,
 };
 
 }

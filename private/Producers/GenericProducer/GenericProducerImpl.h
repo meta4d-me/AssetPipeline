@@ -47,7 +47,11 @@ private:
 
 	void AddScene(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene);
 	void AddNodeRecursively(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene, const aiNode* pSourceNode, uint32_t nodeID);
-	cd::MeshID AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh);
+	
+	cd::MeshID AddMesh(cd::SceneDatabase* pSceneDatabase, const aiMesh* pSourceMesh, cd::MaterialID materialID);
+
+	std::string GetMaterialName(const aiMaterial* pSourceMaterial) const;
+	cd::MaterialID GetMaterialID(const aiMaterial* pSourceMaterial);
 	cd::MaterialID AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial);
 	void AddMaterials(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene);
 

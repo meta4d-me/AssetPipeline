@@ -57,7 +57,6 @@ public:
 	bool IsOptionEnabled(FbxProducerOptions option) const { return m_options.IsEnabled(option); }
 
 private:
-	int GetSceneNodeCount(const fbxsdk::FbxNode* pSceneNode);
 	void TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase);
 
 	void AddMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial);
@@ -65,7 +64,9 @@ private:
 	cd::MaterialID AddMaterial(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, cd::SceneDatabase* pSceneDatabase);
 
 	cd::NodeID AddNode(const fbxsdk::FbxNode* pSDKNode, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase);
+
 	cd::LightID AddLight(const fbxsdk::FbxLight* pFbxLight, const char* pLightName, cd::Transform transform, cd::SceneDatabase* pSceneDatabase);
+
 	cd::MeshID AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char* pMeshName, std::optional<int32_t> optMaterialIndex, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase);
 	std::vector<cd::MorphID> AddMorphs(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, const std::map<uint32_t, uint32_t>& mapVertexIDToControlPointIndex, cd::SceneDatabase* pSceneDatabase);
 
@@ -77,17 +78,19 @@ private:
 private:
 	std::string m_filePath;
 	cd::BitFlags<FbxProducerOptions> m_options;
+
 	fbxsdk::FbxManager* m_pSDKManager = nullptr;
 	std::unique_ptr<fbxsdk::FbxGeometryConverter> m_pSDKGeometryConverter;
 
-	std::map<int32_t, uint32_t> m_fbxMaterialIndexToMaterialID;
 	cd::ObjectIDGenerator<cd::AnimationID> m_animationIDGenerator;
 	cd::ObjectIDGenerator<cd::BoneID> m_boneIDGenerator;
 	cd::ObjectIDGenerator<cd::LightID> m_lightIDGenerator;
 	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
 	cd::ObjectIDGenerator<cd::MeshID> m_meshIDGenerator;
-	cd::ObjectIDGenerator<cd::MorphID> m_morphIDGenerator;
 	cd::ObjectIDGenerator<cd::NodeID> m_nodeIDGenerator;
+	cd::ObjectIDGenerator<cd::MorphID> m_morphIDGenerator;
+	cd::ObjectIDGenerator<cd::SkeletonID> m_skeletonIDGenerator;
+	cd::ObjectIDGenerator<cd::SkinID> m_skinIDGenerator;
 	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
 	cd::ObjectIDGenerator<cd::TrackID> m_trackIDGenerator;
 };

@@ -82,14 +82,17 @@ void FbxConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
 		}
 
 		pFbxMesh->ReservePolygonCount(mesh.GetPolygonCount());
-		for (const auto& polygon : mesh.GetPolygons())
+		for (const auto& polygonGroup : mesh.GetPolygonGroups())
 		{
-			pFbxMesh->BeginPolygon(-1, -1, -1, false);
-			for (uint32_t index = 0U; index < polygon.size(); ++index)
+			for (const auto& polygon : polygonGroup)
 			{
-				pFbxMesh->AddPolygon(polygon[index].Data());
+				pFbxMesh->BeginPolygon(-1, -1, -1, false);
+				for (uint32_t index = 0U; index < polygon.size(); ++index)
+				{
+					pFbxMesh->AddPolygon(polygon[index].Data());
+				}
+				pFbxMesh->EndPolygon();
 			}
-			pFbxMesh->EndPolygon();
 		}
 
 		fbxsdk::FbxNode* pFbxNode = fbxsdk::FbxNode::Create(m_pSDKScene, pFbxMesh->GetName());

@@ -35,17 +35,18 @@ void Mesh::Init(uint32_t vertexCount, uint32_t polygonCount)
 }
 
 PIMPL_SIMPLE_TYPE_APIS(Mesh, ID);
-PIMPL_SIMPLE_TYPE_APIS(Mesh, MaterialID);
 PIMPL_SIMPLE_TYPE_APIS(Mesh, SkinID);
 PIMPL_SIMPLE_TYPE_APIS(Mesh, VertexCount);
 PIMPL_SIMPLE_TYPE_APIS(Mesh, PolygonCount);
 PIMPL_COMPLEX_TYPE_APIS(Mesh, AABB);
 PIMPL_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
+PIMPL_VECTOR_TYPE_APIS(Mesh, MaterialID);
 PIMPL_VECTOR_TYPE_APIS(Mesh, MorphID);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexPosition);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexNormal);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexTangent);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
+PIMPL_VECTOR_TYPE_APIS(Mesh, PolygonGroup);
 PIMPL_STRING_TYPE_APIS(Mesh, Name);
 
 void Mesh::UpdateAABB()
@@ -190,39 +191,6 @@ VertexWeight& Mesh::GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex)
 const VertexWeight& Mesh::GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex) const
 {
 	return m_pMeshImpl->GetVertexWeight(boneIndex, vertexIndex);
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Polygon index data
-//////////////////////////////////////////////////////////////////////////
-void Mesh::SetPolygon(uint32_t polygonIndex, cd::Polygon polygon)
-{
-	m_pMeshImpl->SetPolygon(polygonIndex, cd::MoveTemp(polygon));
-}
-
-std::vector<Polygon>& Mesh::GetPolygons()
-{
-	return m_pMeshImpl->GetPolygons();
-}
-
-const std::vector<Polygon>& Mesh::GetPolygons() const
-{
-	return m_pMeshImpl->GetPolygons();
-}
-
-Polygon& Mesh::GetPolygon(uint32_t polygonIndex)
-{
-	return m_pMeshImpl->GetPolygon(polygonIndex);
-}
-
-const Polygon& Mesh::GetPolygon(uint32_t polygonIndex) const
-{
-	return m_pMeshImpl->GetPolygon(polygonIndex);
-}
-
-cd::VertexID Mesh::GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const
-{
-	return m_pMeshImpl->GetPolygonVertexID(polygonIndex, vertexIndex);
 }
 
 }

@@ -228,9 +228,6 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 
 	// Query scene information and prepare to import.
 	pSceneDatabase->SetName(m_filePath.c_str());
-	m_materialIDGenerator.SetCurrentID(pSceneDatabase->GetMaterialCount());
-	m_textureIDGenerator.SetCurrentID(pSceneDatabase->GetTextureCount());
-	m_meshIDGenerator.SetCurrentID(pSceneDatabase->GetMeshCount());
 
 	// Convert fbx materials to cd materials.
 	if (IsOptionEnabled(FbxProducerOptions::ImportMaterial))
@@ -241,19 +238,13 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		{
 			fbxsdk::FbxSurfaceMaterial* pSDKMaterial = sdkMaterials[materialIndex];
 			cd::MaterialID materialID = AddMaterial(pSDKMaterial, pSceneDatabase);
-			m_fbxMaterialIndexToMaterialID[materialIndex] = materialID.Data();
+			assert(materialIndex == materialID.Data());
 		}
 	}
 
 	// Convert fbx scene nodes/meshes to cd scene nodes/meshes.
-	uint32_t sceneNodeCount = static_cast<uint32_t>(GetSceneNodeCount(pSDKScene->GetRootNode()));
-	if (sceneNodeCount > 0U)
-	{
-		uint32_t oldNodeCount = pSceneDatabase->GetNodeCount();
-		m_nodeIDGenerator.SetCurrentID(oldNodeCount);
-		pSceneDatabase->SetNodeCount(oldNodeCount + sceneNodeCount);
-		TraverseNodeRecursively(pSDKScene->GetRootNode(), cd::NodeID::InvalidID, pSceneDatabase);
-	}
+	assert(pSDKScene->GetRootNode());
+	TraverseNodeRecursively(pSDKScene->GetRootNode(), cd::NodeID::InvalidID, pSceneDatabase);
 
 	if (IsOptionEnabled(FbxProducerOptions::ImportAnimation))
 	{
@@ -263,28 +254,6 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 			ProcessAnimation(pSDKScene, pSceneDatabase);
 		}
 	}
-}
-
-int FbxProducerImpl::GetSceneNodeCount(const fbxsdk::FbxNode* pSceneNode)
-{
-	if (0 == pSceneNode->GetChildCount())
-	{
-		return 1;
-	}
-
-	int totalCount = 0;
-	for (int childIndex = 0; childIndex < pSceneNode->GetChildCount(); ++childIndex)
-	{
-		const fbxsdk::FbxNode* pChildNode = pSceneNode->GetChild(childIndex);
-		const fbxsdk::FbxNodeAttribute* pNodeAttribute = pSceneNode->GetNodeAttribute();
-		if (nullptr == pNodeAttribute ||
-			fbxsdk::FbxNodeAttribute::eNull == pNodeAttribute->GetAttributeType())
-		{
-			totalCount += GetSceneNodeCount(pChildNode);
-		}
-	}
-
-	return totalCount;
 }
 
 void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase)
@@ -456,8 +425,8 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 	uint32_t controlPointCount = pFbxMesh->GetControlPointsCount();
 	uint32_t totalPolygonCount = pFbxMesh->GetPolygonCount();
 
-	uint32_t availablePolygonCount = 0U;
-	uint32_t availableVertexCount = 0U;
+	uint32_t availablePolygonCount = totalPolygonCount;
+	uint32_t availableVertexCount = pFbxMesh->GetPolygonVertexCount();
 	const fbxsdk::FbxLayerElementMaterial* pLayerElementMaterial = pMeshBaseLayer->GetMaterials();
 	bool splitPolygonByMaterial = optMaterialIndex.has_value() && fbxsdk::FbxLayerElement::eByPolygon == pLayerElementMaterial->GetMappingMode();
 	if (splitPolygonByMaterial)
@@ -555,10 +524,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 
 	if (optMaterialIndex.has_value())
 	{
-		int32_t materialIndex = optMaterialIndex.value();
-		auto itMaterialID = m_fbxMaterialIndexToMaterialID.find(materialIndex);
-		assert(itMaterialID != m_fbxMaterialIndexToMaterialID.end());
-		mesh.SetMaterialID(itMaterialID->second);
+		mesh.SetMaterialID(optMaterialIndex.value());
 	}
 
 	// Process polygon and vertex data.
@@ -626,6 +592,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 			}
 		}
 
+		// Tangents
 		if (applyTangentData)
 		{
 			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
@@ -686,94 +653,102 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 	}
 
 	// BlendShape
-	int32_t blendShapeCount = pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eBlendShape);
-	assert(blendShapeCount <= 1 && "Why use two blendshape in a mesh?");
-	for (int32_t blendShapeIndex = 0; blendShapeIndex < blendShapeCount; ++blendShapeIndex)
+	if (IsOptionEnabled(FbxProducerOptions::ImportBlendShape))
 	{
-		const fbxsdk::FbxBlendShape* pBlendShape = static_cast<fbxsdk::FbxBlendShape*>(pFbxMesh->GetDeformer(blendShapeIndex, fbxsdk::FbxDeformer::eBlendShape));
-		mesh.SetMorphIDs(AddMorphs(pBlendShape, mesh, mapVertexIDToControlPointIndex, pSceneDatabase));
+		int32_t blendShapeCount = pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eBlendShape);
+		assert(blendShapeCount <= 1 && "Why use two blendshape in a mesh?");
+		for (int32_t blendShapeIndex = 0; blendShapeIndex < blendShapeCount; ++blendShapeIndex)
+		{
+			const fbxsdk::FbxBlendShape* pBlendShape = static_cast<fbxsdk::FbxBlendShape*>(pFbxMesh->GetDeformer(blendShapeIndex, fbxsdk::FbxDeformer::eBlendShape));
+			mesh.SetMorphIDs(AddMorphs(pBlendShape, mesh, mapVertexIDToControlPointIndex, pSceneDatabase));
+		}
 	}
 
 	// Skin
-	std::map<uint32_t, uint32_t> mapVertexIndexToCurrentBoneCount;
-	for (int32_t deformerIndex = 0; deformerIndex < skinDeformerCount; ++deformerIndex)
+	if (IsOptionEnabled(FbxProducerOptions::ImportSkinMesh))
 	{
-		auto* pSkinDeformer = static_cast<fbxsdk::FbxSkin*>(pFbxMesh->GetDeformer(deformerIndex, fbxsdk::FbxDeformer::eSkin));
-		pSceneDatabase->SetBoneCount(pSkinDeformer->GetClusterCount());
-		for (int32_t clusterIndex = 0; clusterIndex < pSkinDeformer->GetClusterCount(); ++clusterIndex)
+		std::map<uint32_t, uint32_t> mapVertexIndexToCurrentBoneCount;
+		for (int32_t deformerIndex = 0; deformerIndex < skinDeformerCount; ++deformerIndex)
 		{
-			// Cluster is an intermediate link node which connects bones to mesh shapes.
-			fbxsdk::FbxCluster* pCluster = pSkinDeformer->GetCluster(clusterIndex);
-			
-			bool isBoneReused = false;
-			const char* pBoneName = pCluster->GetLink()->GetName();
-			cd::BoneID::ValueType boneHash = cd::StringHash<cd::BoneID::ValueType>(pBoneName);
-			cd::BoneID boneID = m_boneIDGenerator.AllocateID(boneHash, &isBoneReused);
-			if (!isBoneReused)
+			auto* pSkinDeformer = static_cast<fbxsdk::FbxSkin*>(pFbxMesh->GetDeformer(deformerIndex, fbxsdk::FbxDeformer::eSkin));
+			pSceneDatabase->SetBoneCount(pSkinDeformer->GetClusterCount());
+			for (int32_t clusterIndex = 0; clusterIndex < pSkinDeformer->GetClusterCount(); ++clusterIndex)
 			{
-				cd::Bone bone(boneID, pBoneName);
-				fbxsdk::FbxNode* pBoneNode = pCluster->GetLink();
-				assert(pBoneNode);
+				// Cluster is an intermediate link node which connects bones to mesh shapes.
+				fbxsdk::FbxCluster* pCluster = pSkinDeformer->GetCluster(clusterIndex);
 
-				fbxsdk::FbxAMatrix transformMatrix;
-				fbxsdk::FbxAMatrix transformLinkMatrix;
-				pCluster->GetTransformLinkMatrix(transformLinkMatrix);
-				pCluster->GetTransformMatrix(transformMatrix);
-
-				FbxAMatrix geometryTransform = details::GetGeometryTransformation(pBoneNode);
-				assert(geometryTransform.IsIdentity());
-
-				fbxsdk::FbxAMatrix globalBindposeInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform;
-				
-				fbxsdk::FbxTime increment;
-				increment.SetSecondDouble(0);
-
-				bone.SetTransform(details::ConvertFbxMatrixToTranform(globalBindposeInverseMatrix.Inverse()));
-				bone.SetOffset(details::ConvertFbxMatrixToCDMatrix(globalBindposeInverseMatrix));
-
-				// Set the parent bone
-				fbxsdk::FbxNode* pParentNode = pBoneNode->GetParent();
-				fbxsdk::FbxNodeAttribute* pNodeAttribute = pParentNode->GetNodeAttribute();
-				if (pParentNode && pNodeAttribute)
+				bool isBoneReused = false;
+				const char* pBoneName = pCluster->GetLink()->GetName();
+				cd::BoneID::ValueType boneHash = cd::StringHash<cd::BoneID::ValueType>(pBoneName);
+				cd::BoneID boneID = m_boneIDGenerator.AllocateID(boneHash, &isBoneReused);
+				if (!isBoneReused)
 				{
-					if (fbxsdk::FbxNodeAttribute::eSkeleton == pNodeAttribute->GetAttributeType())
+					cd::Bone bone(boneID, pBoneName);
+					fbxsdk::FbxNode* pBoneNode = pCluster->GetLink();
+					assert(pBoneNode);
+
+					fbxsdk::FbxAMatrix transformMatrix;
+					fbxsdk::FbxAMatrix transformLinkMatrix;
+					pCluster->GetTransformLinkMatrix(transformLinkMatrix);
+					pCluster->GetTransformMatrix(transformMatrix);
+
+					FbxAMatrix geometryTransform = details::GetGeometryTransformation(pBoneNode);
+					assert(geometryTransform.IsIdentity());
+
+					fbxsdk::FbxAMatrix globalBindposeInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform;
+
+					fbxsdk::FbxTime increment;
+					increment.SetSecondDouble(0);
+
+					bone.SetTransform(details::ConvertFbxMatrixToTranform(globalBindposeInverseMatrix.Inverse()));
+					bone.SetOffset(details::ConvertFbxMatrixToCDMatrix(globalBindposeInverseMatrix));
+
+					// Set the parent bone
+					fbxsdk::FbxNode* pParentNode = pBoneNode->GetParent();
+					fbxsdk::FbxNodeAttribute* pNodeAttribute = pParentNode->GetNodeAttribute();
+					if (pParentNode && pNodeAttribute)
 					{
-						auto* pParentBone = const_cast<cd::Bone*>(pSceneDatabase->GetBoneByName(pParentNode->GetName()));
-						assert(pParentBone);
-						bone.SetParentID(pParentBone->GetID());
-						pParentBone->AddChildID(bone.GetID());
-						cd::Matrix4x4 localMatrix = pParentBone->GetOffset() * bone.GetTransform().GetMatrix();
-						bone.SetTransform(cd::Transform(localMatrix.GetTranslation(), cd::Quaternion::FromMatrix(localMatrix.GetRotation()), localMatrix.GetScale()));
+						if (fbxsdk::FbxNodeAttribute::eSkeleton == pNodeAttribute->GetAttributeType())
+						{
+							auto* pParentBone = const_cast<cd::Bone*>(pSceneDatabase->GetBoneByName(pParentNode->GetName()));
+							assert(pParentBone);
+							bone.SetParentID(pParentBone->GetID());
+							pParentBone->AddChildID(bone.GetID());
+							cd::Matrix4x4 localMatrix = pParentBone->GetOffset() * bone.GetTransform().GetMatrix();
+							bone.SetTransform(cd::Transform(localMatrix.GetTranslation(), cd::Quaternion::FromMatrix(localMatrix.GetRotation()), localMatrix.GetScale()));
+						}
 					}
+					pSceneDatabase->AddBone(cd::MoveTemp(bone));
 				}
-				pSceneDatabase->AddBone(cd::MoveTemp(bone));
-			}
 
-			const int32_t vertexCount = pCluster->GetControlPointIndicesCount();
-			int* pVertexIndices = pCluster->GetControlPointIndices();
-			double* pBoneWeights = pCluster->GetControlPointWeights();
-			for (int32_t influencedVertexIndex = 0; influencedVertexIndex < vertexCount; ++influencedVertexIndex)
-			{
-				uint32_t fbxVertexIndex = pVertexIndices[influencedVertexIndex];
-				auto itVertexID = mapControlPointIndexToVertexID.find(fbxVertexIndex);
-				assert(itVertexID != mapControlPointIndexToVertexID.end());
-				for (const auto& vertexIndex : itVertexID->second)
+				const int32_t vertexCount = pCluster->GetControlPointIndicesCount();
+				int* pVertexIndices = pCluster->GetControlPointIndices();
+				double* pBoneWeights = pCluster->GetControlPointWeights();
+				for (int32_t influencedVertexIndex = 0; influencedVertexIndex < vertexCount; ++influencedVertexIndex)
 				{
-					double weight = pBoneWeights[influencedVertexIndex];
-					uint32_t currentBoneCount = 0U;
-					auto itVertexBoneCount = mapVertexIndexToCurrentBoneCount.find(vertexIndex);
-					if (itVertexBoneCount != mapVertexIndexToCurrentBoneCount.end())
+					uint32_t fbxVertexIndex = pVertexIndices[influencedVertexIndex];
+					auto itVertexID = mapControlPointIndexToVertexID.find(fbxVertexIndex);
+					assert(itVertexID != mapControlPointIndexToVertexID.end());
+					for (const auto& vertexIndex : itVertexID->second)
 					{
-						currentBoneCount = mapVertexIndexToCurrentBoneCount[vertexIndex] + 1;
-						assert(currentBoneCount <= cd::MaxBoneInfluenceCount);
+						double weight = pBoneWeights[influencedVertexIndex];
+						uint32_t currentBoneCount = 0U;
+						auto itVertexBoneCount = mapVertexIndexToCurrentBoneCount.find(vertexIndex);
+						if (itVertexBoneCount != mapVertexIndexToCurrentBoneCount.end())
+						{
+							currentBoneCount = mapVertexIndexToCurrentBoneCount[vertexIndex] + 1;
+							assert(currentBoneCount <= cd::MaxBoneInfluenceCount);
+						}
+						mapVertexIndexToCurrentBoneCount[vertexIndex] = currentBoneCount;
+						mesh.SetVertexBoneWeight(currentBoneCount, vertexIndex, boneID, static_cast<float>(weight));
 					}
-					mapVertexIndexToCurrentBoneCount[vertexIndex] = currentBoneCount;
-					mesh.SetVertexBoneWeight(currentBoneCount, vertexIndex, boneID, static_cast<float>(weight));
 				}
 			}
 		}
 	}
+
 	pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
+
 	return meshID;
 }
 
@@ -1033,6 +1008,7 @@ void FbxProducerImpl::ProcessAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabas
 				boneWorldInvMatrices[trackIndex] = boneWorldMatrices[trackIndex].Inverse();
 			}
 		}
+
 		// Builds local space animation tracks.
 		// Allocates all tracks with the same number of joints as the skeleton.
 		for (uint32_t boneIndex = 0U; boneIndex < pSceneDatabase->GetBoneCount(); ++boneIndex)

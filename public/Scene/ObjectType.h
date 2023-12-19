@@ -10,6 +10,7 @@ enum class ObjectType
 	HalfEdge,
 	Face,
 	Polygon,
+	PolygonGroup,
 	Mesh,
 	Material,
 	Texture,
