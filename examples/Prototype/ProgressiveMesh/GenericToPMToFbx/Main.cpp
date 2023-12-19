@@ -29,7 +29,6 @@ int main(int argc, char** argv)
 		GenericProducer producer(pInputFilePath);
 		producer.EnableOption(GenericProducerOptions::FlattenTransformHierarchy);
 		Processor processor(&producer, nullptr, pSceneDatabase.get());
-		processor.SetDumpSceneDatabaseEnable(true);
 		processor.Run();
 	}
 	

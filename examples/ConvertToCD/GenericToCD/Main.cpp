@@ -22,9 +22,6 @@ int main(int argc, char** argv)
 	GenericProducer producer(pInputFilePath);
 	CDConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);
-	//processor.SetFlattenSceneDatabaseEnable(true);
-	processor.SetDumpSceneDatabaseEnable(true);
-	processor.SetValidateSceneDatabaseEnable(true);
 	processor.Run();
 
 	return 0;

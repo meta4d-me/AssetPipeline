@@ -30,7 +30,7 @@ int main(int argc, char** argv)
 		producer.EnableOption(GenericProducerOptions::FlattenTransformHierarchy);
 
 		Processor processor(&producer, nullptr, pSceneDatabase.get());
-		processor.SetDumpSceneDatabaseEnable(false);
+		processor.DisableOption(ProcessorOptions::Dump);
 		processor.Run();
 	}
 	

@@ -82,7 +82,7 @@ int main(int argc, char** argv)
 	// Import
 	{
 		FbxProducer producer(pInputFilePath);
-		producer.SetWantTriangulate(false);
+		producer.DisableOption(FbxProducerOptions::Triangulate);
 		Processor processor(&producer, nullptr, pSceneDatabase.get());
 		processor.Run();
 	}

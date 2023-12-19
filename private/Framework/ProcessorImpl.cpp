@@ -41,7 +41,7 @@ public:
 		assert(pProcessorImpl);
 		m_pProcessImpl = pProcessorImpl;
 
-		if (m_pProcessImpl->IsValidateSceneDatabaseEnabled())
+		if (m_pProcessImpl->IsOptionEnabled(cdtools::ProcessorOptions::Validate))
 		{
 			m_pProcessImpl->GetSceneDatabase()->Validate();
 		}
@@ -52,7 +52,7 @@ public:
 	SceneDatabaseValidator& operator=(SceneDatabaseValidator&&) = delete;
 	~SceneDatabaseValidator()
 	{
-		if (m_pProcessImpl->IsValidateSceneDatabaseEnabled())
+		if (m_pProcessImpl->IsOptionEnabled(cdtools::ProcessorOptions::Validate))
 		{
 			m_pProcessImpl->GetSceneDatabase()->Validate();
 		}
@@ -103,6 +103,11 @@ ProcessorImpl::ProcessorImpl(IProducer* pProducer, IConsumer* pConsumer, cd::Sce
 		m_pCurrentSceneDatabase = pHostSceneDatabase;
 	}
 
+	// Default Processor Options
+	m_options.Enable(ProcessorOptions::Validate);
+	m_options.Enable(ProcessorOptions::Dump);
+	m_options.Enable(ProcessorOptions::CalculateAABB);
+
 	m_targetAxisSystem = cd::AxisSystem::CDEngine();
 }
 
@@ -124,12 +129,12 @@ void ProcessorImpl::Run()
 	{
 		details::SceneDatabaseValidator validator(this);
 
-		if (IsFlattenSceneDatabaseEnabled())
+		if (m_options.IsEnabled(ProcessorOptions::FlattenHierarchy))
 		{
 			FlattenSceneDatabase();
 		}
 
-		if (IsCalculateAABBForSceneDatabaseEnabled())
+		if (m_options.IsEnabled(ProcessorOptions::CalculateAABB))
 		{
 			CalculateAABBForSceneDatabase();
 		}
@@ -139,14 +144,14 @@ void ProcessorImpl::Run()
 			SearchMissingTextures();
 		}
 
-		if (IsEmbedTextureFilesEnabled())
+		if (m_options.IsEnabled(ProcessorOptions::EmbedTextureFiles))
 		{
 			EmbedTextureFiles();
 		}
 	}
 
 	// Dump all information finally.
-	if (IsDumpSceneDatabaseEnabled())
+	if (m_options.IsEnabled(ProcessorOptions::Dump))
 	{
 		m_pCurrentSceneDatabase->Dump();
 	}

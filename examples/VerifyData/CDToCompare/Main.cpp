@@ -26,8 +26,6 @@ int main(int argc, char** argv)
 		cd::SceneDatabase newSceneDatabase;
 		CDProducer producer(pInput1FilePath);
 		Processor processor(&producer, nullptr, &newSceneDatabase);
-		processor.SetDumpSceneDatabaseEnable(true);
-		processor.SetValidateSceneDatabaseEnable(true);
 		processor.Run();
 
 		pSceneDatabase->Merge(cd::MoveTemp(newSceneDatabase));
@@ -37,8 +35,6 @@ int main(int argc, char** argv)
 		cd::SceneDatabase newSceneDatabase;
 		CDProducer producer(pInput2FilePath);
 		Processor processor(&producer, nullptr, &newSceneDatabase);
-		processor.SetDumpSceneDatabaseEnable(true);
-		processor.SetValidateSceneDatabaseEnable(true);
 		processor.Run();
 
 		pSceneDatabase->Merge(cd::MoveTemp(newSceneDatabase));

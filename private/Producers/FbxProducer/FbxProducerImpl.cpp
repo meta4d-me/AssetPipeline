@@ -136,7 +136,7 @@ FbxProducerImpl::FbxProducerImpl(std::string filePath)
 	assert(m_pSDKManager && "Failed to init sdk manager.");
 
 	fbxsdk::FbxIOSettings* pIOSettings = fbxsdk::FbxIOSettings::Create(m_pSDKManager, IOSROOT);
-	assert(m_pSDKManager && "Failed to init sdk manager.");
+	assert(pIOSettings && "Failed to init io settings.");
 	m_pSDKManager->SetIOSettings(pIOSettings);
 
 	m_pSDKGeometryConverter = std::make_unique<fbxsdk::FbxGeometryConverter>(m_pSDKManager);

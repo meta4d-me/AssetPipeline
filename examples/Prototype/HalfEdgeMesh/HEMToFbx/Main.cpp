@@ -123,7 +123,6 @@ int main(int argc, char** argv)
 	{
 		FbxConsumer consumer(pOutputFilePath);
 		Processor processor(nullptr, &consumer, pSceneDatabase.get());
-		processor.SetDumpSceneDatabaseEnable(true);
 		processor.Run();
 	}
 
