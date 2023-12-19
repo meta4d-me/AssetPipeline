@@ -24,7 +24,6 @@ int main(int argc, char** argv)
 	producer.EnableOption(GenericProducerOptions::TriangulateModel);
 	producer.EnableOption(GenericProducerOptions::GenerateTangentSpace);
 	producer.EnableOption(GenericProducerOptions::CleanUnusedObjects);
-	producer.EnableOption(GenericProducerOptions::OnlyTransformAnimationKey);
 
 	CDConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);

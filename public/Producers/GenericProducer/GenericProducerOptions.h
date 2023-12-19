@@ -10,7 +10,6 @@ enum class GenericProducerOptions
 	TriangulateModel,
 	GenerateTangentSpace,
 	CleanUnusedObjects,
-	OnlyTransformAnimationKey,
 	OptimizeMeshBufferCacheHitRate
 };
 
