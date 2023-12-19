@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Base/Template.h"
+#include "Base/BitFlags.h"
 #include "Math/Transform.hpp"
+#include "Producers/FbxProducer/FbxProducerOptions.h"
 #include "Scene/MaterialTextureType.h"
 #include "Scene/ObjectIDGenerator.h"
 
@@ -50,23 +52,9 @@ public:
 
 	void Execute(cd::SceneDatabase* pSceneDatabase);
 
-	void SetWantImportMaterial(bool flag) { m_importMaterial = flag; }
-	bool WantImportMaterial() const { return m_importMaterial; }
-
-	void SetWantImportTexture(bool flag) { m_importTexture = flag; }
-	bool WantImportTexture() const { return m_importTexture; }
-
-	void SetWantImportSkinMesh(bool flag) { m_importSkinMesh = flag; }
-	bool WantImportSkinMesh() const { return m_importSkinMesh; }
-
-	void SetWantImportAnimation(bool flag) { m_importAnimation = flag; }
-	bool WantImportAnimation() const { return m_importAnimation; }
-
-	void SetWantImportLight(bool flag) { m_importLight = flag; }
-	bool WantImportLight() const { return m_importLight; }
-
-	void SetWantTriangulate(bool flag) { m_bWantTriangulate = flag; }
-	bool IsTriangulateActive() const { return m_bWantTriangulate; }
+	cd::BitFlags<FbxProducerOptions>& GetOptions() { return m_options; }
+	const cd::BitFlags<FbxProducerOptions>& GetOptions() const { return m_options; }
+	bool IsOptionEnabled(FbxProducerOptions option) const { return m_options.IsEnabled(option); }
 
 private:
 	int GetSceneNodeCount(const fbxsdk::FbxNode* pSceneNode);
@@ -85,27 +73,22 @@ private:
 	cd::AnimationID AddAnimation(fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxScene* pSDKScene, cd::SceneDatabase* pSceneDatabase);
 
 	void ProcessAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase);
-private:
-	bool m_importMaterial = true;
-	bool m_importTexture = true;
-	bool m_importSkinMesh = true;
-	bool m_importAnimation = true;
-	bool m_importLight = true;
-	bool m_bWantTriangulate = true;
 
+private:
 	std::string m_filePath;
+	cd::BitFlags<FbxProducerOptions> m_options;
 	fbxsdk::FbxManager* m_pSDKManager = nullptr;
 	std::unique_ptr<fbxsdk::FbxGeometryConverter> m_pSDKGeometryConverter;
 
 	std::map<int32_t, uint32_t> m_fbxMaterialIndexToMaterialID;
-	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
-	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
-	cd::ObjectIDGenerator<cd::NodeID> m_nodeIDGenerator;
+	cd::ObjectIDGenerator<cd::AnimationID> m_animationIDGenerator;
 	cd::ObjectIDGenerator<cd::BoneID> m_boneIDGenerator;
+	cd::ObjectIDGenerator<cd::LightID> m_lightIDGenerator;
+	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
 	cd::ObjectIDGenerator<cd::MeshID> m_meshIDGenerator;
 	cd::ObjectIDGenerator<cd::MorphID> m_morphIDGenerator;
-	cd::ObjectIDGenerator<cd::LightID> m_lightIDGenerator;
-	cd::ObjectIDGenerator<cd::AnimationID> m_animationIDGenerator;
+	cd::ObjectIDGenerator<cd::NodeID> m_nodeIDGenerator;
+	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
 	cd::ObjectIDGenerator<cd::TrackID> m_trackIDGenerator;
 };
 

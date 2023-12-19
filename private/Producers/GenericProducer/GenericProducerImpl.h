@@ -29,7 +29,7 @@ class GenericProducerImpl final
 {
 public:
 	GenericProducerImpl() = delete;
-	explicit GenericProducerImpl(std::string filePath) : m_filePath(cd::MoveTemp(filePath)) {}
+	explicit GenericProducerImpl(std::string filePath);
 	GenericProducerImpl(const GenericProducerImpl&) = delete;
 	GenericProducerImpl& operator=(const GenericProducerImpl&) = delete;
 	GenericProducerImpl(GenericProducerImpl&&) = delete;

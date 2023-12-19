@@ -56,6 +56,17 @@ cd::TextureMapMode ConvertAssimpTextureMapMode(aiTextureMapMode mapMode)
 namespace cdtools
 {
 
+GenericProducerImpl::GenericProducerImpl(std::string filePath) :
+	m_filePath(cd::MoveTemp(filePath))
+{
+	// Default import options.
+	m_options.Enable(GenericProducerOptions::CleanUnusedObjects);
+	m_options.Enable(GenericProducerOptions::TriangulateModel);
+	m_options.Enable(GenericProducerOptions::GenerateBoundingBox);
+	m_options.Enable(GenericProducerOptions::OptimizeMeshBufferCacheHitRate);
+	m_options.Enable(GenericProducerOptions::GenerateTangentSpace);
+}
+
 uint32_t GenericProducerImpl::GetImportFlags() const
 {
 	constexpr uint32_t BasicImportModelFlags[] =

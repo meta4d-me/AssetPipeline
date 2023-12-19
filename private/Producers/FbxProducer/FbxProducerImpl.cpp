@@ -126,6 +126,12 @@ namespace cdtools
 FbxProducerImpl::FbxProducerImpl(std::string filePath)
 	: m_filePath(cd::MoveTemp(filePath))
 {
+	// Default import options.
+	m_options.Enable(FbxProducerOptions::ImportMaterial);
+	m_options.Enable(FbxProducerOptions::ImportTexture);
+	m_options.Enable(FbxProducerOptions::Triangulate);
+
+	// Init fbxsdk settings.
 	m_pSDKManager = fbxsdk::FbxManager::Create();
 	assert(m_pSDKManager && "Failed to init sdk manager.");
 
@@ -227,7 +233,7 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	m_meshIDGenerator.SetCurrentID(pSceneDatabase->GetMeshCount());
 
 	// Convert fbx materials to cd materials.
-	if (WantImportMaterial())
+	if (IsOptionEnabled(FbxProducerOptions::ImportMaterial))
 	{
 		fbxsdk::FbxArray<fbxsdk::FbxSurfaceMaterial*> sdkMaterials;
 		pSDKScene->FillMaterialArray(sdkMaterials);
@@ -249,7 +255,7 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		TraverseNodeRecursively(pSDKScene->GetRootNode(), cd::NodeID::InvalidID, pSceneDatabase);
 	}
 
-	if (WantImportAnimation())
+	if (IsOptionEnabled(FbxProducerOptions::ImportAnimation))
 	{
 		if (fbxsdk::FbxAnimStack* pAnimStack = pSDKScene->GetSrcObject<FbxAnimStack>(0))
 		{
@@ -290,7 +296,7 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 	{
 		AddNode(pSDKNode, parentNodeID, pSceneDatabase);
 	}
-	else if (fbxsdk::FbxNodeAttribute::eLight == pNodeAttribute->GetAttributeType() && m_importLight)
+	else if (fbxsdk::FbxNodeAttribute::eLight == pNodeAttribute->GetAttributeType() && IsOptionEnabled(FbxProducerOptions::ImportLight))
 	{
 		const fbxsdk::FbxLight* pFbxLight = reinterpret_cast<const fbxsdk::FbxLight*>(pNodeAttribute);
 		assert(pFbxLight);
@@ -302,7 +308,7 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 		fbxsdk::FbxMesh* pFbxMesh = reinterpret_cast<fbxsdk::FbxMesh*>(pNodeAttribute);
 		assert(pFbxMesh);
 		
-		if (!pFbxMesh->IsTriangleMesh() && IsTriangulateActive())
+		if (!pFbxMesh->IsTriangleMesh() && IsOptionEnabled(FbxProducerOptions::Triangulate))
 		{
 			const bool bReplace = true;
 			fbxsdk::FbxNodeAttribute* pConvertedNode = m_pSDKGeometryConverter->Triangulate(pFbxMesh, bReplace);
@@ -898,7 +904,7 @@ cd::MaterialID FbxProducerImpl::AddMaterial(const fbxsdk::FbxSurfaceMaterial* pS
 	cd::MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash);
 	cd::Material material(materialID, pSDKMaterial->GetName(), cd::MaterialType::BasePBR);
 
-	if (WantImportTexture())
+	if (IsOptionEnabled(FbxProducerOptions::ImportTexture))
 	{
 		static std::unordered_map<std::string, cd::MaterialTextureType> mapTexturePropertyFBXToCD;
 		mapTexturePropertyFBXToCD["base"] = cd::MaterialTextureType::BaseColor;

@@ -27,9 +27,6 @@ int main(int argc, char** argv)
 	// Import
 	{
 		GenericProducer producer(pInputFilePath);
-		producer.EnableOption(GenericProducerOptions::GenerateBoundingBox);
-		producer.EnableOption(GenericProducerOptions::TriangulateModel);
-		producer.EnableOption(GenericProducerOptions::GenerateTangentSpace);
 		producer.EnableOption(GenericProducerOptions::FlattenTransformHierarchy);
 		Processor processor(&producer, nullptr, pSceneDatabase.get());
 		processor.SetDumpSceneDatabaseEnable(true);
