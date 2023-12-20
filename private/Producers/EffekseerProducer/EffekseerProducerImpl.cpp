@@ -25,6 +25,11 @@ EffekseerProducerImpl::EffekseerProducerImpl(const char16_t* pFilePath) :
 {
 }
 
+void EffekseerProducerImpl::PushSpawnCount(Effekseer::ParameterCommonValues* pParameter)
+{
+	m_particleMaxCount.push_back(pParameter->MaxGeneration);
+}
+
 void EffekseerProducerImpl::PushPVA(Effekseer::ParameterTranslationPVA* pParameter)
 {
 	m_particlePos.push_back(pParameter->location);
@@ -112,6 +117,7 @@ void EffekseerProducerImpl::TraverseNodeRecursively(Effekseer::EffectNode* pNode
 		//PVA
 		m_particleType.push_back(nodeType);
 		auto* pSpriteNode = static_cast<Effekseer::EffectNodeSprite*>(pNode);
+		PushSpawnCount(&pSpriteNode->CommonValues);
 		PushPVA(&pSpriteNode->TranslationParam.TranslationPVA);
 		PushAllColor(&pSpriteNode->SpriteAllColor);
 		PushRotate(pSpriteNode);
@@ -143,6 +149,26 @@ void EffekseerProducerImpl::TraverseNodeRecursively(Effekseer::EffectNode* pNode
 	}
 }
 
+//cd::Mesh EffekseerProducerImpl::GenerateParticleMesh()
+//{
+//	//const std::string terrainMeshName = string_format("TerrainSector(%d, %d)", sector_x, sector_z);
+//	//const MeshID::ValueType meshHash = StringHash<MeshID::ValueType>(terrainMeshName);
+//	//const MeshID terrainMeshID = m_meshIDGenerator.AllocateID(meshHash);
+//	//Mesh terrain(terrainMeshID, terrainMeshName.c_str(), m_verticesPerSector, m_trianglesPerSector);
+//	
+//	//TODO :  change particleType
+//	const std::string particleMeshName = std::format("{}{}", "particleType", "mesh");
+//	const cd::MeshID::ValueType meshHash = cd::StringHash<cd::MeshID::ValueType>(particleMeshName);
+//	const cd::MeshID particleMeshID = m_particleMeshID.AllocateID(meshHash);
+//	//TODO:  change (11 11)  to  (vertexCount   polygonCount)
+//	cd::Mesh particleMesh(particleMeshID, particleMeshName.c_str(), 11, 11);
+//	//particleMesh.SetVertexPosition();
+//	//particleMesh.SetVertexColor();
+//	//particleMesh.SetVertexUV();
+//
+//	return particleMesh;
+//}
+
 
 void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 {
@@ -157,6 +183,10 @@ void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	std::string str = converter.to_bytes(u16str);
 	const char* pAllParticleEmitterName = str.c_str();
 
+	////Get Mesh From efkefc
+	//cd::Mesh generatedMesh = GenerateParticleMesh();
+	//pSceneDatabase->AddMesh(cd::MoveTemp(generatedMesh));
+
 	// pos velocity scale
 	// TODO : check other properties.
 	TraverseNodeRecursively(pEffectData->GetRoot());
@@ -167,6 +197,7 @@ void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 
 		cd::ParticleEmitter particleEmitter(particleEmitterID, std::format("{}{}", pAllParticleEmitterName, i).c_str());
 		particleEmitter.SetType(EffectNodeTypeMapping[static_cast<Effekseer::EffectNodeType>(m_particleType[i])]);
+		particleEmitter.SetMaxCount(m_particleMaxCount[i]);
 		particleEmitter.SetPosition(MeanXYZ(m_particlePos[i].max, m_particlePos[i].min));
 		particleEmitter.SetVelocity(MeanXYZ(m_particleVelocity[i].max, m_particleVelocity[i].min));
 		particleEmitter.SetAccelerate(MeanXYZ(m_particleAccelerate[i].max, m_particleAccelerate[i].min));

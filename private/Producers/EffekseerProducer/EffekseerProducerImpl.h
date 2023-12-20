@@ -25,6 +25,8 @@ public:
 
 	void TraverseNodeRecursively(Effekseer::EffectNode* pNode);
 
+	void PushSpawnCount(Effekseer::ParameterCommonValues* pParameter);
+
 	void PushPVA(Effekseer::ParameterTranslationPVA* pParameter);
 
 	void PushAllColor(Effekseer::AllTypeColorParameter* pAllColor);
@@ -37,11 +39,14 @@ public:
 
 	void Execute(cd::SceneDatabase* pSceneDatabase);
 
+	//cd::Mesh GenerateParticleMesh();
+
 	cd::Vec3f MeanXYZ(Effekseer::vector3d max, Effekseer::vector3d min) { return cd::Vec3f(((max.x + min.x) / 2), ((max.y + min.y) / 2), ((max.z + min.z) / 2)); }
 	cd::Vec3f DevXYZ(Effekseer::vector3d max, Effekseer::vector3d min) { return cd::Vec3f(((max.x - min.x) / 2), ((max.y - min.y) / 2), ((max.z - min.z) / 2)); }
 
 private:
 	const char16_t* m_pFilePath;
+	std::vector<int> m_particleMaxCount;
 	std::vector<Effekseer::EffectNodeType> m_particleType;
 	std::vector<Effekseer::random_vector3d> m_particlePos;
 	std::vector<Effekseer::random_vector3d> m_particleVelocity;

@@ -390,6 +390,7 @@ void SceneDatabaseImpl::Dump() const
 		{
 			printf("[ParticleEmitter %u] Name : %s\n", particle.GetID().Data(), particle.GetName());
 			printf("\tType : %s\n", nameof::nameof_enum(particle.GetType()).data());
+			printf("\tMaxCount : %d\n", particle.GetMaxCount());
 			details::Dump("\tPosition", particle.GetPosition());
 			details::Dump("\tVelocity", particle.GetVelocity());
 			details::Dump("\tAccelerate", particle.GetAccelerate());
