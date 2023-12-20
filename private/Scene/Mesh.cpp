@@ -35,10 +35,11 @@ void Mesh::Init(uint32_t vertexCount)
 }
 
 PIMPL_SIMPLE_TYPE_APIS(Mesh, ID);
-PIMPL_SIMPLE_TYPE_APIS(Mesh, SkinID);
 PIMPL_COMPLEX_TYPE_APIS(Mesh, AABB);
 PIMPL_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
 PIMPL_VECTOR_TYPE_APIS(Mesh, MorphID);
+PIMPL_VECTOR_TYPE_APIS(Mesh, SkinID);
+PIMPL_VECTOR_TYPE_APIS(Mesh, VertexInstanceID);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexPosition);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexNormal);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexTangent);

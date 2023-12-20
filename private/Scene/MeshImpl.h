@@ -29,10 +29,11 @@ public:
 	void Init(uint32_t vertexCount);
 	
 	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, ID);
-	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, SkinID);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, AABB);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, MorphID);
+	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, SkinID);
+	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexInstanceID);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexPosition);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexNormal);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexTangent);
@@ -78,46 +79,55 @@ public:
 	template<bool SwapBytesOrder>
 	MeshImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
+		uint32_t morphCount;
+		uint32_t skinCount;
+		uint32_t materialCount;
 		uint32_t vertexCount;
 		uint32_t vertexUVSetCount;
 		uint32_t vertexColorSetCount;
 		uint32_t vertexInfluenceCount;
 		uint32_t polygonGroupCount;
+		
+		inputArchive >> GetName() >> GetID().Data() >> GetAABB() >> materialCount >> morphCount >> skinCount
+			>> vertexCount >> vertexUVSetCount >> vertexColorSetCount >> vertexInfluenceCount >> polygonGroupCount;
 
-		inputArchive >> GetName() >> GetID().Data() >> GetSkinID().Data()
-			>> vertexCount >> vertexUVSetCount >> vertexColorSetCount >> vertexInfluenceCount
-			>> polygonGroupCount;
+		GetVertexFormat() << inputArchive;
+
+		SetMaterialIDCount(materialCount);
+		inputArchive.ImportBuffer(GetMaterialIDs().data());
+
+		SetMorphIDCount(morphCount);
+		inputArchive.ImportBuffer(GetMorphIDs().data());
+
+		SetSkinIDCount(skinCount);
+		inputArchive.ImportBuffer(GetSkinIDs().data());
 
 		Init(vertexCount);
-		SetVertexUVSetCount(vertexUVSetCount);
-		SetVertexColorSetCount(vertexColorSetCount);
-		SetVertexInfluenceCount(vertexInfluenceCount);
-		SetPolygonGroupCount(polygonGroupCount);
-		SetMaterialIDCount(polygonGroupCount);
-
-		inputArchive >> GetAABB();
-		GetVertexFormat() << inputArchive;
 		inputArchive.ImportBuffer(GetVertexPositions().data());
 		inputArchive.ImportBuffer(GetVertexNormals().data());
 		inputArchive.ImportBuffer(GetVertexTangents().data());
 		inputArchive.ImportBuffer(GetVertexBiTangents().data());
 
+		SetVertexUVSetCount(vertexUVSetCount);
 		for (uint32_t uvSetIndex = 0U; uvSetIndex < GetVertexUVSetCount(); ++uvSetIndex)
 		{
 			inputArchive.ImportBuffer(GetVertexUVs(uvSetIndex).data());
 		}
 
+		SetVertexColorSetCount(vertexColorSetCount);
 		for (uint32_t colorSetIndex = 0U; colorSetIndex < GetVertexColorSetCount(); ++colorSetIndex)
 		{
 			inputArchive.ImportBuffer(GetVertexColors(colorSetIndex).data());
 		}
 
+		SetVertexInfluenceCount(vertexInfluenceCount);
 		for (uint32_t boneIndex = 0U; boneIndex < GetVertexInfluenceCount(); ++boneIndex)
 		{
 			inputArchive.ImportBuffer(GetVertexBoneIDs(boneIndex).data());
 			inputArchive.ImportBuffer(GetVertexWeights(boneIndex).data());
 		}
 
+		SetPolygonGroupCount(polygonGroupCount);
 		for (uint32_t polygonGroupIndex = 0U; polygonGroupIndex < GetPolygonGroupCount(); ++polygonGroupIndex)
 		{
 			uint32_t polygonCount;
@@ -140,12 +150,13 @@ public:
 	template<bool SwapBytesOrder>
 	const MeshImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetName() << GetID().Data() << GetSkinID().Data()
-			<< GetVertexCount() << GetVertexUVSetCount() << GetVertexColorSetCount() << GetVertexInfluenceCount()
-			<< GetPolygonGroupCount();
+		outputArchive << GetName() << GetID().Data() << GetAABB() << GetMaterialIDCount() << GetMorphIDCount() << GetSkinIDCount()
+			<< GetVertexCount() << GetVertexUVSetCount() << GetVertexColorSetCount() << GetVertexInfluenceCount() << GetPolygonGroupCount();
 
-		outputArchive << GetAABB();
 		GetVertexFormat() >> outputArchive;
+		outputArchive.ExportBuffer(GetMaterialIDs().data(), GetMaterialIDs().size());
+		outputArchive.ExportBuffer(GetSkinIDs().data(), GetSkinIDs().size());
+		outputArchive.ExportBuffer(GetMorphIDs().data(), GetMorphIDs().size());
 		outputArchive.ExportBuffer(GetVertexPositions().data(), GetVertexPositions().size());
 		outputArchive.ExportBuffer(GetVertexNormals().data(), GetVertexNormals().size());
 		outputArchive.ExportBuffer(GetVertexTangents().data(), GetVertexTangents().size());

@@ -28,10 +28,11 @@ public:
 	void Init(uint32_t vertexCount);
 
 	EXPORT_SIMPLE_TYPE_APIS(Mesh, ID);
-	EXPORT_SIMPLE_TYPE_APIS(Mesh, SkinID);
 	EXPORT_COMPLEX_TYPE_APIS(Mesh, AABB);
 	EXPORT_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, MorphID);
+	EXPORT_VECTOR_TYPE_APIS(Mesh, SkinID);
+	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexInstanceID);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexPosition);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexNormal);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexTangent);

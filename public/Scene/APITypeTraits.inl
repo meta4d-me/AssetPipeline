@@ -137,7 +137,6 @@ struct MeshTypeTraits
 {
 	// Simple
 	using ID = cd::MeshID;
-	using SkinID = cd::SkinID;
 	
 	// Complex
 	using AABB = cd::AABB;
@@ -145,7 +144,9 @@ struct MeshTypeTraits
 
 	// Vector
 	using MorphID = cd::MorphID;
+	using SkinID = cd::SkinID;
 	using VertexPosition = cd::Point;
+	using VertexInstanceID = cd::VertexID;
 	using VertexNormal = cd::Direction;
 	using VertexTangent = cd::Direction;
 	using VertexBiTangent = cd::Direction;
