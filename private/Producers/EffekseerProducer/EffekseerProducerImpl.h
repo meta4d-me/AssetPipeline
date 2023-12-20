@@ -25,13 +25,15 @@ public:
 
 	void TraverseNodeRecursively(Effekseer::EffectNode* pNode);
 
-	void PushAllColor(Effekseer::AllTypeColorParameter* AllColor);
+	void PushPVA(Effekseer::ParameterTranslationPVA* pParameter);
+
+	void PushAllColor(Effekseer::AllTypeColorParameter* pAllColor);
 
 	void PushRotate(Effekseer::EffectNodeSprite* pNode);
 
 	void PushScale(Effekseer::EffectNodeSprite* pNode);
 
-	void JudgeRotationType(Effekseer::RotationParameter* Type);
+	void JudgeRotationType(Effekseer::RotationParameter* pParameter);
 
 	void Execute(cd::SceneDatabase* pSceneDatabase);
 
@@ -48,6 +50,7 @@ private:
 	std::vector<Effekseer::Vector3D> m_fixedRotation;
 	std::vector<Effekseer::Vector3D> m_fixedScale;
 
+	cd::ObjectIDGenerator<cd::MeshID> m_particleMeshID;
 	cd::ObjectIDGenerator<cd::ParticleEmitterID> m_particleEmitterIDGenerator;
 };
 

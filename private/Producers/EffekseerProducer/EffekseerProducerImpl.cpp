@@ -25,6 +25,13 @@ EffekseerProducerImpl::EffekseerProducerImpl(const char16_t* pFilePath) :
 {
 }
 
+void EffekseerProducerImpl::PushPVA(Effekseer::ParameterTranslationPVA* pParameter)
+{
+	m_particlePos.push_back(pParameter->location);
+	m_particleVelocity.push_back(pParameter->velocity);
+	m_particleAccelerate.push_back(pParameter->acceleration);
+}
+
 void EffekseerProducerImpl::PushAllColor(Effekseer::AllTypeColorParameter* pAllColor)
 {
 	if (pAllColor->type == pAllColor->Fixed)
@@ -105,9 +112,7 @@ void EffekseerProducerImpl::TraverseNodeRecursively(Effekseer::EffectNode* pNode
 		//PVA
 		m_particleType.push_back(nodeType);
 		auto* pSpriteNode = static_cast<Effekseer::EffectNodeSprite*>(pNode);
-		m_particlePos.push_back(pSpriteNode->TranslationParam.TranslationPVA.location);
-		m_particleVelocity.push_back(pSpriteNode->TranslationParam.TranslationPVA.velocity);
-		m_particleAccelerate.push_back(pSpriteNode->TranslationParam.TranslationPVA.acceleration);
+		PushPVA(&pSpriteNode->TranslationParam.TranslationPVA);
 		PushAllColor(&pSpriteNode->SpriteAllColor);
 		PushRotate(pSpriteNode);
 		PushScale(pSpriteNode);
