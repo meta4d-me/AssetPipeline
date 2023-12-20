@@ -138,21 +138,19 @@ struct MeshTypeTraits
 	// Simple
 	using ID = cd::MeshID;
 	using SkinID = cd::SkinID;
-	using VertexCount = uint32_t;
-	using PolygonCount = uint32_t;
-
+	
 	// Complex
 	using AABB = cd::AABB;
 	using VertexFormat = cd::VertexFormat;
 
 	// Vector
-	using MaterialID = cd::MaterialID;
 	using MorphID = cd::MorphID;
 	using VertexPosition = cd::Point;
 	using VertexNormal = cd::Direction;
 	using VertexTangent = cd::Direction;
 	using VertexBiTangent = cd::Direction;
 	using PolygonGroup = cd::PolygonGroup;
+	using MaterialID = cd::MaterialID;
 
 	// String
 	using Name = std::string;

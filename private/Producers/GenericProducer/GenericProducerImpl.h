@@ -52,7 +52,7 @@ private:
 
 	std::string GetMaterialName(const aiMaterial* pSourceMaterial) const;
 	cd::MaterialID GetMaterialID(const aiMaterial* pSourceMaterial);
-	cd::MaterialID AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial);
+	void AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial, cd::MaterialID materialID);
 	void AddMaterials(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene);
 
 private:

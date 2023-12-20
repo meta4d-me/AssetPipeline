@@ -155,21 +155,27 @@ void MeshImpl::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrateg
 	m_vertexUVSets[0].shrink_to_fit();
 	polygonGroup.shrink_to_fit();
 	GetPolygonGroups().emplace_back(cd::MoveTemp(polygonGroup)).shrink_to_fit();
-
-	SetVertexCount(static_cast<uint32_t>(vertexPositions.size()));
 }
 
-void MeshImpl::Init(uint32_t vertexCount, uint32_t polygonCount)
+void MeshImpl::Init(uint32_t vertexCount)
 {
-	SetVertexCount(vertexCount);
-
 	assert(vertexCount > 0 && "No need to create an empty mesh.");
-	assert(polygonCount > 0 && "Expect to generate index buffer by ourselves?");
 
 	SetVertexPositionCount(vertexCount);
 	SetVertexNormalCount(vertexCount);
 	SetVertexTangentCount(vertexCount);
 	SetVertexBiTangentCount(vertexCount);
+}
+
+uint32_t MeshImpl::GetPolygonCount() const
+{
+	size_t polygonCount = 0U;
+	for (const auto& polygonGroup : GetPolygonGroups())
+	{
+		polygonCount += polygonGroup.size();
+	}
+
+	return static_cast<uint32_t>(polygonCount);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

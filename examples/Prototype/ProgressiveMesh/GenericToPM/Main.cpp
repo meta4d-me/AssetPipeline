@@ -41,14 +41,15 @@ int main(int argc, char** argv)
 		uint32_t polygonCount = mesh.GetPolygonCount();
 
 		std::vector<uint32_t> indexBuffer;
-		for (uint32_t polygonIndex = 0U; polygonIndex < polygonCount; ++polygonIndex)
+		for (const auto& polygonGroup : mesh.GetPolygonGroups())
 		{
-			const auto& polygon = mesh.GetPolygon(polygonIndex);
-			assert(polygon.size() == 3U && "Need to triangulate.");
-
-			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygon.size(); ++polygonVertexIndex)
+			for (const auto& polygon : polygonGroup)
 			{
-				indexBuffer.push_back(polygon[polygonVertexIndex].Data());
+				assert(polygon.size() == 3U && "Need to triangulate.");
+				for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygon.size(); ++polygonVertexIndex)
+				{
+					indexBuffer.push_back(polygon[polygonVertexIndex].Data());
+				}
 			}
 		}
 

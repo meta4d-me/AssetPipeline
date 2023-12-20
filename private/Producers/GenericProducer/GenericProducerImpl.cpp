@@ -186,7 +186,7 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 
 	cd::MeshID::ValueType meshHash = cd::StringHash<cd::MeshID::ValueType>(meshHashString.str());
 	cd::MeshID meshID = m_meshIDGenerator.AllocateID(meshHash);
-	cd::Mesh mesh(meshID, pSourceMesh->mName.C_Str(), numVertices, pSourceMesh->mNumFaces);
+	cd::Mesh mesh(meshID, pSourceMesh->mName.C_Str(), numVertices);
 	
 	// By default, aabb will be empty.
 	if (IsOptionEnabled(GenericProducerOptions::GenerateBoundingBox))
@@ -319,7 +319,7 @@ cd::MaterialID GenericProducerImpl::GetMaterialID(const aiMaterial* pSourceMater
 	return m_materialIDGenerator.AllocateID(materialHash);
 }
 
-cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial)
+void GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabase, const aiMaterial* pSourceMaterial, cd::MaterialID materialID)
 {
 	// Mapping assimp material key to pbr based material key.
 	static std::unordered_map<aiTextureType, cd::MaterialTextureType> materialTextureMapping;
@@ -334,19 +334,8 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 	materialTextureMapping[aiTextureType_AMBIENT_OCCLUSION] = cd::MaterialTextureType::Occlusion;
 	materialTextureMapping[aiTextureType_LIGHTMAP] = cd::MaterialTextureType::Occlusion;
 
-	std::string finalMaterialName = GetMaterialName(pSourceMaterial);
-	bool isMaterialReused;
-	cd::MaterialID::ValueType materialHash = cd::StringHash<cd::MaterialID::ValueType>(finalMaterialName);
-	cd::MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, &isMaterialReused);
-	if (isMaterialReused)
-	{
-		// Skip to parse material which should already exist in SceneDatabase.
-		// Note that two materials with same configs but have different names will be considered as different materia.
-		// Because we only use material name as hash value. Don't want to compare all parameters.
-		return materialID;
-	}
-
 	// Create a base PBR material type by default.
+	std::string finalMaterialName = GetMaterialName(pSourceMaterial);
 	cd::Material material(materialID, finalMaterialName.c_str(), cd::MaterialType::BasePBR);
 
 	// Process all parameters
@@ -477,12 +466,12 @@ cd::MaterialID GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabas
 		}
 	}
 
-	pSceneDatabase->AddMaterial(cd::MoveTemp(material));
-	return materialID;
+	pSceneDatabase->SetMaterial(materialID.Data(), cd::MoveTemp(material));
 }
 
 void GenericProducerImpl::AddMaterials(cd::SceneDatabase* pSceneDatabase, const aiScene* pSourceScene)
 {
+	uint32_t materialCount = pSourceScene->mNumMaterials;
 	std::optional<std::set<cd::MaterialID>> optUsedMaterialIDs = std::nullopt;
 	if (IsOptionEnabled(GenericProducerOptions::CleanUnusedObjects))
 	{
@@ -502,10 +491,18 @@ void GenericProducerImpl::AddMaterials(cd::SceneDatabase* pSceneDatabase, const 
 		}
 	}
 
+	if (optUsedMaterialIDs.has_value())
+	{
+		materialCount = static_cast<uint32_t>(optUsedMaterialIDs.value().size());
+	}
+
+	assert(0U == pSceneDatabase->GetMaterialCount());
+	pSceneDatabase->SetMaterialCount(materialCount);
+
 	// Add materials and associated textures(a simple filepath or raw pixel data) to SceneDatabase.
 	for (uint32_t materialIndex = 0; materialIndex < pSourceScene->mNumMaterials; ++materialIndex)
 	{
-		const auto& pSourceMaterial = pSourceScene->mNumMaterials[materialIndex];
+		const auto* pSourceMaterial = pSourceScene->mMaterials[materialIndex];
 		cd::MaterialID materialID = GetMaterialID(pSourceMaterial);
 		if (optUsedMaterialIDs.has_value() &&
 			!optUsedMaterialIDs.value().contains(materialID))
@@ -514,7 +511,7 @@ void GenericProducerImpl::AddMaterials(cd::SceneDatabase* pSceneDatabase, const 
 			continue;
 		}
 
-		AddMaterial(pSceneDatabase, pSourceMaterial);
+		AddMaterial(pSceneDatabase, pSourceMaterial, materialID);
 	}
 }
 

@@ -414,7 +414,7 @@ cd::Mesh ProgressiveMeshImpl::GenerateLodMesh(uint32_t targetFaceCount, const cd
 	std::vector<uint32_t> map = collapseInfoPair.second;
 
 	uint32_t targetVertexCount = targetFaceCount * 3U;
-	cd::Mesh mesh(targetVertexCount, targetFaceCount);
+	cd::Mesh mesh(targetVertexCount);
 
 	if (pSourceMesh)
 	{

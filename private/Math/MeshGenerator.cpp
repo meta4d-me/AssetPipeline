@@ -87,7 +87,7 @@ std::optional<Mesh> MeshGenerator::Generate(const Box& box, const VertexFormat& 
 		}
 	}
 
-	cd::Mesh mesh(static_cast<uint32_t>(positions.size()), static_cast<uint32_t>(polygons.size()));
+	cd::Mesh mesh(static_cast<uint32_t>(positions.size()));
 
 	for (uint32_t i = 0U; i < positions.size(); ++i)
 	{
@@ -172,9 +172,8 @@ std::optional<Mesh> MeshGenerator::Generate(const Sphere& sphere, uint32_t numSt
 	assert(vertexFormat.Contains(VertexAttributeType::Position));
 
 	uint32_t vertexCount = (numStacks + 1) * (numSlices + 1);
-	uint32_t polygonCount = (numStacks - 1) * numSlices * 2;
 
-	cd::Mesh mesh(vertexCount, polygonCount);
+	cd::Mesh mesh(vertexCount);
 	cd::VertexFormat meshVertexFormat;
 	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
 

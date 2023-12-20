@@ -26,22 +26,23 @@ public:
 public:
 	DECLARE_SCENE_IMPL_CLASS(Mesh);
 
-	void Init(uint32_t vertexCount, uint32_t polygonCount);
+	void Init(uint32_t vertexCount);
 	
 	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, ID);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, SkinID);
-	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, VertexCount);
-	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, PolygonCount);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, AABB);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
-	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, MaterialID);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, MorphID);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexPosition);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexNormal);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexTangent);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, PolygonGroup);
+	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, MaterialID);
 	IMPLEMENT_STRING_TYPE_APIS(Mesh, Name);
+
+	uint32_t GetVertexCount() const { return GetVertexPositionCount(); }
+	uint32_t GetPolygonCount() const;
 
 	void UpdateAABB();
 	void ComputeVertexNormals();
@@ -81,16 +82,18 @@ public:
 		uint32_t vertexUVSetCount;
 		uint32_t vertexColorSetCount;
 		uint32_t vertexInfluenceCount;
-		uint32_t polygonCount;
+		uint32_t polygonGroupCount;
 
 		inputArchive >> GetName() >> GetID().Data() >> GetSkinID().Data()
 			>> vertexCount >> vertexUVSetCount >> vertexColorSetCount >> vertexInfluenceCount
-			>> polygonCount;
+			>> polygonGroupCount;
 
-		Init(vertexCount, polygonCount);
+		Init(vertexCount);
 		SetVertexUVSetCount(vertexUVSetCount);
 		SetVertexColorSetCount(vertexColorSetCount);
 		SetVertexInfluenceCount(vertexInfluenceCount);
+		SetPolygonGroupCount(polygonGroupCount);
+		SetMaterialIDCount(polygonGroupCount);
 
 		inputArchive >> GetAABB();
 		GetVertexFormat() << inputArchive;
@@ -115,13 +118,21 @@ public:
 			inputArchive.ImportBuffer(GetVertexWeights(boneIndex).data());
 		}
 
-		//for (uint32_t polygonIndex = 0U; polygonIndex < GetPolygonCount(); ++polygonIndex)
-		//{
-		//	auto& polygon = GetPolygon(polygonIndex);
-		//	uint64_t bufferSize = inputArchive.FetchBufferSize();
-		//	polygon.resize(bufferSize / sizeof(uint32_t));
-		//	inputArchive.ImportBuffer(polygon.data(), bufferSize);
-		//}
+		for (uint32_t polygonGroupIndex = 0U; polygonGroupIndex < GetPolygonGroupCount(); ++polygonGroupIndex)
+		{
+			uint32_t polygonCount;
+			inputArchive >> polygonCount;
+
+			auto& polygonGroup = GetPolygonGroup(polygonGroupIndex);
+			polygonGroup.resize(polygonCount);
+			for (uint32_t polygonIndex = 0U; polygonIndex < polygonCount; ++polygonIndex)
+			{
+				auto& polygon = polygonGroup[polygonIndex];
+				uint64_t bufferSize = inputArchive.FetchBufferSize();
+				polygon.resize(bufferSize / sizeof(uint32_t));
+				inputArchive.ImportBuffer(polygon.data(), bufferSize);
+			}
+		}
 
 		return *this;
 	}
@@ -131,7 +142,7 @@ public:
 	{
 		outputArchive << GetName() << GetID().Data() << GetSkinID().Data()
 			<< GetVertexCount() << GetVertexUVSetCount() << GetVertexColorSetCount() << GetVertexInfluenceCount()
-			<< GetPolygonCount();
+			<< GetPolygonGroupCount();
 
 		outputArchive << GetAABB();
 		GetVertexFormat() >> outputArchive;
@@ -156,10 +167,17 @@ public:
 			outputArchive.ExportBuffer(GetVertexWeights(boneIndex).data(), GetVertexWeights(boneIndex).size());
 		}
 
-		//for (uint32_t polygonIndex = 0U; polygonIndex < GetPolygonCount(); ++polygonIndex)
-		//{
-		//	outputArchive.ExportBuffer(GetPolygon(polygonIndex).data(), GetPolygon(polygonIndex).size());
-		//}
+		for (uint32_t polygonGroupIndex = 0U; polygonGroupIndex < GetPolygonGroupCount(); ++polygonGroupIndex)
+		{
+			const auto& polygonGroup = GetPolygonGroup(polygonGroupIndex);
+			outputArchive << static_cast<uint32_t>(polygonGroup.size());
+
+			for (uint32_t polygonIndex = 0U; polygonIndex < polygonGroup.size(); ++polygonIndex)
+			{
+				const auto& polygon = polygonGroup[polygonIndex];
+				outputArchive.ExportBuffer(polygon.data(), polygon.size());
+			}
+		}
 
 		return *this;
 	}

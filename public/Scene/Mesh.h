@@ -23,24 +23,25 @@ public:
 
 public:
 	DECLARE_SCENE_CLASS(Mesh);
-	explicit Mesh(uint32_t vertexCount, uint32_t polygonCount);
-	explicit Mesh(MeshID id, const char* pName, uint32_t vertexCount, uint32_t polygonCount);
-	void Init(uint32_t vertexCount, uint32_t polygonCount);
+	explicit Mesh(uint32_t vertexCount);
+	explicit Mesh(MeshID id, const char* pName, uint32_t vertexCount);
+	void Init(uint32_t vertexCount);
 
 	EXPORT_SIMPLE_TYPE_APIS(Mesh, ID);
 	EXPORT_SIMPLE_TYPE_APIS(Mesh, SkinID);
-	EXPORT_SIMPLE_TYPE_APIS(Mesh, VertexCount);
-	EXPORT_SIMPLE_TYPE_APIS(Mesh, PolygonCount);
 	EXPORT_COMPLEX_TYPE_APIS(Mesh, AABB);
 	EXPORT_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
-	EXPORT_VECTOR_TYPE_APIS(Mesh, MaterialID);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, MorphID);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexPosition);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexNormal);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexTangent);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, PolygonGroup);
+	EXPORT_VECTOR_TYPE_APIS(Mesh, MaterialID);
 	EXPORT_STRING_TYPE_APIS(Mesh, Name);
+
+	uint32_t GetVertexCount() const;
+	uint32_t GetPolygonCount() const;
 
 	void UpdateAABB();
 	void ComputeVertexNormals();

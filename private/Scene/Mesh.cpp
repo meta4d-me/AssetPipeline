@@ -16,38 +16,46 @@ Mesh Mesh::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrategy st
 	return mesh;
 }
 
-Mesh::Mesh(uint32_t vertexCount, uint32_t polygonCount)
+Mesh::Mesh(uint32_t vertexCount)
 {
 	m_pMeshImpl = new MeshImpl();
-	m_pMeshImpl->Init(vertexCount, polygonCount);
+	m_pMeshImpl->Init(vertexCount);
 }
 
-Mesh::Mesh(MeshID id, const char* pName, uint32_t vertexCount, uint32_t polygonCount) :
-	Mesh(vertexCount, polygonCount)
+Mesh::Mesh(MeshID id, const char* pName, uint32_t vertexCount) :
+	Mesh(vertexCount)
 {
 	m_pMeshImpl->SetID(id);
 	m_pMeshImpl->SetName(pName);
 }
 
-void Mesh::Init(uint32_t vertexCount, uint32_t polygonCount)
+void Mesh::Init(uint32_t vertexCount)
 {
-	m_pMeshImpl->Init(vertexCount, polygonCount);
+	m_pMeshImpl->Init(vertexCount);
 }
 
 PIMPL_SIMPLE_TYPE_APIS(Mesh, ID);
 PIMPL_SIMPLE_TYPE_APIS(Mesh, SkinID);
-PIMPL_SIMPLE_TYPE_APIS(Mesh, VertexCount);
-PIMPL_SIMPLE_TYPE_APIS(Mesh, PolygonCount);
 PIMPL_COMPLEX_TYPE_APIS(Mesh, AABB);
 PIMPL_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
-PIMPL_VECTOR_TYPE_APIS(Mesh, MaterialID);
 PIMPL_VECTOR_TYPE_APIS(Mesh, MorphID);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexPosition);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexNormal);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexTangent);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
 PIMPL_VECTOR_TYPE_APIS(Mesh, PolygonGroup);
+PIMPL_VECTOR_TYPE_APIS(Mesh, MaterialID);
 PIMPL_STRING_TYPE_APIS(Mesh, Name);
+
+uint32_t Mesh::GetVertexCount() const
+{
+	return m_pMeshImpl->GetVertexCount();
+}
+
+uint32_t Mesh::GetPolygonCount() const
+{
+	return m_pMeshImpl->GetPolygonCount();
+}
 
 void Mesh::UpdateAABB()
 {

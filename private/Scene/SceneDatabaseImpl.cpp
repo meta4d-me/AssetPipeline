@@ -199,11 +199,10 @@ void SceneDatabaseImpl::Dump() const
 			for (uint32_t polygonGroupIndex = 0U; polygonGroupIndex < polygonGroups.size(); ++polygonGroupIndex)
 			{
 				auto& polygonGroup = polygonGroups[polygonGroupIndex];
-				printf("\t[PolygonGroup %u] PolygonCount = %u\n", polygonGroupIndex, static_cast<uint32_t>(polygonGroup.size()));
-				if (auto materialID = mesh.GetMaterialID(polygonGroupIndex); materialID.IsValid())
+				auto materialID = mesh.GetMaterialID(polygonGroupIndex);
+				printf("\t[PolygonGroup %u] PolygonCount = %u, MaterialID = %u\n", polygonGroupIndex, static_cast<uint32_t>(polygonGroup.size()), materialID.Data());
+				if (materialID.IsValid())
 				{
-					printf("\t\t[Associated Material %u]\n", materialID.Data());
-
 					materialDrawMeshPolygonGroupIDs[materialID][mesh.GetID()].push_back(polygonGroupIndex);
 				}
 			}
@@ -290,10 +289,10 @@ void SceneDatabaseImpl::Dump() const
 				for (const auto& [drawMeshID, drawPolygonGroupIndexes] : itDrawMeshPolygonGroups->second)
 				{
 					const auto& mesh = GetMesh(drawMeshID.Data());
-					printf("\t[Associated Mesh %u] %s \n", drawMeshID.Data(), mesh.GetName());
+					printf("\t[Associated Mesh %u]\n", drawMeshID.Data());
 					for (uint32_t drawPolygonGroupIndex : drawPolygonGroupIndexes)
 					{
-						printf("\t\tPolygonGroup Index = %u\n", drawPolygonGroupIndex);
+						printf("\t\t[PolygonGroup %u]\n", drawPolygonGroupIndex);
 					}
 				}
 			}

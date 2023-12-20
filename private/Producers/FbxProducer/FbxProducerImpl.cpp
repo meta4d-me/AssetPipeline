@@ -524,7 +524,7 @@ cd::MeshID FbxProducerImpl::AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char*
 
 	if (optMaterialIndex.has_value())
 	{
-		mesh.SetMaterialID(optMaterialIndex.value());
+		mesh.AddMaterialID(optMaterialIndex.value());
 	}
 
 	// Process polygon and vertex data.
