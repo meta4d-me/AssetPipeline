@@ -39,7 +39,7 @@ public:
 
 	void Execute(cd::SceneDatabase* pSceneDatabase);
 
-	//cd::Mesh GenerateParticleMesh();
+	cd::Mesh GenerateParticleMesh(cd::ParticleEmitterType pType, int paticleCount, int meshIndex);
 
 	cd::Vec3f MeanXYZ(Effekseer::vector3d max, Effekseer::vector3d min) { return cd::Vec3f(((max.x + min.x) / 2), ((max.y + min.y) / 2), ((max.z + min.z) / 2)); }
 	cd::Vec3f DevXYZ(Effekseer::vector3d max, Effekseer::vector3d min) { return cd::Vec3f(((max.x - min.x) / 2), ((max.y - min.y) / 2), ((max.z - min.z) / 2)); }

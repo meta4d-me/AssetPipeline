@@ -149,25 +149,71 @@ void EffekseerProducerImpl::TraverseNodeRecursively(Effekseer::EffectNode* pNode
 	}
 }
 
-//cd::Mesh EffekseerProducerImpl::GenerateParticleMesh()
-//{
-//	//const std::string terrainMeshName = string_format("TerrainSector(%d, %d)", sector_x, sector_z);
-//	//const MeshID::ValueType meshHash = StringHash<MeshID::ValueType>(terrainMeshName);
-//	//const MeshID terrainMeshID = m_meshIDGenerator.AllocateID(meshHash);
-//	//Mesh terrain(terrainMeshID, terrainMeshName.c_str(), m_verticesPerSector, m_trianglesPerSector);
-//	
-//	//TODO :  change particleType
-//	const std::string particleMeshName = std::format("{}{}", "particleType", "mesh");
-//	const cd::MeshID::ValueType meshHash = cd::StringHash<cd::MeshID::ValueType>(particleMeshName);
-//	const cd::MeshID particleMeshID = m_particleMeshID.AllocateID(meshHash);
-//	//TODO:  change (11 11)  to  (vertexCount   polygonCount)
-//	cd::Mesh particleMesh(particleMeshID, particleMeshName.c_str(), 11, 11);
-//	//particleMesh.SetVertexPosition();
-//	//particleMesh.SetVertexColor();
-//	//particleMesh.SetVertexUV();
-//
-//	return particleMesh;
-//}
+cd::Mesh EffekseerProducerImpl::GenerateParticleMesh(cd::ParticleEmitterType pType, int particleCount, int meshIndex)
+{	
+	//TODO :  change particleType
+	const std::string particleMeshName = std::format("{}{}", nameof::nameof_enum(pType), "mesh");
+	const cd::MeshID::ValueType meshHash = cd::StringHash<cd::MeshID::ValueType>(particleMeshName.c_str() + meshIndex);
+	const cd::MeshID particleMeshID = m_particleMeshID.AllocateID(meshHash);
+	if (nameof::nameof_enum(pType) == "Sprite")
+	{
+		//TODO:  change (11 11)  to  (vertexCount   polygonCount)
+		cd::Mesh particleMesh(particleMeshID, particleMeshName.c_str(), particleCount*4, particleCount*2);
+		particleMesh.SetVertexUVSetCount(1);
+		particleMesh.SetVertexColorSetCount(1);
+
+		uint32_t currentVertexId = 0;
+		uint32_t currentPolygonId = 0;
+		for (int i = 0; i < particleCount; ++i)
+		{
+			const cd::Point bottomLeftPoint(-1.0f,-1.0f,0.0f);
+			const cd::Point bottomRightPoint(1.0f,-1.0f,0.0f);
+			const cd::Point topRightPoint(1.0f,1.0f,0.0f);
+			const cd::Point topLeftPoint(-1.0f,1.0f,0.0f);
+			const uint32_t bottomLeftPointId = currentVertexId++;
+			const uint32_t bottomRightPointId = currentVertexId++;
+			const uint32_t topRightPointId = currentVertexId++;
+			const uint32_t topLeftPointId = currentVertexId++;
+			//Position
+			particleMesh.SetVertexPosition(bottomLeftPointId, bottomLeftPoint);
+			particleMesh.SetVertexPosition(bottomRightPointId, bottomRightPoint);
+			particleMesh.SetVertexPosition(topRightPointId, topRightPoint);
+			particleMesh.SetVertexPosition(topLeftPointId, topLeftPoint);
+			//Color
+			particleMesh.SetVertexColor(0, bottomLeftPointId, cd::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			particleMesh.SetVertexColor(0, bottomRightPointId, cd::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			particleMesh.SetVertexColor(0, topRightPointId, cd::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			particleMesh.SetVertexColor(0, topLeftPointId, cd::Color(1.0f, 1.0f, 1.0f, 1.0f));
+			//UV
+			particleMesh.SetVertexUV(0, bottomLeftPointId, cd::UV(1.0f, 1.0f));
+			particleMesh.SetVertexUV(0, bottomRightPointId,cd:: UV(0.0f, 1.0f));
+			particleMesh.SetVertexUV(0, topRightPointId, cd::UV(0.0f, 0.0f));
+			particleMesh.SetVertexUV(0, topLeftPointId, cd::UV(1.0f, 0.0f));
+			// The two triangle indices
+			particleMesh.SetPolygon(currentPolygonId++, { bottomLeftPointId, bottomRightPointId, topRightPointId });
+			particleMesh.SetPolygon(currentPolygonId++, { bottomLeftPointId, topRightPointId, topLeftPointId });
+		}
+		// Set vertex attribute
+		cd::VertexFormat particleVertexFormat;
+		particleVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+		particleVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Color::ValueType>(), cd::Color::Size);
+		particleVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+		particleMesh.SetVertexFormat(std::move(particleVertexFormat));
+		return particleMesh;
+	}
+	else if (nameof::nameof_enum(pType) == "Ribbon")
+	{
+	}
+	else if (nameof::nameof_enum(pType) == "Ring")
+	{
+	}
+	else if (nameof::nameof_enum(pType) == "Model")
+	{
+	}
+	else if (nameof::nameof_enum(pType) == "Track")
+	{
+	}
+}
 
 
 void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
@@ -183,14 +229,10 @@ void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	std::string str = converter.to_bytes(u16str);
 	const char* pAllParticleEmitterName = str.c_str();
 
-	////Get Mesh From efkefc
-	//cd::Mesh generatedMesh = GenerateParticleMesh();
-	//pSceneDatabase->AddMesh(cd::MoveTemp(generatedMesh));
-
 	// pos velocity scale
 	// TODO : check other properties.
 	TraverseNodeRecursively(pEffectData->GetRoot());
-	for (int i = 0; i < pEffectData->GetRoot()->GetChildrenCount(); i++)
+	for (int i = 0; i < pEffectData->GetRoot()->GetChildrenCount(); ++i)
 	{
 		cd::ParticleEmitterID::ValueType particleEmitterHash = cd::StringHash<cd::ParticleEmitterID::ValueType>(pAllParticleEmitterName + i);
 		cd::ParticleEmitterID particleEmitterID = m_particleEmitterIDGenerator.AllocateID(particleEmitterHash);
@@ -207,12 +249,13 @@ void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 
 		pSceneDatabase->AddParticleEmitter(cd::MoveTemp(particleEmitter));
 	}
-	//// Mesh
-	//auto a = pEffectData->GetName();
 
-	//auto b = pEffectData->GetColorImageCount();
-	//
-	//auto c = pEffectData->GetColorImagePath(0);
+	//Get Mesh
+	for (int i = 0; i < pEffectData->GetRoot()->GetChildrenCount(); ++i)
+	{
+		cd::Mesh generatedMesh = GenerateParticleMesh(EffectNodeTypeMapping[static_cast<Effekseer::EffectNodeType>(m_particleType[i])], m_particleMaxCount[i], i);
+		pSceneDatabase->AddMesh(cd::MoveTemp(generatedMesh));
+	}
 }
 
 }
