@@ -112,19 +112,18 @@ public:
 			>> animationCount >> trackCount
 			>> particleEmitterCount;
 
-		SetNodeCount(nodeCount);
-		SetMeshCount(meshCount);
-		SetMorphCount(morphCount);
-		SetMaterialCount(materialCount);
-		SetTextureCount(textureCount);
-		SetCameraCount(cameraCount);
-		SetLightCount(lightCount);
-		SetSkinCount(skinCount);
-		SetSkeletonCount(skeletonCount);
-		SetBoneCount(boneCount);
-		SetAnimationCount(animationCount);
-		SetTrackCount(trackCount);
-		SetParticleEmitterCount(particleEmitterCount);
+		SetNodeCapacity(nodeCount);
+		SetMeshCapacity(meshCount);
+		SetMorphCapacity(morphCount);
+		SetMaterialCapacity(materialCount);
+		SetTextureCapacity(textureCount);
+		SetCameraCapacity(cameraCount);
+		SetLightCapacity(lightCount);
+		SetSkeletonCapacity(boneCount);
+		SetBoneCapacity(boneCount);
+		SetAnimationCapacity(animationCount);
+		SetTrackCapacity(trackCount);
+		SetParticleEmitterCapacity(particleEmitterCount);
 
 		for (uint32_t nodeIndex = 0U; nodeIndex < nodeCount; ++nodeIndex)
 		{
