@@ -38,46 +38,14 @@ public:
 	void RemoveAlphaMapGeneration();
 	void Initialize();
 
-	uint32_t GetTerrainLengthInX() const 
-	{
-		return m_terrainLenInX;
-	}
-
-	uint32_t GetTerrainLengthInZ() const 
-	{
-		return m_terrainLenInZ;
-	}
-
-	uint32_t GetSectorCount() const 
-	{
-		return m_sectorCount;
-	}
-
-	uint32_t GetSectorLengthInX() const 
-	{
-		return m_sectorLenInX;
-	}
-
-	uint32_t GetSectorLengthInZ() const 
-	{
-		return m_sectorLenInZ;
-	}
-
-	uint32_t GetQuadsPerSector() const 
-	{
-		return m_quadsPerSector;
-	}
-
-	uint32_t GetVertsPerSector() const 
-	{
-		return m_verticesPerSector;
-	}
-
-	const std::string_view GetAlphaMapTextureName(AlphaMapChannel channel) const
-	{
-		assert(channel != AlphaMapChannel::Count);
-		return m_alphaMapTextureNames[static_cast<uint8_t>(channel)];
-	}
+	uint32_t GetTerrainLengthInX() const { return m_terrainLenInX; }
+	uint32_t GetTerrainLengthInZ() const { return m_terrainLenInZ; }
+	uint32_t GetSectorCount() const { return m_sectorCount; }
+	uint32_t GetSectorLengthInX() const { return m_sectorLenInX; }
+	uint32_t GetSectorLengthInZ() const { return m_sectorLenInZ; }
+	uint32_t GetQuadsPerSector() const { return m_quadsPerSector; }
+	uint32_t GetVertsPerSector() const { return m_verticesPerSector; }
+	const std::string_view GetAlphaMapTextureName(AlphaMapChannel channel) const { return m_alphaMapTextureNames.at(static_cast<uint8_t>(channel)); }
 
 	void GenerateAlphaMapWithElevation(
 		const AlphaMapBlendRegion<int32_t>& redGreenRegion,
@@ -88,6 +56,12 @@ public:
 	void Execute(cd::SceneDatabase* pSceneDatabase);
 
 private:
+	cd::Vec2f GenerateElevationMap(uint32_t sector_x, uint32_t sector_z);
+	void GenerateElevationBasedAlphaMap();
+	void GenerateAllSectors(cd::SceneDatabase* pSceneDatabase);
+	cd::Mesh GenerateSectorAt(uint32_t sector_x, uint32_t sector_z, const cd::Vec2f& elevationMinMax);
+	cd::MaterialID GenerateMaterialAndTextures(cd::SceneDatabase* pSceneDatabase, uint32_t sector_x, uint32_t sector_z);
+
 	cdtools::TerrainMetadata m_terrainMetadata;
 	cdtools::TerrainSectorMetadata m_sectorMetadata;
 	uint32_t m_terrainLenInX;
@@ -102,15 +76,13 @@ private:
 	std::unique_ptr<ElevationAlphaMapDef> m_pElevationAlphaMapDef = nullptr;
 	std::unique_ptr<NoiseAlphaMapDef> m_pNoiseAlphaMapDef = nullptr;
 
+	// We use RGBA8 here, 1 byte per channel, 4 channels per pixel.
+	std::vector<std::byte> m_elevationMap;
+
 	cd::ObjectIDGenerator<cd::NodeID> m_nodeIDGenerator;
 	cd::ObjectIDGenerator<cd::MeshID> m_meshIDGenerator;
 	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
-
-	std::vector<std::byte> GenerateElevationMap(uint32_t sector_x, uint32_t sector_z, cd::Vec2f& elevationMinMax) const;
-	std::vector<std::byte> GenerateElevationBasedAlphaMap(const std::vector<std::byte>& elevationMap) const;
-	void GenerateAllSectors(cd::SceneDatabase* pSceneDatabase);
-	cd::Mesh GenerateSectorAt(uint32_t sector_x, uint32_t sector_z, const cd::Vec2f& elevationMinMax);
-	cd::MaterialID GenerateMaterialAndTextures(cd::SceneDatabase* pSceneDatabase, uint32_t sector_x, uint32_t sector_z, std::vector<std::byte>&& elevationMap);
+	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
 };
 
 }	// namespace cdtools

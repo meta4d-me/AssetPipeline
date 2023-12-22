@@ -18,10 +18,9 @@ class CORE_API Texture final
 {
 public:
 	DECLARE_SCENE_CLASS(Texture);
-	explicit Texture(TextureID textureID, const char* pName, MaterialTextureType textureType);
+	explicit Texture(TextureID textureID, const char* pName);
 
 	EXPORT_SIMPLE_TYPE_APIS(Texture, ID);
-	EXPORT_SIMPLE_TYPE_APIS(Texture, Type);
 	EXPORT_SIMPLE_TYPE_APIS(Texture, Format);
 	EXPORT_SIMPLE_TYPE_APIS(Texture, UMapMode);
 	EXPORT_SIMPLE_TYPE_APIS(Texture, VMapMode);

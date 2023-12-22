@@ -296,7 +296,6 @@ void SceneDatabaseImpl::Dump() const
 		printf("\n");
 		for (const auto& texture : GetTextures())
 		{
-			printf("[Texture %u] Type = %s\n", texture.GetID().Data(), nameof::nameof_enum(texture.GetType()).data());
 			printf("\tName = %s\n", texture.GetName());
 			printf("\tPath = %s\n", texture.GetPath());
 			printf("\tUVMapMode = (%s, %s)\n", nameof::nameof_enum(texture.GetUMapMode()).data(), nameof::nameof_enum(texture.GetVMapMode()).data());
