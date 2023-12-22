@@ -152,6 +152,11 @@ std::optional<cd::Vec2f> Material::GetVec2fProperty(MaterialPropertyGroup proper
 	return m_pMaterialImpl->GetProperty<cd::Vec2f>(propertyGroup, property);
 }
 
+std::optional<cd::Vec3f> Material::GetVec3fProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
+{
+	return m_pMaterialImpl->GetProperty<cd::Vec3f>(propertyGroup, property);
+}
+
 bool Material::ExistProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const
 {
 	return m_pMaterialImpl->ExistProperty(propertyGroup, property);
