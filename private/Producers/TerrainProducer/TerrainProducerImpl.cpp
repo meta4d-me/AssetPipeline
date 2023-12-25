@@ -11,8 +11,9 @@
 #include "Utilities/StringUtils.h"
 #include "Utilities/Utils.h"
 
-#include <cinttypes>
 #include <cfloat>
+#include <cinttypes>
+#include <cstring>
 
 using namespace cd;
 using namespace cdtools;
@@ -70,8 +71,6 @@ uint32_t PackAsRGBA8U(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha)
 	return static_cast<uint32_t>(red | (green << 8) | (blue << 16) | (alpha << 24));
 }
 
-uint32_t kNextTextureId;
-
 }
 
 namespace cdtools
@@ -99,7 +98,6 @@ void TerrainProducerImpl::SetSceneDatabaseIDs(const SceneDatabase* pSceneDatabas
 	m_nodeIDGenerator.SetCurrentID(pSceneDatabase->GetNodeCount());
 	m_meshIDGenerator.SetCurrentID(pSceneDatabase->GetMeshCount());
 	m_materialIDGenerator.SetCurrentID(pSceneDatabase->GetMaterialCount());
-	kNextTextureId = pSceneDatabase->GetTextureCount();
 }
 
 void TerrainProducerImpl::SetTerrainMetadata(const TerrainMetadata& metadata)
@@ -134,7 +132,6 @@ void TerrainProducerImpl::Initialize()
 	m_quadsPerSector = m_sectorMetadata.numQuadsInX * m_sectorMetadata.numQuadsInZ;
 	m_verticesPerSector = m_quadsPerSector * 4;
 	m_trianglesPerSector = m_quadsPerSector * 2;
-	kNextTextureId = 0;
 }
 
 void TerrainProducerImpl::GenerateAlphaMapWithElevation(
@@ -157,68 +154,60 @@ void TerrainProducerImpl::Execute(SceneDatabase* pSceneDatabase)
 	GenerateAllSectors(pSceneDatabase);
 }
 
-std::vector<std::byte> TerrainProducerImpl::GenerateElevationMap(uint32_t sector_x, uint32_t sector_z, cd::Vec2f& elevationMinMax) const
+cd::Vec2f TerrainProducerImpl::GenerateElevationMap(uint32_t sector_x, uint32_t sector_z)
 {
-	std::vector<std::byte> outElevationMap;
-	const uint32_t numVertices = (m_sectorLenInX + 1) * (m_sectorLenInZ + 1);
-	outElevationMap.reserve(numVertices * sizeof(int32_t));
+	const size_t elevationMapSize = (m_sectorLenInX + 1) * (m_sectorLenInZ + 1) * sizeof(float);
+	m_elevationMap.resize(elevationMapSize);
 
-	float minElevation = FLT_MAX;
-	float maxElevation = FLT_MIN;
-
+	float minElevation = std::numeric_limits<float>::max();
+	float maxElevation = std::numeric_limits<float>::min();
+	size_t elevationMapByteMemIndex = 0;
 	for (uint32_t row = 0; row <= m_sectorLenInZ; ++row)
 	{
 		for (uint32_t col = 0; col <= m_sectorLenInX; ++col)
 		{
 			const uint32_t x = (sector_x * m_sectorLenInX) + col;
 			const uint32_t z = (sector_z * m_sectorLenInZ) + row;
-			float elevation = std::round(
-				std::lerp(
-					static_cast<float>(m_terrainMetadata.minElevation),
-					static_cast<float>(m_terrainMetadata.maxElevation),
-					GetNoiseAt(x, z, m_terrainLenInX, m_terrainLenInZ, m_terrainMetadata.redistPow, m_terrainMetadata.octaves)));
+			float elevation = std::round(std::lerp(
+				static_cast<float>(m_terrainMetadata.minElevation),
+				static_cast<float>(m_terrainMetadata.maxElevation),
+				GetNoiseAt(x, z, m_terrainLenInX, m_terrainLenInZ, m_terrainMetadata.redistPow, m_terrainMetadata.octaves)));
 			
+			assert(elevationMapByteMemIndex < elevationMapSize);
+			std::memcpy(&elevation, m_elevationMap.data() + elevationMapByteMemIndex, sizeof(elevation));
+			elevationMapByteMemIndex += sizeof(elevation);
+
 			if (cd::Math::IsLargeThan(elevation, maxElevation))
 			{
 				maxElevation = elevation;
 			}
-
 			if (cd::Math::IsSmallThan(elevation, minElevation))
 			{
 				minElevation = elevation;
 			}
-
-			std::byte* bytePtr = reinterpret_cast<std::byte*>(&elevation);
-			for (std::size_t i = 0; i < sizeof(int32_t); ++i)
-			{
-				outElevationMap.push_back(bytePtr[i]);
-			}
 		}
 	}
-
-	elevationMinMax.x() = minElevation;
-	elevationMinMax.y() = maxElevation;
-
-	return outElevationMap;
+	assert(elevationMapByteMemIndex == elevationMapSize);
+	
+	return cd::Vec2f{ minElevation, maxElevation };
 }
 
-std::vector<std::byte> TerrainProducerImpl::GenerateElevationBasedAlphaMap(const std::vector<std::byte>& elevationMap) const
+void TerrainProducerImpl::GenerateElevationBasedAlphaMap()
 {
-	static_assert(sizeof(int32_t) == sizeof(uint32_t));
 	assert(m_pElevationAlphaMapDef != nullptr);
 	assert(m_pElevationAlphaMapDef->redGreenBlendRegion.blendStart <= m_pElevationAlphaMapDef->redGreenBlendRegion.blendEnd);
 	assert(m_pElevationAlphaMapDef->greenBlueBlendRegion.blendStart <= m_pElevationAlphaMapDef->greenBlueBlendRegion.blendEnd);
 	assert(m_pElevationAlphaMapDef->blueAlphaBlendRegion.blendStart <= m_pElevationAlphaMapDef->blueAlphaBlendRegion.blendEnd);
 
+	size_t mapSize = m_elevationMap.size();
+	assert(0 == mapSize % sizeof(int32_t));
 	std::vector<std::byte> outAlphaMap;
-	// We will use RGBA8 here
-	// 1 byte per channel; 4 channels per pixel
-	outAlphaMap.reserve(elevationMap.size());
+	outAlphaMap.resize(mapSize);
 
-	for (size_t elevationIndex = 0; elevationIndex < elevationMap.size() / sizeof(int32_t); ++elevationIndex)
+	for (size_t elevationIndex = 0; elevationIndex < mapSize / sizeof(int32_t); ++elevationIndex)
 	{
 		int32_t elevation = 0;
-		const std::byte* pElevationByteData = &elevationMap[elevationIndex];
+		const std::byte* pElevationByteData = &m_elevationMap[elevationIndex];
 		for (std::size_t byteIndex = 0; byteIndex < sizeof(int32_t); ++byteIndex)
 		{
 			elevation |= static_cast<int32_t>(pElevationByteData[byteIndex]) << (byteIndex * 8);
@@ -330,15 +319,10 @@ std::vector<std::byte> TerrainProducerImpl::GenerateElevationBasedAlphaMap(const
 		}
 		// Write the value
 		uint32_t rgba = PackAsRGBA8U(red, green, blue, alpha);
-
-		std::byte* pRGBA = reinterpret_cast<std::byte*>(&rgba);
-		for (std::size_t byteIndex = 0; byteIndex < sizeof(uint32_t); ++byteIndex)
-		{
-			outAlphaMap.push_back(pRGBA[byteIndex]);
-		}
+		std::memcpy(&rgba, outAlphaMap.data() + elevationIndex * sizeof(rgba), sizeof(rgba));
 	}
 
-	return outAlphaMap;
+	m_elevationMap = cd::MoveTemp(outAlphaMap);
 }
 
 void TerrainProducerImpl::GenerateAllSectors(cd::SceneDatabase* pSceneDatabase)
@@ -347,12 +331,11 @@ void TerrainProducerImpl::GenerateAllSectors(cd::SceneDatabase* pSceneDatabase)
 	{
 		for (uint32_t sector_col = 0; sector_col < m_terrainMetadata.numSectorsInX; ++sector_col)
 		{
-			cd::Vec2f elevationMinMax;
-			std::vector<std::byte> elevationMap = GenerateElevationMap(sector_col, sector_row, elevationMinMax);
+			cd::Vec2f elevationMinMax = GenerateElevationMap(sector_col, sector_row);
 			Mesh generatedTerrain = GenerateSectorAt(sector_col, sector_row, elevationMinMax);
-			MaterialID meshMaterialID = GenerateMaterialAndTextures(pSceneDatabase, sector_col, sector_row, cd::MoveTemp(elevationMap));
+			MaterialID meshMaterialID = GenerateMaterialAndTextures(pSceneDatabase, sector_col, sector_row);
 			generatedTerrain.SetMaterialID(meshMaterialID);
-			pSceneDatabase->AddMesh(std::move(generatedTerrain));
+			pSceneDatabase->AddMesh(cd::MoveTemp(generatedTerrain));
 		}
 	}
 }
@@ -414,7 +397,7 @@ Mesh TerrainProducerImpl::GenerateSectorAt(uint32_t sector_x, uint32_t sector_z,
 	VertexFormat meshVertexFormat;
 	meshVertexFormat.AddAttributeLayout(VertexAttributeType::Position, GetAttributeValueType<Point::ValueType>(), Point::Size);
 	meshVertexFormat.AddAttributeLayout(VertexAttributeType::UV, GetAttributeValueType<UV::ValueType>(), UV::Size);
-	terrain.SetVertexFormat(std::move(meshVertexFormat));
+	terrain.SetVertexFormat(cd::MoveTemp(meshVertexFormat));
 
 	// Set aabb
 	terrain.SetAABB(AABB(
@@ -429,42 +412,36 @@ Mesh TerrainProducerImpl::GenerateSectorAt(uint32_t sector_x, uint32_t sector_z,
 	return terrain;
 }
 
-MaterialID TerrainProducerImpl::GenerateMaterialAndTextures(cd::SceneDatabase* pSceneDatabase, uint32_t sector_x, uint32_t sector_z, std::vector<std::byte>&& elevationMap)
+MaterialID TerrainProducerImpl::GenerateMaterialAndTextures(cd::SceneDatabase* pSceneDatabase, uint32_t sector_x, uint32_t sector_z)
 {
 	const std::string materialName = string_format("TerrainMaterial(%d, %d)", sector_x, sector_z);
-	MaterialID::ValueType materialHash = StringHash<MaterialID::ValueType>(materialName);
+	MaterialID::ValueType materialHash = cd::StringHash<MaterialID::ValueType>(materialName);
 	MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash);
-	Material terrainSectorMaterial(materialID, materialName.c_str(), MaterialType::BasePBR);
+	Material terrainSectorMaterial{ materialID, materialName.c_str(), MaterialType::BasePBR };
 
-	// ElevationMap texture
-	std::string textureName = string_format("TerrainElevationMap(%d, %d)", sector_x, sector_z);
-	TextureID::ValueType textureHash = StringHash<TextureID::ValueType>(textureName);
-	TextureID textureID = TextureID(kNextTextureId++);
-	terrainSectorMaterial.SetTextureID(MaterialTextureType::Elevation, textureID);
-	Texture elevationTexture(textureID, textureName.c_str(), MaterialTextureType::Elevation);
-	elevationTexture.SetPath(textureName.c_str());
-	elevationTexture.SetFormat(TextureFormat::R32I);
-	elevationTexture.SetWidth(m_sectorLenInX + 1);
-	elevationTexture.SetHeight(m_sectorLenInZ + 1);
-	elevationTexture.SetRawData(cd::MoveTemp(elevationMap));
-	pSceneDatabase->AddTexture(MoveTemp(elevationTexture));
-
-	if (m_pElevationAlphaMapDef != nullptr)
+	std::string textureName = m_pElevationAlphaMapDef
+		? string_format("TerrainAlphaMap(%d, %d)", sector_x, sector_z)
+		: string_format("TerrainElevationMap(%d, %d)", sector_x, sector_z);
+	uint32_t textureHash = cd::StringHash<cd::TextureID::ValueType>(textureName.c_str());
+	bool isTextureReused;
+	TextureID textureID = m_textureIDGenerator.AllocateID(textureHash, &isTextureReused);
+	terrainSectorMaterial.SetTextureID(m_pElevationAlphaMapDef ? MaterialTextureType::AlphaMap : MaterialTextureType::Elevation, textureID);
+	if (!isTextureReused)
 	{
-		textureName = string_format("TerrainAlphaMap(%d, %d)", sector_x, sector_z);
-		textureHash = StringHash<TextureID::ValueType>(textureName);
-		textureID = TextureID(kNextTextureId++);
-		terrainSectorMaterial.SetTextureID(MaterialTextureType::AlphaMap, textureID);
-		Texture alphaTexture(textureID, textureName.c_str(), MaterialTextureType::AlphaMap);
-		alphaTexture.SetPath(textureName.c_str());
-		alphaTexture.SetFormat(TextureFormat::RGBA8);
-		alphaTexture.SetWidth(m_sectorLenInX + 1);
-		alphaTexture.SetHeight(m_sectorLenInZ + 1);
-		elevationTexture.SetRawData(GenerateElevationBasedAlphaMap(elevationMap));
-		pSceneDatabase->AddTexture(MoveTemp(alphaTexture));
+		Texture texture{ textureID, textureName.c_str() };
+		texture.SetPath(textureName.c_str());
+		texture.SetFormat(m_pElevationAlphaMapDef ? TextureFormat::RGBA8 : TextureFormat::R32I);
+		texture.SetWidth(m_sectorLenInX + 1);
+		texture.SetHeight(m_sectorLenInZ + 1);
+		if (m_pElevationAlphaMapDef)
+		{
+			GenerateElevationBasedAlphaMap();
+		}
+		texture.SetRawData(cd::MoveTemp(m_elevationMap));
+		pSceneDatabase->AddTexture(cd::MoveTemp(texture));
 	}
-	
-	pSceneDatabase->AddMaterial(MoveTemp(terrainSectorMaterial));
+
+	pSceneDatabase->AddMaterial(cd::MoveTemp(terrainSectorMaterial));
 
 	return materialID;
 }

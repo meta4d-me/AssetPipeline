@@ -56,6 +56,7 @@ public:
 	std::optional<double> GetDoubleProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const;
 	std::optional<std::string> GetStringProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const;
 	std::optional<cd::Vec2f> GetVec2fProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const;
+	std::optional<cd::Vec3f> GetVec3fProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const;
 
 	bool ExistProperty(MaterialPropertyGroup propertyGroup, MaterialProperty property) const;
 };
