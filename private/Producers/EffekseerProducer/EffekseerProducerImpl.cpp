@@ -157,12 +157,11 @@ cd::Mesh EffekseerProducerImpl::GenerateParticleMesh(cd::ParticleEmitterType pTy
 	const cd::MeshID particleMeshID = m_particleMeshID.AllocateID(meshHash);
 	if (nameof::nameof_enum(pType) == "Sprite")
 	{
-		//TODO:  change (11 11)  to  (vertexCount   polygonCount)
+		//TODO: vertexCount   polygonCount
 		cd::Mesh particleMesh(particleMeshID, particleMeshName.c_str(), particleCount*4, particleCount*2);
 		particleMesh.SetVertexUVSetCount(1);
 		particleMesh.SetVertexColorSetCount(1);
 
-		uint32_t currentVertexId = 0;
 		uint32_t currentPolygonId = 0;
 		for (int i = 0; i < particleCount; ++i)
 		{
@@ -170,10 +169,10 @@ cd::Mesh EffekseerProducerImpl::GenerateParticleMesh(cd::ParticleEmitterType pTy
 			const cd::Point bottomRightPoint(1.0f,-1.0f,0.0f);
 			const cd::Point topRightPoint(1.0f,1.0f,0.0f);
 			const cd::Point topLeftPoint(-1.0f,1.0f,0.0f);
-			const uint32_t bottomLeftPointId = currentVertexId++;
-			const uint32_t bottomRightPointId = currentVertexId++;
-			const uint32_t topRightPointId = currentVertexId++;
-			const uint32_t topLeftPointId = currentVertexId++;
+			const uint32_t bottomLeftPointId = 0;
+			const uint32_t bottomRightPointId = 1;
+			const uint32_t topRightPointId = 2;
+			const uint32_t topLeftPointId = 3;
 			//Position
 			particleMesh.SetVertexPosition(bottomLeftPointId, bottomLeftPoint);
 			particleMesh.SetVertexPosition(bottomRightPointId, bottomRightPoint);
