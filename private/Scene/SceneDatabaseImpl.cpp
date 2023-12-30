@@ -485,8 +485,8 @@ void SceneDatabaseImpl::Validate() const
 
 	for (uint32_t particleIndex = 0U; particleIndex < GetParticleEmitterCount(); ++particleIndex)
 	{
-		const cd::ParticleEmitter& ParticleEmitter = GetParticleEmitter(particleIndex);
-		assert(particleIndex == ParticleEmitter.GetID().Data());
+		const cd::ParticleEmitter& particleEmitter = GetParticleEmitter(particleIndex);
+		assert(particleIndex == particleEmitter.GetID().Data());
 	}
 }
 

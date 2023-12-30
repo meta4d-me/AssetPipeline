@@ -21,7 +21,7 @@ public:
 	IMPLEMENT_SIMPLE_TYPE_APIS(ParticleEmitter, ID);
 	IMPLEMENT_SIMPLE_TYPE_APIS(ParticleEmitter, Type);
 	IMPLEMENT_SIMPLE_TYPE_APIS(ParticleEmitter, MeshID);
-	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, MaxCount);
+	IMPLEMENT_SIMPLE_TYPE_APIS(ParticleEmitter, MaxCount);
 	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, Position);
 	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, Velocity);
 	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, Accelerate);
