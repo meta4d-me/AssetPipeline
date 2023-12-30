@@ -389,6 +389,7 @@ void SceneDatabaseImpl::Dump() const
 		{
 			printf("[ParticleEmitter %u] Name : %s\n", particle.GetID().Data(), particle.GetName());
 			printf("\tType : %s\n", nameof::nameof_enum(particle.GetType()).data());
+			printf("\tMaxCount : %d\n", particle.GetMaxCount());
 			details::Dump("\tPosition", particle.GetPosition());
 			details::Dump("\tVelocity", particle.GetVelocity());
 			details::Dump("\tAccelerate", particle.GetAccelerate());
@@ -483,8 +484,8 @@ void SceneDatabaseImpl::Validate() const
 
 	for (uint32_t particleIndex = 0U; particleIndex < GetParticleEmitterCount(); ++particleIndex)
 	{
-		const cd::ParticleEmitter& PE = GetParticleEmitter(particleIndex);
-		assert(particleIndex == PE.GetID().Data());
+		const cd::ParticleEmitter& particleEmitter = GetParticleEmitter(particleIndex);
+		assert(particleIndex == particleEmitter.GetID().Data());
 	}
 }
 
