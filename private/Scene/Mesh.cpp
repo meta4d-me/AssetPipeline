@@ -35,6 +35,7 @@ void Mesh::Init(uint32_t vertexCount)
 }
 
 PIMPL_SIMPLE_TYPE_APIS(Mesh, ID);
+PIMPL_STRING_TYPE_APIS(Mesh, Name);
 PIMPL_COMPLEX_TYPE_APIS(Mesh, AABB);
 PIMPL_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
 PIMPL_VECTOR_TYPE_APIS(Mesh, MorphID);
@@ -46,7 +47,6 @@ PIMPL_VECTOR_TYPE_APIS(Mesh, VertexTangent);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
 PIMPL_VECTOR_TYPE_APIS(Mesh, PolygonGroup);
 PIMPL_VECTOR_TYPE_APIS(Mesh, MaterialID);
-PIMPL_STRING_TYPE_APIS(Mesh, Name);
 
 uint32_t Mesh::GetVertexCount() const
 {

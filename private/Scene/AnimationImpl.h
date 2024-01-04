@@ -24,8 +24,8 @@ public:
 	IMPLEMENT_SIMPLE_TYPE_APIS(Animation, ID);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Animation, Duration);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Animation, TicksPerSecond);
-	IMPLEMENT_VECTOR_TYPE_APIS(Animation, BoneTrackID);
 	IMPLEMENT_STRING_TYPE_APIS(Animation, Name);
+	IMPLEMENT_VECTOR_TYPE_APIS(Animation, BoneTrackID);
 
 	template<bool SwapBytesOrder>
 	AnimationImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
@@ -37,7 +37,7 @@ public:
 
 		uint32_t boneTrackCount;
 		inputArchive >> GetDuration() >> GetTicksPerSecond() >> boneTrackCount;
-		GetBoneTrackIDs().resize(boneTrackCount);
+		SetBoneTrackIDCount(boneTrackCount);
 		inputArchive.ImportBuffer(GetBoneTrackIDs().data());
 
 		return *this;

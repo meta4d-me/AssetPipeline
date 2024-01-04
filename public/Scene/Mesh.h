@@ -28,6 +28,7 @@ public:
 	void Init(uint32_t vertexCount);
 
 	EXPORT_SIMPLE_TYPE_APIS(Mesh, ID);
+	EXPORT_STRING_TYPE_APIS(Mesh, Name);
 	EXPORT_COMPLEX_TYPE_APIS(Mesh, AABB);
 	EXPORT_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, MorphID);
@@ -39,8 +40,7 @@ public:
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, PolygonGroup);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, MaterialID);
-	EXPORT_STRING_TYPE_APIS(Mesh, Name);
-
+	
 	uint32_t GetVertexCount() const;
 	uint32_t GetPolygonCount() const;
 

@@ -24,8 +24,8 @@ public:
 	EXPORT_SIMPLE_TYPE_APIS(Animation, ID);
 	EXPORT_SIMPLE_TYPE_APIS(Animation, Duration);
 	EXPORT_SIMPLE_TYPE_APIS(Animation, TicksPerSecond);
-	EXPORT_VECTOR_TYPE_APIS(Animation, BoneTrackID);
 	EXPORT_STRING_TYPE_APIS(Animation, Name);
+	EXPORT_VECTOR_TYPE_APIS(Animation, BoneTrackID);
 };
 
 }

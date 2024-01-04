@@ -21,10 +21,10 @@ public:
 
 	IMPLEMENT_SIMPLE_TYPE_APIS(Bone, ID);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Bone, ParentID);
+	IMPLEMENT_STRING_TYPE_APIS(Bone, Name);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Bone, Offset);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Bone, Transform);
 	IMPLEMENT_VECTOR_TYPE_APIS(Bone, ChildID);
-	IMPLEMENT_STRING_TYPE_APIS(Bone, Name);
 
 	template<bool SwapBytesOrder>
 	BoneImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)

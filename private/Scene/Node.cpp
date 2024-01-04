@@ -18,9 +18,9 @@ void Node::Init(NodeID nodeID, std::string name)
 
 PIMPL_SIMPLE_TYPE_APIS(Node, ID);
 PIMPL_SIMPLE_TYPE_APIS(Node, ParentID);
+PIMPL_STRING_TYPE_APIS(Node, Name);
 PIMPL_COMPLEX_TYPE_APIS(Node, Transform);
 PIMPL_VECTOR_TYPE_APIS(Node, ChildID);
 PIMPL_VECTOR_TYPE_APIS(Node, MeshID);
-PIMPL_STRING_TYPE_APIS(Node, Name);
 
 }

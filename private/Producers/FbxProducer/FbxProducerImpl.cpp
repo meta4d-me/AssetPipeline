@@ -431,7 +431,7 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxMesh* pFbxMesh, uint3
 	}
 
 	// Init vertex position.
-	uint32_t controlPointCount = pFbxMesh->GetControlPointCount();
+	uint32_t controlPointCount = pFbxMesh->GetControlPointsCount();
 	mesh.SetVertexPositionCount(controlPointCount);
 	for (uint32_t controlPointIndex = 0U; controlPointIndex < controlPointCount; ++controlPointIndex)
 	{
@@ -495,11 +495,12 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxMesh* pFbxMesh, uint3
 	auto materialMappingMode = pLayerElementMaterial ? pLayerElementMaterial->GetMappingMode() : fbxsdk::FbxLayerElement::EMappingMode::eNone;
 	mesh.SetMaterialIDCount(materialCount);
 
-	// Init polygon data and vertex attributes except vertex positions.
+	// Init polygon data.
 	mesh.SetPolygonGroupCount(materialCount);
 
-	uint32_t polygonVertexCount = pFbxMesh->GetPolygonVertexCount();
-	mesh.SetVertexInstanceIDCount(polygonVertexCount);
+	// Init vertex attributes.
+	mesh.SetVertexInstanceIDCount(pFbxMesh->GetPolygonVertexCount());
+	auto& vertexInstanceIDs = mesh.GetVertexInstanceIDs();
 
 	uint32_t polygonCount = pFbxMesh->GetPolygonCount();
 	uint32_t polygonVertexBeginIndex = 0U;
@@ -536,8 +537,10 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxMesh* pFbxMesh, uint3
 		{
 			uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
 			fbxsdk::FbxVector4 position = pMeshVertexPositions[controlPointIndex];
-			uint32_t vertexID = polygonVertexBeginIndex + polygonVertexIndex;
-			polygon.push_back(vertexID);
+			uint32_t vertexInstanceID = polygonVertexBeginIndex + polygonVertexIndex;
+			polygon.push_back(vertexInstanceID);
+
+			vertexInstanceIDs[vertexInstanceID] = controlPointIndex;
 		}
 
 		// Add polygon to according group split by material.
@@ -551,10 +554,10 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxMesh* pFbxMesh, uint3
 			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 			{
 				uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
-				uint32_t normalMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementNormalData->GetMappingMode() ? controlPointIndex : polygonVertexBeginIndex + polygonVertexIndex;
+				uint32_t vertexID = polygonVertexBeginIndex + polygonVertexIndex;
+				uint32_t normalMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementNormalData->GetMappingMode() ? controlPointIndex : vertexID;
 				uint32_t normalValueIndex = fbxsdk::FbxLayerElement::eDirect == pLayerElementNormalData->GetReferenceMode() ? normalMapIndex : pLayerElementNormalData->GetIndexArray().GetAt(normalMapIndex);
 				fbxsdk::FbxVector4 normalValue = pLayerElementNormalData->GetDirectArray().GetAt(normalValueIndex);
-				uint32_t vertexID = polygonVertexBeginIndex + polygonVertexIndex;
 				mesh.SetVertexNormal(vertexID, cd::Direction(normalValue[0], normalValue[1], normalValue[2]));
 
 				// If normal data exists, apply TBN data.

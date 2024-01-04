@@ -22,10 +22,10 @@ public:
 
 	IMPLEMENT_SIMPLE_TYPE_APIS(Node, ID);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Node, ParentID);
+	IMPLEMENT_STRING_TYPE_APIS(Node, Name);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Node, Transform);
 	IMPLEMENT_VECTOR_TYPE_APIS(Node, ChildID);
 	IMPLEMENT_VECTOR_TYPE_APIS(Node, MeshID);
-	IMPLEMENT_STRING_TYPE_APIS(Node, Name);
 
 	template<bool SwapBytesOrder>
 	NodeImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)

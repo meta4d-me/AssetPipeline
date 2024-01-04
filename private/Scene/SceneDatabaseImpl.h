@@ -38,6 +38,7 @@ public:
 	~SceneDatabaseImpl() = default;
 
 	IMPLEMENT_SIMPLE_TYPE_APIS(SceneDatabase, Unit);
+	IMPLEMENT_STRING_TYPE_APIS(SceneDatabase, Name);
 	IMPLEMENT_COMPLEX_TYPE_APIS(SceneDatabase, AABB);
 	IMPLEMENT_COMPLEX_TYPE_APIS(SceneDatabase, AxisSystem);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Animation);
@@ -53,7 +54,6 @@ public:
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Skin);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Texture);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Track);
-	IMPLEMENT_STRING_TYPE_APIS(SceneDatabase, Name);
 
 	// Bone
 	Bone* GetBoneByName(const char* pName);

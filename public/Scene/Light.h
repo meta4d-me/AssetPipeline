@@ -28,11 +28,11 @@ public:
 	EXPORT_SIMPLE_TYPE_APIS(Light, Height);
 	EXPORT_SIMPLE_TYPE_APIS(Light, AngleScale);
 	EXPORT_SIMPLE_TYPE_APIS(Light, AngleOffset);
+	EXPORT_STRING_TYPE_APIS(Light, Name);
 	EXPORT_COMPLEX_TYPE_APIS(Light, Color);
 	EXPORT_COMPLEX_TYPE_APIS(Light, Position);
 	EXPORT_COMPLEX_TYPE_APIS(Light, Direction);
 	EXPORT_COMPLEX_TYPE_APIS(Light, Up);
-	EXPORT_STRING_TYPE_APIS(Light, Name);
 
 	std::pair<float, float> CalculateScaleAndOffset(float innerAngle, float outerAngle) const;
 };

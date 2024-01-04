@@ -15,10 +15,10 @@ public:
 
 	IMPLEMENT_SIMPLE_TYPE_APIS(Skin, ID);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Skin, SkeletonID);
+	IMPLEMENT_STRING_TYPE_APIS(Skin, Name);
 	IMPLEMENT_VECTOR_TYPE_APIS(Skin, VertexInfluenceBoneID);
 	IMPLEMENT_VECTOR_TYPE_APIS(Skin, VertexBoneIndex);
 	IMPLEMENT_VECTOR_TYPE_APIS(Skin, VertexBoneWeight);
-	IMPLEMENT_STRING_TYPE_APIS(Skin, Name);
 	
 	template<bool SwapBytesOrder>
 	SkinImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)

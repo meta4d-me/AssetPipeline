@@ -19,7 +19,7 @@ void Animation::Init(AnimationID id, std::string name)
 PIMPL_SIMPLE_TYPE_APIS(Animation, ID);
 PIMPL_SIMPLE_TYPE_APIS(Animation, Duration);
 PIMPL_SIMPLE_TYPE_APIS(Animation, TicksPerSecond);
-PIMPL_VECTOR_TYPE_APIS(Animation, BoneTrackID);
 PIMPL_STRING_TYPE_APIS(Animation, Name);
+PIMPL_VECTOR_TYPE_APIS(Animation, BoneTrackID);
 
 }

@@ -29,6 +29,7 @@ public:
 	void Init(uint32_t vertexCount);
 	
 	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, ID);
+	IMPLEMENT_STRING_TYPE_APIS(Mesh, Name);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, AABB);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, MorphID);
@@ -40,7 +41,6 @@ public:
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, PolygonGroup);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, MaterialID);
-	IMPLEMENT_STRING_TYPE_APIS(Mesh, Name);
 
 	uint32_t GetVertexCount() const { return GetVertexPositionCount(); }
 	uint32_t GetPolygonCount() const;

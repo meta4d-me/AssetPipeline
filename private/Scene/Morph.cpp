@@ -32,11 +32,11 @@ PIMPL_SIMPLE_TYPE_APIS(Morph, ID);
 PIMPL_SIMPLE_TYPE_APIS(Morph, SourceMeshID);
 PIMPL_SIMPLE_TYPE_APIS(Morph, Weight);
 PIMPL_SIMPLE_TYPE_APIS(Morph, VertexCount);
+PIMPL_STRING_TYPE_APIS(Morph, Name);
 PIMPL_VECTOR_TYPE_APIS(Morph, VertexSourceID);
 PIMPL_VECTOR_TYPE_APIS(Morph, VertexPosition);
 PIMPL_VECTOR_TYPE_APIS(Morph, VertexNormal);
 PIMPL_VECTOR_TYPE_APIS(Morph, VertexTangent);
 PIMPL_VECTOR_TYPE_APIS(Morph, VertexBiTangent);
-PIMPL_STRING_TYPE_APIS(Morph, Name);
 
 }

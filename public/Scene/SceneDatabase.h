@@ -39,6 +39,7 @@ public:
 	~SceneDatabase();
 
 	EXPORT_SIMPLE_TYPE_APIS(SceneDatabase, Unit);
+	EXPORT_STRING_TYPE_APIS(SceneDatabase, Name);
 	EXPORT_COMPLEX_TYPE_APIS(SceneDatabase, AABB);
 	EXPORT_COMPLEX_TYPE_APIS(SceneDatabase, AxisSystem);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Animation);
@@ -54,7 +55,6 @@ public:
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Skin);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Texture);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Track);
-	EXPORT_STRING_TYPE_APIS(SceneDatabase, Name);
 
 	// Bone
 	Bone* GetBoneByName(const char* pName);

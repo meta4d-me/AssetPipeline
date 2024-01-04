@@ -26,12 +26,12 @@ public:
 	IMPLEMENT_SIMPLE_TYPE_APIS(Morph, SourceMeshID);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Morph, Weight);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Morph, VertexCount);
+	IMPLEMENT_STRING_TYPE_APIS(Morph, Name);
 	IMPLEMENT_VECTOR_TYPE_APIS(Morph, VertexSourceID);
 	IMPLEMENT_VECTOR_TYPE_APIS(Morph, VertexPosition);
 	IMPLEMENT_VECTOR_TYPE_APIS(Morph, VertexNormal);
 	IMPLEMENT_VECTOR_TYPE_APIS(Morph, VertexTangent);
 	IMPLEMENT_VECTOR_TYPE_APIS(Morph, VertexBiTangent);
-	IMPLEMENT_STRING_TYPE_APIS(Morph, Name);
 
 	template<bool SwapBytesOrder>
 	MorphImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)

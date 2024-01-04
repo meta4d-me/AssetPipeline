@@ -17,11 +17,13 @@ class Skin;
 class Texture;
 class Track;
 
-// SceneDatabase
 struct SceneDatabaseTypeTraits
 {
 	// Simple
 	using Unit = cd::Unit;
+
+	// String
+	using Name = std::string;
 
 	// Complex
 	using AABB = cd::AABB;
@@ -41,12 +43,8 @@ struct SceneDatabaseTypeTraits
 	using Skeleton = cd::Skeleton;
 	using Texture = cd::Texture;
 	using Track = cd::Track;
-
-	// String
-	using Name = std::string;
 };
 
-// Animation
 struct AnimationTypeTraits
 {
 	// Simple
@@ -54,19 +52,21 @@ struct AnimationTypeTraits
 	using Duration = float;
 	using TicksPerSecond = float;
 
-	// Vector
-	using BoneTrackID = cd::TrackID;
-
 	// String
 	using Name = std::string;
+
+	// Vector
+	using BoneTrackID = cd::TrackID;
 };
 
-// Bone
 struct BoneTypeTraits
 {
 	// Simple
 	using ID = cd::BoneID;
 	using ParentID = BoneID;
+
+	// String
+	using Name = std::string;
 
 	// Complex
 	using Offset = cd::Matrix4x4;
@@ -74,12 +74,8 @@ struct BoneTypeTraits
 
 	// Vector
 	using ChildID = cd::BoneID;
-
-	// String
-	using Name = std::string;
 };
 
-// Camera
 struct CameraTypeTraits
 {
 	// Simple
@@ -89,16 +85,15 @@ struct CameraTypeTraits
 	using NearPlane = float;
 	using FarPlane = float;
 
+	// String
+	using Name = std::string;
+
 	// Complex
 	using Eye = cd::Point;
 	using LookAt = cd::Direction;
 	using Up = cd::Direction;
-
-	// String
-	using Name = std::string;
 };
 
-// Light
 struct LightTypeTraits
 {
 	// Simple
@@ -112,14 +107,14 @@ struct LightTypeTraits
 	using AngleScale = float;
 	using AngleOffset = float;
 
+	// String
+	using Name = std::string;
+
 	// Complex
 	using Color = cd::Vec3f;
 	using Position = cd::Point;
 	using Direction = cd::Direction;
 	using Up = cd::Direction;
-
-	// String
-	using Name = std::string;
 };
 
 struct MaterialTypeTraits
@@ -132,12 +127,14 @@ struct MaterialTypeTraits
 	using Name = std::string;
 };
 
-// Mesh
 struct MeshTypeTraits
 {
 	// Simple
 	using ID = cd::MeshID;
 	
+	// String
+	using Name = std::string;
+
 	// Complex
 	using AABB = cd::AABB;
 	using VertexFormat = cd::VertexFormat;
@@ -152,12 +149,8 @@ struct MeshTypeTraits
 	using VertexBiTangent = cd::Direction;
 	using PolygonGroup = cd::PolygonGroup;
 	using MaterialID = cd::MaterialID;
-
-	// String
-	using Name = std::string;
 };
 
-// Morph
 struct MorphTypeTraits
 {
 	// Simple
@@ -166,23 +159,25 @@ struct MorphTypeTraits
 	using Weight = float;
 	using VertexCount = uint32_t;
 
+	// String
+	using Name = std::string;
+
 	// Vector
 	using VertexSourceID = cd::VertexID;
 	using VertexPosition = cd::Point;
 	using VertexNormal = cd::Direction;
 	using VertexTangent = cd::Direction;
 	using VertexBiTangent = cd::Direction;
-
-	// String
-	using Name = std::string;
 };
 
-// Node
 struct NodeTypeTraits
 {
 	// Simple
 	using ID = cd::NodeID;
 	using ParentID = cd::NodeID;
+
+	// String
+	using Name = std::string;
 
 	// Complex
 	using Transform = cd::Transform;
@@ -190,18 +185,17 @@ struct NodeTypeTraits
 	// Vector
 	using ChildID = cd::NodeID;
 	using MeshID = cd::MeshID;
-
-	// String
-	using Name = std::string;
 };
 
-// ParticleEmitter
 struct ParticleEmitterTypeTraits
 {
 	// Simple
 	using ID = cd::ParticleEmitterID;
 	using Type = cd::ParticleEmitterType;
 	using MeshID = cd::MeshID;
+
+	// String
+	using Name = std::string;
 
 	// Complex
 	using Position = cd::Vec3f;
@@ -210,42 +204,36 @@ struct ParticleEmitterTypeTraits
 	using Color = cd::Vec4f;
 	using FixedRotation = cd::Vec3f;
 	using FixedScale = cd::Vec3f;
-
-	// String
-	using Name = std::string;
 };
 
-// Skeleton
 struct SkeletonTypeTraits
 {
 	// Simple
 	using ID = cd::SkeletonID;
-	using RootBoneID = cd::BoneID;
-
-	// Vector
-	using BoneID = cd::BoneID;
-
+	
 	// String
 	using Name = std::string;
+
+	// Vector
+	using RootBoneID = cd::BoneID;
+	using BoneID = cd::BoneID;
 };
 
-// Skin
 struct SkinTypeTraits
 {
 	// Simple
 	using ID = cd::SkinID;
 	using SkeletonID = cd::SkeletonID;
 
+	// String
+	using Name = std::string;
+
 	// Vector
 	using VertexInfluenceBoneID = uint8_t;
 	using VertexBoneIndex = uint8_t;
 	using VertexBoneWeight = float;
-
-	// String
-	using Name = std::string;
 };
 
-// Texture
 struct TextureTypeTraits
 {
 	// Simple
@@ -259,29 +247,28 @@ struct TextureTypeTraits
 	using Height = float;
 	using Depth = float;
 
+	// String
+	using Name = std::string;
+	using Path = std::string;
+
 	// Complex
 	using UVOffset = cd::Vec2f;
 	using UVScale = cd::Vec2f;
 	using RawData = std::vector<std::byte>;
-
-	// String
-	using Name = std::string;
-	using Path = std::string;
 };
 
-// Track
 struct TrackTypeTraits
 {
 	// Simple
 	using ID = cd::TrackID;
 
+	// String
+	using Name = std::string;
+
 	// Complex
 	using TranslationKey = cd::TranslationKey;
 	using RotationKey = cd::RotationKey;
 	using ScaleKey = cd::ScaleKey;
-
-	// String
-	using Name = std::string;
 };
 
 }

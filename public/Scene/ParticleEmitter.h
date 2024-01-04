@@ -19,13 +19,13 @@ public:
 	EXPORT_SIMPLE_TYPE_APIS(ParticleEmitter, ID);
 	EXPORT_SIMPLE_TYPE_APIS(ParticleEmitter, Type);
 	EXPORT_SIMPLE_TYPE_APIS(ParticleEmitter, MeshID);
+	EXPORT_STRING_TYPE_APIS(ParticleEmitter, Name);
 	EXPORT_COMPLEX_TYPE_APIS(ParticleEmitter, Position);
 	EXPORT_COMPLEX_TYPE_APIS(ParticleEmitter, Velocity);
 	EXPORT_COMPLEX_TYPE_APIS(ParticleEmitter, Accelerate);
 	EXPORT_COMPLEX_TYPE_APIS(ParticleEmitter, Color);
 	EXPORT_COMPLEX_TYPE_APIS(ParticleEmitter, FixedRotation);
 	EXPORT_COMPLEX_TYPE_APIS(ParticleEmitter, FixedScale);
-	EXPORT_STRING_TYPE_APIS(ParticleEmitter, Name);
 };
 
 }

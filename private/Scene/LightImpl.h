@@ -29,11 +29,11 @@ public:
 	IMPLEMENT_SIMPLE_TYPE_APIS(Light, Height);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Light, AngleScale);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Light, AngleOffset);
+	IMPLEMENT_STRING_TYPE_APIS(Light, Name);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Light, Color);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Light, Position);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Light, Direction);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Light, Up);
-	IMPLEMENT_STRING_TYPE_APIS(Light, Name);
 
 	std::pair<float, float> CalculateScaleAndOffset(float innerAngle, float outerAngle) const;
 
