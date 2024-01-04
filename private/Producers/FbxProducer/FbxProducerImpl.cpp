@@ -301,7 +301,7 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 			cd::Mesh mesh;
 			mesh.SetID(m_meshIDGenerator.AllocateID());
 			mesh.SetName(pSDKNode->GetName());
-			ParseMesh(mesh, pFbxMesh, pSDKNode->GetMaterialCount());
+			ParseMesh(mesh, pSDKNode, pFbxMesh);
 
 			// Associate mesh id to its parent transform node.
 			if (parentNodeID.IsValid())
@@ -412,8 +412,11 @@ cd::LightID FbxProducerImpl::ParseLight(const fbxsdk::FbxLight* pFbxLight, const
 	return lightID;
 }
 
-void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxMesh* pFbxMesh, uint32_t materialCount)
+void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxMesh* pFbxMesh)
 {
+	uint32_t materialCount = pSDKNode->GetMaterialCount();
+	bool isMaterialEmpty = 0U == materialCount;
+
 	fbxsdk::FbxLayer* pMeshBaseLayer = pFbxMesh->GetLayer(0);
 	assert(pMeshBaseLayer);
 
@@ -433,15 +436,17 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxMesh* pFbxMesh, uint3
 	// Init vertex position.
 	uint32_t controlPointCount = pFbxMesh->GetControlPointsCount();
 	mesh.SetVertexPositionCount(controlPointCount);
+	mesh.SetVertexInstanceIDCount(controlPointCount); // Map control point index to vertex instance id.
 	for (uint32_t controlPointIndex = 0U; controlPointIndex < controlPointCount; ++controlPointIndex)
 	{
+		fbxsdk::FbxVector4 position = pFbxMesh->GetControlPointAt(controlPointIndex);
 		mesh.SetVertexPosition(controlPointIndex, cd::Point(position[0], position[1], position[2]));
 	}
 
 	// Init vertex format.
+	uint32_t vertexInstanceCount = pFbxMesh->GetPolygonVertexCount();
 	cd::VertexFormat meshVertexFormat;
-	const fbxsdk::FbxVector4* pMeshVertexPositions = pFbxMesh->GetControlPoints();
-	if (pMeshVertexPositions)
+	if (controlPointCount > 0U)
 	{
 		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
 	}
@@ -449,18 +454,21 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxMesh* pFbxMesh, uint3
 	const fbxsdk::FbxLayerElementNormal* pLayerElementNormalData = pMeshBaseLayer->GetNormals();
 	if (pLayerElementNormalData)
 	{
+		mesh.SetVertexNormalCount(vertexInstanceCount);
 		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
 	}
 
 	const fbxsdk::FbxLayerElementTangent* pLayerElementTangentData = pMeshBaseLayer->GetTangents();
 	if (pLayerElementTangentData)
 	{
+		mesh.SetVertexTangentCount(vertexInstanceCount);
 		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
 	}
 
 	const fbxsdk::FbxLayerElementBinormal* pLayerElementBinormalData = pMeshBaseLayer->GetBinormals();
 	if (pLayerElementBinormalData)
 	{
+		mesh.SetVertexBiTangentCount(vertexInstanceCount);
 		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Bitangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
 	}
 
@@ -469,6 +477,7 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxMesh* pFbxMesh, uint3
 	{
 		// TODO : Multiple vertex color sets if necessary.
 		mesh.SetVertexColorSetCount(1U);
+		mesh.GetVertexColors(0U).resize(vertexInstanceCount);
 		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Vec4f::ValueType>(), cd::Vec4f::Size);
 	}
 
@@ -486,22 +495,40 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxMesh* pFbxMesh, uint3
 	if (!layerElementUVDatas.empty())
 	{
 		mesh.SetVertexUVSetCount(static_cast<uint32_t>(layerElementUVDatas.size()));
+		for (uint32_t uvSetIndex = 0U; uvSetIndex < mesh.GetVertexUVSetCount(); ++uvSetIndex)
+		{
+			mesh.GetVertexUVs(uvSetIndex).resize(vertexInstanceCount);
+		}
 		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
 	}
 	mesh.SetVertexFormat(cd::MoveTemp(meshVertexFormat));
 
-	// Init material data.
+	// Init material and polygon container.
 	fbxsdk::FbxLayerElementMaterial* pLayerElementMaterial = pMeshBaseLayer->GetMaterials();
 	auto materialMappingMode = pLayerElementMaterial ? pLayerElementMaterial->GetMappingMode() : fbxsdk::FbxLayerElement::EMappingMode::eNone;
-	mesh.SetMaterialIDCount(materialCount);
+	if (isMaterialEmpty)
+	{
+		mesh.SetMaterialIDCount(1U);
+		mesh.SetMaterialID(0U, cd::MaterialID::Invalid());
 
-	// Init polygon data.
-	mesh.SetPolygonGroupCount(materialCount);
+		mesh.SetPolygonGroupCount(1U);
+	}
+	else
+	{
+		mesh.SetMaterialIDCount(materialCount);
+		for (uint32_t materialIndex = 0U; materialIndex < materialCount; ++materialIndex)
+		{
+			uint32_t materialIndexIndex = pLayerElementMaterial->GetIndexArray().GetAt(materialIndex);
+			fbxsdk::FbxSurfaceMaterial* pMaterial = pSDKNode->GetMaterial(materialIndexIndex);
+			assert(pMaterial);
+			auto [materialID, _] = AllocateMaterialID(pMaterial);
+			mesh.SetMaterialID(materialIndex, materialID);
+		}
+
+		mesh.SetPolygonGroupCount(materialCount);
+	}
 
 	// Init vertex attributes.
-	mesh.SetVertexInstanceIDCount(pFbxMesh->GetPolygonVertexCount());
-	auto& vertexInstanceIDs = mesh.GetVertexInstanceIDs();
-
 	uint32_t polygonCount = pFbxMesh->GetPolygonCount();
 	uint32_t polygonVertexBeginIndex = 0U;
 	uint32_t polygonVertexEndIndex = 0U;
@@ -536,11 +563,10 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxMesh* pFbxMesh, uint3
 		for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 		{
 			uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
-			fbxsdk::FbxVector4 position = pMeshVertexPositions[controlPointIndex];
+			polygon.push_back(controlPointIndex);
+			
 			uint32_t vertexInstanceID = polygonVertexBeginIndex + polygonVertexIndex;
-			polygon.push_back(vertexInstanceID);
-
-			vertexInstanceIDs[vertexInstanceID] = controlPointIndex;
+			mesh.SetVertexInstanceID(controlPointIndex, vertexInstanceID);
 		}
 
 		// Add polygon to according group split by material.
@@ -554,11 +580,11 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxMesh* pFbxMesh, uint3
 			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 			{
 				uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
-				uint32_t vertexID = polygonVertexBeginIndex + polygonVertexIndex;
-				uint32_t normalMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementNormalData->GetMappingMode() ? controlPointIndex : vertexID;
+				uint32_t vertexInstanceID = polygonVertexBeginIndex + polygonVertexIndex;
+				uint32_t normalMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementNormalData->GetMappingMode() ? controlPointIndex : vertexInstanceID;
 				uint32_t normalValueIndex = fbxsdk::FbxLayerElement::eDirect == pLayerElementNormalData->GetReferenceMode() ? normalMapIndex : pLayerElementNormalData->GetIndexArray().GetAt(normalMapIndex);
 				fbxsdk::FbxVector4 normalValue = pLayerElementNormalData->GetDirectArray().GetAt(normalValueIndex);
-				mesh.SetVertexNormal(vertexID, cd::Direction(normalValue[0], normalValue[1], normalValue[2]));
+				mesh.SetVertexNormal(vertexInstanceID, cd::Direction(normalValue[0], normalValue[1], normalValue[2]));
 
 				// If normal data exists, apply TBN data.
 				applyTangentData = pLayerElementTangentData && pLayerElementBinormalData;
@@ -572,11 +598,11 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxMesh* pFbxMesh, uint3
 			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 			{
 				uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
-				uint32_t tangentMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementTangentData->GetMappingMode() ? controlPointIndex : polygonVertexBeginIndex + polygonVertexIndex;
+				uint32_t vertexInstanceID = polygonVertexBeginIndex + polygonVertexIndex;
+				uint32_t tangentMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementTangentData->GetMappingMode() ? controlPointIndex : vertexInstanceID;
 				uint32_t tangentValueIndex = fbxsdk::FbxLayerElement::eDirect == pLayerElementTangentData->GetReferenceMode() ? tangentMapIndex : pLayerElementTangentData->GetIndexArray().GetAt(tangentMapIndex);
 				fbxsdk::FbxVector4 tangentValue = pLayerElementTangentData->GetDirectArray().GetAt(tangentValueIndex);
-				uint32_t vertexID = polygonVertexBeginIndex + polygonVertexIndex;
-				mesh.SetVertexTangent(vertexID, cd::Direction(tangentValue[0], tangentValue[1], tangentValue[2]));
+				mesh.SetVertexTangent(vertexInstanceID, cd::Direction(tangentValue[0], tangentValue[1], tangentValue[2]));
 			}
 		}
 
@@ -585,11 +611,11 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxMesh* pFbxMesh, uint3
 			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 			{
 				uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
-				uint32_t binormalMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementBinormalData->GetMappingMode() ? controlPointIndex : polygonVertexBeginIndex + polygonVertexIndex;
+				uint32_t vertexInstanceID = polygonVertexBeginIndex + polygonVertexIndex;
+				uint32_t binormalMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementBinormalData->GetMappingMode() ? controlPointIndex : vertexInstanceID;
 				uint32_t binormalValueIndex = fbxsdk::FbxLayerElement::eDirect == pLayerElementBinormalData->GetReferenceMode() ? binormalMapIndex : pLayerElementBinormalData->GetIndexArray().GetAt(binormalMapIndex);
 				fbxsdk::FbxVector4 binormalValue = pLayerElementBinormalData->GetDirectArray().GetAt(binormalValueIndex);
-				uint32_t vertexID = polygonVertexBeginIndex + polygonVertexIndex;
-				mesh.SetVertexBiTangent(vertexID, cd::Direction(binormalValue[0], binormalValue[1], binormalValue[2]));
+				mesh.SetVertexBiTangent(vertexInstanceID, cd::Direction(binormalValue[0], binormalValue[1], binormalValue[2]));
 			}
 		}
 
@@ -602,11 +628,11 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxMesh* pFbxMesh, uint3
 				for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 				{
 					uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
-					uint32_t uvMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementUVData->GetMappingMode() ? controlPointIndex : polygonVertexBeginIndex + polygonVertexIndex;
+					uint32_t vertexInstanceID = polygonVertexBeginIndex + polygonVertexIndex;
+					uint32_t uvMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementUVData->GetMappingMode() ? controlPointIndex : vertexInstanceID;
 					uint32_t uvValueIndex = fbxsdk::FbxLayerElement::eDirect == pLayerElementUVData->GetReferenceMode() ? uvMapIndex : pLayerElementUVData->GetIndexArray().GetAt(uvMapIndex);
 					fbxsdk::FbxVector2 uvValue = pLayerElementUVData->GetDirectArray().GetAt(uvValueIndex);
-					uint32_t vertexID = polygonVertexBeginIndex + polygonVertexIndex;
-					mesh.SetVertexUV(uvSetIndex, vertexID, cd::UV(uvValue[0], uvValue[1]));
+					mesh.SetVertexUV(uvSetIndex, vertexInstanceID, cd::UV(uvValue[0], uvValue[1]));
 				}
 			}
 		}
@@ -617,100 +643,14 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxMesh* pFbxMesh, uint3
 			for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 			{
 				uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
-				uint32_t colorMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementColorData->GetMappingMode() ? controlPointIndex : polygonVertexBeginIndex + polygonVertexIndex;
+				uint32_t vertexInstanceID = polygonVertexBeginIndex + polygonVertexIndex;
+				uint32_t colorMapIndex = fbxsdk::FbxLayerElement::eByControlPoint == pLayerElementColorData->GetMappingMode() ? controlPointIndex : vertexInstanceID;
 				uint32_t colorValueIndex = fbxsdk::FbxLayerElement::eDirect == pLayerElementColorData->GetReferenceMode() ? colorMapIndex : pLayerElementColorData->GetIndexArray().GetAt(colorMapIndex);
 				fbxsdk::FbxColor colorValue = pLayerElementColorData->GetDirectArray().GetAt(colorValueIndex);
-				uint32_t vertexID = polygonVertexBeginIndex + polygonVertexIndex;
-				mesh.SetVertexColor(0U, vertexID, cd::Color(colorValue.mRed, colorValue.mGreen, colorValue.mBlue, colorValue.mAlpha));
+				mesh.SetVertexColor(0U, vertexInstanceID, cd::Color(colorValue.mRed, colorValue.mGreen, colorValue.mBlue, colorValue.mAlpha));
 			}
 		}
 	}
-}
-
-void FbxProducerImpl::ParseMesh2(cd::Mesh& mesh, const fbxsdk::FbxMesh* pFbxMesh, std::optional<int32_t> optMaterialIndex)
-{
-	// Skin
-	//if (IsOptionEnabled(FbxProducerOptions::ImportSkinMesh))
-	//{
-	//	std::map<uint32_t, uint32_t> mapVertexIndexToCurrentBoneCount;
-	//	for (int32_t deformerIndex = 0; deformerIndex < skinDeformerCount; ++deformerIndex)
-	//	{
-	//		auto* pSkinDeformer = static_cast<fbxsdk::FbxSkin*>(pFbxMesh->GetDeformer(deformerIndex, fbxsdk::FbxDeformer::eSkin));
-	//		pSceneDatabase->SetBoneCount(pSkinDeformer->GetClusterCount());
-	//		for (int32_t clusterIndex = 0; clusterIndex < pSkinDeformer->GetClusterCount(); ++clusterIndex)
-	//		{
-	//			// Cluster is an intermediate link node which connects bones to mesh shapes.
-	//			fbxsdk::FbxCluster* pCluster = pSkinDeformer->GetCluster(clusterIndex);
-	//
-	//			bool isBoneReused = false;
-	//			const char* pBoneName = pCluster->GetLink()->GetName();
-	//			cd::BoneID::ValueType boneHash = cd::StringHash<cd::BoneID::ValueType>(pBoneName);
-	//			cd::BoneID boneID = m_boneIDGenerator.AllocateID(boneHash, &isBoneReused);
-	//			if (!isBoneReused)
-	//			{
-	//				cd::Bone bone(boneID, pBoneName);
-	//				fbxsdk::FbxNode* pBoneNode = pCluster->GetLink();
-	//				assert(pBoneNode);
-	//
-	//				fbxsdk::FbxAMatrix transformMatrix;
-	//				fbxsdk::FbxAMatrix transformLinkMatrix;
-	//				pCluster->GetTransformLinkMatrix(transformLinkMatrix);
-	//				pCluster->GetTransformMatrix(transformMatrix);
-	//
-	//				FbxAMatrix geometryTransform = details::GetGeometryTransformation(pBoneNode);
-	//				assert(geometryTransform.IsIdentity());
-	//
-	//				fbxsdk::FbxAMatrix globalBindposeInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform;
-	//
-	//				fbxsdk::FbxTime increment;
-	//				increment.SetSecondDouble(0);
-	//
-	//				bone.SetTransform(details::ConvertFbxMatrixToTranform(globalBindposeInverseMatrix.Inverse()));
-	//				bone.SetOffset(details::ConvertFbxMatrixToCDMatrix(globalBindposeInverseMatrix));
-	//
-	//				// Set the parent bone
-	//				fbxsdk::FbxNode* pParentNode = pBoneNode->GetParent();
-	//				fbxsdk::FbxNodeAttribute* pNodeAttribute = pParentNode->GetNodeAttribute();
-	//				if (pParentNode && pNodeAttribute)
-	//				{
-	//					if (fbxsdk::FbxNodeAttribute::eSkeleton == pNodeAttribute->GetAttributeType())
-	//					{
-	//						auto* pParentBone = const_cast<cd::Bone*>(pSceneDatabase->GetBoneByName(pParentNode->GetName()));
-	//						assert(pParentBone);
-	//						bone.SetParentID(pParentBone->GetID());
-	//						pParentBone->AddChildID(bone.GetID());
-	//						cd::Matrix4x4 localMatrix = pParentBone->GetOffset() * bone.GetTransform().GetMatrix();
-	//						bone.SetTransform(cd::Transform(localMatrix.GetTranslation(), cd::Quaternion::FromMatrix(localMatrix.GetRotation()), localMatrix.GetScale()));
-	//					}
-	//				}
-	//				pSceneDatabase->AddBone(cd::MoveTemp(bone));
-	//			}
-	//
-	//			const int32_t vertexCount = pCluster->GetControlPointIndicesCount();
-	//			int* pVertexIndices = pCluster->GetControlPointIndices();
-	//			double* pBoneWeights = pCluster->GetControlPointWeights();
-	//			for (int32_t influencedVertexIndex = 0; influencedVertexIndex < vertexCount; ++influencedVertexIndex)
-	//			{
-	//				uint32_t fbxVertexIndex = pVertexIndices[influencedVertexIndex];
-	//				auto itVertexID = mapControlPointIndexToVertexID.find(fbxVertexIndex);
-	//				assert(itVertexID != mapControlPointIndexToVertexID.end());
-	//				for (const auto& vertexIndex : itVertexID->second)
-	//				{
-	//					double weight = pBoneWeights[influencedVertexIndex];
-	//					uint32_t currentBoneCount = 0U;
-	//					auto itVertexBoneCount = mapVertexIndexToCurrentBoneCount.find(vertexIndex);
-	//					if (itVertexBoneCount != mapVertexIndexToCurrentBoneCount.end())
-	//					{
-	//						currentBoneCount = mapVertexIndexToCurrentBoneCount[vertexIndex] + 1;
-	//						assert(currentBoneCount <= cd::MaxBoneInfluenceCount);
-	//					}
-	//					mapVertexIndexToCurrentBoneCount[vertexIndex] = currentBoneCount;
-	//					mesh.SetVertexBoneWeight(currentBoneCount, vertexIndex, boneID, static_cast<float>(weight));
-	//				}
-	//			}
-	//		}
-	//	}
-	//}
 }
 
 std::vector<cd::MorphID> FbxProducerImpl::ParseMorphs(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, const std::map<uint32_t, uint32_t>& mapVertexIDToControlPointIndex, cd::SceneDatabase* pSceneDatabase)
@@ -788,6 +728,14 @@ std::vector<cd::MorphID> FbxProducerImpl::ParseMorphs(const fbxsdk::FbxBlendShap
 	return morphIDs;
 }
 
+std::pair<cd::MaterialID, bool> FbxProducerImpl::AllocateMaterialID(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial)
+{
+	uint32_t materialHash = cd::StringHash<cd::MaterialID::ValueType>(pSDKMaterial->GetName());
+	bool isReused;
+	cd::MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, &isReused);
+	return std::make_pair(materialID, isReused);
+}
+
 void FbxProducerImpl::ParseMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial)
 {
 	// TODO
@@ -836,10 +784,12 @@ void FbxProducerImpl::ParseMaterialTexture(const fbxsdk::FbxProperty& sdkPropert
 
 cd::MaterialID FbxProducerImpl::ParseMaterial(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, cd::SceneDatabase* pSceneDatabase)
 {
-	uint32_t materialHash = cd::StringHash<cd::MaterialID::ValueType>(pSDKMaterial->GetName());
-	bool isReused;
-	cd::MaterialID materialID = m_materialIDGenerator.AllocateID(materialHash, &isReused);
-	assert(!isReused);
+	auto [materialID, isReused] = AllocateMaterialID(pSDKMaterial);	
+	if (isReused)
+	{
+		assert("Duplicated material to parse?");
+		return materialID;
+	}
 
 	cd::Material material(materialID, pSDKMaterial->GetName(), cd::MaterialType::BasePBR);
 

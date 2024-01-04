@@ -59,6 +59,7 @@ public:
 private:
 	void TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase);
 
+	std::pair<cd::MaterialID, bool> AllocateMaterialID(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial);
 	void ParseMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial);
 	void ParseMaterialTexture(const fbxsdk::FbxProperty& sdkProperty, cd::MaterialTextureType textureType, cd::Material& material, cd::SceneDatabase* pSceneDatabase);
 	cd::MaterialID ParseMaterial(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, cd::SceneDatabase* pSceneDatabase);
@@ -67,9 +68,8 @@ private:
 
 	cd::LightID ParseLight(const fbxsdk::FbxLight* pFbxLight, const char* pLightName, cd::Transform transform, cd::SceneDatabase* pSceneDatabase);
 
-	void ParseMesh(cd::Mesh& mesh, fbxsdk::FbxMesh* pFbxMesh, uint32_t materialCount);
-	void ParseMesh2(cd::Mesh& mesh, const fbxsdk::FbxMesh* pFbxMesh, std::optional<int32_t> optMaterialIndex);
-
+	void ParseMesh(cd::Mesh& mesh, fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxMesh* pFbxMesh);
+	
 	void ParseSkin();
 	std::vector<cd::MorphID> ParseMorphs(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, const std::map<uint32_t, uint32_t>& mapVertexIDToControlPointIndex, cd::SceneDatabase* pSceneDatabase);
 
