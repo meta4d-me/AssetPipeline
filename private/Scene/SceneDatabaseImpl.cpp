@@ -163,6 +163,7 @@ void SceneDatabaseImpl::Dump() const
 
 	printf("\tNode count : %d\n", GetNodeCount());
 	printf("\tMesh count : %d\n", GetMeshCount());
+	printf("\tBlendShape count : %d\n", GetBlendShapeCount());
 	printf("\tMorph count : %d\n", GetMorphCount());
 	printf("\tMaterial count : %d\n", GetMaterialCount());
 	printf("\tTexture count : %d\n", GetTextureCount());
@@ -206,6 +207,7 @@ void SceneDatabaseImpl::Dump() const
 				{
 					materialDrawMeshPolygonGroupIDs[materialID][mesh.GetID()].push_back(polygonGroupIndex);
 				}
+				printf("\t[Associated BlendShape %u]", mesh.GetBlendShapeID().Data());
 			}
 		}
 	}
