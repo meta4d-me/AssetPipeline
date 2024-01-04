@@ -3,16 +3,15 @@
 namespace cd
 {
 
-TextureImpl::TextureImpl(TextureID textureID, const char* pName, MaterialTextureType textureType)
+TextureImpl::TextureImpl(TextureID textureID, const char* pName)
 {
-	Init(textureID, pName, textureType);
+	Init(textureID, pName);
 }
 
-void TextureImpl::Init(TextureID textureID, std::string name, MaterialTextureType textureType)
+void TextureImpl::Init(TextureID textureID, std::string name)
 {
 	SetID(textureID);
 	SetName(MoveTemp(name));
-	SetType(textureType);
 
 	// Assign default values
 	SetUMapMode(TextureMapMode::Wrap);

@@ -198,6 +198,7 @@ struct ParticleEmitterTypeTraits
 	using Name = std::string;
 
 	// Complex
+	using MaxCount = int;
 	using Position = cd::Vec3f;
 	using Velocity = cd::Vec3f;
 	using Accelerate = cd::Vec3f;

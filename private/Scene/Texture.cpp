@@ -6,13 +6,12 @@ namespace cd
 
 PIMPL_SCENE_CLASS(Texture);
 
-Texture::Texture(TextureID textureID, const char* pName, MaterialTextureType textureType)
+Texture::Texture(TextureID textureID, const char* pName)
 {
-    m_pTextureImpl = new TextureImpl(textureID, pName, textureType);
+    m_pTextureImpl = new TextureImpl(textureID, pName);
 }
 
 PIMPL_SIMPLE_TYPE_APIS(Texture, ID);
-PIMPL_SIMPLE_TYPE_APIS(Texture, Type);
 PIMPL_SIMPLE_TYPE_APIS(Texture, Format);
 PIMPL_SIMPLE_TYPE_APIS(Texture, UMapMode);
 PIMPL_SIMPLE_TYPE_APIS(Texture, VMapMode);

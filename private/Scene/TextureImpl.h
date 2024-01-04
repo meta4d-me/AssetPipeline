@@ -18,11 +18,10 @@ class TextureImpl final
 public:
 	DECLARE_SCENE_IMPL_CLASS(Texture);
 
-	explicit TextureImpl(TextureID textureID, const char* pName, MaterialTextureType textureType);
-	void Init(TextureID textureID, std::string name, MaterialTextureType textureType);
+	explicit TextureImpl(TextureID textureID, const char* pName);
+	void Init(TextureID textureID, std::string name);
 
 	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, ID);
-	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, Type);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, Format);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, UMapMode);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, VMapMode);
@@ -42,9 +41,8 @@ public:
 	{
 		uint32_t textureID;
 		std::string name;
-		uint8_t textureType;
-		inputArchive >> textureID >> name >> textureType;
-		Init(TextureID(textureID), cd::MoveTemp(name), static_cast<cd::MaterialTextureType>(textureType));
+		inputArchive >> textureID >> name;
+		Init(TextureID(textureID), cd::MoveTemp(name));
 
 		uint8_t textureUMapMode;
 		uint8_t textureVMapMode;
@@ -69,7 +67,7 @@ public:
 	template<bool SwapBytesOrder>
 	const TextureImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetID().Data() << GetName() << static_cast<uint8_t>(GetType()) <<
+		outputArchive << GetID().Data() << GetName() <<
 			static_cast<uint8_t>(GetUMapMode()) << static_cast<uint8_t>(GetVMapMode()) << GetUVOffset() << GetUVScale() <<
 			static_cast<uint32_t>(GetFormat()) << GetUseMipMap();
 

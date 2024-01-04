@@ -446,7 +446,7 @@ void GenericProducerImpl::AddMaterial(cd::SceneDatabase* pSceneDatabase, const a
 			{
 				std::filesystem::path textureName = textureFilePath.C_Str();
 				textureName = textureName.filename();
-				cd::Texture materialTexture(textureID, textureName.string().c_str(), materialTextureType);
+				cd::Texture materialTexture(textureID, textureName.string().c_str());
 
 				std::filesystem::path textureAbsolutePath = m_folderPath;
 				textureAbsolutePath.append(textureFilePath.C_Str());

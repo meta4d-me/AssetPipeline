@@ -21,6 +21,7 @@ public:
 	IMPLEMENT_SIMPLE_TYPE_APIS(ParticleEmitter, ID);
 	IMPLEMENT_SIMPLE_TYPE_APIS(ParticleEmitter, Type);
 	IMPLEMENT_SIMPLE_TYPE_APIS(ParticleEmitter, MeshID);
+	IMPLEMENT_SIMPLE_TYPE_APIS(ParticleEmitter, MaxCount);
 	IMPLEMENT_STRING_TYPE_APIS(ParticleEmitter, Name);
 	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, Position);
 	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, Velocity);
@@ -38,7 +39,7 @@ public:
 		inputArchive >> emitterID >> emitterName >> emitterType >> GetMeshID().Data();
 		Init(ParticleEmitterID(emitterID), cd::MoveTemp(emitterName));
 		SetType(static_cast<ParticleEmitterType>(emitterType));
-		inputArchive >> GetPosition() >> GetVelocity() >> GetAccelerate()
+		inputArchive >> GetMaxCount() >> GetPosition() >> GetVelocity() >> GetAccelerate()
 			>> GetColor() >> GetFixedRotation() >> GetFixedScale();
 		return *this;
 	}
@@ -47,7 +48,7 @@ public:
 	const ParticleEmitterImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
 		outputArchive << GetID().Data() << GetName() << static_cast<uint32_t>(GetType())
-			<< GetMeshID().Data() << GetPosition() << GetVelocity() << GetAccelerate()
+			<< GetMeshID().Data() << GetMaxCount() << GetPosition() << GetVelocity() << GetAccelerate()
 			<< GetColor() << GetFixedRotation() << GetFixedScale();
 		return *this;
 	}
