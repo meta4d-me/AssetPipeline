@@ -223,19 +223,10 @@ void ProcessorImpl::ConvertAxisSystem()
 		// Convert morph data.
 		for (cd::Morph& morph : m_pCurrentSceneDatabase->GetMorphs())
 		{
-			for (uint32_t vertexIndex = 0U; vertexIndex < morph.GetVertexCount(); ++vertexIndex)
+			for (uint32_t vertexIndex = 0U; vertexIndex < morph.GetVertexPositionCount(); ++vertexIndex)
 			{
 				auto& position = morph.GetVertexPosition(vertexIndex);
 				position.z() = -position.z();
-
-				auto& normal = morph.GetVertexNormal(vertexIndex);
-				normal.z() = -normal.z();
-
-				auto& tangent = morph.GetVertexTangent(vertexIndex);
-				tangent.z() = -tangent.z();
-
-				auto& bitangent = morph.GetVertexBiTangent(vertexIndex);
-				bitangent.z() = -bitangent.z();
 			}
 		}
 	}

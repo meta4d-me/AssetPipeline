@@ -157,7 +157,6 @@ struct MorphTypeTraits
 	using ID = cd::MorphID;
 	using SourceMeshID = cd::MeshID;
 	using Weight = float;
-	using VertexCount = uint32_t;
 
 	// String
 	using Name = std::string;
@@ -165,9 +164,6 @@ struct MorphTypeTraits
 	// Vector
 	using VertexSourceID = cd::VertexID;
 	using VertexPosition = cd::Point;
-	using VertexNormal = cd::Direction;
-	using VertexTangent = cd::Direction;
-	using VertexBiTangent = cd::Direction;
 };
 
 struct NodeTypeTraits

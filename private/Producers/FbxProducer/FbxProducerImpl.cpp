@@ -310,16 +310,16 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 			}
 
 			// BlendShape
-			//if (IsOptionEnabled(FbxProducerOptions::ImportBlendShape))
-			//{
-			//	int32_t blendShapeCount = pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eBlendShape);
-			//	assert(blendShapeCount <= 1 && "Why use two blendshape in a mesh?");
-			//	for (int32_t blendShapeIndex = 0; blendShapeIndex < blendShapeCount; ++blendShapeIndex)
-			//	{
-			//		const fbxsdk::FbxBlendShape* pBlendShape = static_cast<fbxsdk::FbxBlendShape*>(pFbxMesh->GetDeformer(blendShapeIndex, fbxsdk::FbxDeformer::eBlendShape));
-			//		mesh.SetMorphIDs(ParseMorphs(pBlendShape, mesh, mapVertexIDToControlPointIndex, pSceneDatabase));
-			//	}
-			//}
+			if (IsOptionEnabled(FbxProducerOptions::ImportBlendShape))
+			{
+				int32_t blendShapeCount = pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eBlendShape);
+				assert(blendShapeCount <= 1 && "Why use two blendshape in a mesh?");
+				for (int32_t blendShapeIndex = 0; blendShapeIndex < blendShapeCount; ++blendShapeIndex)
+				{
+					const fbxsdk::FbxBlendShape* pBlendShape = static_cast<fbxsdk::FbxBlendShape*>(pFbxMesh->GetDeformer(blendShapeIndex, fbxsdk::FbxDeformer::eBlendShape));
+					mesh.SetMorphIDs(ParseMorphs(pBlendShape, mesh, pSceneDatabase));
+				}
+			}
 
 			pSceneDatabase->AddMesh(cd::MoveTemp(mesh));
 		}
@@ -653,7 +653,7 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxNode* pSDKNode, fbxsd
 	}
 }
 
-std::vector<cd::MorphID> FbxProducerImpl::ParseMorphs(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, const std::map<uint32_t, uint32_t>& mapVertexIDToControlPointIndex, cd::SceneDatabase* pSceneDatabase)
+std::vector<cd::MorphID> FbxProducerImpl::ParseMorphs(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase)
 {
 	assert(pBlendShape);
 
@@ -672,41 +672,17 @@ std::vector<cd::MorphID> FbxProducerImpl::ParseMorphs(const fbxsdk::FbxBlendShap
 			const fbxsdk::FbxShape* pTargetShape = pChannel->GetTargetShape(targetShapeIndex);
 			assert(pTargetShape);
 
-			uint32_t targetShapeVertexID = 0U;
-			for (uint32_t sourceVertexID = 0U; sourceVertexID < sourceVertexCount; ++sourceVertexID)
-			{
-				auto itControlPointIndex = mapVertexIDToControlPointIndex.find(sourceVertexID);
-				assert(itControlPointIndex != mapVertexIDToControlPointIndex.end());
-				uint32_t controlPointIndex = itControlPointIndex->second;
-				const cd::Point& sourceShapePosition = sourceMesh.GetVertexPosition(sourceVertexID);
-				fbxsdk::FbxVector4 sdkTargetPos = pTargetShape->GetControlPointAt(controlPointIndex);
-				cd::Point targetShapePosition(static_cast<float>(sdkTargetPos[0]), static_cast<float>(sdkTargetPos[1]), static_cast<float>(sdkTargetPos[2]));
-				if (sourceShapePosition == targetShapePosition)
-				{
-					// No difference.
-					continue;
-				}
-
-				++targetShapeVertexID;
-			}
-
-			if (0U == targetShapeVertexID)
-			{
-				// Target shape is same to source shape.
-				continue;
-			}
-
-			cd::Morph morph(m_morphIDGenerator.AllocateID(), sourceMesh.GetID(), pTargetShape->GetName(), targetShapeVertexID);
+			cd::Morph morph;
+			morph.SetID(m_morphIDGenerator.AllocateID());
+			morph.SetName(pTargetShape->GetName());
+			morph.SetSourceMeshID(sourceMesh.GetID());
+			morph.SetWeight(0.0f);
 			morphIDs.push_back(morph.GetID());
 
-			uint32_t targetShapeVertexIndex = 0U;
 			for (uint32_t sourceVertexID = 0U; sourceVertexID < sourceVertexCount; ++sourceVertexID)
 			{
-				auto itControlPointIndex = mapVertexIDToControlPointIndex.find(sourceVertexID);
-				assert(itControlPointIndex != mapVertexIDToControlPointIndex.end());
-				uint32_t controlPointIndex = itControlPointIndex->second;
 				const cd::Point& sourceShapePosition = sourceMesh.GetVertexPosition(sourceVertexID);
-				fbxsdk::FbxVector4 sdkTargetPos = pTargetShape->GetControlPointAt(controlPointIndex);
+				fbxsdk::FbxVector4 sdkTargetPos = pTargetShape->GetControlPointAt(sourceVertexID);
 				cd::Point targetShapePosition(static_cast<float>(sdkTargetPos[0]), static_cast<float>(sdkTargetPos[1]), static_cast<float>(sdkTargetPos[2]));
 				if (sourceShapePosition == targetShapePosition)
 				{
@@ -714,11 +690,8 @@ std::vector<cd::MorphID> FbxProducerImpl::ParseMorphs(const fbxsdk::FbxBlendShap
 					continue;
 				}
 
-				// TODO : import initial weights.
-				morph.SetWeight(0.0f);
-				morph.SetVertexSourceID(targetShapeVertexIndex, sourceVertexID);
-				morph.SetVertexPosition(targetShapeVertexIndex, targetShapePosition);
-				++targetShapeVertexIndex;
+				morph.AddVertexSourceID(sourceVertexID);
+				morph.AddVertexPosition(targetShapePosition);
 			}
 
 			pSceneDatabase->AddMorph(cd::MoveTemp(morph));
