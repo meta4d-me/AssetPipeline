@@ -4,6 +4,7 @@ namespace cd
 {
 
 class Animation;
+class BlendShape;
 class Bone;
 class Camera;
 class Light;
@@ -31,6 +32,7 @@ struct SceneDatabaseTypeTraits
 
 	// Vector
 	using Animation = cd::Animation;
+	using BlendShape = cd::BlendShape;
 	using Bone = cd::Bone;
 	using Camera = cd::Camera;
 	using Light = cd::Light;
@@ -57,6 +59,19 @@ struct AnimationTypeTraits
 
 	// Vector
 	using BoneTrackID = cd::TrackID;
+};
+
+struct BlendShapeTypeTraits
+{
+	// Simple
+	using ID = cd::BlendShapeID;
+	using MeshID = cd::MeshID;
+
+	// String
+	using Name = std::string;
+
+	// Vector
+	using MorphID = cd::MorphID;
 };
 
 struct BoneTypeTraits
@@ -131,7 +146,8 @@ struct MeshTypeTraits
 {
 	// Simple
 	using ID = cd::MeshID;
-	
+	using BlendShapeID = cd::BlendShapeID;
+
 	// String
 	using Name = std::string;
 
@@ -140,7 +156,6 @@ struct MeshTypeTraits
 	using VertexFormat = cd::VertexFormat;
 
 	// Vector
-	using MorphID = cd::MorphID;
 	using SkinID = cd::SkinID;
 	using VertexPosition = cd::Point;
 	using VertexInstanceID = cd::VertexID;
@@ -155,7 +170,7 @@ struct MorphTypeTraits
 {
 	// Simple
 	using ID = cd::MorphID;
-	using SourceMeshID = cd::MeshID;
+	using BlendShapeID = cd::BlendShapeID;
 	using Weight = float;
 
 	// String

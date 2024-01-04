@@ -210,6 +210,20 @@ void SceneDatabaseImpl::Dump() const
 		}
 	}
 
+	if (GetBlendShapeCount() > 0U)
+	{
+		printf("\n");
+		for (const auto& blendShape : GetBlendShapes())
+		{
+			printf("[BlendShape %u] Name = %s\n", blendShape.GetID().Data(), blendShape.GetName());
+
+			for (auto morphID : blendShape.GetMorphIDs())
+			{
+				printf("\t[Associated Morph %u]\n", morphID.Data());
+			}
+		}
+	}
+
 	if (GetMorphCount() > 0U)
 	{
 		printf("\n");
@@ -218,9 +232,9 @@ void SceneDatabaseImpl::Dump() const
 			printf("[Morph %u] Name = %s\n", morph.GetID().Data(), morph.GetName());
 			printf("\tVertexCount = %u\n", morph.GetVertexCount());
 			printf("\tWeight = %f\n", morph.GetWeight());
-			if (morph.GetSourceMeshID().IsValid())
+			if (morph.GetBlendShapeID().IsValid())
 			{
-				printf("\t[Associated Mesh %u]\n", morph.GetSourceMeshID().Data());
+				printf("\t[Associated BlendShape %u]\n", morph.GetBlendShapeID().Data());
 			}
 		}
 	}
@@ -432,6 +446,12 @@ void SceneDatabaseImpl::Validate() const
 		assert(meshIndex == mesh.GetID().Data());
 	}
 
+	for (uint32_t blendShapeIndex = 0U; blendShapeIndex < GetBlendShapeCount(); ++blendShapeIndex)
+	{
+		const cd::BlendShape& blendShape = GetBlendShape(blendShapeIndex);
+		assert(blendShapeIndex == blendShape.GetID().Data());
+	}
+
 	for (uint32_t morphIndex = 0U; morphIndex < GetMorphCount(); ++morphIndex)
 	{
 		const cd::Morph& morph = GetMorph(morphIndex);
@@ -511,9 +531,11 @@ void SceneDatabaseImpl::Merge(cd::SceneDatabaseImpl&& sceneDatabaseImpl)
 {
 	uint32_t originNodeCount = GetNodeCount();
 	uint32_t originMeshCount = GetMeshCount();
+	uint32_t originBlendShapeCount = GetBlendShapeCount();
 	uint32_t originMorphCount = GetMorphCount();
 	uint32_t originMaterialCount = GetMaterialCount();
 	uint32_t originTextureCount = GetTextureCount();
+	uint32_t originSkeletonCount = GetSkeletonCount();
 	uint32_t originBoneCount = GetBoneCount();
 	uint32_t originTrackCount = GetTrackCount();
 
@@ -535,21 +557,30 @@ void SceneDatabaseImpl::Merge(cd::SceneDatabaseImpl&& sceneDatabaseImpl)
 	for (auto& mesh : sceneDatabaseImpl.GetMeshes())
 	{
 		mesh.SetID(GetMeshCount());
+		mesh.SetBlendShapeID(mesh.GetBlendShapeID().Data() + originBlendShapeCount);
 		for (auto& materialID : mesh.GetMaterialIDs())
 		{
 			materialID.Set(materialID.Data() + originMaterialCount);
 		}
-		for (auto& morphID : mesh.GetMorphIDs())
+		AddMesh(cd::MoveTemp(mesh));
+	}
+
+	for (auto& blendshape : sceneDatabaseImpl.GetBlendShapes())
+	{
+		blendshape.SetID(GetBlendShapeCount());
+
+		for (auto& morphID : blendshape.GetMorphIDs())
 		{
 			morphID.Set(morphID.Data() + originMorphCount);
 		}
-		AddMesh(cd::MoveTemp(mesh));
+
+		AddBlendShape(cd::MoveTemp(blendshape));
 	}
 
 	for (auto& morph : sceneDatabaseImpl.GetMorphs())
 	{
 		morph.SetID(GetMorphCount());
-		morph.SetSourceMeshID(morph.GetSourceMeshID().Data() + originMeshCount);
+		morph.SetBlendShapeID(morph.GetBlendShapeID().Data() + originBlendShapeCount);
 		AddMorph(cd::MoveTemp(morph));
 	}
 
@@ -587,6 +618,23 @@ void SceneDatabaseImpl::Merge(cd::SceneDatabaseImpl&& sceneDatabaseImpl)
 	{
 		track.SetID(GetTrackCount());
 		AddTrack(cd::MoveTemp(track));
+	}
+
+	for (auto& skeleton : sceneDatabaseImpl.GetSkeletons())
+	{
+		skeleton.SetID(GetSkeletonCount());
+
+		for (auto& rootBoneID : skeleton.GetRootBoneIDs())
+		{
+			rootBoneID.Set(rootBoneID.Data() + originBoneCount);
+		}
+
+		for (auto& boneID : skeleton.GetBoneIDs())
+		{
+			boneID.Set(boneID.Data() + originBoneCount);
+		}
+
+		AddSkeleton(cd::MoveTemp(skeleton));
 	}
 
 	for (auto& bone : sceneDatabaseImpl.GetBones())

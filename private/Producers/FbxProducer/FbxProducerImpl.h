@@ -71,7 +71,7 @@ private:
 	void ParseMesh(cd::Mesh& mesh, fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxMesh* pFbxMesh);
 	
 	void ParseSkin();
-	std::vector<cd::MorphID> ParseMorphs(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase);
+	cd::BlendShapeID ParseBlendShape(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase);
 
 	cd::BoneID ParseBone(const fbxsdk::FbxNode* pSDKNode, cd::BoneID parentBoneID, cd::SceneDatabase* pSceneDatabase);
 	void ParseAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase);
@@ -89,6 +89,7 @@ private:
 	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
 	cd::ObjectIDGenerator<cd::MeshID> m_meshIDGenerator;
 	cd::ObjectIDGenerator<cd::NodeID> m_nodeIDGenerator;
+	cd::ObjectIDGenerator<cd::BlendShapeID> m_blendShapeIDGenerator;
 	cd::ObjectIDGenerator<cd::MorphID> m_morphIDGenerator;
 	cd::ObjectIDGenerator<cd::SkeletonID> m_skeletonIDGenerator;
 	cd::ObjectIDGenerator<cd::SkinID> m_skinIDGenerator;

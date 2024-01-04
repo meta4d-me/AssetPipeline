@@ -23,7 +23,8 @@ enum class ObjectType
 	Morph,
 	ParticleEmitter,
 	Skeleton,
-	Skin
+	Skin,
+	BlendShape
 };
 
 }

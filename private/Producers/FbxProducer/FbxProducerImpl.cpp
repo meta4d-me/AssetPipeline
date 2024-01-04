@@ -317,7 +317,7 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 				for (int32_t blendShapeIndex = 0; blendShapeIndex < blendShapeCount; ++blendShapeIndex)
 				{
 					const fbxsdk::FbxBlendShape* pBlendShape = static_cast<fbxsdk::FbxBlendShape*>(pFbxMesh->GetDeformer(blendShapeIndex, fbxsdk::FbxDeformer::eBlendShape));
-					mesh.SetMorphIDs(ParseMorphs(pBlendShape, mesh, pSceneDatabase));
+					mesh.SetBlendShapeID(ParseBlendShape(pBlendShape, mesh, pSceneDatabase));
 				}
 			}
 
@@ -653,11 +653,16 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxNode* pSDKNode, fbxsd
 	}
 }
 
-std::vector<cd::MorphID> FbxProducerImpl::ParseMorphs(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase)
+cd::BlendShapeID FbxProducerImpl::ParseBlendShape(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase)
 {
 	assert(pBlendShape);
 
-	std::vector<cd::MorphID> morphIDs;
+	cd::BlendShapeID blendShapeID = m_blendShapeIDGenerator.AllocateID();
+
+	cd::BlendShape blendShape;
+	blendShape.SetID(blendShapeID);
+	blendShape.SetMeshID(sourceMesh.GetID());
+	blendShape.SetName(pBlendShape->GetName());
 
 	uint32_t sourceVertexCount = sourceMesh.GetVertexCount();
 	int32_t blendShapeChannelCount = pBlendShape->GetBlendShapeChannelCount();
@@ -675,9 +680,9 @@ std::vector<cd::MorphID> FbxProducerImpl::ParseMorphs(const fbxsdk::FbxBlendShap
 			cd::Morph morph;
 			morph.SetID(m_morphIDGenerator.AllocateID());
 			morph.SetName(pTargetShape->GetName());
-			morph.SetSourceMeshID(sourceMesh.GetID());
 			morph.SetWeight(0.0f);
-			morphIDs.push_back(morph.GetID());
+			morph.SetBlendShapeID(blendShape.GetID());
+			blendShape.AddMorphID(morph.GetID());
 
 			for (uint32_t sourceVertexID = 0U; sourceVertexID < sourceVertexCount; ++sourceVertexID)
 			{
@@ -698,7 +703,9 @@ std::vector<cd::MorphID> FbxProducerImpl::ParseMorphs(const fbxsdk::FbxBlendShap
 		}
 	}
 
-	return morphIDs;
+	pSceneDatabase->AddBlendShape(cd::MoveTemp(blendShape));
+
+	return blendShapeID;
 }
 
 std::pair<cd::MaterialID, bool> FbxProducerImpl::AllocateMaterialID(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial)

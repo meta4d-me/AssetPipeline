@@ -36,6 +36,7 @@ PIMPL_STRING_TYPE_APIS(SceneDatabase, Name);
 PIMPL_COMPLEX_TYPE_APIS(SceneDatabase, AABB);
 PIMPL_COMPLEX_TYPE_APIS(SceneDatabase, AxisSystem);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Animation);
+PIMPL_VECTOR_TYPE_APIS(SceneDatabase, BlendShape);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Bone);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Camera);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Light);

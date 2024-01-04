@@ -34,6 +34,7 @@ using MorphID = ObjectID<uint32_t, ObjectType::Morph>;
 using ParticleEmitterID = ObjectID<uint32_t, ObjectType::ParticleEmitter>;
 using SkeletonID = ObjectID<uint32_t, ObjectType::Skeleton>;
 using SkinID = ObjectID<uint32_t, ObjectType::Skin>;
+using BlendShapeID = ObjectID<uint32_t, ObjectType::BlendShape>;
 static_assert(sizeof(VertexID) == sizeof(uint32_t));
 
 // ID Array

@@ -29,10 +29,10 @@ public:
 	void Init(uint32_t vertexCount);
 	
 	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, ID);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, BlendShapeID);
 	IMPLEMENT_STRING_TYPE_APIS(Mesh, Name);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, AABB);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
-	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, MorphID);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, SkinID);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexInstanceID);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexPosition);
@@ -79,7 +79,6 @@ public:
 	template<bool SwapBytesOrder>
 	MeshImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
-		uint32_t morphCount;
 		uint32_t skinCount;
 		uint32_t materialCount;
 		uint32_t vertexCount;
@@ -88,16 +87,13 @@ public:
 		uint32_t vertexInfluenceCount;
 		uint32_t polygonGroupCount;
 		
-		inputArchive >> GetName() >> GetID().Data() >> GetAABB() >> materialCount >> morphCount >> skinCount
+		inputArchive >> GetName() >> GetID().Data() >> GetBlendShapeID().Data() >> GetAABB() >> materialCount >> skinCount
 			>> vertexCount >> vertexUVSetCount >> vertexColorSetCount >> vertexInfluenceCount >> polygonGroupCount;
 
 		GetVertexFormat() << inputArchive;
 
 		SetMaterialIDCount(materialCount);
 		inputArchive.ImportBuffer(GetMaterialIDs().data());
-
-		SetMorphIDCount(morphCount);
-		inputArchive.ImportBuffer(GetMorphIDs().data());
 
 		SetSkinIDCount(skinCount);
 		inputArchive.ImportBuffer(GetSkinIDs().data());
@@ -150,13 +146,12 @@ public:
 	template<bool SwapBytesOrder>
 	const MeshImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetName() << GetID().Data() << GetAABB() << GetMaterialIDCount() << GetMorphIDCount() << GetSkinIDCount()
+		outputArchive << GetName() << GetID().Data() << GetBlendShapeID().Data() << GetAABB() << GetMaterialIDCount() << GetSkinIDCount()
 			<< GetVertexCount() << GetVertexUVSetCount() << GetVertexColorSetCount() << GetVertexInfluenceCount() << GetPolygonGroupCount();
 
 		GetVertexFormat() >> outputArchive;
 		outputArchive.ExportBuffer(GetMaterialIDs().data(), GetMaterialIDs().size());
 		outputArchive.ExportBuffer(GetSkinIDs().data(), GetSkinIDs().size());
-		outputArchive.ExportBuffer(GetMorphIDs().data(), GetMorphIDs().size());
 		outputArchive.ExportBuffer(GetVertexPositions().data(), GetVertexPositions().size());
 		outputArchive.ExportBuffer(GetVertexNormals().data(), GetVertexNormals().size());
 		outputArchive.ExportBuffer(GetVertexTangents().data(), GetVertexTangents().size());

@@ -18,7 +18,7 @@ public:
 	DECLARE_SCENE_IMPL_CLASS(Morph);
 	
 	IMPLEMENT_SIMPLE_TYPE_APIS(Morph, ID);
-	IMPLEMENT_SIMPLE_TYPE_APIS(Morph, SourceMeshID);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Morph, BlendShapeID);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Morph, Weight);
 	IMPLEMENT_STRING_TYPE_APIS(Morph, Name);
 	IMPLEMENT_VECTOR_TYPE_APIS(Morph, VertexSourceID);
@@ -30,7 +30,7 @@ public:
 	MorphImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
 		uint32_t vertexPositionCount;
-		inputArchive >> GetID().Data() >> GetName() >> GetWeight() >> vertexPositionCount;
+		inputArchive >> GetID().Data() >> GetBlendShapeID().Data() >> GetName() >> GetWeight() >> vertexPositionCount;
 		SetVertexSourceIDCount(vertexPositionCount);
 		SetVertexPositionCount(vertexPositionCount);
 		inputArchive.ImportBuffer(GetVertexSourceIDs().data());
@@ -42,7 +42,7 @@ public:
 	template<bool SwapBytesOrder>
 	const MorphImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetID().Data() << GetName() << GetWeight() << GetVertexPositionCount();
+		outputArchive << GetID().Data() << GetBlendShapeID().Data() << GetName() << GetWeight() << GetVertexPositionCount();
 		outputArchive.ExportBuffer(GetVertexSourceIDs().data(), GetVertexSourceIDs().size());
 		outputArchive.ExportBuffer(GetVertexPositions().data(), GetVertexPositions().size());
 

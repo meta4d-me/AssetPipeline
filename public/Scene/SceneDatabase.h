@@ -6,6 +6,7 @@
 #include "Math/Box.hpp"
 #include "Math/UnitSystem.hpp"
 #include "Scene/Animation.h"
+#include "Scene/BlendShape.h"
 #include "Scene/Bone.h"
 #include "Scene/Camera.h"
 #include "Scene/Light.h"
@@ -43,6 +44,7 @@ public:
 	EXPORT_COMPLEX_TYPE_APIS(SceneDatabase, AABB);
 	EXPORT_COMPLEX_TYPE_APIS(SceneDatabase, AxisSystem);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Animation);
+	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, BlendShape);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Bone);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Camera);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Light);

@@ -14,7 +14,7 @@ uint32_t Morph::GetVertexCount() const
 }
 
 PIMPL_SIMPLE_TYPE_APIS(Morph, ID);
-PIMPL_SIMPLE_TYPE_APIS(Morph, SourceMeshID);
+PIMPL_SIMPLE_TYPE_APIS(Morph, BlendShapeID);
 PIMPL_SIMPLE_TYPE_APIS(Morph, Weight);
 PIMPL_STRING_TYPE_APIS(Morph, Name);
 PIMPL_VECTOR_TYPE_APIS(Morph, VertexSourceID);

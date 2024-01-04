@@ -4,6 +4,7 @@
 #include "Math/Box.hpp"
 #include "Math/UnitSystem.hpp"
 #include "Scene/Animation.h"
+#include "Scene/BlendShape.h"
 #include "Scene/Bone.h"
 #include "Scene/Camera.h"
 #include "Scene/Light.h"
@@ -42,6 +43,7 @@ public:
 	IMPLEMENT_COMPLEX_TYPE_APIS(SceneDatabase, AABB);
 	IMPLEMENT_COMPLEX_TYPE_APIS(SceneDatabase, AxisSystem);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Animation);
+	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, BlendShape);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Bone);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Camera);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Light);
@@ -93,8 +95,10 @@ public:
 
 		uint32_t nodeCount;
 		uint32_t meshCount;
-		uint32_t textureCount;
+		uint32_t blendShapeCount;
+		uint32_t morphCount;
 		uint32_t materialCount;
+		uint32_t textureCount;
 		uint32_t cameraCount;
 		uint32_t lightCount;
 		uint32_t skinCount;
@@ -102,10 +106,9 @@ public:
 		uint32_t boneCount;
 		uint32_t animationCount;
 		uint32_t trackCount;
-		uint32_t morphCount;
 		uint32_t particleEmitterCount;
 
-		inputArchive >> nodeCount >> meshCount >> morphCount
+		inputArchive >> nodeCount >> meshCount >> blendShapeCount >> morphCount
 			>> materialCount >> textureCount
 			>> cameraCount >> lightCount
 			>> skinCount >> skeletonCount >> boneCount
@@ -114,6 +117,7 @@ public:
 
 		SetNodeCapacity(nodeCount);
 		SetMeshCapacity(meshCount);
+		SetBlendShapeCapacity(blendShapeCount);
 		SetMorphCapacity(morphCount);
 		SetMaterialCapacity(materialCount);
 		SetTextureCapacity(textureCount);
@@ -133,6 +137,11 @@ public:
 		for (uint32_t meshIndex = 0U; meshIndex < meshCount; ++meshIndex)
 		{
 			AddMesh(Mesh(inputArchive));
+		}
+
+		for (uint32_t blendShapeIndex = 0U; blendShapeIndex < blendShapeCount; ++blendShapeIndex)
+		{
+			AddBlendShape(BlendShape(inputArchive));
 		}
 
 		for (uint32_t morphIndex = 0U; morphIndex < morphCount; ++morphIndex)
@@ -197,7 +206,7 @@ public:
 	const SceneDatabaseImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
 		outputArchive << GetName() << GetAABB() << GetAxisSystem() << static_cast<uint8_t>(GetUnit())
-			<< GetNodeCount() << GetMeshCount() << GetMorphCount()
+			<< GetNodeCount() << GetMeshCount() << GetBlendShapeCount() << GetMorphCount()
 			<< GetMaterialCount() << GetTextureCount()
 			<< GetCameraCount() << GetLightCount()
 			<< GetSkinCount() << GetSkeletonCount() << GetBoneCount()
@@ -214,6 +223,12 @@ public:
 		{
 			const Mesh& mesh = GetMesh(meshIndex);
 			mesh >> outputArchive;
+		}
+
+		for (uint32_t blendShapeIndex = 0U; blendShapeIndex < GetBlendShapeCount(); ++blendShapeIndex)
+		{
+			const BlendShape& blendShape = GetBlendShape(blendShapeIndex);
+			blendShape >> outputArchive;
 		}
 
 		for (uint32_t morphIndex = 0U; morphIndex < GetMorphCount(); ++morphIndex)
