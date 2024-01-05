@@ -29,14 +29,19 @@ public:
 		inputArchive >> GetID().Data() >> GetMeshID().Data() >> GetName() >> influenceBoneCount >> influenceVertexCount;
 		
 		SetVertexInfluenceBoneNameCount(influenceBoneCount);
+		for (uint32_t influenceBoneIndex = 0U; influenceBoneIndex < influenceBoneCount; ++influenceBoneIndex)
+		{
+			inputArchive.ImportBuffer(GetVertexInfluenceBoneName(influenceBoneIndex).data());
+		}
+
 		SetVertexBoneNameCount(influenceVertexCount);
 		for (uint32_t influenceVertexIndex = 0U; influenceVertexIndex < influenceVertexCount; ++influenceVertexIndex)
 		{
-			inputArchive.ImportBuffer(GetVertexBoneName(influenceVertexIndex).data(), GetVertexBoneName(influenceVertexIndex).size());
+			inputArchive.ImportBuffer(GetVertexBoneName(influenceVertexIndex).data());
 		}
 
 		SetVertexBoneWeightCount(influenceVertexCount);
-		inputArchive.ImportBuffer(GetVertexBoneWeights().data(), GetVertexBoneWeights().size());
+		inputArchive.ImportBuffer(GetVertexBoneWeights().data());
 
 		return *this;
 	}
@@ -46,6 +51,19 @@ public:
 	{
 		outputArchive << GetID().Data() << GetMeshID().Data() << GetName()
 			<< GetVertexInfluenceBoneNameCount() << GetVertexBoneNameCount();
+
+		for (uint32_t influenceBoneIndex = 0U; influenceBoneIndex < GetVertexInfluenceBoneNameCount(); ++influenceBoneIndex)
+		{
+			outputArchive.ExportBuffer(GetVertexInfluenceBoneName(influenceBoneIndex).data(), GetVertexInfluenceBoneName(influenceBoneIndex).size());
+		}
+
+		for (uint32_t influenceVertexIndex = 0U; influenceVertexIndex < GetVertexBoneNameCount(); ++influenceVertexIndex)
+		{
+			outputArchive.ExportBuffer(GetVertexBoneName(influenceVertexIndex).data(), GetVertexBoneName(influenceVertexIndex).size());
+		}
+
+		outputArchive.ExportBuffer(GetVertexBoneWeights().data(), GetVertexBoneWeights().size());
+
 		return *this;
 	}
 };
