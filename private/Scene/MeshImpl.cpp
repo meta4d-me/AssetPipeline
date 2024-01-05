@@ -149,22 +149,68 @@ void MeshImpl::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrateg
 		assert("Unsupported convert strategy.");
 	}
 
+	GetPolygonGroups().emplace_back(cd::MoveTemp(polygonGroup));
+
 	// Make capcity same with actual size.
-	vertexPositions.shrink_to_fit();
-	vertexNormals.shrink_to_fit();
-	m_vertexUVSets[0].shrink_to_fit();
-	polygonGroup.shrink_to_fit();
-	GetPolygonGroups().emplace_back(cd::MoveTemp(polygonGroup)).shrink_to_fit();
+	ShrinkToFit();
 }
 
 void MeshImpl::Init(uint32_t vertexCount)
 {
-	assert(vertexCount > 0 && "No need to create an empty mesh.");
-
 	SetVertexPositionCount(vertexCount);
-	SetVertexNormalCount(vertexCount);
-	SetVertexTangentCount(vertexCount);
-	SetVertexBiTangentCount(vertexCount);
+	SetVertexInstanceIDCount(0U);
+
+	InitVertexAttributes(vertexCount);
+}
+
+void MeshImpl::Init(uint32_t vertexPositionCount, uint32_t vertexAttributeCount)
+{
+	SetVertexPositionCount(vertexPositionCount);
+	SetVertexInstanceIDCount(vertexPositionCount);
+
+	InitVertexAttributes(vertexAttributeCount);
+}
+
+void MeshImpl::InitVertexAttributes(uint32_t vertexAttributeCount)
+{
+	SetVertexAttributeCount(vertexAttributeCount);
+	SetVertexNormalCount(GetVertexAttributeCount());
+	SetVertexTangentCount(GetVertexAttributeCount());
+	SetVertexBiTangentCount(GetVertexAttributeCount());
+
+	for (uint32_t setIndex = 0U; setIndex < GetVertexUVSetCount(); ++setIndex)
+	{
+		m_vertexUVSets[setIndex].resize(GetVertexAttributeCount());
+	}
+
+	for (uint32_t setIndex = 0U; setIndex < m_vertexColorSetCount; ++setIndex)
+	{
+		m_vertexColorSets[setIndex].resize(GetVertexAttributeCount());
+	}
+}
+
+void MeshImpl::ShrinkToFit()
+{
+	GetVertexPositions().shrink_to_fit();
+	GetVertexInstanceIDs().shrink_to_fit();
+
+	GetVertexNormals().shrink_to_fit();
+	GetVertexTangents().shrink_to_fit();
+	GetVertexBiTangents().shrink_to_fit();
+	for (uint32_t setIndex = 0U; setIndex < GetVertexUVSetCount(); ++setIndex)
+	{
+		m_vertexUVSets[setIndex].shrink_to_fit();
+	}
+	for (uint32_t setIndex = 0U; setIndex < GetVertexColorSetCount(); ++setIndex)
+	{
+		m_vertexColorSets[setIndex].shrink_to_fit();
+	}
+
+	GetPolygonGroups().shrink_to_fit();
+	for (uint32_t polygonGroupIndex = 0U; polygonGroupIndex < GetPolygonGroupCount(); ++polygonGroupIndex)
+	{
+		GetPolygonGroup(polygonGroupIndex).shrink_to_fit();
+	}
 }
 
 uint32_t MeshImpl::GetPolygonCount() const
@@ -209,6 +255,8 @@ void MeshImpl::ComputeVertexNormals()
 		return;
 	}
 
+	SetVertexNormalCount(vertexCount);
+
 	// Create a vector of normals with the same size as the vertex positions vector,
 	// initialized to the zero vector.
 	std::vector<Direction> vertexNormals(vertexCount, Direction(0, 0, 0));
@@ -248,6 +296,8 @@ void MeshImpl::ComputeVertexNormals()
 
 void MeshImpl::ComputeVertexTangents()
 {
+	SetVertexTangentCount(GetVertexCount());
+
 	// Compute the tangents
 	for (const auto& polygonGroup : GetPolygonGroups())
 	{
@@ -298,7 +348,7 @@ void MeshImpl::SetVertexUVSetCount(uint32_t setCount)
 	m_vertexUVSetCount = setCount;
 	for(uint32_t setIndex = 0U; setIndex < m_vertexUVSetCount; ++setIndex)
 	{
-		m_vertexUVSets[setIndex].resize(GetVertexCount());
+		m_vertexUVSets[setIndex].resize(GetVertexAttributeCount());
 	}
 }
 
@@ -312,7 +362,7 @@ void MeshImpl::SetVertexColorSetCount(uint32_t setCount)
 	m_vertexColorSetCount = setCount;
 	for (uint32_t setIndex = 0U; setIndex < m_vertexColorSetCount; ++setIndex)
 	{
-		m_vertexColorSets[setIndex].resize(GetVertexCount());
+		m_vertexColorSets[setIndex].resize(GetVertexAttributeCount());
 	}
 }
 

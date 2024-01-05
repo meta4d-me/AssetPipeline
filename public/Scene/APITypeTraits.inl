@@ -146,7 +146,7 @@ struct MeshTypeTraits
 {
 	// Simple
 	using ID = cd::MeshID;
-	using BlendShapeID = cd::BlendShapeID;
+	using VertexAttributeCount = uint32_t;
 
 	// String
 	using Name = std::string;
@@ -156,6 +156,8 @@ struct MeshTypeTraits
 	using VertexFormat = cd::VertexFormat;
 
 	// Vector
+	using MaterialID = cd::MaterialID;
+	using BlendShapeID = cd::BlendShapeID;
 	using SkinID = cd::SkinID;
 	using VertexPosition = cd::Point;
 	using VertexInstanceID = cd::VertexID;
@@ -163,7 +165,6 @@ struct MeshTypeTraits
 	using VertexTangent = cd::Direction;
 	using VertexBiTangent = cd::Direction;
 	using PolygonGroup = cd::PolygonGroup;
-	using MaterialID = cd::MaterialID;
 };
 
 struct MorphTypeTraits

@@ -202,12 +202,22 @@ void SceneDatabaseImpl::Dump() const
 			{
 				auto& polygonGroup = polygonGroups[polygonGroupIndex];
 				auto materialID = mesh.GetMaterialID(polygonGroupIndex);
-				printf("\t[PolygonGroup %u] PolygonCount = %u, MaterialID = %u\n", polygonGroupIndex, static_cast<uint32_t>(polygonGroup.size()), materialID.Data());
+				printf("\t[PolygonGroup %u] PolygonCount = %u\n", polygonGroupIndex, static_cast<uint32_t>(polygonGroup.size()));
+				printf("\t\t[Associated Material %u] Name = %s\n", materialID.Data(), GetMaterial(materialID.Data()).GetName());
 				if (materialID.IsValid())
 				{
 					materialDrawMeshPolygonGroupIDs[materialID][mesh.GetID()].push_back(polygonGroupIndex);
 				}
-				printf("\t[Associated BlendShape %u]", mesh.GetBlendShapeID().Data());
+			}
+
+			for (auto blendShapeID : mesh.GetBlendShapeIDs())
+			{
+				printf("\t[Associated BlendShape %u] Name = %s\n", blendShapeID.Data(), GetBlendShape(blendShapeID.Data()).GetName());
+			}
+
+			for (auto skinID : mesh.GetSkinIDs())
+			{
+				printf("\t[Associated Skin %u] Name = %s\n", skinID.Data(), GetSkin(skinID.Data()).GetName());
 			}
 		}
 	}
@@ -231,8 +241,7 @@ void SceneDatabaseImpl::Dump() const
 		printf("\n");
 		for (const auto& morph : GetMorphs())
 		{
-			printf("[Morph %u] Name = %s\n", morph.GetID().Data(), morph.GetName());
-			printf("\tVertexCount = %u\n", morph.GetVertexCount());
+			printf("[Morph %u] Name = %s, VertexCount = %u\n", morph.GetID().Data(), morph.GetName(), morph.GetVertexCount());
 			printf("\tWeight = %f\n", morph.GetWeight());
 			if (morph.GetBlendShapeID().IsValid())
 			{
@@ -321,7 +330,7 @@ void SceneDatabaseImpl::Dump() const
 		printf("\n");
 		for (const auto& texture : GetTextures())
 		{
-			printf("\tName = %s\n", texture.GetName());
+			printf("[Texture %u] Name = %s\n", texture.GetID().Data(), texture.GetName());
 			printf("\tPath = %s\n", texture.GetPath());
 			printf("\tUVMapMode = (%s, %s)\n", nameof::nameof_enum(texture.GetUMapMode()).data(), nameof::nameof_enum(texture.GetVMapMode()).data());
 		}
@@ -531,14 +540,16 @@ void SceneDatabaseImpl::Validate() const
 
 void SceneDatabaseImpl::Merge(cd::SceneDatabaseImpl&& sceneDatabaseImpl)
 {
+	uint32_t originAnimationCount = GetAnimationCount();
+	uint32_t originBlendShapeCount = GetBlendShapeCount();
+	uint32_t originBoneCount = GetBoneCount();
 	uint32_t originNodeCount = GetNodeCount();
 	uint32_t originMeshCount = GetMeshCount();
-	uint32_t originBlendShapeCount = GetBlendShapeCount();
-	uint32_t originMorphCount = GetMorphCount();
 	uint32_t originMaterialCount = GetMaterialCount();
-	uint32_t originTextureCount = GetTextureCount();
+	uint32_t originMorphCount = GetMorphCount();
 	uint32_t originSkeletonCount = GetSkeletonCount();
-	uint32_t originBoneCount = GetBoneCount();
+	uint32_t originSkinCount = GetSkinCount();
+	uint32_t originTextureCount = GetTextureCount();
 	uint32_t originTrackCount = GetTrackCount();
 
 	for (auto& node : sceneDatabaseImpl.GetNodes())
@@ -559,11 +570,19 @@ void SceneDatabaseImpl::Merge(cd::SceneDatabaseImpl&& sceneDatabaseImpl)
 	for (auto& mesh : sceneDatabaseImpl.GetMeshes())
 	{
 		mesh.SetID(GetMeshCount());
-		mesh.SetBlendShapeID(mesh.GetBlendShapeID().Data() + originBlendShapeCount);
 		for (auto& materialID : mesh.GetMaterialIDs())
 		{
 			materialID.Set(materialID.Data() + originMaterialCount);
 		}
+		for (auto& blendShapeID : mesh.GetBlendShapeIDs())
+		{
+			blendShapeID.Set(blendShapeID.Data() + originBlendShapeCount);
+		}
+		for (auto& skinID : mesh.GetSkinIDs())
+		{
+			skinID.Set(skinID.Data() + originSkinCount);
+		}
+
 		AddMesh(cd::MoveTemp(mesh));
 	}
 
@@ -658,7 +677,7 @@ void SceneDatabaseImpl::Merge(cd::SceneDatabaseImpl&& sceneDatabaseImpl)
 
 	for (auto& light : sceneDatabaseImpl.GetLights())
 	{
-		light.SetID(GetCameraCount());
+		light.SetID(GetLightCount());
 		AddLight(cd::MoveTemp(light));
 	}
 

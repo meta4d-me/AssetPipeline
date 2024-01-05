@@ -180,13 +180,14 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 	assert(pSourceMesh->mVertices && numVertices > 0 && "No vertex data.");
 
 	std::stringstream meshHashString;
-	// TODO : this hash is good to reuse mesh instance, but break the rule id same to index. Wait to have a explicit mesh instance support.
-	// meshHashString << pSourceMesh->mName.C_Str() << "_" << pSourceMesh->mVertices << "_" << pSourceMesh->mFaces;
 	meshHashString << pSourceMesh->mName.C_Str() << "_" << pSceneDatabase->GetMeshCount();
 
 	cd::MeshID::ValueType meshHash = cd::StringHash<cd::MeshID::ValueType>(meshHashString.str());
 	cd::MeshID meshID = m_meshIDGenerator.AllocateID(meshHash);
-	cd::Mesh mesh(meshID, pSourceMesh->mName.C_Str(), numVertices);
+	cd::Mesh mesh;
+	mesh.SetID(meshID);
+	mesh.SetName(pSourceMesh->mName.C_Str());
+	mesh.Init(numVertices);
 	
 	// By default, aabb will be empty.
 	if (IsOptionEnabled(GenericProducerOptions::GenerateBoundingBox))

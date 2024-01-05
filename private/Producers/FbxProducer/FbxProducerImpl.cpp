@@ -313,11 +313,11 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 			if (IsOptionEnabled(FbxProducerOptions::ImportBlendShape))
 			{
 				int32_t blendShapeCount = pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eBlendShape);
-				assert(blendShapeCount <= 1 && "Why use two blendshape in a mesh?");
+				mesh.SetBlendShapeIDCount(blendShapeCount);
 				for (int32_t blendShapeIndex = 0; blendShapeIndex < blendShapeCount; ++blendShapeIndex)
 				{
 					const fbxsdk::FbxBlendShape* pBlendShape = static_cast<fbxsdk::FbxBlendShape*>(pFbxMesh->GetDeformer(blendShapeIndex, fbxsdk::FbxDeformer::eBlendShape));
-					mesh.SetBlendShapeID(ParseBlendShape(pBlendShape, mesh, pSceneDatabase));
+					mesh.SetBlendShapeID(blendShapeIndex, ParseBlendShape(pBlendShape, mesh, pSceneDatabase));
 				}
 			}
 
@@ -435,8 +435,8 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxNode* pSDKNode, fbxsd
 
 	// Init vertex position.
 	uint32_t controlPointCount = pFbxMesh->GetControlPointsCount();
-	mesh.SetVertexPositionCount(controlPointCount);
-	mesh.SetVertexInstanceIDCount(controlPointCount); // Map control point index to vertex instance id.
+	uint32_t vertexInstanceCount = pFbxMesh->GetPolygonVertexCount();
+	mesh.Init(controlPointCount, vertexInstanceCount);
 	for (uint32_t controlPointIndex = 0U; controlPointIndex < controlPointCount; ++controlPointIndex)
 	{
 		fbxsdk::FbxVector4 position = pFbxMesh->GetControlPointAt(controlPointIndex);
@@ -444,7 +444,6 @@ void FbxProducerImpl::ParseMesh(cd::Mesh& mesh, fbxsdk::FbxNode* pSDKNode, fbxsd
 	}
 
 	// Init vertex format.
-	uint32_t vertexInstanceCount = pFbxMesh->GetPolygonVertexCount();
 	cd::VertexFormat meshVertexFormat;
 	if (controlPointCount > 0U)
 	{

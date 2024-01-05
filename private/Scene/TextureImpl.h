@@ -72,6 +72,7 @@ public:
 			static_cast<uint32_t>(GetFormat()) << GetUseMipMap();
 
 		outputArchive << GetPath() << GetWidth() << GetHeight() << GetDepth();
+		outputArchive << GetRawData().size();
 		outputArchive.ExportBuffer(GetRawData().data(), GetRawData().size());
 
 		return *this;

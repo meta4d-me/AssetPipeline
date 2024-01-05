@@ -26,13 +26,13 @@ public:
 public:
 	DECLARE_SCENE_IMPL_CLASS(Mesh);
 
-	void Init(uint32_t vertexCount);
-	
 	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, ID);
-	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, BlendShapeID);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Mesh, VertexAttributeCount);
 	IMPLEMENT_STRING_TYPE_APIS(Mesh, Name);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, AABB);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
+	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, MaterialID);
+	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, BlendShapeID);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, SkinID);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexInstanceID);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexPosition);
@@ -40,7 +40,11 @@ public:
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexTangent);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, PolygonGroup);
-	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, MaterialID);
+
+	void Init(uint32_t vertexCount);
+	void Init(uint32_t vertexPositionCount, uint32_t vertexAttributeCount);
+	void InitVertexAttributes(uint32_t vertexAttributeCount);
+	void ShrinkToFit();
 
 	uint32_t GetVertexCount() const { return GetVertexPositionCount(); }
 	uint32_t GetPolygonCount() const;
@@ -79,27 +83,35 @@ public:
 	template<bool SwapBytesOrder>
 	MeshImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
-		uint32_t skinCount;
 		uint32_t materialCount;
+		uint32_t blendShapeCount;
+		uint32_t skinCount;
 		uint32_t vertexCount;
 		uint32_t vertexUVSetCount;
 		uint32_t vertexColorSetCount;
 		uint32_t vertexInfluenceCount;
 		uint32_t polygonGroupCount;
 		
-		inputArchive >> GetName() >> GetID().Data() >> GetBlendShapeID().Data() >> GetAABB() >> materialCount >> skinCount
-			>> vertexCount >> vertexUVSetCount >> vertexColorSetCount >> vertexInfluenceCount >> polygonGroupCount;
+		inputArchive >> GetName() >> GetID().Data() >> GetAABB()
+			>> materialCount >> blendShapeCount >> skinCount
+			>> vertexCount >> GetVertexAttributeCount()
+			>> vertexUVSetCount >> vertexColorSetCount >> vertexInfluenceCount
+			>> polygonGroupCount;
 
 		GetVertexFormat() << inputArchive;
 
 		SetMaterialIDCount(materialCount);
 		inputArchive.ImportBuffer(GetMaterialIDs().data());
 
+		SetBlendShapeIDCount(blendShapeCount);
+		inputArchive.ImportBuffer(GetBlendShapeIDs().data());
+
 		SetSkinIDCount(skinCount);
 		inputArchive.ImportBuffer(GetSkinIDs().data());
 
-		Init(vertexCount);
+		Init(vertexCount, GetVertexAttributeCount());
 		inputArchive.ImportBuffer(GetVertexPositions().data());
+		inputArchive.ImportBuffer(GetVertexInstanceIDs().data());
 		inputArchive.ImportBuffer(GetVertexNormals().data());
 		inputArchive.ImportBuffer(GetVertexTangents().data());
 		inputArchive.ImportBuffer(GetVertexBiTangents().data());
@@ -146,13 +158,18 @@ public:
 	template<bool SwapBytesOrder>
 	const MeshImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetName() << GetID().Data() << GetBlendShapeID().Data() << GetAABB() << GetMaterialIDCount() << GetSkinIDCount()
-			<< GetVertexCount() << GetVertexUVSetCount() << GetVertexColorSetCount() << GetVertexInfluenceCount() << GetPolygonGroupCount();
+		outputArchive << GetName() << GetID().Data() << GetAABB()
+			<< GetMaterialIDCount() << GetBlendShapeIDCount() << GetSkinIDCount()
+			<< GetVertexPositionCount() << GetVertexAttributeCount()
+			<< GetVertexUVSetCount() << GetVertexColorSetCount() << GetVertexInfluenceCount()
+			<< GetPolygonGroupCount();
 
 		GetVertexFormat() >> outputArchive;
 		outputArchive.ExportBuffer(GetMaterialIDs().data(), GetMaterialIDs().size());
+		outputArchive.ExportBuffer(GetBlendShapeIDs().data(), GetBlendShapeIDs().size());
 		outputArchive.ExportBuffer(GetSkinIDs().data(), GetSkinIDs().size());
 		outputArchive.ExportBuffer(GetVertexPositions().data(), GetVertexPositions().size());
+		outputArchive.ExportBuffer(GetVertexInstanceIDs().data(), GetVertexInstanceIDs().size());
 		outputArchive.ExportBuffer(GetVertexNormals().data(), GetVertexNormals().size());
 		outputArchive.ExportBuffer(GetVertexTangents().data(), GetVertexTangents().size());
 		outputArchive.ExportBuffer(GetVertexBiTangents().data(), GetVertexBiTangents().size());
