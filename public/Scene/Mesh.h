@@ -64,17 +64,6 @@ public:
 	const std::vector<Color>& GetVertexColor(uint32_t colorSetIndex) const;
 	Color& GetVertexColor(uint32_t setIndex, uint32_t vertexIndex);
 	const Color& GetVertexColor(uint32_t setIndex, uint32_t vertexIndex) const;
-
-	void SetVertexInfluenceCount(uint32_t influenceCount);
-	uint32_t GetVertexInfluenceCount() const;
-	void SetVertexBoneWeight(uint32_t boneIndex, uint32_t vertexIndex, BoneID boneID, VertexWeight weight);
-	std::vector<BoneID>& GetVertexBoneIDs(uint32_t boneIndex);
-	const std::vector<BoneID>& GetVertexBoneIDs(uint32_t boneIndex) const;
-	BoneID GetVertexBoneID(uint32_t boneIndex, uint32_t vertexIndex) const;
-	std::vector<VertexWeight>& GetVertexWeights(uint32_t boneIndex);
-	const std::vector<VertexWeight>& GetVertexWeights(uint32_t boneIndex) const;
-	VertexWeight& GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex);
-	const VertexWeight& GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex) const;
 };
 
 }

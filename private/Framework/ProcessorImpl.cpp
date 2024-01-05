@@ -277,7 +277,7 @@ void ProcessorImpl::FlattenSceneDatabase()
 	for (uint32_t meshIndex = 0U; meshIndex < m_pCurrentSceneDatabase->GetMeshCount(); ++meshIndex)
 	{
 		cd::Mesh& mesh = meshes[meshIndex];
-		if (0U != mesh.GetVertexInfluenceCount())
+		if (mesh.GetSkinIDCount() > 0U)
 		{
 			// Don't need to support flatten SkinMesh currently.
 			continue;

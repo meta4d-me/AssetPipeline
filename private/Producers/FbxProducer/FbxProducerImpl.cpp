@@ -1,10 +1,7 @@
 #include "FbxProducerImpl.h"
 
 #include "Hashers/StringHash.hpp"
-#include "Scene/MaterialTextureType.h"
-#include "Scene/Mesh.h"
 #include "Scene/SceneDatabase.h"
-#include "Scene/VertexFormat.h"
 
 #include <fbxsdk.h>
 
@@ -316,8 +313,24 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 				mesh.SetBlendShapeIDCount(blendShapeCount);
 				for (int32_t blendShapeIndex = 0; blendShapeIndex < blendShapeCount; ++blendShapeIndex)
 				{
-					const fbxsdk::FbxBlendShape* pBlendShape = static_cast<fbxsdk::FbxBlendShape*>(pFbxMesh->GetDeformer(blendShapeIndex, fbxsdk::FbxDeformer::eBlendShape));
+					const auto* pBlendShape = static_cast<fbxsdk::FbxBlendShape*>(pFbxMesh->GetDeformer(blendShapeIndex, fbxsdk::FbxDeformer::eBlendShape));
 					mesh.SetBlendShapeID(blendShapeIndex, ParseBlendShape(pBlendShape, mesh, pSceneDatabase));
+				}
+			}
+
+			// SkinMesh
+			if (IsOptionEnabled(FbxProducerOptions::ImportSkinMesh))
+			{
+				auto& vertexFormat = mesh.GetVertexFormat();
+				vertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneIndex, cd::AttributeValueType::Int16, cd::MaxBoneInfluenceCount);
+				vertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneWeight, cd::AttributeValueType::Float, cd::MaxBoneInfluenceCount);
+
+				int32_t skinDeformerCount = pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eSkin);
+				mesh.SetSkinIDCount(skinDeformerCount);
+				for (int32_t skinIndex = 0; skinIndex < skinDeformerCount; ++skinIndex)
+				{
+					const auto* pSkin = static_cast<fbxsdk::FbxSkin*>(pFbxMesh->GetDeformer(skinIndex, fbxsdk::FbxDeformer::eSkin));
+					mesh.SetSkinID(skinIndex, ParseSkin(pSkin, mesh, pSceneDatabase));
 				}
 			}
 
@@ -705,6 +718,47 @@ cd::BlendShapeID FbxProducerImpl::ParseBlendShape(const fbxsdk::FbxBlendShape* p
 	pSceneDatabase->AddBlendShape(cd::MoveTemp(blendShape));
 
 	return blendShapeID;
+}
+
+cd::SkinID FbxProducerImpl::ParseSkin(const fbxsdk::FbxSkin* pSkin, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase)
+{
+	assert(pSkin);
+
+	cd::SkinID skinID = m_skinIDGenerator.AllocateID();
+	uint32_t influenceBoneCount = pSkin->GetClusterCount();
+
+	cd::Skin skin;
+	skin.SetID(skinID);
+	skin.SetMeshID(sourceMesh.GetID());
+	skin.SetName(pSkin->GetName());
+	skin.SetVertexInfluenceBoneIDCount(influenceBoneCount);
+	skin.SetVertexBoneIndexCount(sourceMesh.GetVertexPositionCount());
+	skin.SetVertexBoneWeightCount(sourceMesh.GetVertexPositionCount());
+	for (int32_t skinClusterIndex = 0; skinClusterIndex < pSkin->GetClusterCount(); ++skinClusterIndex)
+	{
+		const fbxsdk::FbxCluster* pSkinCluster = pSkin->GetCluster(skinClusterIndex);
+		assert(pSkinCluster);
+
+		const fbxsdk::FbxNode* pLinkBone = pSkinCluster->GetLink();
+		assert(pLinkBone);
+
+		const char* pBoneName = pLinkBone->GetName();
+
+		const int32_t controlPointIndicesCount = pSkinCluster->GetControlPointIndicesCount();
+		int* pControlPointIndices = pSkinCluster->GetControlPointIndices();
+		double* pBoneWeights = pSkinCluster->GetControlPointWeights();
+		for (int32_t controlPointIndex = 0; controlPointIndex < controlPointIndicesCount; ++controlPointIndex)
+		{
+			uint32_t vertexIndex = pControlPointIndices[controlPointIndex];
+			float boneWeight = static_cast<float>(pBoneWeights[controlPointIndex]);
+
+			
+		}
+	}
+
+	pSceneDatabase->AddSkin(cd::MoveTemp(skin));
+
+	return skinID;
 }
 
 std::pair<cd::MaterialID, bool> FbxProducerImpl::AllocateMaterialID(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial)

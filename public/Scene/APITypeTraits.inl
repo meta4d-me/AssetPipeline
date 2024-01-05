@@ -236,14 +236,15 @@ struct SkinTypeTraits
 {
 	// Simple
 	using ID = cd::SkinID;
+	using MeshID = cd::MeshID;
 	using SkeletonID = cd::SkeletonID;
 
 	// String
 	using Name = std::string;
 
 	// Vector
-	using VertexInfluenceBoneID = uint8_t;
-	using VertexBoneIndex = uint8_t;
+	using VertexInfluenceBoneID = cd::BoneID;
+	using VertexBoneIndex = uint16_t;
 	using VertexBoneWeight = float;
 };
 

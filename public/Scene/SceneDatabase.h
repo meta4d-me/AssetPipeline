@@ -16,6 +16,7 @@
 #include "Scene/Node.h"
 #include "Scene/ParticleEmitter.h"
 #include "Scene/Skeleton.h"
+#include "Scene/Skin.h"
 #include "Scene/Texture.h"
 #include "Scene/Track.h"
 

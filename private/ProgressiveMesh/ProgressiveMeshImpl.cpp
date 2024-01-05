@@ -478,15 +478,6 @@ cd::Mesh ProgressiveMeshImpl::GenerateLodMesh(uint32_t targetFaceCount, const cd
 						mesh.SetVertexColor(setIndex, newVertexIndex, pSourceMesh->GetVertexColor(setIndex, vertexIndex));
 					}
 				}
-
-				if (vertexFormat.Contains(cd::VertexAttributeType::BoneIndex) && vertexFormat.Contains(cd::VertexAttributeType::BoneWeight))
-				{
-					mesh.SetVertexInfluenceCount(pSourceMesh->GetVertexInfluenceCount());
-					for (uint32_t boneIndex = 0U; boneIndex < mesh.GetVertexInfluenceCount(); ++boneIndex)
-					{
-						mesh.SetVertexBoneWeight(boneIndex, newVertexIndex, pSourceMesh->GetVertexBoneID(boneIndex, vertexIndex), pSourceMesh->GetVertexWeight(boneIndex, vertexIndex));
-					}
-				}
 			}
 		}
 	}

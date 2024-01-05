@@ -6,9 +6,6 @@
 #include "Scene/SceneDatabase.h"
 #include "Utilities/PerformanceProfiler.h"
 
-namespace
-{
-
 int main(int argc, char** argv)
 {
 	// argv[0] : exe name
@@ -37,17 +34,17 @@ int main(int argc, char** argv)
 	}
 
 	// Processing
-	for (const auto& mesh : pSceneDatabase->GetMeshes())
-	{
-		cd::Mesh boundaryMesh = GenerateBoundaryMesh(mesh);
-		auto halfEdgeMesh = cd::HalfEdgeMesh::FromIndexedMesh(boundaryMesh);
-		assert(halfEdgeMesh.IsValid());
-
-		auto newMesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh);
-		newMesh.SetName(mesh.GetName());
-		newMesh.SetID(pNewSceneDatabase->GetMeshCount());
-		pNewSceneDatabase->AddMesh(cd::MoveTemp(newMesh));
-	}
+	//for (const auto& mesh : pSceneDatabase->GetMeshes())
+	//{
+	//	cd::Mesh boundaryMesh = GenerateBoundaryMesh(mesh);
+	//	auto halfEdgeMesh = cd::HalfEdgeMesh::FromIndexedMesh(boundaryMesh);
+	//	assert(halfEdgeMesh.IsValid());
+	//
+	//	auto newMesh = cd::Mesh::FromHalfEdgeMesh(halfEdgeMesh);
+	//	newMesh.SetName(mesh.GetName());
+	//	newMesh.SetID(pNewSceneDatabase->GetMeshCount());
+	//	pNewSceneDatabase->AddMesh(cd::MoveTemp(newMesh));
+	//}
 
 	// Export
 	{

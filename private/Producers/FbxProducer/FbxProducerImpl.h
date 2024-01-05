@@ -23,6 +23,7 @@ class FbxMesh;
 class FbxNode;
 class FbxProperty;
 class FbxScene;
+class FbxSkin;
 class FbxSurfaceMaterial;
 
 }
@@ -70,8 +71,9 @@ private:
 
 	void ParseMesh(cd::Mesh& mesh, fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxMesh* pFbxMesh);
 	
-	void ParseSkin();
 	cd::BlendShapeID ParseBlendShape(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase);
+
+	cd::SkinID ParseSkin(const fbxsdk::FbxSkin* pSkin, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase);
 
 	cd::BoneID ParseBone(const fbxsdk::FbxNode* pSDKNode, cd::BoneID parentBoneID, cd::SceneDatabase* pSceneDatabase);
 	void ParseAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase);

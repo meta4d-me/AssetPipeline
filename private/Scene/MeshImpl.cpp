@@ -371,38 +371,4 @@ void MeshImpl::SetVertexColor(uint32_t setIndex, uint32_t vertexIndex, const Col
 	m_vertexColorSets[setIndex][vertexIndex] = color;
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-// Vertex skin data
-////////////////////////////////////////////////////////////////////////////////////
-void MeshImpl::SetVertexInfluenceCount(uint32_t influenceCount)
-{
-	assert(GetVertexCount() != 0U);
-
-	m_vertexInfluenceCount = influenceCount;
-	for (uint32_t influenceIndex = 0U; influenceIndex < influenceCount; ++influenceIndex)
-	{
-		m_vertexBoneIDs[influenceIndex].resize(GetVertexCount());
-		m_vertexWeights[influenceIndex].resize(GetVertexCount());
-	}
-}
-
-void MeshImpl::SetVertexBoneWeight(uint32_t boneIndex, uint32_t vertexIndex, BoneID boneID, VertexWeight weight)
-{
-	assert(vertexIndex < GetVertexCount());
-
-	if(m_vertexBoneIDs[boneIndex].empty() &&
-		m_vertexWeights[boneIndex].empty())
-	{
-		m_vertexBoneIDs[boneIndex].resize(GetVertexCount());
-		m_vertexWeights[boneIndex].resize(GetVertexCount());
-
-		++m_vertexInfluenceCount;
-
-		assert(m_vertexInfluenceCount <= cd::MaxBoneInfluenceCount);
-	}
-
-	m_vertexBoneIDs[boneIndex][vertexIndex] = boneID;
-	m_vertexWeights[boneIndex][vertexIndex] = weight;
-}
-
 }
