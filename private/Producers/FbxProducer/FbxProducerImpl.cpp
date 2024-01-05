@@ -239,8 +239,29 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		}
 	}
 
+	if (IsOptionEnabled(FbxProducerOptions::ImportSkeleton))
+	{
+		cd::Skeleton skeleton;
+		skeleton.SetID(m_skeletonIDGenerator.AllocateID());
+
+		// Build skeleton bones tree.
+		TraverseBoneRecursively(pSDKScene->GetRootNode(), cd::BoneID::InvalidID, skeleton, pSceneDatabase);
+
+		for (auto& bone : pSceneDatabase->GetBones())
+		{
+			if (!bone.GetParentID().IsValid())
+			{
+				skeleton.AddRootBoneID(bone.GetID());
+			}
+		}
+
+		if (skeleton.GetBoneIDCount() > 0U)
+		{
+			pSceneDatabase->AddSkeleton(cd::MoveTemp(skeleton));
+		}
+	}
+
 	// Convert fbx scene nodes/meshes to cd scene nodes/meshes.
-	assert(pSDKScene->GetRootNode());
 	TraverseNodeRecursively(pSDKScene->GetRootNode(), cd::NodeID::InvalidID, pSceneDatabase);
 
 	if (IsOptionEnabled(FbxProducerOptions::ImportAnimation))
@@ -253,6 +274,20 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	}
 }
 
+void FbxProducerImpl::TraverseBoneRecursively(fbxsdk::FbxNode* pSDKNode, cd::BoneID parentBoneID, cd::Skeleton& skeleton, cd::SceneDatabase* pSceneDatabase)
+{
+	fbxsdk::FbxNodeAttribute* pNodeAttribute = pSDKNode->GetNodeAttribute();
+	if (pNodeAttribute != nullptr && FbxNodeAttribute::eSkeleton == pNodeAttribute->GetAttributeType())
+	{
+		parentBoneID = ParseBone(pSDKNode, parentBoneID, skeleton, pSceneDatabase);
+	}
+
+	for (int childIndex = 0; childIndex < pSDKNode->GetChildCount(); ++childIndex)
+	{
+		TraverseBoneRecursively(pSDKNode->GetChild(childIndex), parentBoneID, skeleton, pSceneDatabase);
+	}
+}
+
 void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase)
 {
 	fbxsdk::FbxNodeAttribute* pNodeAttribute = pSDKNode->GetNodeAttribute();
@@ -260,7 +295,7 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 	if (nullptr == pNodeAttribute ||
 		fbxsdk::FbxNodeAttribute::eNull == pNodeAttribute->GetAttributeType())
 	{
-		ParseNode(pSDKNode, parentNodeID, pSceneDatabase);
+		parentNodeID = ParseNode(pSDKNode, parentNodeID, pSceneDatabase);
 	}
 	else if (fbxsdk::FbxNodeAttribute::eLight == pNodeAttribute->GetAttributeType() && IsOptionEnabled(FbxProducerOptions::ImportLight))
 	{
@@ -310,27 +345,29 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 			if (IsOptionEnabled(FbxProducerOptions::ImportBlendShape))
 			{
 				int32_t blendShapeCount = pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eBlendShape);
-				mesh.SetBlendShapeIDCount(blendShapeCount);
 				for (int32_t blendShapeIndex = 0; blendShapeIndex < blendShapeCount; ++blendShapeIndex)
 				{
 					const auto* pBlendShape = static_cast<fbxsdk::FbxBlendShape*>(pFbxMesh->GetDeformer(blendShapeIndex, fbxsdk::FbxDeformer::eBlendShape));
-					mesh.SetBlendShapeID(blendShapeIndex, ParseBlendShape(pBlendShape, mesh, pSceneDatabase));
+					auto blendShapeID = ParseBlendShape(pBlendShape, mesh, pSceneDatabase);
+					if (blendShapeID.IsValid())
+					{
+						mesh.AddBlendShapeID(blendShapeID);
+					}
 				}
 			}
 
-			// SkinMesh
+			// Skin
 			if (IsOptionEnabled(FbxProducerOptions::ImportSkinMesh))
 			{
-				auto& vertexFormat = mesh.GetVertexFormat();
-				vertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneIndex, cd::AttributeValueType::Int16, cd::MaxBoneInfluenceCount);
-				vertexFormat.AddAttributeLayout(cd::VertexAttributeType::BoneWeight, cd::AttributeValueType::Float, cd::MaxBoneInfluenceCount);
-
 				int32_t skinDeformerCount = pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eSkin);
-				mesh.SetSkinIDCount(skinDeformerCount);
 				for (int32_t skinIndex = 0; skinIndex < skinDeformerCount; ++skinIndex)
 				{
 					const auto* pSkin = static_cast<fbxsdk::FbxSkin*>(pFbxMesh->GetDeformer(skinIndex, fbxsdk::FbxDeformer::eSkin));
-					mesh.SetSkinID(skinIndex, ParseSkin(pSkin, mesh, pSceneDatabase));
+					auto skinID = ParseSkin(pSkin, mesh, pSceneDatabase);
+					if (skinID.IsValid())
+					{
+						mesh.AddSkinID(skinID);
+					}
 				}
 			}
 
@@ -687,7 +724,6 @@ cd::BlendShapeID FbxProducerImpl::ParseBlendShape(const fbxsdk::FbxBlendShape* p
 		for (int32_t targetShapeIndex = 0; targetShapeIndex < targetShapeCount; ++targetShapeIndex)
 		{
 			const fbxsdk::FbxShape* pTargetShape = pChannel->GetTargetShape(targetShapeIndex);
-			assert(pTargetShape);
 
 			cd::Morph morph;
 			morph.SetID(m_morphIDGenerator.AllocateID());
@@ -715,34 +751,56 @@ cd::BlendShapeID FbxProducerImpl::ParseBlendShape(const fbxsdk::FbxBlendShape* p
 		}
 	}
 
-	pSceneDatabase->AddBlendShape(cd::MoveTemp(blendShape));
-
-	return blendShapeID;
+	if (blendShape.GetMorphIDCount() > 0U)
+	{
+		pSceneDatabase->AddBlendShape(cd::MoveTemp(blendShape));
+		return blendShapeID;
+	}
+	
+	return cd::BlendShapeID::InvalidID;
 }
 
 cd::SkinID FbxProducerImpl::ParseSkin(const fbxsdk::FbxSkin* pSkin, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase)
 {
 	assert(pSkin);
+	assert(fbxsdk::FbxSkin::eLinear == pSkin->GetSkinningType() || fbxsdk::FbxSkin::eRigid == pSkin->GetSkinningType());
 
 	cd::SkinID skinID = m_skinIDGenerator.AllocateID();
 	uint32_t influenceBoneCount = pSkin->GetClusterCount();
+	uint32_t meshVertexCount = sourceMesh.GetVertexPositionCount();
 
 	cd::Skin skin;
 	skin.SetID(skinID);
 	skin.SetMeshID(sourceMesh.GetID());
 	skin.SetName(pSkin->GetName());
-	skin.SetVertexInfluenceBoneIDCount(influenceBoneCount);
-	skin.SetVertexBoneIndexCount(sourceMesh.GetVertexPositionCount());
-	skin.SetVertexBoneWeightCount(sourceMesh.GetVertexPositionCount());
+	skin.SetVertexBoneNameCount(meshVertexCount);
+	skin.SetVertexBoneWeightCount(meshVertexCount);
+
 	for (int32_t skinClusterIndex = 0; skinClusterIndex < pSkin->GetClusterCount(); ++skinClusterIndex)
 	{
 		const fbxsdk::FbxCluster* pSkinCluster = pSkin->GetCluster(skinClusterIndex);
-		assert(pSkinCluster);
-
 		const fbxsdk::FbxNode* pLinkBone = pSkinCluster->GetLink();
-		assert(pLinkBone);
+		if (!pLinkBone)
+		{
+			continue;
+		}
 
 		const char* pBoneName = pLinkBone->GetName();
+		cd::Bone* pBone = pSceneDatabase->GetBoneByName(pBoneName);
+		if (!pBone)
+		{
+			continue;
+		}
+		
+		if (!skin.GetSkeletonID().IsValid())
+		{
+			skin.SetSkeletonID(pBone->GetSkeletonID());
+		}
+		else
+		{
+			assert(skin.GetSkeletonID() == pBone->GetSkeletonID());
+		}
+		skin.AddVertexInfluenceBoneName(pBoneName);
 
 		const int32_t controlPointIndicesCount = pSkinCluster->GetControlPointIndicesCount();
 		int* pControlPointIndices = pSkinCluster->GetControlPointIndices();
@@ -750,15 +808,20 @@ cd::SkinID FbxProducerImpl::ParseSkin(const fbxsdk::FbxSkin* pSkin, const cd::Me
 		for (int32_t controlPointIndex = 0; controlPointIndex < controlPointIndicesCount; ++controlPointIndex)
 		{
 			uint32_t vertexIndex = pControlPointIndices[controlPointIndex];
-			float boneWeight = static_cast<float>(pBoneWeights[controlPointIndex]);
-
+			assert(vertexIndex < meshVertexCount);
 			
+			auto boneWeight = static_cast<float>(pBoneWeights[controlPointIndex]);
+			skin.SetVertexBoneName(vertexIndex, pBoneName);
+			skin.SetVertexBoneWeight(vertexIndex, boneWeight);
 		}
 	}
 
-	pSceneDatabase->AddSkin(cd::MoveTemp(skin));
-
-	return skinID;
+	if (skin.GetVertexInfluenceBoneNameCount() > 0U)
+	{
+		pSceneDatabase->AddSkin(cd::MoveTemp(skin));
+	}
+	
+	return cd::SkinID::InvalidID;
 }
 
 std::pair<cd::MaterialID, bool> FbxProducerImpl::AllocateMaterialID(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial)
@@ -864,11 +927,30 @@ cd::MaterialID FbxProducerImpl::ParseMaterial(const fbxsdk::FbxSurfaceMaterial* 
 	return materialID;
 }
 
-cd::BoneID FbxProducerImpl::ParseBone(const fbxsdk::FbxNode* pSDKNode, cd::BoneID parentBoneID, cd::SceneDatabase* pSceneDatabase)
+cd::BoneID FbxProducerImpl::ParseBone(fbxsdk::FbxNode* pSDKNode, cd::BoneID parentBoneID, cd::Skeleton& skeleton, cd::SceneDatabase* pSceneDatabase)
 {
 	cd::BoneID boneID = m_boneIDGenerator.AllocateID();
 	cd::Bone bone(boneID, pSDKNode->GetName());
-	bone.SetTransform(details::ConvertFbxNodeTransform(const_cast<fbxsdk::FbxNode*>(pSDKNode)));
+	bone.SetSkeletonID(skeleton.GetID());
+	skeleton.AddBoneID(boneID);
+
+	//fbxsdk::FbxAMatrix localTransform = pSDKNode->EvaluateLocalTransform();
+	//fbxsdk::FbxAMatrix globalTransform = pSDKNode->EvaluateGlobalTransform();
+	//fbxsdk::FbxAMatrix parentGlobalTransform;
+	//if (fbxsdk::FbxNode* pParentNode = pSDKNode->GetParent())
+	//{
+	//	parentGlobalTransform = pParentNode->EvaluateGlobalTransform();
+	//}
+	//else
+	//{
+	//	parentGlobalTransform.SetIdentity();
+	//}
+	// 
+	//cd::Transform& boneTransform = bone.GetTransform();
+	//boneTransform.SetTranslation(globalTransform.GetT() - parentGlobalTransform.GetT());
+	//boneTransform.SetRotation(localTransform.GetR());
+	//boneTransform.SetScale(localTransform.GetS());
+
 	if (parentBoneID.IsValid())
 	{
 		pSceneDatabase->GetBone(parentBoneID.Data()).AddChildID(boneID.Data());
@@ -968,27 +1050,31 @@ void FbxProducerImpl::ParseAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase*
 			boneTrack.SetRotationKeyCount(trackCount);
 			boneTrack.SetScaleKeyCount(trackCount);
 			std::vector<cd::Matrix4x4>& boneWorldMatrices = worldMatrices[boneIndex];
+
 			fbxsdk::FbxNode* pParent = bones[boneIndex]->GetParent();
-			auto boneID = cd::BoneID::Min();
-			if (pParent->GetNodeAttribute()->GetAttributeType() == fbxsdk::FbxNodeAttribute::eSkeleton)
+			cd::BoneID parentBoneID = cd::BoneID::Invalid();
+			fbxsdk::FbxNodeAttribute* pParentNodeAttribute = pParent->GetNodeAttribute();
+			if (pParentNodeAttribute && fbxsdk::FbxNodeAttribute::eSkeleton == pParentNodeAttribute->GetAttributeType())
 			{
-				boneID = pSceneDatabase->GetBoneByName(pParent->GetName())->GetID();
+				parentBoneID = pSceneDatabase->GetBoneByName(pParent->GetName())->GetID();
 			}
-			std::vector<cd::Matrix4x4>& boneWorldInverseMatrices = worldInverseMatrices[boneID.Data()];
 
 			for (uint32_t trackIndex = 0; trackIndex < trackCount; ++trackIndex)
 			{
 				//Build local matrix;
 				cd::Matrix4x4 localMatrix;
-				if (pParent->GetNodeAttribute()->GetAttributeType() == fbxsdk::FbxNodeAttribute::eSkeleton)
+				if (parentBoneID.IsValid())
 				{
+					auto& boneWorldInverseMatrices = worldInverseMatrices[parentBoneID.Data()];
 					localMatrix = boneWorldInverseMatrices[trackIndex] * boneWorldMatrices[trackIndex];
 				}
 				else
 				{
 					localMatrix = boneWorldMatrices[trackIndex];
 				}
+
 				cd::Transform localTransform = cd::Transform(localMatrix.GetTranslation(),cd::Quaternion::FromMatrix(localMatrix.GetRotation()), localMatrix.GetScale());
+
 				//Fills corresponding track
 				const float t = times[trackIndex];
 				auto& cdTranslationKey = boneTrack.GetTranslationKeys()[trackIndex];

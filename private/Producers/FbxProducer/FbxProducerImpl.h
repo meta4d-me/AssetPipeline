@@ -58,6 +58,7 @@ public:
 	bool IsOptionEnabled(FbxProducerOptions option) const { return m_options.IsEnabled(option); }
 
 private:
+	void TraverseBoneRecursively(fbxsdk::FbxNode* pSDKNode, cd::BoneID parentBoneID, cd::Skeleton& skeleton, cd::SceneDatabase* pSceneDatabase);
 	void TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase);
 
 	std::pair<cd::MaterialID, bool> AllocateMaterialID(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial);
@@ -75,7 +76,7 @@ private:
 
 	cd::SkinID ParseSkin(const fbxsdk::FbxSkin* pSkin, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase);
 
-	cd::BoneID ParseBone(const fbxsdk::FbxNode* pSDKNode, cd::BoneID parentBoneID, cd::SceneDatabase* pSceneDatabase);
+	cd::BoneID ParseBone(fbxsdk::FbxNode* pSDKNode, cd::BoneID parentBoneID, cd::Skeleton& skeleton, cd::SceneDatabase* pSceneDatabase);
 	void ParseAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase);
 
 private:

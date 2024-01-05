@@ -18,6 +18,7 @@ void Bone::Init(BoneID id, std::string name)
 
 PIMPL_SIMPLE_TYPE_APIS(Bone, ID);
 PIMPL_SIMPLE_TYPE_APIS(Bone, ParentID);
+PIMPL_SIMPLE_TYPE_APIS(Bone, SkeletonID);
 PIMPL_STRING_TYPE_APIS(Bone, Name);
 PIMPL_COMPLEX_TYPE_APIS(Bone, Offset);
 PIMPL_COMPLEX_TYPE_APIS(Bone, Transform);

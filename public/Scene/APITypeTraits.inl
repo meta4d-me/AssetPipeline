@@ -78,7 +78,8 @@ struct BoneTypeTraits
 {
 	// Simple
 	using ID = cd::BoneID;
-	using ParentID = BoneID;
+	using ParentID = cd::BoneID;
+	using SkeletonID = cd::SkeletonID;
 
 	// String
 	using Name = std::string;
@@ -243,8 +244,8 @@ struct SkinTypeTraits
 	using Name = std::string;
 
 	// Vector
-	using VertexInfluenceBoneID = cd::BoneID;
-	using VertexBoneIndex = uint16_t;
+	using VertexInfluenceBoneName = std::string;
+	using VertexBoneName = std::string;
 	using VertexBoneWeight = float;
 };
 

@@ -18,8 +18,8 @@ public:
 	EXPORT_SIMPLE_TYPE_APIS(Skin, MeshID);
 	EXPORT_SIMPLE_TYPE_APIS(Skin, SkeletonID);
 	EXPORT_STRING_TYPE_APIS(Skin, Name);
-	EXPORT_VECTOR_TYPE_APIS(Skin, VertexInfluenceBoneID);
-	EXPORT_VECTOR_TYPE_APIS(Skin, VertexBoneIndex);
+	EXPORT_VECTOR_TYPE_APIS(Skin, VertexInfluenceBoneName);
+	EXPORT_VECTOR_TYPE_APIS(Skin, VertexBoneName);
 	EXPORT_VECTOR_TYPE_APIS(Skin, VertexBoneWeight);
 };
 

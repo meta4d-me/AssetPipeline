@@ -185,7 +185,7 @@ void SceneDatabaseImpl::Dump() const
 
 			for (cd::MeshID meshID : node.GetMeshIDs())
 			{
-				printf("\t[Associated Mesh %u]\n", meshID.Data());
+				printf("\t[Associated Mesh %u] Name = %s\n", meshID.Data(), GetMesh(meshID.Data()).GetName());
 			}
 		}
 	}
@@ -315,7 +315,7 @@ void SceneDatabaseImpl::Dump() const
 				for (const auto& [drawMeshID, drawPolygonGroupIndexes] : itDrawMeshPolygonGroups->second)
 				{
 					const auto& mesh = GetMesh(drawMeshID.Data());
-					printf("\t[Associated Mesh %u]\n", drawMeshID.Data());
+					printf("\t[Associated Mesh %u] Name = %s\n", drawMeshID.Data(), GetMesh(drawMeshID.Data()).GetName());
 					for (uint32_t drawPolygonGroupIndex : drawPolygonGroupIndexes)
 					{
 						printf("\t\t[PolygonGroup %u]\n", drawPolygonGroupIndex);
@@ -373,6 +373,18 @@ void SceneDatabaseImpl::Dump() const
 		for (const auto& skin : GetSkins())
 		{
 			printf("[Skin %u] Name : %s\n", skin.GetID().Data(), skin.GetName());
+
+			auto meshID = skin.GetMeshID();
+			if (meshID.IsValid())
+			{
+				printf("\t[Associated Mesh %u] Name = %s\n", meshID.Data(), GetMesh(meshID.Data()).GetName());
+			}
+			
+			auto skeletonID = skin.GetSkeletonID();
+			if (skeletonID.IsValid())
+			{
+				printf("\t[Associated Skeleton %u] Name = %s\n", skeletonID.Data(), GetSkeleton(skeletonID.Data()).GetName());
+			}
 		}
 	}
 
@@ -382,6 +394,16 @@ void SceneDatabaseImpl::Dump() const
 		for (const auto& skeleton : GetSkeletons())
 		{
 			printf("[Skeleton %u] Name : %s\n", skeleton.GetID().Data(), skeleton.GetName());
+
+			for (auto rootBoneID : skeleton.GetRootBoneIDs())
+			{
+				printf("\t[Associated RootBone %u]\n", rootBoneID.Data());
+			}
+
+			for (auto boneID : skeleton.GetBoneIDs())
+			{
+				printf("\t[Associated Bone %u]\n", boneID.Data());
+			}
 		}
 	}
 
@@ -393,9 +415,10 @@ void SceneDatabaseImpl::Dump() const
 			printf("[Bone %u] Name : %s, ParentID : %u\n", bone.GetID().Data(), bone.GetName(), bone.GetParentID().Data());
 			details::Dump("\tRestPost", bone.GetOffset().Inverse());
 
-			for (const cd::BoneID childNodeID : bone.GetChildIDs())
+			printf("\t[Associated Skeleton %u]\n", bone.GetSkeletonID().Data());
+			for (auto childID : bone.GetChildIDs())
 			{
-				printf("\t[ChildBone %u]\n", childNodeID.Data());
+				printf("\t[ChildBone %u]\n", childID.Data());
 			}
 		}
 	}
@@ -461,12 +484,16 @@ void SceneDatabaseImpl::Validate() const
 	{
 		const cd::BlendShape& blendShape = GetBlendShape(blendShapeIndex);
 		assert(blendShapeIndex == blendShape.GetID().Data());
+		assert(blendShape.GetMeshID().IsValid());
+		assert(blendShape.GetMorphIDCount() > 0U);
 	}
 
 	for (uint32_t morphIndex = 0U; morphIndex < GetMorphCount(); ++morphIndex)
 	{
 		const cd::Morph& morph = GetMorph(morphIndex);
 		assert(morphIndex == morph.GetID().Data());
+		assert(morph.GetBlendShapeID().IsValid());
+		assert(morph.GetWeight() >= 0.0f && morph.GetWeight() <= 1.0f);
 	}
 
 	for (uint32_t materialIndex = 0U; materialIndex < GetMaterialCount(); ++materialIndex)
@@ -485,6 +512,7 @@ void SceneDatabaseImpl::Validate() const
 	{
 		const cd::Bone& bone = GetBone(boneIndex);
 		assert(boneIndex == bone.GetID().Data());
+		assert(bone.GetSkeletonID().IsValid());
 	}
 
 	for (uint32_t animationIndex = 0U; animationIndex < GetAnimationCount(); ++animationIndex)
