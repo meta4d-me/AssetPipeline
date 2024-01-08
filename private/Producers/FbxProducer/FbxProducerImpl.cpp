@@ -9,6 +9,16 @@
 #include <format>
 #include <vector>
 
+namespace
+{
+
+void PrintLog(const std::string& msg)
+{
+	printf("[AssetPipeline][FbxProducer] %s\n", msg.c_str());
+}
+
+}
+
 namespace details
 {
 
@@ -31,16 +41,6 @@ cd::Matrix4x4 ConvertFbxMatrixToCDMatrix(fbxsdk::FbxAMatrix matrix)
 		static_cast<float>(matrix.Get(2, 0)), static_cast<float>(matrix.Get(2, 1)), static_cast<float>(matrix.Get(2, 2)), static_cast<float>(matrix.Get(2, 3)),
 		static_cast<float>(matrix.Get(3, 0)), static_cast<float>(matrix.Get(3, 1)), static_cast<float>(matrix.Get(3, 2)), static_cast<float>(matrix.Get(3, 3)));
 	return cdMatrix;
-}
-
-cd::Transform ConvertFbxMatrixToTranform(fbxsdk::FbxAMatrix Matrix)
-{
-	cd::Matrix4x4 transformMatrix = ConvertFbxMatrixToCDMatrix(Matrix);
-	
-	return cd::Transform(
-		cd::Vec3f(transformMatrix.GetTranslation()),
-		cd::Quaternion(cd::Quaternion::FromMatrix(transformMatrix.GetRotation())),
-		cd::Vec3f(transformMatrix.GetScale()));
 }
 
 fbxsdk::FbxAMatrix GetGeometryTransformation(fbxsdk::FbxNode* pNode)
@@ -115,6 +115,213 @@ void BakeAnimationLayers(fbxsdk::FbxScene* scene)
 	}
 }
 
+fbxsdk::FbxNode* GetRootBoneNode(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNode)
+{
+	fbxsdk::FbxNode* pRootBoneNode = pNode;
+	fbxsdk::FbxNode* pSceneRoot = pScene->GetRootNode();
+
+	while (pRootBoneNode && pRootBoneNode->GetParent())
+	{
+		fbxsdk::FbxNodeAttribute* pNodeAttribute = pRootBoneNode->GetParent()->GetNodeAttribute();
+		if (pSceneRoot == pRootBoneNode->GetParent() || !pNodeAttribute)
+		{
+			break;
+		}
+
+		auto attributeType = pNodeAttribute->GetAttributeType();
+		bool isExpectedNode = fbxsdk::FbxNodeAttribute::eMesh == attributeType ||
+			fbxsdk::FbxNodeAttribute::eNull == attributeType ||
+			fbxsdk::FbxNodeAttribute::eSkeleton == attributeType;
+		if (!isExpectedNode)
+		{
+			break;
+		}
+
+		if (fbxsdk::FbxNodeAttribute::eMesh == attributeType)
+		{
+			// In special case, skeletal mesh can be ancestor of bones.
+			fbxsdk::FbxMesh* pMesh = reinterpret_cast<fbxsdk::FbxMesh*>(pNodeAttribute);
+			if (pMesh->GetDeformerCount(fbxsdk::FbxDeformer::eSkin) > 0)
+			{
+				break;
+			}
+
+			pRootBoneNode = pRootBoneNode->GetParent();
+		}
+		else if (fbxsdk::FbxNodeAttribute::eNull == attributeType ||
+			fbxsdk::FbxNodeAttribute::eSkeleton == attributeType)
+		{
+			pRootBoneNode = pRootBoneNode->GetParent();
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	return pRootBoneNode;
+}
+
+void FindFbxSkeletalMeshRecursively(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNode, std::vector<std::vector<fbxsdk::FbxNode*>>& skeletalMeshArrays, std::vector<fbxsdk::FbxNode*>& skeletons)
+{
+	fbxsdk::FbxNode* pSkeletalMeshNode = nullptr;
+	fbxsdk::FbxNode* pNodeToAdd = pNode;
+	fbxsdk::FbxVector4 noScale(1.0, 1.0, 1.0);
+
+	if (pNode->GetMesh() && pNode->GetMesh()->GetDeformerCount(FbxDeformer::eSkin) > 0)
+	{
+		pSkeletalMeshNode = pNode;
+	}
+
+	if (pSkeletalMeshNode)
+	{
+		fbxsdk::FbxMesh* pMesh = pSkeletalMeshNode->GetMesh();
+		assert(pMesh);
+
+		if (fbxsdk::FbxSkin* pSkinDeformer = static_cast<fbxsdk::FbxSkin*>(pMesh->GetDeformer(0, fbxsdk::FbxDeformer::eSkin)))
+		{
+			bool hasWeightData = false;
+
+			uint32_t clusterCount = pSkinDeformer->GetClusterCount();
+			for (uint32_t clusterIndex = 0U; clusterIndex < clusterCount; ++clusterIndex)
+			{
+				fbxsdk::FbxNode* pRootBone = pSkinDeformer->GetCluster(clusterIndex)->GetLink();
+				pRootBone = GetRootBoneNode(pScene, pRootBone);
+				if (!pRootBone)
+				{
+					continue;
+				}
+
+				bool addToExistedSkeleton = false;
+				for (std::size_t skeletonIndex = 0U; skeletonIndex < skeletons.size(); ++skeletonIndex)
+				{
+					fbxsdk::FbxNode* pSkeleton = skeletons[skeletonIndex];
+					if (pRootBone == pSkeleton)
+					{
+						skeletalMeshArrays[skeletonIndex].emplace_back(pNodeToAdd);
+						addToExistedSkeleton = true;
+						break;
+					}
+				}
+
+				if (!addToExistedSkeleton)
+				{
+					std::vector<fbxsdk::FbxNode*> skeletalMeshArray;
+					skeletalMeshArray.push_back(pNodeToAdd);
+					skeletalMeshArrays.emplace_back(cd::MoveTemp(skeletalMeshArray));
+
+					if (pNodeToAdd->EvaluateLocalScaling() != noScale)
+					{
+						PrintLog(std::format("Error : Skeletal mesh {} has non-identity scale which may cause wrong results.", pNodeToAdd->GetName()));
+					}
+				}
+
+				hasWeightData = true;
+				break;
+			}
+
+			if (!hasWeightData)
+			{
+				PrintLog(std::format("Warning : Ignored skeletal mesh {} because there are no weights data.", pNodeToAdd->GetName()));
+			}
+		}
+	}
+
+	auto* pNodeAttribute = pNode->GetNodeAttribute();
+	if (!pNodeAttribute || pNodeAttribute->GetAttributeType() != FbxNodeAttribute::eLODGroup)
+	{
+		std::vector<fbxsdk::FbxNode*> scaledChildNodes;
+		for (int32_t childIndex = 0; childIndex < pNode->GetChildCount(); ++childIndex)
+		{
+			auto* pChildNode = pNode->GetChild(childIndex);
+			if (pChildNode->EvaluateLocalScaling() != noScale)
+			{
+				scaledChildNodes.push_back(pChildNode);
+			}
+			else
+			{
+				FindFbxSkeletalMeshRecursively(pScene, pChildNode, skeletalMeshArrays, skeletons);
+			}
+		}
+
+		for (auto* scaledChildNode : scaledChildNodes)
+		{
+			FindFbxSkeletalMeshRecursively(pScene, scaledChildNode, skeletalMeshArrays, skeletons);
+		}
+	}
+}
+
+void FixSkeletonRecursively(fbxsdk::FbxManager* pManager, fbxsdk::FbxNode* pNode, std::vector<fbxsdk::FbxNode*> skeletalMeshes)
+{
+	auto* pNodeAttribute = pNode->GetNodeAttribute();
+	bool isLODGroupNode = pNodeAttribute && fbxsdk::FbxNodeAttribute::eLODGroup == pNodeAttribute->GetAttributeType();
+	if (!isLODGroupNode)
+	{
+		for (int32_t childIndex = 0; childIndex < pNode->GetChildCount(); ++childIndex)
+		{
+			FixSkeletonRecursively(pManager, pNode->GetChild(childIndex), skeletalMeshes);
+		}
+	}
+
+	if (!pNodeAttribute)
+	{
+		return;
+	}
+
+	bool isValidMeshNode = true;
+	if (fbxsdk::FbxNodeAttribute::eMesh == pNodeAttribute->GetAttributeType())
+	{
+		int32_t childCount = pNode->GetChildCount();
+		int32_t childIndex;
+		for (childIndex = 0; childIndex < childCount; ++childIndex)
+		{
+			auto* pChildNode = pNode->GetChild(childIndex);
+			if (!pNode->GetMesh())
+			{
+				break;
+			}
+		}
+
+		isValidMeshNode = childIndex == childCount;
+	}
+	else if (fbxsdk::FbxNodeAttribute::eNull == pNodeAttribute->GetAttributeType())
+	{
+		isValidMeshNode = false;
+	}
+
+	if (isValidMeshNode)
+	{
+		if (std::find(skeletalMeshes.begin(), skeletalMeshes.end(), pNode) != skeletalMeshes.end())
+		{
+			skeletalMeshes.push_back(pNode);
+		}
+	}
+	else
+	{
+		skeletalMeshes.erase(std::remove(skeletalMeshes.begin(), skeletalMeshes.end(), pNode), skeletalMeshes.end());
+
+		// Replace with skeleton
+		auto* pSkeleton = fbxsdk::FbxSkeleton::Create(pManager, "");
+		pNode->SetNodeAttribute(pSkeleton);
+		pSkeleton->SetSkeletonType(FbxSkeleton::eLimbNode);
+	}
+}
+
+void FillFbxSkelMeshArrayInScene(fbxsdk::FbxManager* pManager, fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNode, std::vector<std::vector<fbxsdk::FbxNode*>>& skeletalMeshArrays)
+{
+	// Query skeleton mesh nodes.
+	std::vector<fbxsdk::FbxNode*> skeletons;
+	FindFbxSkeletalMeshRecursively(pScene, pNode, skeletalMeshArrays, skeletons);
+
+	// Preprocess skeleton nodes to fix bad cases.
+	for (std::size_t skeletonIndex = 0; skeletonIndex < skeletons.size(); ++skeletonIndex)
+	{
+		FixSkeletonRecursively(pManager, skeletons[skeletonIndex], skeletalMeshArrays[skeletonIndex]);
+	}
+
+	assert(!skeletalMeshArrays.empty() && "Want rigid mesh import?");
+}
+
 }
 
 namespace cdtools
@@ -155,7 +362,7 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	// Query SDK version and initialize Importer and IOSettings for opening file.
 	int32_t sdkMajorVersion = 0, sdkMinorVersion = 0, sdkRevision = 0;
 	fbxsdk::FbxManager::GetFileFormatVersion(sdkMajorVersion, sdkMinorVersion, sdkRevision);
-	printf("FBXSDK Version : %d, %d, %d\n", sdkMajorVersion, sdkMinorVersion, sdkRevision);
+	PrintLog(std::format("FBXSDK Version : {}, {}, {}\n", sdkMajorVersion, sdkMinorVersion, sdkRevision));
 
 	fbxsdk::FbxImporter* pSDKImporter = fbxsdk::FbxImporter::Create(m_pSDKManager, "FbxProducer");
 	assert(pSDKImporter && "Failed to init sdk importer.");
@@ -164,7 +371,7 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	{
 		if (fbxsdk::FbxStatus::eInvalidFileVersion == pSDKImporter->GetStatus().GetCode())
 		{
-			printf("Failed to import because the fbx file version is invalid.\n");
+			PrintLog("Error : Failed to import because the fbx file version is invalid.\n");
 			return;
 		}
 	}
@@ -172,7 +379,7 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	// Query fbx file version and import file to scene.
 	int32_t fileMajorVersion = 0, fileMinorVersion = 0, fileRevision = 0;
 	pSDKImporter->GetFileVersion(fileMajorVersion, fileMinorVersion, fileRevision);
-	printf("FBXFile Version : %d, %d, %d\n", fileMajorVersion, fileMinorVersion, fileRevision);
+	PrintLog(std::format("FBXFile Version : {}, {}, {}\n", fileMajorVersion, fileMinorVersion, fileRevision));
 
 	pIOSettings->SetBoolProp(IMP_FBX_MATERIAL, true);
 	pIOSettings->SetBoolProp(IMP_FBX_TEXTURE, true);
@@ -192,86 +399,74 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		return;
 	}
 
-	{
-		// Query file axis system and unit system.
-		//fbxsdk::FbxAxisSystem fileAxisSystem = pSDKScene->GetGlobalSettings().GetAxisSystem();
-		//fbxsdk::FbxSystemUnit fileUnitSystem = pSDKScene->GetGlobalSettings().GetSystemUnit();
-
-		//cd::Handedness handedness = fileAxisSystem.GetCoorSystem() == fbxsdk::FbxAxisSystem::eRightHanded ? cd::Handedness::Right : cd::Handedness::Left;
-		//auto GetUpVector = [&fileAxisSystem]()
-		//{
-		//	int sign = 1;
-		//	switch (fileAxisSystem.GetUpVector(sign))
-		//	{
-		//	case fbxsdk::FbxAxisSystem::eXAxis:
-		//		return cd::UpVector::XAxis;
-		//	case fbxsdk::FbxAxisSystem::eYAxis:
-		//		return cd::UpVector::YAxis;
-		//	case fbxsdk::FbxAxisSystem::eZAxis:
-		//		return cd::UpVector::ZAxis;
-		//	}
-		//
-		//	assert(sign == 1);
-		//	return cd::UpVector::YAxis;
-		//};
-		//
-		//int sign;
-		//cd::FrontVector frontVector = fileAxisSystem.GetFrontVector(sign) == fbxsdk::FbxAxisSystem::eParityEven ? cd::FrontVector::ParityEven : cd::FrontVector::ParityOdd;
-		//assert(sign == 1);
-
-		//cd::AxisSystem axisSystem(handedness, GetUpVector(), frontVector);
-		//pSceneDatabase->SetAxisSystem(cd::MoveTemp(axisSystem));
-	}
-
 	// Query scene information and prepare to import.
 	pSceneDatabase->SetName(m_filePath.c_str());
 
-	// Convert fbx materials to cd materials.
-	if (IsOptionEnabled(FbxProducerOptions::ImportMaterial))
+	if (IsOptionEnabled(FbxProducerOptions::ImportSkeletalMesh))
 	{
-		fbxsdk::FbxArray<fbxsdk::FbxSurfaceMaterial*> sdkMaterials;
-		pSDKScene->FillMaterialArray(sdkMaterials);
-		for (int32_t materialIndex = 0; materialIndex < sdkMaterials.Size(); ++materialIndex)
+		std::vector<std::vector<fbxsdk::FbxNode*>> skeletalMeshArrays;
+		details::FillFbxSkelMeshArrayInScene(m_pSDKManager, pSDKScene, pSDKScene->GetRootNode(), skeletalMeshArrays);
+
+		for (std::size_t arrayIndex = 0; arrayIndex < skeletalMeshArrays.size(); ++arrayIndex)
 		{
-			fbxsdk::FbxSurfaceMaterial* pSDKMaterial = sdkMaterials[materialIndex];
-			cd::MaterialID materialID = ParseMaterial(pSDKMaterial, pSceneDatabase);
-			assert(materialIndex == materialID.Data());
+			ParseSkeletonMesh(skeletalMeshArrays[arrayIndex]);
 		}
 	}
-
-	if (IsOptionEnabled(FbxProducerOptions::ImportSkeleton))
+	else
 	{
-		cd::Skeleton skeleton;
-		skeleton.SetID(m_skeletonIDGenerator.AllocateID());
+		// Old implementation...
 
-		// Build skeleton bones tree.
-		TraverseBoneRecursively(pSDKScene->GetRootNode(), cd::BoneID::InvalidID, skeleton, pSceneDatabase);
-
-		for (auto& bone : pSceneDatabase->GetBones())
+		// Convert fbx materials to cd materials.
+		if (IsOptionEnabled(FbxProducerOptions::ImportMaterial))
 		{
-			if (!bone.GetParentID().IsValid())
+			fbxsdk::FbxArray<fbxsdk::FbxSurfaceMaterial*> sdkMaterials;
+			pSDKScene->FillMaterialArray(sdkMaterials);
+			for (int32_t materialIndex = 0; materialIndex < sdkMaterials.Size(); ++materialIndex)
 			{
-				skeleton.AddRootBoneID(bone.GetID());
+				fbxsdk::FbxSurfaceMaterial* pSDKMaterial = sdkMaterials[materialIndex];
+				cd::MaterialID materialID = ParseMaterial(pSDKMaterial, pSceneDatabase);
+				assert(materialIndex == materialID.Data());
 			}
 		}
 
-		if (skeleton.GetBoneIDCount() > 0U)
+		// Convert fbx scene nodes/meshes to cd scene nodes/meshes.
+		TraverseNodeRecursively(pSDKScene->GetRootNode(), cd::NodeID::InvalidID, pSceneDatabase);
+
+		if (IsOptionEnabled(FbxProducerOptions::ImportSkeleton))
 		{
-			pSceneDatabase->AddSkeleton(cd::MoveTemp(skeleton));
+			cd::Skeleton skeleton;
+			skeleton.SetID(m_skeletonIDGenerator.AllocateID());
+
+			// Build skeleton bones tree.
+			TraverseBoneRecursively(pSDKScene->GetRootNode(), cd::BoneID::InvalidID, skeleton, pSceneDatabase);
+
+			for (auto& bone : pSceneDatabase->GetBones())
+			{
+				if (!bone.GetParentID().IsValid())
+				{
+					skeleton.AddRootBoneID(bone.GetID());
+				}
+			}
+
+			if (skeleton.GetBoneIDCount() > 0U)
+			{
+				pSceneDatabase->AddSkeleton(cd::MoveTemp(skeleton));
+			}
+		}
+
+		if (IsOptionEnabled(FbxProducerOptions::ImportAnimation))
+		{
+			if (fbxsdk::FbxAnimStack* pAnimStack = pSDKScene->GetSrcObject<FbxAnimStack>(0))
+			{
+				pSDKScene->SetCurrentAnimationStack(pAnimStack);
+				ParseAnimation(pSDKScene, pSceneDatabase);
+			}
 		}
 	}
+}
 
-	// Convert fbx scene nodes/meshes to cd scene nodes/meshes.
-	TraverseNodeRecursively(pSDKScene->GetRootNode(), cd::NodeID::InvalidID, pSceneDatabase);
-
-	if (IsOptionEnabled(FbxProducerOptions::ImportAnimation))
-	{
-		if (fbxsdk::FbxAnimStack* pAnimStack = pSDKScene->GetSrcObject<FbxAnimStack>(0))
-		{
-			pSDKScene->SetCurrentAnimationStack(pAnimStack);
-			ParseAnimation(pSDKScene, pSceneDatabase);
-		}
-	}
+void FbxProducerImpl::ParseSkeletonMesh(std::vector<fbxsdk::FbxNode*> skeletonMeshNodes)
+{
 }
 
 void FbxProducerImpl::TraverseBoneRecursively(fbxsdk::FbxNode* pSDKNode, cd::BoneID parentBoneID, cd::Skeleton& skeleton, cd::SceneDatabase* pSceneDatabase)
@@ -357,7 +552,7 @@ void FbxProducerImpl::TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::Nod
 			}
 
 			// Skin
-			if (IsOptionEnabled(FbxProducerOptions::ImportSkinMesh))
+			if (IsOptionEnabled(FbxProducerOptions::ImportSkeletalMesh))
 			{
 				int32_t skinDeformerCount = pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eSkin);
 				for (int32_t skinIndex = 0; skinIndex < skinDeformerCount; ++skinIndex)

@@ -11,7 +11,8 @@ enum class FbxProducerOptions
 	ImportTexture,
 	ImportLight,
 	ImportSkeleton,
-	ImportSkinMesh,
+	ImportSkeletalMesh,
+	ImportStaticMesh,
 	Triangulate,
 };
 

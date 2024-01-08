@@ -58,6 +58,8 @@ public:
 	bool IsOptionEnabled(FbxProducerOptions option) const { return m_options.IsEnabled(option); }
 
 private:
+	void ParseSkeletonMesh(std::vector<fbxsdk::FbxNode*> skeletonMeshNodes);
+	
 	void TraverseBoneRecursively(fbxsdk::FbxNode* pSDKNode, cd::BoneID parentBoneID, cd::Skeleton& skeleton, cd::SceneDatabase* pSceneDatabase);
 	void TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase);
 

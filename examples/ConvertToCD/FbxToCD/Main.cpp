@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 	producer.EnableOption(FbxProducerOptions::ImportMaterial);
 	producer.EnableOption(FbxProducerOptions::ImportTexture);
 	producer.EnableOption(FbxProducerOptions::ImportSkeleton);
-	producer.EnableOption(FbxProducerOptions::ImportSkinMesh);
+	producer.EnableOption(FbxProducerOptions::ImportSkeletalMesh);
 	producer.EnableOption(FbxProducerOptions::ImportLight);
 	producer.EnableOption(FbxProducerOptions::Triangulate);
 	CDConsumer consumer(pOutputFilePath);
