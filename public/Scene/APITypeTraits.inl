@@ -80,6 +80,7 @@ struct BoneTypeTraits
 	using ID = cd::BoneID;
 	using ParentID = cd::BoneID;
 	using SkeletonID = cd::SkeletonID;
+	using LimbLength = float;
 
 	// String
 	using Name = std::string;
@@ -87,6 +88,7 @@ struct BoneTypeTraits
 	// Complex
 	using Offset = cd::Matrix4x4;
 	using Transform = cd::Transform;
+	using LimbSize = cd::Vec3f;
 
 	// Vector
 	using ChildID = cd::BoneID;
@@ -224,12 +226,12 @@ struct SkeletonTypeTraits
 {
 	// Simple
 	using ID = cd::SkeletonID;
-	
+	using RootBoneID = cd::BoneID;
+
 	// String
 	using Name = std::string;
 
 	// Vector
-	using RootBoneID = cd::BoneID;
 	using BoneID = cd::BoneID;
 };
 

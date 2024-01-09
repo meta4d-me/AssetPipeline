@@ -395,10 +395,7 @@ void SceneDatabaseImpl::Dump() const
 		{
 			printf("[Skeleton %u] Name : %s\n", skeleton.GetID().Data(), skeleton.GetName());
 
-			for (auto rootBoneID : skeleton.GetRootBoneIDs())
-			{
-				printf("\t[Associated RootBone %u]\n", rootBoneID.Data());
-			}
+			printf("\t[Associated RootBone %u]\n", skeleton.GetRootBoneID().Data());
 
 			for (auto boneID : skeleton.GetBoneIDs())
 			{
@@ -672,11 +669,7 @@ void SceneDatabaseImpl::Merge(cd::SceneDatabaseImpl&& sceneDatabaseImpl)
 	for (auto& skeleton : sceneDatabaseImpl.GetSkeletons())
 	{
 		skeleton.SetID(GetSkeletonCount());
-
-		for (auto& rootBoneID : skeleton.GetRootBoneIDs())
-		{
-			rootBoneID.Set(rootBoneID.Data() + originBoneCount);
-		}
+		skeleton.SetRootBoneID(skeleton.GetRootBoneID().Data() + originBoneCount);
 
 		for (auto& boneID : skeleton.GetBoneIDs())
 		{
@@ -694,6 +687,7 @@ void SceneDatabaseImpl::Merge(cd::SceneDatabaseImpl&& sceneDatabaseImpl)
 		{
 			childID.Set(childID.Data() + originBoneCount);
 		}
+		bone.SetSkeletonID(bone.GetSkeletonID().Data() + originSkeletonCount);
 		AddBone(cd::MoveTemp(bone));
 	}
 
