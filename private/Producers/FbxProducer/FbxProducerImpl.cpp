@@ -639,6 +639,17 @@ void FbxProducerImpl::BuildSceneInfo(fbxsdk::FbxScene* pScene, FbxSceneInfo& sce
 			details::FixSkeletonRecursively(m_pSDKManager, sceneInfo.skeletonRootBones[skeletonIndex], sceneInfo.skeletalMeshArrays[skeletonIndex]);
 		}
 	}
+
+	if (IsOptionEnabled(FbxProducerOptions::ImportMaterial))
+	{
+		fbxsdk::FbxArray<fbxsdk::FbxSurfaceMaterial*> sdkMaterials;
+		pScene->FillMaterialArray(sdkMaterials);
+		for (int32_t materialIndex = 0; materialIndex < sdkMaterials.Size(); ++materialIndex)
+		{
+			fbxsdk::FbxSurfaceMaterial* pSDKMaterial = sdkMaterials[materialIndex];
+			sceneInfo.surfaceMaterials.push_back(pSDKMaterial);
+		}
+	}
 }
 
 void FbxProducerImpl::TraverseSceneRecursively(fbxsdk::FbxNode* pNode, FbxSceneInfo& sceneInfo)
@@ -904,17 +915,6 @@ cd::MaterialID FbxProducerImpl::ParseMaterial(const fbxsdk::FbxSurfaceMaterial* 
 	pSceneDatabase->AddMaterial(cd::MoveTemp(material));
 
 	return materialID;
-}
-
-void FbxProducerImpl::ParseMaterials(fbxsdk::FbxScene* pScene, cd::SceneDatabase* pSceneDatabase)
-{
-	fbxsdk::FbxArray<fbxsdk::FbxSurfaceMaterial*> sdkMaterials;
-	pScene->FillMaterialArray(sdkMaterials);
-	for (int32_t materialIndex = 0; materialIndex < sdkMaterials.Size(); ++materialIndex)
-	{
-		fbxsdk::FbxSurfaceMaterial* pSDKMaterial = sdkMaterials[materialIndex];
-		ParseMaterial(pSDKMaterial, pSceneDatabase);
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
