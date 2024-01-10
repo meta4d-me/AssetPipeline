@@ -58,25 +58,49 @@ public:
 	bool IsOptionEnabled(FbxProducerOptions option) const { return m_options.IsEnabled(option); }
 
 private:
-	void ParseSkeletonMesh(fbxsdk::FbxScene* pScene, std::vector<fbxsdk::FbxNode*> skeletonMeshNodes, cd::SceneDatabase* pSceneDatabase);
-	
-	void TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase);
+	struct FbxSceneInfo
+	{
+		fbxsdk::FbxNode* rootNode;
+		std::vector<fbxsdk::FbxNode*> transformNodes;
+		std::vector<fbxsdk::FbxNode*> skeletonRootBones;
+		std::vector<std::vector<fbxsdk::FbxNode*>> skeletalMeshArrays;
+		std::vector<fbxsdk::FbxNode*> staticMeshes;
+		std::vector<fbxsdk::FbxSurfaceMaterial*> surfaceMaterials;
+		std::vector<fbxsdk::FbxLight*> lights;
+	};
 
+	// Scene
+	void BuildSceneInfo(fbxsdk::FbxScene* pScene, FbxSceneInfo& sceneInfo);
+	void TraverseSceneRecursively(fbxsdk::FbxNode* pNode, FbxSceneInfo& sceneInfo);
+
+	// Node
+	cd::NodeID AllocateNodeID(const fbxsdk::FbxNode* pSDKNode);
+	cd::NodeID ParseNode(const fbxsdk::FbxNode* pSDKNode, cd::SceneDatabase* pSceneDatabase);
+	void AssociateMeshWithNode(fbxsdk::FbxMesh* pMesh, cd::MeshID meshID, cd::SceneDatabase* pSceneDatabase);
+
+	// Light
+	cd::LightID ParseLight(const fbxsdk::FbxLight* pFbxLight, cd::SceneDatabase* pSceneDatabase);
+
+	// Material
 	std::pair<cd::MaterialID, bool> AllocateMaterialID(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial);
 	void ParseMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial);
 	void ParseMaterialTexture(const fbxsdk::FbxProperty& sdkProperty, cd::MaterialTextureType textureType, cd::Material& material, cd::SceneDatabase* pSceneDatabase);
 	cd::MaterialID ParseMaterial(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, cd::SceneDatabase* pSceneDatabase);
+	void ParseMaterials(fbxsdk::FbxScene* pScene, cd::SceneDatabase* pSceneDatabase);
 
-	cd::NodeID ParseNode(const fbxsdk::FbxNode* pSDKNode, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase);
+	// Mesh
+	cd::MeshID ParseMesh(const fbxsdk::FbxMesh* pFbxMesh, cd::SceneDatabase* pSceneDatabase);
 
-	cd::LightID ParseLight(const fbxsdk::FbxLight* pFbxLight, const char* pLightName, cd::Transform transform, cd::SceneDatabase* pSceneDatabase);
-
-	void ParseMesh(cd::Mesh& mesh, fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxMesh* pFbxMesh);
-	
-	cd::BlendShapeID ParseBlendShape(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase);
-
+	// SkeletalMesh
+	void ParseSkeletonBones(fbxsdk::FbxScene* pScene, const std::vector<fbxsdk::FbxNode*>& skeletonMeshNodes, cd::SceneDatabase* pSceneDatabase);
+	cd::MeshID ParseSkeletalMesh(const fbxsdk::FbxMesh* pFbxMesh, cd::SceneDatabase* pSceneDatabase);
 	cd::SkinID ParseSkin(const fbxsdk::FbxSkin* pSkin, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase);
 
+	// BlendShape
+	cd::BlendShapeID ParseBlendShape(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase);
+	void AssociateMeshWithBlendShape(fbxsdk::FbxMesh* pMesh, cd::MeshID meshID, cd::SceneDatabase* pSceneDatabase);
+
+	// Animation
 	void ParseAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase);
 
 private:

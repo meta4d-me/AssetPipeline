@@ -5,6 +5,10 @@ namespace cdtools
 
 enum class FbxProducerOptions
 {
+	// Preprocess
+	Triangulate,
+
+	// Scene objects
 	ImportAnimation,
 	ImportBlendShape,
 	ImportMaterial,
@@ -13,7 +17,6 @@ enum class FbxProducerOptions
 	ImportSkeleton,
 	ImportSkeletalMesh,
 	ImportStaticMesh,
-	Triangulate,
 };
 
 }
