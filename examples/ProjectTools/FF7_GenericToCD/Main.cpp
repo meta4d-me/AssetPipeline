@@ -41,10 +41,6 @@ int main(int argc, char** argv)
 	std::string ormTextureSuffixAndExtension = "ORM.png";
 	{
 		GenericProducer producer(pInputFilePath);
-		producer.EnableOption(GenericProducerOptions::GenerateBoundingBox);
-		producer.EnableOption(GenericProducerOptions::TriangulateModel);
-		producer.EnableOption(GenericProducerOptions::GenerateTangentSpace);
-		producer.EnableOption(GenericProducerOptions::CleanUnusedObjects);
 		producer.EnableOption(GenericProducerOptions::FlattenTransformHierarchy);
 
 		MergeTextureConsumer consumer(outputTextureFolderPath.string().c_str());
@@ -58,7 +54,7 @@ int main(int argc, char** argv)
 		consumer.SetTextureTypeAndDefaultValue(cd::MaterialTextureType::Metallic, 25);
 
 		Processor processor(&producer, &consumer, pSceneDatabase.get());
-		processor.SetDumpSceneDatabaseEnable(false);
+		processor.DisableOption(ProcessorOptions::Dump);
 		processor.Run();
 	}
 

@@ -41,7 +41,7 @@ public:
 		assert(pProcessorImpl);
 		m_pProcessImpl = pProcessorImpl;
 
-		if (m_pProcessImpl->IsValidateSceneDatabaseEnabled())
+		if (m_pProcessImpl->IsOptionEnabled(cdtools::ProcessorOptions::Validate))
 		{
 			m_pProcessImpl->GetSceneDatabase()->Validate();
 		}
@@ -52,7 +52,7 @@ public:
 	SceneDatabaseValidator& operator=(SceneDatabaseValidator&&) = delete;
 	~SceneDatabaseValidator()
 	{
-		if (m_pProcessImpl->IsValidateSceneDatabaseEnabled())
+		if (m_pProcessImpl->IsOptionEnabled(cdtools::ProcessorOptions::Validate))
 		{
 			m_pProcessImpl->GetSceneDatabase()->Validate();
 		}
@@ -103,6 +103,11 @@ ProcessorImpl::ProcessorImpl(IProducer* pProducer, IConsumer* pConsumer, cd::Sce
 		m_pCurrentSceneDatabase = pHostSceneDatabase;
 	}
 
+	// Default Processor Options
+	m_options.Enable(ProcessorOptions::Validate);
+	m_options.Enable(ProcessorOptions::Dump);
+	m_options.Enable(ProcessorOptions::CalculateAABB);
+
 	m_targetAxisSystem = cd::AxisSystem::CDEngine();
 }
 
@@ -117,19 +122,22 @@ void ProcessorImpl::Run()
 		m_pProducer->Execute(m_pCurrentSceneDatabase);
 	}
 
-	ConvertAxisSystem();
-
 	// Adding post processing here.
 	// SceneDatabaseValidator will help to validate if data is correct before and after.
 	{
 		details::SceneDatabaseValidator validator(this);
 
-		if (IsFlattenSceneDatabaseEnabled())
+		if (m_options.IsEnabled(ProcessorOptions::ConvertAxisSystem))
+		{
+			ConvertAxisSystem();
+		}
+
+		if (m_options.IsEnabled(ProcessorOptions::FlattenHierarchy))
 		{
 			FlattenSceneDatabase();
 		}
 
-		if (IsCalculateAABBForSceneDatabaseEnabled())
+		if (m_options.IsEnabled(ProcessorOptions::CalculateAABB))
 		{
 			CalculateAABBForSceneDatabase();
 		}
@@ -139,14 +147,14 @@ void ProcessorImpl::Run()
 			SearchMissingTextures();
 		}
 
-		if (IsEmbedTextureFilesEnabled())
+		if (m_options.IsEnabled(ProcessorOptions::EmbedTextureFiles))
 		{
 			EmbedTextureFiles();
 		}
 	}
 
 	// Dump all information finally.
-	if (IsDumpSceneDatabaseEnabled())
+	if (m_options.IsEnabled(ProcessorOptions::Dump))
 	{
 		m_pCurrentSceneDatabase->Dump();
 	}
@@ -195,14 +203,19 @@ void ProcessorImpl::ConvertAxisSystem()
 				bitangent.z() = -bitangent.z();
 			}
 
-			for (uint32_t polygonIndex = 0U; polygonIndex < mesh.GetPolygonCount(); ++polygonIndex)
+			for (uint32_t polygonGroupIndex = 0U; polygonGroupIndex < mesh.GetPolygonGroupCount(); ++polygonGroupIndex)
 			{
-				auto& polygon = mesh.GetPolygon(polygonIndex);
-				uint32_t polygonVertexCount = static_cast<uint32_t>(polygon.size());
-				uint32_t polygonVertexHalfCount = polygonVertexCount >> 1;
-				for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexHalfCount; ++polygonVertexIndex)
+				auto& polygonGroup = mesh.GetPolygonGroup(polygonGroupIndex);
+
+				for (uint32_t polygonIndex = 0U; polygonIndex < polygonGroup.size(); ++polygonIndex)
 				{
-					std::swap(polygon[polygonVertexIndex], polygon[polygonVertexCount - 1 - polygonVertexIndex]);
+					auto& polygon = polygonGroup[polygonIndex];
+					uint32_t polygonVertexCount = static_cast<uint32_t>(polygon.size());
+					uint32_t polygonVertexHalfCount = polygonVertexCount >> 1;
+					for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexHalfCount; ++polygonVertexIndex)
+					{
+						std::swap(polygon[polygonVertexIndex], polygon[polygonVertexCount - 1 - polygonVertexIndex]);
+					}
 				}
 			}
 		}
@@ -210,19 +223,10 @@ void ProcessorImpl::ConvertAxisSystem()
 		// Convert morph data.
 		for (cd::Morph& morph : m_pCurrentSceneDatabase->GetMorphs())
 		{
-			for (uint32_t vertexIndex = 0U; vertexIndex < morph.GetVertexCount(); ++vertexIndex)
+			for (uint32_t vertexIndex = 0U; vertexIndex < morph.GetVertexPositionCount(); ++vertexIndex)
 			{
 				auto& position = morph.GetVertexPosition(vertexIndex);
 				position.z() = -position.z();
-
-				auto& normal = morph.GetVertexNormal(vertexIndex);
-				normal.z() = -normal.z();
-
-				auto& tangent = morph.GetVertexTangent(vertexIndex);
-				tangent.z() = -tangent.z();
-
-				auto& bitangent = morph.GetVertexBiTangent(vertexIndex);
-				bitangent.z() = -bitangent.z();
 			}
 		}
 	}
@@ -273,7 +277,7 @@ void ProcessorImpl::FlattenSceneDatabase()
 	for (uint32_t meshIndex = 0U; meshIndex < m_pCurrentSceneDatabase->GetMeshCount(); ++meshIndex)
 	{
 		cd::Mesh& mesh = meshes[meshIndex];
-		if (0U != mesh.GetVertexInfluenceCount())
+		if (mesh.GetSkinIDCount() > 0U)
 		{
 			// Don't need to support flatten SkinMesh currently.
 			continue;

@@ -11,17 +11,17 @@ HalfEdgeMesh::HalfEdgeMesh(HalfEdgeMesh&&) = default;
 HalfEdgeMesh& HalfEdgeMesh::operator=(HalfEdgeMesh&&) = default;
 HalfEdgeMesh::~HalfEdgeMesh() = default;
 
-HalfEdgeMesh HalfEdgeMesh::FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons)
+HalfEdgeMesh HalfEdgeMesh::FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<cd::PolygonGroup>& polygonGroups)
 {
 	HalfEdgeMesh halfEdgeMesh;
 	halfEdgeMesh.m_pHalfEdgeMeshImpl = new hem::HalfEdgeMeshImpl();
-	halfEdgeMesh.m_pHalfEdgeMeshImpl->FromIndexedFaces(vertices, polygons);
+	halfEdgeMesh.m_pHalfEdgeMeshImpl->FromIndexedFaces(vertices, polygonGroups);
 	return halfEdgeMesh;
 }
 
 HalfEdgeMesh HalfEdgeMesh::FromIndexedMesh(const cd::Mesh& mesh)
 {
-	return FromIndexedFaces(mesh.GetVertexPositions(), mesh.GetPolygons());
+	return FromIndexedFaces(mesh.GetVertexPositions(), mesh.GetPolygonGroups());
 }
 
 std::list<hem::Vertex>& HalfEdgeMesh::GetVertices()

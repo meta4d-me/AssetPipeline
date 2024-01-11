@@ -15,7 +15,7 @@ ProgressiveMeshImpl::ProgressiveMeshImpl(ProgressiveMeshImpl&&) = default;
 ProgressiveMeshImpl& ProgressiveMeshImpl::operator=(ProgressiveMeshImpl&&) = default;
 ProgressiveMeshImpl::~ProgressiveMeshImpl() = default;
 
-void ProgressiveMeshImpl::FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons)
+void ProgressiveMeshImpl::FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<cd::PolygonGroup>& polygonGroups)
 {
 	uint32_t vertexCount = static_cast<uint32_t>(vertices.size());
 	for (uint32_t vertexIndex = 0U; vertexIndex < vertexCount; ++vertexIndex)
@@ -23,31 +23,34 @@ void ProgressiveMeshImpl::FromIndexedFaces(const std::vector<cd::Point>& vertice
 		AddVertex(vertices[vertexIndex]);
 	}
 
-	for (const auto& polygon : polygons)
+	for (const auto& polygonGroup : polygonGroups)
 	{
-		uint32_t v0Index = polygon[0].Data();
-		uint32_t v1Index = polygon[1].Data();
-		uint32_t v2Index = polygon[2].Data();
-		assert(v0Index != v1Index && v0Index != v2Index && v1Index != v2Index);
-		assert(v0Index < vertexCount && v1Index < vertexCount && v2Index < vertexCount);
+		for (const auto& polygon : polygonGroup)
+		{
+			uint32_t v0Index = polygon[0].Data();
+			uint32_t v1Index = polygon[1].Data();
+			uint32_t v2Index = polygon[2].Data();
+			assert(v0Index != v1Index && v0Index != v2Index && v1Index != v2Index);
+			assert(v0Index < vertexCount && v1Index < vertexCount && v2Index < vertexCount);
 
-		auto& face = AddFace(polygon);
-		ComputeNormal(face);
+			auto& face = AddFace(polygon);
+			ComputeNormal(face);
 
-		auto& v0 = GetVertex(v0Index);
-		auto& v1 = GetVertex(v1Index);
-		auto& v2 = GetVertex(v2Index);
+			auto& v0 = GetVertex(v0Index);
+			auto& v1 = GetVertex(v1Index);
+			auto& v2 = GetVertex(v2Index);
 
-		v0.AddAdjacentFace(face.GetID());
-		v1.AddAdjacentFace(face.GetID());
-		v2.AddAdjacentFace(face.GetID());
+			v0.AddAdjacentFace(face.GetID());
+			v1.AddAdjacentFace(face.GetID());
+			v2.AddAdjacentFace(face.GetID());
 
-		v0.AddAdjacentVertex(v1.GetID());
-		v0.AddAdjacentVertex(v2.GetID());
-		v1.AddAdjacentVertex(v0.GetID());
-		v1.AddAdjacentVertex(v2.GetID());
-		v2.AddAdjacentVertex(v0.GetID());
-		v2.AddAdjacentVertex(v1.GetID());
+			v0.AddAdjacentVertex(v1.GetID());
+			v0.AddAdjacentVertex(v2.GetID());
+			v1.AddAdjacentVertex(v0.GetID());
+			v1.AddAdjacentVertex(v2.GetID());
+			v2.AddAdjacentVertex(v0.GetID());
+			v2.AddAdjacentVertex(v1.GetID());
+		}
 	}
 }
 
@@ -65,7 +68,7 @@ void ProgressiveMeshImpl::InitBoundary(const cd::AABB& aabb)
 	}
 }
 
-void ProgressiveMeshImpl::InitBoundary(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons)
+void ProgressiveMeshImpl::InitBoundary(const std::vector<cd::Point>& vertices, const std::vector<cd::PolygonGroup>& polygonGroups)
 {
 	auto GetVertexHash = [](const cd::Point& p)
 	{
@@ -411,7 +414,8 @@ cd::Mesh ProgressiveMeshImpl::GenerateLodMesh(uint32_t targetFaceCount, const cd
 	std::vector<uint32_t> map = collapseInfoPair.second;
 
 	uint32_t targetVertexCount = targetFaceCount * 3U;
-	cd::Mesh mesh(targetVertexCount, targetFaceCount);
+	cd::Mesh mesh;
+	mesh.Init(targetVertexCount);
 
 	if (pSourceMesh)
 	{
@@ -474,20 +478,11 @@ cd::Mesh ProgressiveMeshImpl::GenerateLodMesh(uint32_t targetFaceCount, const cd
 						mesh.SetVertexColor(setIndex, newVertexIndex, pSourceMesh->GetVertexColor(setIndex, vertexIndex));
 					}
 				}
-
-				if (vertexFormat.Contains(cd::VertexAttributeType::BoneIndex) && vertexFormat.Contains(cd::VertexAttributeType::BoneWeight))
-				{
-					mesh.SetVertexInfluenceCount(pSourceMesh->GetVertexInfluenceCount());
-					for (uint32_t boneIndex = 0U; boneIndex < mesh.GetVertexInfluenceCount(); ++boneIndex)
-					{
-						mesh.SetVertexBoneWeight(boneIndex, newVertexIndex, pSourceMesh->GetVertexBoneID(boneIndex, vertexIndex), pSourceMesh->GetVertexWeight(boneIndex, vertexIndex));
-					}
-				}
 			}
 		}
 	}
 
-	uint32_t validFaceCount = 0U;
+	cd::PolygonGroup polygonGroup;
 	for (uint32_t faceIndex = 0U, totalFaceCount = GetFaceCount(); faceIndex < totalFaceCount; ++faceIndex)
 	{
 		const auto& face = GetFace(faceIndex);
@@ -513,12 +508,13 @@ cd::Mesh ProgressiveMeshImpl::GenerateLodMesh(uint32_t targetFaceCount, const cd
 			continue;
 		}
 
-		mesh.SetPolygon(validFaceCount, cd::MoveTemp(newFace));
-		if (++validFaceCount >= targetFaceCount)
+		polygonGroup.push_back(cd::MoveTemp(newFace));
+		if (polygonGroup.size() >= targetFaceCount)
 		{
 			break;
 		}
 	}
+	mesh.AddPolygonGroup(cd::MoveTemp(polygonGroup));
 
 	return mesh;
 }

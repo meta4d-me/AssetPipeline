@@ -20,6 +20,7 @@ using EdgeID = ObjectID<uint32_t, ObjectType::Edge>;
 using HalfEdgeID = ObjectID<uint32_t, ObjectType::HalfEdge>;
 using FaceID = ObjectID<uint32_t, ObjectType::Face>;
 using PolygonID = ObjectID<uint32_t, ObjectType::Polygon>;
+using PolygonGroupID = ObjectID<uint32_t, ObjectType::PolygonGroup>;
 using MeshID = ObjectID<uint32_t, ObjectType::Mesh>;
 using MaterialID = ObjectID<uint32_t, ObjectType::Material>;
 using TextureID = ObjectID<uint32_t, ObjectType::Texture>;
@@ -32,6 +33,8 @@ using TrackID = ObjectID<uint32_t, ObjectType::Track>;
 using MorphID = ObjectID<uint32_t, ObjectType::Morph>;
 using ParticleEmitterID = ObjectID<uint32_t, ObjectType::ParticleEmitter>;
 using SkeletonID = ObjectID<uint32_t, ObjectType::Skeleton>;
+using SkinID = ObjectID<uint32_t, ObjectType::Skin>;
+using BlendShapeID = ObjectID<uint32_t, ObjectType::BlendShape>;
 static_assert(sizeof(VertexID) == sizeof(uint32_t));
 
 // ID Array
@@ -43,6 +46,7 @@ using EdgePair = std::pair<VertexID, VertexID>;
 using Triangle = TVector<VertexID, 3>;
 using Quad = TVector<VertexID, 4>;
 using Polygon = std::vector<VertexID>;
+using PolygonGroup = std::vector<cd::Polygon>;
 
 // Vector
 using Point = cd::Vec3f;

@@ -11,8 +11,10 @@ print("ChoosePlatform = "..ChoosePlatform)
 local USE_CLANG_TOOLSET = os.getenv("USE_CLANG_TOOLSET") or "0"
 BUILD_ASSIMP = not os.istarget("linux") and USE_CLANG_TOOLSET == "0"
 BUILD_FBX = not os.istarget("linux") and USE_CLANG_TOOLSET == "0"
-BUILD_TERRAIN = not os.istarget("linux") and USE_CLANG_TOOLSET == "0"
 local BUILD_EXAMPLES = not os.istarget("linux") and USE_CLANG_TOOLSET == "0"
+
+-- Deprecated
+BUILD_TERRAIN = false -- not os.istarget("linux") and USE_CLANG_TOOLSET == "0"
 
 find_fbxsdk = require("premake-findfbx")
 find_fbxsdk.dump_information = true

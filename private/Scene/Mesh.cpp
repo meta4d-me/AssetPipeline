@@ -8,6 +8,21 @@ namespace cd
 
 PIMPL_SCENE_CLASS(Mesh);
 
+PIMPL_SIMPLE_TYPE_APIS(Mesh, ID);
+PIMPL_SIMPLE_TYPE_APIS(Mesh, VertexAttributeCount);
+PIMPL_STRING_TYPE_APIS(Mesh, Name);
+PIMPL_COMPLEX_TYPE_APIS(Mesh, AABB);
+PIMPL_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
+PIMPL_VECTOR_TYPE_APIS(Mesh, MaterialID);
+PIMPL_VECTOR_TYPE_APIS(Mesh, BlendShapeID);
+PIMPL_VECTOR_TYPE_APIS(Mesh, SkinID);
+PIMPL_VECTOR_TYPE_APIS(Mesh, VertexInstanceID);
+PIMPL_VECTOR_TYPE_APIS(Mesh, VertexPosition);
+PIMPL_VECTOR_TYPE_APIS(Mesh, VertexNormal);
+PIMPL_VECTOR_TYPE_APIS(Mesh, VertexTangent);
+PIMPL_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
+PIMPL_VECTOR_TYPE_APIS(Mesh, PolygonGroup);
+
 Mesh Mesh::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy)
 {
 	Mesh mesh;
@@ -16,36 +31,25 @@ Mesh Mesh::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrategy st
 	return mesh;
 }
 
-Mesh::Mesh(uint32_t vertexCount, uint32_t polygonCount)
+void Mesh::Init(uint32_t vertexCount)
 {
-	m_pMeshImpl = new MeshImpl();
-	m_pMeshImpl->Init(vertexCount, polygonCount);
+	m_pMeshImpl->Init(vertexCount);
 }
 
-Mesh::Mesh(MeshID id, const char* pName, uint32_t vertexCount, uint32_t polygonCount) :
-	Mesh(vertexCount, polygonCount)
+void Mesh::Init(uint32_t vertexPositionCount, uint32_t vertexAttributeCount)
 {
-	m_pMeshImpl->SetID(id);
-	m_pMeshImpl->SetName(pName);
+	m_pMeshImpl->Init(vertexPositionCount, vertexAttributeCount);
 }
 
-void Mesh::Init(uint32_t vertexCount, uint32_t polygonCount)
+uint32_t Mesh::GetVertexCount() const
 {
-	m_pMeshImpl->Init(vertexCount, polygonCount);
+	return m_pMeshImpl->GetVertexCount();
 }
 
-PIMPL_SIMPLE_TYPE_APIS(Mesh, ID);
-PIMPL_SIMPLE_TYPE_APIS(Mesh, MaterialID);
-PIMPL_SIMPLE_TYPE_APIS(Mesh, VertexCount);
-PIMPL_SIMPLE_TYPE_APIS(Mesh, PolygonCount);
-PIMPL_COMPLEX_TYPE_APIS(Mesh, AABB);
-PIMPL_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
-PIMPL_VECTOR_TYPE_APIS(Mesh, MorphID);
-PIMPL_VECTOR_TYPE_APIS(Mesh, VertexPosition);
-PIMPL_VECTOR_TYPE_APIS(Mesh, VertexNormal);
-PIMPL_VECTOR_TYPE_APIS(Mesh, VertexTangent);
-PIMPL_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
-PIMPL_STRING_TYPE_APIS(Mesh, Name);
+uint32_t Mesh::GetPolygonCount() const
+{
+	return m_pMeshImpl->GetPolygonCount();
+}
 
 void Mesh::UpdateAABB()
 {
@@ -136,92 +140,6 @@ Color& Mesh::GetVertexColor(uint32_t setIndex, uint32_t vertexIndex)
 const Color& Mesh::GetVertexColor(uint32_t setIndex, uint32_t vertexIndex) const
 {
 	return m_pMeshImpl->GetVertexColor(setIndex, vertexIndex);
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Vertex animation data
-//////////////////////////////////////////////////////////////////////////
-void Mesh::SetVertexInfluenceCount(uint32_t influenceCount)
-{
-	m_pMeshImpl->SetVertexInfluenceCount(influenceCount);
-}
-
-uint32_t Mesh::GetVertexInfluenceCount() const
-{
-	return m_pMeshImpl->GetVertexInfluenceCount();
-}
-
-void Mesh::SetVertexBoneWeight(uint32_t boneIndex, uint32_t vertexIndex, BoneID boneID, VertexWeight weight)
-{
-	m_pMeshImpl->SetVertexBoneWeight(boneIndex, vertexIndex, boneID, weight);
-}
-
-std::vector<BoneID>& Mesh::GetVertexBoneIDs(uint32_t boneIndex)
-{
-	return m_pMeshImpl->GetVertexBoneIDs(boneIndex);
-}
-
-const std::vector<BoneID>& Mesh::GetVertexBoneIDs(uint32_t boneIndex) const
-{
-	return m_pMeshImpl->GetVertexBoneIDs(boneIndex);
-}
-
-BoneID Mesh::GetVertexBoneID(uint32_t boneIndex, uint32_t vertexIndex) const
-{
-	return m_pMeshImpl->GetVertexBoneID(boneIndex, vertexIndex);
-}
-
-std::vector<VertexWeight>& Mesh::GetVertexWeights(uint32_t boneIndex)
-{
-	return m_pMeshImpl->GetVertexWeights(boneIndex);
-}
-
-const std::vector<VertexWeight>& Mesh::GetVertexWeights(uint32_t boneIndex) const
-{
-	return m_pMeshImpl->GetVertexWeights(boneIndex);
-}
-
-VertexWeight& Mesh::GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex)
-{
-	return m_pMeshImpl->GetVertexWeight(boneIndex, vertexIndex);
-}
-
-const VertexWeight& Mesh::GetVertexWeight(uint32_t boneIndex, uint32_t vertexIndex) const
-{
-	return m_pMeshImpl->GetVertexWeight(boneIndex, vertexIndex);
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Polygon index data
-//////////////////////////////////////////////////////////////////////////
-void Mesh::SetPolygon(uint32_t polygonIndex, cd::Polygon polygon)
-{
-	m_pMeshImpl->SetPolygon(polygonIndex, cd::MoveTemp(polygon));
-}
-
-std::vector<Polygon>& Mesh::GetPolygons()
-{
-	return m_pMeshImpl->GetPolygons();
-}
-
-const std::vector<Polygon>& Mesh::GetPolygons() const
-{
-	return m_pMeshImpl->GetPolygons();
-}
-
-Polygon& Mesh::GetPolygon(uint32_t polygonIndex)
-{
-	return m_pMeshImpl->GetPolygon(polygonIndex);
-}
-
-const Polygon& Mesh::GetPolygon(uint32_t polygonIndex) const
-{
-	return m_pMeshImpl->GetPolygon(polygonIndex);
-}
-
-cd::VertexID Mesh::GetPolygonVertexID(uint32_t polygonIndex, uint32_t vertexIndex) const
-{
-	return m_pMeshImpl->GetPolygonVertexID(polygonIndex, vertexIndex);
 }
 
 }

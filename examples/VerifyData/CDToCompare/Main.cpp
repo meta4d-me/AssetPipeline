@@ -26,8 +26,6 @@ int main(int argc, char** argv)
 		cd::SceneDatabase newSceneDatabase;
 		CDProducer producer(pInput1FilePath);
 		Processor processor(&producer, nullptr, &newSceneDatabase);
-		processor.SetDumpSceneDatabaseEnable(true);
-		processor.SetValidateSceneDatabaseEnable(true);
 		processor.Run();
 
 		pSceneDatabase->Merge(cd::MoveTemp(newSceneDatabase));
@@ -37,8 +35,6 @@ int main(int argc, char** argv)
 		cd::SceneDatabase newSceneDatabase;
 		CDProducer producer(pInput2FilePath);
 		Processor processor(&producer, nullptr, &newSceneDatabase);
-		processor.SetDumpSceneDatabaseEnable(true);
-		processor.SetValidateSceneDatabaseEnable(true);
 		processor.Run();
 
 		pSceneDatabase->Merge(cd::MoveTemp(newSceneDatabase));
@@ -48,7 +44,7 @@ int main(int argc, char** argv)
 	const auto& mesh2 = pSceneDatabase->GetMesh(1);
 
 	assert(mesh1.GetVertexCount() == mesh2.GetVertexCount());
-	assert(mesh1.GetPolygonCount() == mesh2.GetPolygonCount());
+	assert(mesh1.GetPolygonGroupCount() == mesh2.GetPolygonGroupCount());
 
 	for (uint32_t vertexIndex = 0U; vertexIndex < mesh1.GetVertexCount(); ++vertexIndex)
 	{
@@ -61,12 +57,21 @@ int main(int argc, char** argv)
 		assert(mesh1.GetVertexUV(0, vertexIndex) == mesh2.GetVertexUV(0, vertexIndex));
 	}
 
-	for (uint32_t polygonIndex = 0U; polygonIndex < mesh1.GetPolygonCount(); ++polygonIndex)
+	for (uint32_t polygonGroupIndex = 0U; polygonGroupIndex < mesh1.GetPolygonGroupCount(); ++polygonGroupIndex)
 	{
-		const auto& p1 = mesh1.GetPolygon(polygonIndex);
-		const auto& p2 = mesh2.GetPolygon(polygonIndex);
-		assert(p1.size() == p2.size());
-		assert(p1[0] == p2[0] && p1[1] == p2[1] && p1[2] == p2[2]);
+		const auto& polygonGroup1 = mesh1.GetPolygonGroup(polygonGroupIndex);
+		const auto& polygonGroup2 = mesh2.GetPolygonGroup(polygonGroupIndex);
+		assert(polygonGroup1.size() == polygonGroup2.size());
+		for (uint32_t polygonIndex = 0U; polygonIndex < polygonGroup1.size(); ++polygonIndex)
+		{
+			const auto& polygon1 = polygonGroup1[polygonIndex];
+			const auto& polygon2 = polygonGroup2[polygonIndex];
+			assert(polygon1.size() == polygon2.size());
+			for (uint32_t vertexIndex = 0U; vertexIndex < polygon1.size(); ++vertexIndex)
+			{
+				assert(polygon1[vertexIndex] == polygon2[vertexIndex]);
+			}
+		}
 	}
 
 	return 0;

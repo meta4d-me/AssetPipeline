@@ -29,8 +29,7 @@ int main(int argc, char** argv)
 	auto pSceneDatabase = std::make_unique<cd::SceneDatabase>();
 	{
 		Processor processor(&producer, nullptr, pSceneDatabase.get());
-		processor.SetDumpSceneDatabaseEnable(false);
-		processor.SetValidateSceneDatabaseEnable(true);
+		processor.DisableOption(ProcessorOptions::Dump);
 		processor.Run();
 	}
 
@@ -63,8 +62,6 @@ int main(int argc, char** argv)
 
 	{
 		Processor processor(nullptr, &consumer, pSceneDatabase.get());
-		processor.SetDumpSceneDatabaseEnable(true);
-		processor.SetValidateSceneDatabaseEnable(true);
 		processor.Run();
 	}
 

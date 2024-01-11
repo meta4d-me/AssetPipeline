@@ -33,64 +33,24 @@ void Processor::SetAxisSystem(cd::AxisSystem axisSystem)
 	m_pProcessorImpl->SetAxisSystem(cd::MoveTemp(axisSystem));
 }
 
-void Processor::SetValidateSceneDatabaseEnable(bool enable)
-{
-	m_pProcessorImpl->SetValidateSceneDatabaseEnable(enable);
-}
-
-bool Processor::IsValidateSceneDatabaseEnabled() const
-{
-	return m_pProcessorImpl->IsValidateSceneDatabaseEnabled();
-}
-
-void Processor::SetDumpSceneDatabaseEnable(bool enable)
-{
-	m_pProcessorImpl->SetDumpSceneDatabaseEnable(enable);
-}
-
-bool Processor::IsDumpSceneDatabaseEnabled() const
-{
-	return m_pProcessorImpl->IsDumpSceneDatabaseEnabled();
-}
-
-void Processor::SetCalculateAABBForSceneDatabaseEnable(bool enable)
-{
-	m_pProcessorImpl->SetCalculateAABBForSceneDatabaseEnable(enable);
-}
-
-bool Processor::IsCalculateAABBForSceneDatabaseEnabled() const
-{
-	return m_pProcessorImpl->IsCalculateAABBForSceneDatabaseEnabled();
-}
-
-void Processor::SetFlattenSceneDatabaseEnable(bool enable)
-{
-	m_pProcessorImpl->SetFlattenSceneDatabaseEnable(enable);
-}
-
-bool Processor::IsFlattenSceneDatabaseEnabled() const
-{
-	return m_pProcessorImpl->IsFlattenSceneDatabaseEnabled();
-}
-
 void Processor::AddExtraTextureSearchFolder(const char* pFolderPath)
 {
 	m_pProcessorImpl->AddExtraTextureSearchFolder(pFolderPath);
 }
 
-bool Processor::IsSearchMissingTexturesEnabled() const
+void Processor::EnableOption(ProcessorOptions option)
 {
-	return m_pProcessorImpl->IsSearchMissingTexturesEnabled();
+	m_pProcessorImpl->GetOptions().Enable(option);
 }
 
-void Processor::SetEmbedTextureFilesEnable(bool enable)
+void Processor::DisableOption(ProcessorOptions option)
 {
-	m_pProcessorImpl->SetEmbedTextureFilesEnable(enable);
+	m_pProcessorImpl->GetOptions().Disable(option);
 }
 
-bool Processor::IsEmbedTextureFilesEnabled() const
+bool Processor::IsOptionEnabled(ProcessorOptions option) const
 {
-	return m_pProcessorImpl->IsEmbedTextureFilesEnabled();
+	return m_pProcessorImpl->GetOptions().IsEnabled(option);
 }
 
 }

@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Base/Template.h"
+#include "Base/BitFlags.h"
 #include "Math/Transform.hpp"
+#include "Producers/FbxProducer/FbxProducerOptions.h"
 #include "Scene/MaterialTextureType.h"
 #include "Scene/ObjectIDGenerator.h"
 
@@ -21,6 +23,7 @@ class FbxMesh;
 class FbxNode;
 class FbxProperty;
 class FbxScene;
+class FbxSkin;
 class FbxSurfaceMaterial;
 
 }
@@ -50,62 +53,73 @@ public:
 
 	void Execute(cd::SceneDatabase* pSceneDatabase);
 
-	void SetWantImportMaterial(bool flag) { m_importMaterial = flag; }
-	bool WantImportMaterial() const { return m_importMaterial; }
-
-	void SetWantImportTexture(bool flag) { m_importTexture = flag; }
-	bool WantImportTexture() const { return m_importTexture; }
-
-	void SetWantImportSkinMesh(bool flag) { m_importSkinMesh = flag; }
-	bool WantImportSkinMesh() const { return m_importSkinMesh; }
-
-	void SetWantImportAnimation(bool flag) { m_importAnimation = flag; }
-	bool WantImportAnimation() const { return m_importAnimation; }
-
-	void SetWantImportLight(bool flag) { m_importLight = flag; }
-	bool WantImportLight() const { return m_importLight; }
-
-	void SetWantTriangulate(bool flag) { m_bWantTriangulate = flag; }
-	bool IsTriangulateActive() const { return m_bWantTriangulate; }
+	cd::BitFlags<FbxProducerOptions>& GetOptions() { return m_options; }
+	const cd::BitFlags<FbxProducerOptions>& GetOptions() const { return m_options; }
+	bool IsOptionEnabled(FbxProducerOptions option) const { return m_options.IsEnabled(option); }
 
 private:
-	int GetSceneNodeCount(const fbxsdk::FbxNode* pSceneNode);
-	void TraverseNodeRecursively(fbxsdk::FbxNode* pSDKNode, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase);
+	struct FbxSceneInfo
+	{
+		fbxsdk::FbxNode* rootNode;
+		std::vector<fbxsdk::FbxNode*> transformNodes;
+		std::vector<fbxsdk::FbxNode*> skeletonRootBones;
+		std::vector<std::vector<fbxsdk::FbxNode*>> skeletalMeshArrays;
+		std::vector<fbxsdk::FbxNode*> staticMeshes;
+		std::vector<fbxsdk::FbxSurfaceMaterial*> surfaceMaterials;
+		std::vector<fbxsdk::FbxLight*> lights;
+	};
 
-	void AddMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial);
-	void AddMaterialTexture(const fbxsdk::FbxProperty& sdkProperty, cd::MaterialTextureType textureType, cd::Material& material, cd::SceneDatabase* pSceneDatabase);
-	cd::MaterialID AddMaterial(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, cd::SceneDatabase* pSceneDatabase);
+	// Scene
+	void BuildSceneInfo(fbxsdk::FbxScene* pScene, FbxSceneInfo& sceneInfo);
+	void TraverseSceneRecursively(fbxsdk::FbxNode* pNode, FbxSceneInfo& sceneInfo);
 
-	cd::NodeID AddNode(const fbxsdk::FbxNode* pSDKNode, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase);
-	cd::LightID AddLight(const fbxsdk::FbxLight* pFbxLight, const char* pLightName, cd::Transform transform, cd::SceneDatabase* pSceneDatabase);
-	cd::MeshID AddMesh(const fbxsdk::FbxMesh* pFbxMesh, const char* pMeshName, std::optional<int32_t> optMaterialIndex, cd::NodeID parentNodeID, cd::SceneDatabase* pSceneDatabase);
-	std::vector<cd::MorphID> AddMorphs(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, const std::map<uint32_t, uint32_t>& mapVertexIDToControlPointIndex, cd::SceneDatabase* pSceneDatabase);
+	// Node
+	cd::NodeID AllocateNodeID(const fbxsdk::FbxNode* pSDKNode);
+	cd::NodeID ParseNode(const fbxsdk::FbxNode* pSDKNode, cd::SceneDatabase* pSceneDatabase);
+	void AssociateMeshWithNode(fbxsdk::FbxMesh* pMesh, cd::MeshID meshID, cd::SceneDatabase* pSceneDatabase);
 
-	cd::BoneID AddBone(const fbxsdk::FbxNode* pSDKNode, cd::BoneID parentBoneID, cd::SceneDatabase* pSceneDatabase);
-	cd::AnimationID AddAnimation(fbxsdk::FbxNode* pSDKNode, fbxsdk::FbxScene* pSDKScene, cd::SceneDatabase* pSceneDatabase);
+	// Light
+	cd::LightID ParseLight(const fbxsdk::FbxLight* pFbxLight, cd::SceneDatabase* pSceneDatabase);
 
-	void ProcessAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase);
+	// Material
+	std::pair<cd::MaterialID, bool> AllocateMaterialID(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial);
+	void ParseMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial);
+	void ParseMaterialTexture(const fbxsdk::FbxProperty& sdkProperty, cd::MaterialTextureType textureType, cd::Material& material, cd::SceneDatabase* pSceneDatabase);
+	cd::MaterialID ParseMaterial(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, cd::SceneDatabase* pSceneDatabase);
+
+	// Mesh
+	cd::MeshID ParseMesh(const fbxsdk::FbxMesh* pFbxMesh, cd::SceneDatabase* pSceneDatabase);
+
+	// SkeletalMesh
+	void ParseSkeletonBones(fbxsdk::FbxScene* pScene, const std::vector<fbxsdk::FbxNode*>& skeletonMeshNodes, cd::SceneDatabase* pSceneDatabase);
+	cd::MeshID ParseSkeletalMesh(const fbxsdk::FbxMesh* pFbxMesh, cd::SceneDatabase* pSceneDatabase);
+	cd::SkinID ParseSkin(const fbxsdk::FbxSkin* pSkin, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase);
+
+	// BlendShape
+	cd::BlendShapeID ParseBlendShape(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase);
+	void AssociateMeshWithBlendShape(fbxsdk::FbxMesh* pMesh, cd::MeshID meshID, cd::SceneDatabase* pSceneDatabase);
+
+	// Animation
+	void ParseAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase);
+
 private:
-	bool m_importMaterial = true;
-	bool m_importTexture = true;
-	bool m_importSkinMesh = true;
-	bool m_importAnimation = true;
-	bool m_importLight = true;
-	bool m_bWantTriangulate = true;
-
 	std::string m_filePath;
+	cd::BitFlags<FbxProducerOptions> m_options;
+
 	fbxsdk::FbxManager* m_pSDKManager = nullptr;
 	std::unique_ptr<fbxsdk::FbxGeometryConverter> m_pSDKGeometryConverter;
 
-	std::map<int32_t, uint32_t> m_fbxMaterialIndexToMaterialID;
-	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
-	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
-	cd::ObjectIDGenerator<cd::NodeID> m_nodeIDGenerator;
-	cd::ObjectIDGenerator<cd::BoneID> m_boneIDGenerator;
-	cd::ObjectIDGenerator<cd::MeshID> m_meshIDGenerator;
-	cd::ObjectIDGenerator<cd::MorphID> m_morphIDGenerator;
-	cd::ObjectIDGenerator<cd::LightID> m_lightIDGenerator;
 	cd::ObjectIDGenerator<cd::AnimationID> m_animationIDGenerator;
+	cd::ObjectIDGenerator<cd::BoneID> m_boneIDGenerator;
+	cd::ObjectIDGenerator<cd::LightID> m_lightIDGenerator;
+	cd::ObjectIDGenerator<cd::MaterialID> m_materialIDGenerator;
+	cd::ObjectIDGenerator<cd::MeshID> m_meshIDGenerator;
+	cd::ObjectIDGenerator<cd::NodeID> m_nodeIDGenerator;
+	cd::ObjectIDGenerator<cd::BlendShapeID> m_blendShapeIDGenerator;
+	cd::ObjectIDGenerator<cd::MorphID> m_morphIDGenerator;
+	cd::ObjectIDGenerator<cd::SkeletonID> m_skeletonIDGenerator;
+	cd::ObjectIDGenerator<cd::SkinID> m_skinIDGenerator;
+	cd::ObjectIDGenerator<cd::TextureID> m_textureIDGenerator;
 	cd::ObjectIDGenerator<cd::TrackID> m_trackIDGenerator;
 };
 

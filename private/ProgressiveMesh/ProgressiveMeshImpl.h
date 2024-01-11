@@ -36,9 +36,9 @@ public:
 	ProgressiveMeshImpl& operator=(ProgressiveMeshImpl&&);
 	~ProgressiveMeshImpl();
 
-	void FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons);
+	void FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<cd::PolygonGroup>& polygonGroups);
 	void InitBoundary(const cd::AABB& aabb);
-	void InitBoundary(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons);
+	void InitBoundary(const std::vector<cd::Point>& vertices, const std::vector<cd::PolygonGroup>& polygonGroups);
 	std::pair<std::vector<uint32_t>, std::vector<uint32_t>> BuildCollapseOperations();
 
 	uint32_t GetVertexCount() const { return static_cast<uint32_t>(m_vertices.size()); }

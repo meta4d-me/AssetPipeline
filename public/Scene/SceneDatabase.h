@@ -6,6 +6,7 @@
 #include "Math/Box.hpp"
 #include "Math/UnitSystem.hpp"
 #include "Scene/Animation.h"
+#include "Scene/BlendShape.h"
 #include "Scene/Bone.h"
 #include "Scene/Camera.h"
 #include "Scene/Light.h"
@@ -15,6 +16,7 @@
 #include "Scene/Node.h"
 #include "Scene/ParticleEmitter.h"
 #include "Scene/Skeleton.h"
+#include "Scene/Skin.h"
 #include "Scene/Texture.h"
 #include "Scene/Track.h"
 
@@ -39,9 +41,11 @@ public:
 	~SceneDatabase();
 
 	EXPORT_SIMPLE_TYPE_APIS(SceneDatabase, Unit);
+	EXPORT_STRING_TYPE_APIS(SceneDatabase, Name);
 	EXPORT_COMPLEX_TYPE_APIS(SceneDatabase, AABB);
 	EXPORT_COMPLEX_TYPE_APIS(SceneDatabase, AxisSystem);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Animation);
+	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, BlendShape);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Bone);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Camera);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Light);
@@ -51,9 +55,9 @@ public:
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Node);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, ParticleEmitter);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Skeleton);
+	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Skin);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Texture);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Track);
-	EXPORT_STRING_TYPE_APIS(SceneDatabase, Name);
 
 	// Bone
 	Bone* GetBoneByName(const char* pName);

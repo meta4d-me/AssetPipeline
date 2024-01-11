@@ -28,6 +28,10 @@
 
 # Learning Resources
 
+[assimp](https://github.com/assimp/assimp)
+
+[OpenGEX](https://opengex.org/)
+
 [Scotty3D](https://github.com/CMU-Graphics/Scotty3D)
 
 [UHEM](https://github.com/Ubpa/UHEMesh)

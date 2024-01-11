@@ -10,6 +10,7 @@ enum class ObjectType
 	HalfEdge,
 	Face,
 	Polygon,
+	PolygonGroup,
 	Mesh,
 	Material,
 	Texture,
@@ -21,7 +22,9 @@ enum class ObjectType
 	Track,
 	Morph,
 	ParticleEmitter,
-	Skeleton
+	Skeleton,
+	Skin,
+	BlendShape
 };
 
 }

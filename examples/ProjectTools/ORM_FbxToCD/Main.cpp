@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 		consumer.SetTextureTypeAndDefaultValue(cd::MaterialTextureType::Metallic, 128);
 
 		Processor processor(&producer, &consumer, pSceneDatabase.get());
-		processor.SetDumpSceneDatabaseEnable(false);
+		processor.DisableOption(ProcessorOptions::Dump);
 		processor.Run();
 	}
 
@@ -121,7 +121,6 @@ int main(int argc, char** argv)
 	{
 		CDConsumer consumer(pOutputFilePath);
 		Processor processor(nullptr, &consumer, pSceneDatabase.get());
-		processor.SetFlattenSceneDatabaseEnable(true);
 		processor.Run();
 	}
 

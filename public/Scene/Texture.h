@@ -28,11 +28,11 @@ public:
 	EXPORT_SIMPLE_TYPE_APIS(Texture, Width);
 	EXPORT_SIMPLE_TYPE_APIS(Texture, Height);
 	EXPORT_SIMPLE_TYPE_APIS(Texture, Depth);
+	EXPORT_STRING_TYPE_APIS(Texture, Name);
+	EXPORT_STRING_TYPE_APIS(Texture, Path);
 	EXPORT_COMPLEX_TYPE_APIS(Texture, UVOffset);
 	EXPORT_COMPLEX_TYPE_APIS(Texture, UVScale);
 	EXPORT_COMPLEX_TYPE_APIS(Texture, RawData);
-	EXPORT_STRING_TYPE_APIS(Texture, Name);
-	EXPORT_STRING_TYPE_APIS(Texture, Path);
 };
 
 }

@@ -32,9 +32,11 @@ SceneDatabase::~SceneDatabase()
 }
 
 PIMPL_SIMPLE_TYPE_APIS(SceneDatabase, Unit);
+PIMPL_STRING_TYPE_APIS(SceneDatabase, Name);
 PIMPL_COMPLEX_TYPE_APIS(SceneDatabase, AABB);
 PIMPL_COMPLEX_TYPE_APIS(SceneDatabase, AxisSystem);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Animation);
+PIMPL_VECTOR_TYPE_APIS(SceneDatabase, BlendShape);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Bone);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Camera);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Light);
@@ -44,9 +46,9 @@ PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Morph);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Node);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, ParticleEmitter);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Skeleton);
+PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Skin);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Texture);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Track);
-PIMPL_STRING_TYPE_APIS(SceneDatabase, Name);
 
 ///////////////////////////////////////////////////////////////////
 // Bone

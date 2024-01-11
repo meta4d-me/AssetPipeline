@@ -29,11 +29,11 @@ public:
 	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, Width);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, Height);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Texture, Depth);
+	IMPLEMENT_STRING_TYPE_APIS(Texture, Name);
+	IMPLEMENT_STRING_TYPE_APIS(Texture, Path);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Texture, UVOffset);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Texture, UVScale);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Texture, RawData);
-	IMPLEMENT_STRING_TYPE_APIS(Texture, Name);
-	IMPLEMENT_STRING_TYPE_APIS(Texture, Path);
 
 	// Serialization
 	template<bool SwapBytesOrder>
@@ -72,6 +72,7 @@ public:
 			static_cast<uint32_t>(GetFormat()) << GetUseMipMap();
 
 		outputArchive << GetPath() << GetWidth() << GetHeight() << GetDepth();
+		outputArchive << GetRawData().size();
 		outputArchive.ExportBuffer(GetRawData().data(), GetRawData().size());
 
 		return *this;

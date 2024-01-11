@@ -22,7 +22,7 @@ class HalfEdgeMeshImpl;
 class CORE_API HalfEdgeMesh
 {
 public:
-	static HalfEdgeMesh FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons);
+	static HalfEdgeMesh FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<cd::PolygonGroup>& polygonGroups);
 	static HalfEdgeMesh FromIndexedMesh(const cd::Mesh& mesh);
 
 public:

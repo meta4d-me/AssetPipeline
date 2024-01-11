@@ -24,10 +24,10 @@ public:
 	IMPLEMENT_SIMPLE_TYPE_APIS(Camera, Fov);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Camera, NearPlane);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Camera, FarPlane);
+	IMPLEMENT_STRING_TYPE_APIS(Camera, Name);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Camera, Eye);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Camera, LookAt);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Camera, Up);
-	IMPLEMENT_STRING_TYPE_APIS(Camera, Name);
 
 	template<bool SwapBytesOrder>
 	CameraImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)

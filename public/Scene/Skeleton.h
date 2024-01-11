@@ -17,6 +17,7 @@ public:
 	EXPORT_SIMPLE_TYPE_APIS(Skeleton, ID);
 	EXPORT_SIMPLE_TYPE_APIS(Skeleton, RootBoneID);
 	EXPORT_STRING_TYPE_APIS(Skeleton, Name);
+	EXPORT_VECTOR_TYPE_APIS(Skeleton, BoneID);
 };
 
 }

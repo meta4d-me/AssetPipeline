@@ -20,10 +20,16 @@ int main(int argc, char** argv)
 	const char* pInputFilePath = argv[1];
 	const char* pOutputFilePath = argv[2];
 	FbxProducer producer(pInputFilePath);
+	producer.EnableOption(FbxProducerOptions::ImportAnimation);
+	producer.EnableOption(FbxProducerOptions::ImportBlendShape);
+	producer.EnableOption(FbxProducerOptions::ImportMaterial);
+	producer.EnableOption(FbxProducerOptions::ImportTexture);
+	producer.EnableOption(FbxProducerOptions::ImportSkeleton);
+	producer.EnableOption(FbxProducerOptions::ImportSkeletalMesh);
+	producer.EnableOption(FbxProducerOptions::ImportLight);
+	producer.EnableOption(FbxProducerOptions::Triangulate);
 	CDConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);
-	processor.SetDumpSceneDatabaseEnable(true);
-	processor.SetValidateSceneDatabaseEnable(true);
 	processor.Run();
 
 	return 0;

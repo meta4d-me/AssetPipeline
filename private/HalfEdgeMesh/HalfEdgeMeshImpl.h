@@ -20,7 +20,7 @@ public:
 	HalfEdgeMeshImpl& operator=(HalfEdgeMeshImpl&&);
 	~HalfEdgeMeshImpl();
 
-	void FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons);
+	void FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<cd::PolygonGroup>& polygonGroups);
 
 	std::list<Vertex>& GetVertices() { return m_vertices; }
 	const std::list<Vertex>& GetVertices() const { return m_vertices; }

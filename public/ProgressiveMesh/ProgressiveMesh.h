@@ -18,7 +18,7 @@ class ProgressiveMeshImpl;
 class CORE_API ProgressiveMesh
 {
 public:
-	static ProgressiveMesh FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons);
+	static ProgressiveMesh FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<cd::PolygonGroup>& polygonGroups);
 	static ProgressiveMesh FromIndexedMesh(const cd::Mesh& mesh);
 
 public:
@@ -31,7 +31,7 @@ public:
 	
 	void InitBoundary(const cd::AABB& aabb);
 	void InitBoundary(const cd::Mesh& mesh);
-	void InitBoundary(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons);
+	void InitBoundary(const std::vector<cd::Point>& vertices, const std::vector<cd::PolygonGroup>& polygonGroups);
 	std::pair<std::vector<uint32_t>, std::vector<uint32_t>> BuildCollapseOperations();
 	cd::Mesh GenerateLodMesh(float percent, const cd::Mesh* pSourceMesh = nullptr);
 	cd::Mesh GenerateLodMesh(float percent, uint32_t minFaceCount, const cd::Mesh* pSourceMesh = nullptr);

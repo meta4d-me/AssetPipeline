@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Base/Export.h"
+#include "Framework/ProcessorOptions.h"
 
 #include <memory>
 
@@ -30,29 +31,16 @@ public:
 	Processor& operator=(Processor&&) = delete;
 	~Processor();
 
-	void SetValidateSceneDatabaseEnable(bool enable);
-	bool IsValidateSceneDatabaseEnabled() const;
-
-	void SetDumpSceneDatabaseEnable(bool enable);
-	bool IsDumpSceneDatabaseEnabled() const;
-
-	void SetCalculateAABBForSceneDatabaseEnable(bool enable);
-	bool IsCalculateAABBForSceneDatabaseEnabled() const;
-
-	// Flatten objects hierarchy for SceneDatabase.
-	// Currently, we only support to flatten cd::Node and cd::Mesh for static meshes.
-	void SetFlattenSceneDatabaseEnable(bool enable);
-	bool IsFlattenSceneDatabaseEnabled() const;
-
 	void AddExtraTextureSearchFolder(const char* pFolderPath);
 	bool IsSearchMissingTexturesEnabled() const;
-
-	void SetEmbedTextureFilesEnable(bool enable);
-	bool IsEmbedTextureFilesEnabled() const;
 
 	void SetAxisSystem(cd::AxisSystem axisSystem);
 	const cd::SceneDatabase* GetSceneDatabase() const;
 	void Run();
+
+	void EnableOption(ProcessorOptions option);
+	void DisableOption(ProcessorOptions option);
+	bool IsOptionEnabled(ProcessorOptions option) const;
 
 private:
 	ProcessorImpl* m_pProcessorImpl;

@@ -35,7 +35,7 @@ HalfEdgeMeshImpl::HalfEdgeMeshImpl(HalfEdgeMeshImpl&&) = default;
 HalfEdgeMeshImpl& HalfEdgeMeshImpl::operator=(HalfEdgeMeshImpl&&) = default;
 HalfEdgeMeshImpl::~HalfEdgeMeshImpl() = default;
 
-void HalfEdgeMeshImpl::FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<std::vector<cd::VertexID>>& polygons)
+void HalfEdgeMeshImpl::FromIndexedFaces(const std::vector<cd::Point>& vertices, const std::vector<cd::PolygonGroup>& polygonGroups)
 {
 	// Init vertex data.
 	std::vector<VertexRef> verticesLookUp;
@@ -115,9 +115,12 @@ void HalfEdgeMeshImpl::FromIndexedFaces(const std::vector<cd::Point>& vertices, 
 	};
 
 	// Init non-boundary loops.
-	for (const auto& polygon : polygons)
+	for (const auto& polygonGroup : polygonGroups)
 	{
-		AddLoop(polygon, false);
+		for (const auto& polygon : polygonGroup)
+		{
+			AddLoop(polygon, false);
+		}
 	}
 
 	// Find half edges which are at a boundary. These half edges should miss twin half edge.

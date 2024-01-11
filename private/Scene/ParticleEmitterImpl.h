@@ -22,13 +22,13 @@ public:
 	IMPLEMENT_SIMPLE_TYPE_APIS(ParticleEmitter, Type);
 	IMPLEMENT_SIMPLE_TYPE_APIS(ParticleEmitter, MeshID);
 	IMPLEMENT_SIMPLE_TYPE_APIS(ParticleEmitter, MaxCount);
+	IMPLEMENT_STRING_TYPE_APIS(ParticleEmitter, Name);
 	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, Position);
 	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, Velocity);
 	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, Accelerate);
 	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, Color);
 	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, FixedRotation);
 	IMPLEMENT_COMPLEX_TYPE_APIS(ParticleEmitter, FixedScale);
-	IMPLEMENT_STRING_TYPE_APIS(ParticleEmitter, Name);
 
 	template<bool SwapBytesOrder>
 	ParticleEmitterImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
