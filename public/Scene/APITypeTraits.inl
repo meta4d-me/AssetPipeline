@@ -163,7 +163,7 @@ struct MeshTypeTraits
 	using BlendShapeID = cd::BlendShapeID;
 	using SkinID = cd::SkinID;
 	using VertexPosition = cd::Point;
-	using VertexInstanceID = cd::VertexID;
+	using VertexInstanceID = uint32_t;
 	using VertexNormal = cd::Direction;
 	using VertexTangent = cd::Direction;
 	using VertexBiTangent = cd::Direction;
@@ -241,14 +241,15 @@ struct SkinTypeTraits
 	using ID = cd::SkinID;
 	using MeshID = cd::MeshID;
 	using SkeletonID = cd::SkeletonID;
+	using MaxVertexInfluenceCount = uint32_t;
 
 	// String
 	using Name = std::string;
 
 	// Vector
-	using VertexInfluenceBoneName = std::string;
-	using VertexBoneName = std::string;
-	using VertexBoneWeight = float;
+	using InfluenceBoneName = std::string;
+	using VertexBoneNameArray = std::vector<std::string>;
+	using VertexBoneWeightArray = std::vector<float>;
 };
 
 struct TextureTypeTraits

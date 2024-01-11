@@ -17,10 +17,11 @@ public:
 	EXPORT_SIMPLE_TYPE_APIS(Skin, ID);
 	EXPORT_SIMPLE_TYPE_APIS(Skin, MeshID);
 	EXPORT_SIMPLE_TYPE_APIS(Skin, SkeletonID);
+	EXPORT_SIMPLE_TYPE_APIS(Skin, MaxVertexInfluenceCount);
 	EXPORT_STRING_TYPE_APIS(Skin, Name);
-	EXPORT_VECTOR_TYPE_APIS(Skin, VertexInfluenceBoneName);
-	EXPORT_VECTOR_TYPE_APIS(Skin, VertexBoneName);
-	EXPORT_VECTOR_TYPE_APIS(Skin, VertexBoneWeight);
+	EXPORT_VECTOR_TYPE_APIS(Skin, InfluenceBoneName);
+	EXPORT_VECTOR_TYPE_APIS(Skin, VertexBoneNameArray);
+	EXPORT_VECTOR_TYPE_APIS(Skin, VertexBoneWeightArray);
 };
 
 }

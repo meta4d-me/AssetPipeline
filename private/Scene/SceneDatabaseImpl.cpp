@@ -373,6 +373,7 @@ void SceneDatabaseImpl::Dump() const
 		for (const auto& skin : GetSkins())
 		{
 			printf("[Skin %u] Name : %s\n", skin.GetID().Data(), skin.GetName());
+			printf("\tMaxVertexInfluenceCount = %u\n", skin.GetMaxVertexInfluenceCount());
 
 			auto meshID = skin.GetMeshID();
 			if (meshID.IsValid())

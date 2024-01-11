@@ -16,32 +16,41 @@ public:
 	IMPLEMENT_SIMPLE_TYPE_APIS(Skin, ID);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Skin, MeshID);
 	IMPLEMENT_SIMPLE_TYPE_APIS(Skin, SkeletonID);
+	IMPLEMENT_SIMPLE_TYPE_APIS(Skin, MaxVertexInfluenceCount);
 	IMPLEMENT_STRING_TYPE_APIS(Skin, Name);
-	IMPLEMENT_VECTOR_TYPE_APIS(Skin, VertexInfluenceBoneName);
-	IMPLEMENT_VECTOR_TYPE_APIS(Skin, VertexBoneName);
-	IMPLEMENT_VECTOR_TYPE_APIS(Skin, VertexBoneWeight);
+	IMPLEMENT_VECTOR_TYPE_APIS(Skin, InfluenceBoneName);
+	IMPLEMENT_VECTOR_TYPE_APIS(Skin, VertexBoneNameArray);
+	IMPLEMENT_VECTOR_TYPE_APIS(Skin, VertexBoneWeightArray);
 	
 	template<bool SwapBytesOrder>
 	SkinImpl& operator<<(TInputArchive<SwapBytesOrder>& inputArchive)
 	{
 		uint32_t influenceBoneCount;
 		uint32_t influenceVertexCount;
-		inputArchive >> GetID().Data() >> GetMeshID().Data() >> GetName() >> influenceBoneCount >> influenceVertexCount;
+		inputArchive >> GetID().Data() >> GetMeshID().Data() >> GetName() >> GetMaxVertexInfluenceCount()
+			>> influenceBoneCount >> influenceVertexCount;
 		
-		SetVertexInfluenceBoneNameCount(influenceBoneCount);
+		SetInfluenceBoneNameCount(influenceBoneCount);
 		for (uint32_t influenceBoneIndex = 0U; influenceBoneIndex < influenceBoneCount; ++influenceBoneIndex)
 		{
-			inputArchive.ImportBuffer(GetVertexInfluenceBoneName(influenceBoneIndex).data());
+			inputArchive.ImportBuffer(GetInfluenceBoneName(influenceBoneIndex).data());
 		}
 
-		SetVertexBoneNameCount(influenceVertexCount);
+		SetVertexBoneNameArrayCount(influenceVertexCount);
 		for (uint32_t influenceVertexIndex = 0U; influenceVertexIndex < influenceVertexCount; ++influenceVertexIndex)
 		{
-			inputArchive.ImportBuffer(GetVertexBoneName(influenceVertexIndex).data());
+			auto& vertexBoneNameArray = GetVertexBoneNameArray(influenceVertexIndex);
+			vertexBoneNameArray.resize(GetMaxVertexInfluenceCount());
+			inputArchive.ImportBuffer(vertexBoneNameArray.data());
 		}
 
-		SetVertexBoneWeightCount(influenceVertexCount);
-		inputArchive.ImportBuffer(GetVertexBoneWeights().data());
+		SetVertexBoneWeightArrayCount(influenceVertexCount);
+		for (uint32_t influenceVertexIndex = 0U; influenceVertexIndex < influenceVertexCount; ++influenceVertexIndex)
+		{
+			auto& vertexWeightArray = GetVertexBoneWeightArray(influenceVertexIndex);
+			vertexWeightArray.resize(GetMaxVertexInfluenceCount());
+			inputArchive.ImportBuffer(vertexWeightArray.data());
+		}
 
 		return *this;
 	}
@@ -49,20 +58,25 @@ public:
 	template<bool SwapBytesOrder>
 	const SkinImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
-		outputArchive << GetID().Data() << GetMeshID().Data() << GetName()
-			<< GetVertexInfluenceBoneNameCount() << GetVertexBoneNameCount();
+		outputArchive << GetID().Data() << GetMeshID().Data() << GetName() << GetMaxVertexInfluenceCount()
+			<< GetInfluenceBoneNameCount() << GetVertexBoneNameArrayCount();
 
-		for (uint32_t influenceBoneIndex = 0U; influenceBoneIndex < GetVertexInfluenceBoneNameCount(); ++influenceBoneIndex)
+		for (uint32_t influenceBoneIndex = 0U; influenceBoneIndex < GetInfluenceBoneNameCount(); ++influenceBoneIndex)
 		{
-			outputArchive.ExportBuffer(GetVertexInfluenceBoneName(influenceBoneIndex).data(), GetVertexInfluenceBoneName(influenceBoneIndex).size());
+			outputArchive.ExportBuffer(GetInfluenceBoneName(influenceBoneIndex).data(), GetInfluenceBoneName(influenceBoneIndex).size());
 		}
 
-		for (uint32_t influenceVertexIndex = 0U; influenceVertexIndex < GetVertexBoneNameCount(); ++influenceVertexIndex)
+		for (uint32_t influenceVertexIndex = 0U; influenceVertexIndex < GetVertexBoneNameArrayCount(); ++influenceVertexIndex)
 		{
-			outputArchive.ExportBuffer(GetVertexBoneName(influenceVertexIndex).data(), GetVertexBoneName(influenceVertexIndex).size());
+			const auto& vertexBoneNameArray = GetVertexBoneNameArray(influenceVertexIndex);
+			outputArchive.ExportBuffer(vertexBoneNameArray.data(), vertexBoneNameArray.size());
 		}
 
-		outputArchive.ExportBuffer(GetVertexBoneWeights().data(), GetVertexBoneWeights().size());
+		for (uint32_t influenceVertexIndex = 0U; influenceVertexIndex < GetVertexBoneNameArrayCount(); ++influenceVertexIndex)
+		{
+			const auto& vertexWeightArray = GetVertexBoneWeightArray(influenceVertexIndex);
+			outputArchive.ExportBuffer(vertexWeightArray.data(), vertexWeightArray.size());
+		}
 
 		return *this;
 	}
