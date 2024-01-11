@@ -5,7 +5,10 @@
 namespace cd
 {
 
-std::optional<std::vector<std::byte>> BuildVertexBufferForStaticMesh(const cd::Mesh& mesh, const cd::VertexFormat& requiredVertexFormat)
+using VertexBuffer = std::vector<std::byte>;
+using IndexBuffer = std::vector<std::byte>;
+
+std::optional<VertexBuffer> BuildVertexBufferForStaticMesh(const cd::Mesh& mesh, const cd::VertexFormat& requiredVertexFormat)
 {
 	const bool containsPosition = requiredVertexFormat.Contains(cd::VertexAttributeType::Position);
 	const bool containsNormal = requiredVertexFormat.Contains(cd::VertexAttributeType::Normal);
@@ -14,7 +17,7 @@ std::optional<std::vector<std::byte>> BuildVertexBufferForStaticMesh(const cd::M
 	const bool containsUV = requiredVertexFormat.Contains(cd::VertexAttributeType::UV);
 	const bool containsColor = requiredVertexFormat.Contains(cd::VertexAttributeType::Color);
 
-	std::vector<std::byte> vertexBuffer;
+	VertexBuffer vertexBuffer;
 	const uint32_t vertexCount = mesh.GetVertexCount();
 	const uint32_t vertexFormatStride = requiredVertexFormat.GetStride();
 	vertexBuffer.resize(vertexCount * vertexFormatStride);
@@ -77,7 +80,7 @@ std::optional<std::vector<std::byte>> BuildVertexBufferForStaticMesh(const cd::M
 	return vertexBuffer;
 }
 
-std::optional<std::vector<std::byte>> BuildVertexBufferForSkeletalMesh(const cd::Mesh& mesh, const cd::VertexFormat& requiredVertexFormat, const cd::SceneDatabase* pSceneDatabase)
+std::optional<VertexBuffer> BuildVertexBufferForSkeletalMesh(const cd::Mesh& mesh, const cd::VertexFormat& requiredVertexFormat, const cd::SceneDatabase* pSceneDatabase)
 {
 	const bool containsBoneIndex = requiredVertexFormat.Contains(cd::VertexAttributeType::BoneIndex);
 	const bool containsBoneWeight = requiredVertexFormat.Contains(cd::VertexAttributeType::BoneWeight);
@@ -131,7 +134,7 @@ std::optional<std::vector<std::byte>> BuildVertexBufferForSkeletalMesh(const cd:
 	const bool containsUV = requiredVertexFormat.Contains(cd::VertexAttributeType::UV);
 	const bool containsColor = requiredVertexFormat.Contains(cd::VertexAttributeType::Color);
 
-	std::vector<std::byte> vertexBuffer;
+	VertexBuffer vertexBuffer;
 	const uint32_t vertexCount = mesh.GetVertexCount();
 	const uint32_t vertexFormatStride = requiredVertexFormat.GetStride();
 	vertexBuffer.resize(vertexCount * vertexFormatStride);
@@ -216,6 +219,65 @@ std::optional<std::vector<std::byte>> BuildVertexBufferForSkeletalMesh(const cd:
 
 	assert(vbDataSize == vertexBuffer.size());
 	return vertexBuffer;
+}
+
+std::optional<IndexBuffer> BuildIndexBufferesForPolygonGroup(const cd::Mesh& mesh, uint32_t polygonGroupIndex, bool forceIndex32 = false)
+{
+	if (polygonGroupIndex >= mesh.GetPolygonGroupCount())
+	{
+		return std::nullopt;
+	}
+
+	IndexBuffer indexBuffer;
+
+	const auto& polygonGroup = mesh.GetPolygonGroup(polygonGroupIndex);
+	uint32_t vertexCount = mesh.GetVertexCount();
+	uint32_t polygonCount = static_cast<uint32_t>(polygonGroup.size());
+	const bool useU16Index = !forceIndex32 && vertexCount <= static_cast<uint32_t>(std::numeric_limits<uint16_t>::max()) + 1U;
+	const uint32_t indexTypeSize = useU16Index ? sizeof(uint16_t) : sizeof(uint32_t);
+	const uint32_t indicesCount = polygonCount * 3U;
+	indexBuffer.resize(indicesCount * indexTypeSize);
+
+	uint32_t ibDataSize = 0U;
+	auto ibDataPtr = indexBuffer.data();
+	auto FillIndexBuffer = [&ibDataPtr, &ibDataSize](const void* pData, uint32_t dataSize)
+	{
+		std::memcpy(&ibDataPtr[ibDataSize], pData, dataSize);
+		ibDataSize += dataSize;
+	};
+
+	for (const auto& polygon : mesh.GetPolygonGroup(polygonGroupIndex))
+	{
+		if (useU16Index)
+		{
+			// cd::Mesh always uses uint32_t to store index so it is not convenient to copy servals elements at the same time.
+			for (auto vertexID : polygon)
+			{
+				uint16_t vertexIndex = static_cast<uint16_t>(vertexID.Data());
+				FillIndexBuffer(&vertexIndex, indexTypeSize);
+			}
+		}
+		else
+		{
+			FillIndexBuffer(polygon.data(), static_cast<uint32_t>(polygon.size() * indexTypeSize));
+		}
+	}
+
+
+	return indexBuffer;
+}
+
+std::vector<std::optional<IndexBuffer>> BuildIndexBufferesForMesh(const cd::Mesh& mesh, bool forceIndex32 = false)
+{
+	std::vector<std::optional<IndexBuffer>> indexBufferes;
+
+	uint32_t polygonGroupCount = mesh.GetPolygonGroupCount();
+	for (uint32_t polygonGroupIndex = 0U; polygonGroupIndex < polygonGroupCount; ++polygonGroupIndex)
+	{
+		indexBufferes.push_back(BuildIndexBufferesForPolygonGroup(mesh, polygonGroupIndex, forceIndex32));
+	}
+
+	return indexBufferes;
 }
 
 }
