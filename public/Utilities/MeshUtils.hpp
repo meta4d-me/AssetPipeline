@@ -103,7 +103,7 @@ std::optional<VertexBuffer> BuildVertexBufferForSkeletalMesh(const cd::Mesh& mes
 	{
 		return std::nullopt;
 	}
-	assert(skin.GetVertexBoneNameCount() == skin.GetVertexBoneWeightCount());
+	assert(skin.GetVertexBoneNameArrayCount() == skin.GetVertexBoneWeightArrayCount());
 
 	// TODO : refine hardcoded 4 bones.
 	uint32_t vertexMaxInfluenceCount = 4U;
