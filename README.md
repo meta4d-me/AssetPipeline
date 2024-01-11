@@ -24,7 +24,8 @@
 
 # Examples
 
-[AssetPipeline + OpenGL](https://github.com/Hinageshi01/CDSDK_Example)
+[CatDogEngine](https://github.com/CatDogEngine/CatDogEngine)
+[AssetPipeline + OpenGL](https://github.com/Hinageshi01/CDSDK_Example) - Outdated, use an old version.
 
 # Learning Resources
 
