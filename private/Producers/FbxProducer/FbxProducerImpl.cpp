@@ -1432,9 +1432,10 @@ cd::SkinID FbxProducerImpl::ParseSkin(const fbxsdk::FbxSkin* pSkin, const cd::Me
 	skin.SetID(skinID);
 	skin.SetMeshID(sourceMesh.GetID());
 	skin.SetName(pSkin->GetName());
-	skin.SetVertexBoneNameCount(meshVertexCount);
-	skin.SetVertexBoneWeightCount(meshVertexCount);
+	skin.SetVertexBoneNameArrayCount(meshVertexCount);
+	skin.SetVertexBoneWeightArrayCount(meshVertexCount);
 
+	auto& influenceBoneNames = skin.GetInfluenceBoneNames();
 	for (int32_t skinClusterIndex = 0; skinClusterIndex < pSkin->GetClusterCount(); ++skinClusterIndex)
 	{
 		const fbxsdk::FbxCluster* pSkinCluster = pSkin->GetCluster(skinClusterIndex);
@@ -1459,7 +1460,11 @@ cd::SkinID FbxProducerImpl::ParseSkin(const fbxsdk::FbxSkin* pSkin, const cd::Me
 		{
 			assert(skin.GetSkeletonID() == pBone->GetSkeletonID());
 		}
-		skin.AddVertexInfluenceBoneName(pBoneName);
+
+		auto& influenceBoneNames = skin.GetInfluenceBoneNames();
+		// Two skin clusters created by same bone?
+		assert(std::find(influenceBoneNames.begin(), influenceBoneNames.end(), pBoneName) == influenceBoneNames.end());
+		skin.AddInfluenceBoneName(pBoneName);
 
 		const int32_t controlPointIndicesCount = pSkinCluster->GetControlPointIndicesCount();
 		int* pControlPointIndices = pSkinCluster->GetControlPointIndices();
@@ -1470,12 +1475,23 @@ cd::SkinID FbxProducerImpl::ParseSkin(const fbxsdk::FbxSkin* pSkin, const cd::Me
 			assert(vertexIndex < meshVertexCount);
 			
 			auto boneWeight = static_cast<float>(pBoneWeights[controlPointIndex]);
-			skin.SetVertexBoneName(vertexIndex, pBoneName);
-			skin.SetVertexBoneWeight(vertexIndex, boneWeight);
+			skin.GetVertexBoneNameArray(vertexIndex).push_back(pBoneName);
+			skin.GetVertexBoneWeightArray(vertexIndex).push_back(boneWeight);
 		}
 	}
 
-	if (skin.GetVertexInfluenceBoneNameCount() > 0U)
+	uint32_t maxVertexInfluenceCount = 0U;
+	for (uint32_t vertexIndex = 0U; vertexIndex < meshVertexCount; ++vertexIndex)
+	{
+		uint32_t arraySize = static_cast<uint32_t>(skin.GetVertexBoneNameArray(vertexIndex).size());
+		if (arraySize > maxVertexInfluenceCount)
+		{
+			maxVertexInfluenceCount = arraySize;
+		}
+	}
+	skin.SetMaxVertexInfluenceCount(maxVertexInfluenceCount);
+
+	if (skin.GetInfluenceBoneNameCount() > 0U)
 	{
 		pSceneDatabase->AddSkin(cd::MoveTemp(skin));
 	}
