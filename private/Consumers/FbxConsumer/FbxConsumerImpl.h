@@ -1,13 +1,13 @@
 #pragma once
 
 #include "Base/Template.h"
-
-#include <string>
+#include "Base/BitFlags.h"
+#include "Consumers/FbxConsumer/FbxConsumerOptions.h"
+#include "Scene/SceneDatabase.h"
 
 namespace fbxsdk
 {
 
-class FbxExporter;
 class FbxManager;
 class FbxScene;
 
@@ -27,19 +27,27 @@ class FbxConsumerImpl final
 {
 public:
 	FbxConsumerImpl() = delete;
-	explicit FbxConsumerImpl(std::string filePath) : m_filePath(cd::MoveTemp(filePath)) {}
+	explicit FbxConsumerImpl(std::string filePath);
 	FbxConsumerImpl(const FbxConsumerImpl&) = delete;
 	FbxConsumerImpl& operator=(const FbxConsumerImpl&) = delete;
 	FbxConsumerImpl(FbxConsumerImpl&&) = delete;
 	FbxConsumerImpl& operator=(FbxConsumerImpl&&) = delete;
 	~FbxConsumerImpl();
+
 	void Execute(const cd::SceneDatabase* pSceneDatabase);
+	fbxsdk::FbxScene* CreateScene(const cd::SceneDatabase* pSceneDatabase);
+	void ExportMesh(fbxsdk::FbxScene* pScene, const cd::Mesh& mesh, const cd::SceneDatabase* pSceneDatabase);
+	bool ExportFbxFile(fbxsdk::FbxScene* pScene);
+
+	cd::BitFlags<FbxConsumerOptions>& GetOptions() { return m_options; }
+	const cd::BitFlags<FbxConsumerOptions>& GetOptions() const { return m_options; }
+	bool IsOptionEnabled(FbxConsumerOptions option) const { return m_options.IsEnabled(option); }
 
 private:
-	fbxsdk::FbxManager*		m_pSDKManager = nullptr;
-	fbxsdk::FbxScene*		m_pSDKScene = nullptr;
-	fbxsdk::FbxExporter*	m_pSDKExporter = nullptr;
+	cd::BitFlags<FbxConsumerOptions> m_options;
 	std::string m_filePath;
+
+	fbxsdk::FbxManager*		m_pSDKManager = nullptr;
 };
 
 }

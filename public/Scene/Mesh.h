@@ -25,14 +25,14 @@ public:
 	DECLARE_SCENE_CLASS(Mesh);
 
 	EXPORT_SIMPLE_TYPE_APIS(Mesh, ID);
-	EXPORT_SIMPLE_TYPE_APIS(Mesh, VertexAttributeCount);
 	EXPORT_STRING_TYPE_APIS(Mesh, Name);
 	EXPORT_COMPLEX_TYPE_APIS(Mesh, AABB);
 	EXPORT_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, MaterialID);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, BlendShapeID);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, SkinID);
-	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexInstanceID);
+	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexInstanceToID);
+	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexIDToInstance);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexPosition);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexNormal);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexTangent);
@@ -40,7 +40,7 @@ public:
 	EXPORT_VECTOR_TYPE_APIS(Mesh, PolygonGroup);
 	
 	void Init(uint32_t vertexCount);
-	void Init(uint32_t vertexPositionCount, uint32_t vertexAttributeCount);
+	void Init(uint32_t vertexCount, uint32_t vertexInstanceCount);
 
 	uint32_t GetVertexCount() const;
 	uint32_t GetPolygonCount() const;
