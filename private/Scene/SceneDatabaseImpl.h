@@ -51,6 +51,7 @@ public:
 	IMPLEMENT_VECTOR_TYPE_APIS_WITH_PLURAL(SceneDatabase, Mesh, es);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Morph);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Node);
+	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, RootNodeID);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, ParticleEmitter);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Skeleton);
 	IMPLEMENT_VECTOR_TYPE_APIS(SceneDatabase, Skin);
@@ -93,6 +94,7 @@ public:
 		inputArchive >> unit;
 		SetUnit(static_cast<Unit>(unit));
 
+		uint32_t rootNodeIDCount;
 		uint32_t nodeCount;
 		uint32_t meshCount;
 		uint32_t blendShapeCount;
@@ -108,13 +110,15 @@ public:
 		uint32_t trackCount;
 		uint32_t particleEmitterCount;
 
-		inputArchive >> nodeCount >> meshCount >> blendShapeCount >> morphCount
+		inputArchive >> rootNodeIDCount >> nodeCount
+			>> meshCount >> blendShapeCount >> morphCount
 			>> materialCount >> textureCount
 			>> cameraCount >> lightCount
 			>> skinCount >> skeletonCount >> boneCount
 			>> animationCount >> trackCount
 			>> particleEmitterCount;
 
+		SetRootNodeIDCapacity(rootNodeIDCount);
 		SetNodeCapacity(nodeCount);
 		SetMeshCapacity(meshCount);
 		SetBlendShapeCapacity(blendShapeCount);
@@ -129,6 +133,8 @@ public:
 		SetTrackCapacity(trackCount);
 		SetParticleEmitterCapacity(particleEmitterCount);
 
+		inputArchive.ImportBuffer(GetRootNodeIDs().data());
+		
 		for (uint32_t nodeIndex = 0U; nodeIndex < nodeCount; ++nodeIndex)
 		{
 			AddNode(Node(inputArchive));
@@ -206,95 +212,84 @@ public:
 	const SceneDatabaseImpl& operator>>(TOutputArchive<SwapBytesOrder>& outputArchive) const
 	{
 		outputArchive << GetName() << GetAABB() << GetAxisSystem() << static_cast<uint8_t>(GetUnit())
-			<< GetNodeCount() << GetMeshCount() << GetBlendShapeCount() << GetMorphCount()
+			<< GetRootNodeIDCount() << GetNodeCount()
+			<< GetMeshCount() << GetBlendShapeCount() << GetMorphCount()
 			<< GetMaterialCount() << GetTextureCount()
 			<< GetCameraCount() << GetLightCount()
 			<< GetSkinCount() << GetSkeletonCount() << GetBoneCount()
 			<< GetAnimationCount() << GetTrackCount()
 			<< GetParticleEmitterCount();
 
-		for (uint32_t nodeIndex = 0U; nodeIndex < GetNodeCount(); ++nodeIndex)
+		outputArchive.ExportBuffer(GetRootNodeIDs().data(), GetRootNodeIDs().size());
+
+		for (const auto& node : GetNodes())
 		{
-			const Node& node = GetNode(nodeIndex);
 			node >> outputArchive;
 		}
 
-		for (uint32_t meshIndex = 0U; meshIndex < GetMeshCount(); ++meshIndex)
+		for (const auto& mesh : GetMeshes())
 		{
-			const Mesh& mesh = GetMesh(meshIndex);
 			mesh >> outputArchive;
 		}
 
-		for (uint32_t blendShapeIndex = 0U; blendShapeIndex < GetBlendShapeCount(); ++blendShapeIndex)
+		for (const auto& blendShape : GetBlendShapes())
 		{
-			const BlendShape& blendShape = GetBlendShape(blendShapeIndex);
 			blendShape >> outputArchive;
 		}
 
-		for (uint32_t morphIndex = 0U; morphIndex < GetMorphCount(); ++morphIndex)
+		for (const auto& morph : GetMorphs())
 		{
-			const Morph& morph = GetMorph(morphIndex);
 			morph >> outputArchive;
 		}
 
-		for (uint32_t materialIndex = 0U; materialIndex < GetMaterialCount(); ++materialIndex)
+		for (const auto& material : GetMaterials())
 		{
-			const Material& material = GetMaterial(materialIndex);
 			material >> outputArchive;
 		}
 
-		for (uint32_t textureIndex = 0U; textureIndex < GetTextureCount(); ++textureIndex)
+		for (const auto& texture : GetTextures())
 		{
-			const Texture& texture = GetTexture(textureIndex);
 			texture >> outputArchive;
 		}
 
-		for (uint32_t cameraIndex = 0U; cameraIndex < GetCameraCount(); ++cameraIndex)
+		for (const auto& camera : GetCameras())
 		{
-			const Camera& camera = GetCamera(cameraIndex);
 			camera >> outputArchive;
 		}
 
-		for (uint32_t ligthIndex = 0U; ligthIndex < GetLightCount(); ++ligthIndex)
+		for (const auto& light : GetLights())
 		{
-			const Light& light = GetLight(ligthIndex);
 			light >> outputArchive;
 		}
 
-		for (uint32_t skinIndex = 0U; skinIndex < GetSkinCount(); ++skinIndex)
+		for (const auto& skin : GetSkins())
 		{
-			const Skin& skin = GetSkin(skinIndex);
 			skin >> outputArchive;
 		}
 
-		for (uint32_t skeletonIndex = 0U; skeletonIndex < GetSkeletonCount(); ++skeletonIndex)
+		for (const auto& skeleton : GetSkeletons())
 		{
-			const Skeleton& skeleton = GetSkeleton(skeletonIndex);
 			skeleton >> outputArchive;
 		}
 
-		for (uint32_t boneIndex = 0U; boneIndex < GetBoneCount(); ++boneIndex)
+		for (const auto& bone : GetBones())
 		{
-			const Bone& bone = GetBone(boneIndex);
 			bone >> outputArchive;
 		}
 
-		for (uint32_t animationIndex = 0U; animationIndex < GetAnimationCount(); ++animationIndex)
+		for (const auto& animation : GetAnimations())
 		{
-			const Animation& animation = GetAnimation(animationIndex);
 			animation >> outputArchive;
 		}
 
-		for (uint32_t trackIndex = 0U; trackIndex < GetTrackCount(); ++trackIndex)
+		for (const auto& track : GetTracks())
 		{
-			const Track& track = GetTrack(trackIndex);
 			track >> outputArchive;
 		}
 
-		for (uint32_t particleIndex = 0U; particleIndex < GetParticleEmitterCount(); ++particleIndex)
+		for (const auto& particleEmitter : GetParticleEmitters())
 		{
-			const ParticleEmitter& particle = GetParticleEmitter(particleIndex);
-			particle >> outputArchive;
+			particleEmitter >> outputArchive;
 		}
 
 		return *this;

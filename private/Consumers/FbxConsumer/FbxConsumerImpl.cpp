@@ -42,7 +42,7 @@ FbxConsumerImpl::~FbxConsumerImpl()
 
 void FbxConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
 {
-	// Init settings
+	// Init settings.
 	m_pSDKManager = fbxsdk::FbxManager::Create();
 	auto* pIOSettings = fbxsdk::FbxIOSettings::Create(m_pSDKManager, IOSROOT);
 	m_pSDKManager->SetIOSettings(pIOSettings);
@@ -51,19 +51,12 @@ void FbxConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
 	assert(pScene);
 
 	// Create a root fbx node.
-	auto* pRootNode = fbxsdk::FbxNode::Create(pScene, "Root");
-	pRootNode->SetShadingMode(fbxsdk::FbxNode::EShadingMode::eTextureShading);
-
-	fbxsdk::FbxVector4 translation(0.0, 0.0, 0.0, 0.0);
-	fbxsdk::FbxVector4 rotation(0.0, 0.0, 0.0, 0.0);
-	fbxsdk::FbxVector4 scale(1.0, 1.0, 1.0, 1.0);
-	pRootNode->LclTranslation.Set(translation);
-	pRootNode->LclRotation.Set(rotation);
-	pRootNode->LclScaling.Set(scale);
-
+	fbxsdk::FbxNode* pRootNode = ExportNode(pScene, "Root", cd::Transform::Identity(), pSceneDatabase);
 	pScene->GetRootNode()->AddChild(pRootNode);
 
-	// Build fbx scene by converting SceneDatabase
+	ExportNodeRecursively(pScene, pRootNode, 0U, pSceneDatabase);
+
+	// Build fbx scene by converting SceneDatabase.
 	for (const auto& mesh : pSceneDatabase->GetMeshes())
 	{
 		ExportMesh(pScene, pRootNode, mesh, pSceneDatabase);
@@ -250,6 +243,41 @@ void FbxConsumerImpl::ExportMesh(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNod
 			pFbxMesh->EndPolygon();
 		}
 	}
+}
+
+fbxsdk::FbxNode* FbxConsumerImpl::ExportNodeRecursively(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pParentNode, cd::NodeID nodeID, const cd::SceneDatabase* pSceneDatabase)
+{
+	if (!nodeID.IsValid() || nodeID.Data() >= pSceneDatabase->GetNodeCount())
+	{
+		return nullptr;
+	}
+
+	const auto& node = pSceneDatabase->GetNode(nodeID.Data());
+	fbxsdk::FbxNode* pNode = ExportNode(pScene, node.GetName(), node.GetTransform(), pSceneDatabase);
+	if (pParentNode)
+	{
+		pParentNode->AddChild(pNode);
+	}
+
+	for (cd::NodeID childID : node.GetChildIDs())
+	{
+		ExportNodeRecursively(pScene, pNode, childID, pSceneDatabase);
+	}
+}
+
+fbxsdk::FbxNode* FbxConsumerImpl::ExportNode(fbxsdk::FbxScene* pScene, const char* pName, const cd::Transform& transform, const cd::SceneDatabase* pSceneDatabase)
+{
+	auto* pNode = fbxsdk::FbxNode::Create(pScene, pName);
+	pNode->SetShadingMode(fbxsdk::FbxNode::EShadingMode::eTextureShading);
+
+	fbxsdk::FbxVector4 translation(0.0, 0.0, 0.0, 0.0);
+	fbxsdk::FbxVector4 rotation(0.0, 0.0, 0.0, 0.0);
+	fbxsdk::FbxVector4 scale(1.0, 1.0, 1.0, 1.0);
+	pNode->LclTranslation.Set(translation);
+	pNode->LclRotation.Set(rotation);
+	pNode->LclScaling.Set(scale);
+
+	return pNode;
 }
 
 bool FbxConsumerImpl::ExportFbxFile(fbxsdk::FbxScene* pScene)

@@ -44,6 +44,7 @@ PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Material);
 PIMPL_VECTOR_TYPE_APIS_WITH_PLURAL(SceneDatabase, Mesh, es);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Morph);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Node);
+PIMPL_VECTOR_TYPE_APIS(SceneDatabase, RootNodeID);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, ParticleEmitter);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Skeleton);
 PIMPL_VECTOR_TYPE_APIS(SceneDatabase, Skin);

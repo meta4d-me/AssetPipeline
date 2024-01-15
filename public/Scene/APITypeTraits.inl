@@ -41,6 +41,7 @@ struct SceneDatabaseTypeTraits
 	using Morph = cd::Morph;
 	using Node = cd::Node;
 	using ParticleEmitter = cd::ParticleEmitter;
+	using RootNodeID = cd::NodeID;
 	using Skin = cd::Skin;
 	using Skeleton = cd::Skeleton;
 	using Texture = cd::Texture;

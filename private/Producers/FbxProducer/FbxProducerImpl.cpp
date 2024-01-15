@@ -574,6 +574,11 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 			{
 				pSceneDatabase->GetNode(node.GetParentID().Data()).AddChildID(node.GetID());
 			}
+			else
+			{
+				// Root.
+				pSceneDatabase->AddRootNodeID(node.GetID());
+			}
 		}
 	}
 

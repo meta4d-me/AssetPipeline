@@ -116,7 +116,9 @@ void GenericProducerImpl::AddScene(cd::SceneDatabase* pSceneDatabase, const aiSc
 	{
 		// Add nodes and associated meshes to SceneDatabase.
 		// For assimp, bones are also treated as nodes.
-		AddNodeRecursively(pSceneDatabase, pSourceScene, pSourceScene->mRootNode, m_nodeIDGenerator.AllocateID().Data());
+		cd::NodeID rootNodeID = m_nodeIDGenerator.AllocateID();
+		AddNodeRecursively(pSceneDatabase, pSourceScene, pSourceScene->mRootNode, rootNodeID.Data());
+		pSceneDatabase->AddRootNodeID(rootNodeID);
 	}
 
 	// Prepare to add materials.
