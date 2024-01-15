@@ -160,7 +160,6 @@ cd::Mesh EffekseerProducerImpl::GenerateParticleMesh(cd::ParticleEmitterType pTy
 		cd::Mesh particleMesh;
 		particleMesh.SetID(particleMeshID);
 		particleMesh.SetName(particleMeshName.c_str());
-		particleMesh.SetVertexAttributeCount(particleCount * 4);
 		particleMesh.SetVertexPositionCount(particleCount * 4);
 		particleMesh.SetVertexColorSetCount(1);
 		particleMesh.SetVertexUVSetCount(1);
