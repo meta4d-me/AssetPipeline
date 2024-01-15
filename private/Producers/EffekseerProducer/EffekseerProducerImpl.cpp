@@ -157,12 +157,18 @@ cd::Mesh EffekseerProducerImpl::GenerateParticleMesh(cd::ParticleEmitterType pTy
 	const cd::MeshID particleMeshID = m_particleMeshID.AllocateID(meshHash);
 	if (nameof::nameof_enum(pType) == "Sprite")
 	{
-		//TODO: vertexCount   polygonCount
-		cd::Mesh particleMesh(particleMeshID, particleMeshName.c_str(), particleCount*4, particleCount*2);
-		particleMesh.SetVertexUVSetCount(1);
+		cd::Mesh particleMesh;
+		particleMesh.SetID(particleMeshID);
+		particleMesh.SetName(particleMeshName.c_str());
+		particleMesh.SetVertexAttributeCount(particleCount * 4);
+		particleMesh.SetVertexPositionCount(particleCount * 4);
 		particleMesh.SetVertexColorSetCount(1);
+		particleMesh.SetVertexUVSetCount(1);
+		particleMesh.SetPolygonGroupCount(1);
+		particleMesh.SetMaterialIDCount(1);
+		particleMesh.SetMaterialID(0, cd::MaterialID::Invalid().InvalidID);
 
-		uint32_t currentPolygonId = 0;
+		cd::MeshTypeTraits::PolygonGroup group;
 		for (int i = 0; i < particleCount; ++i)
 		{
 			const cd::Point bottomLeftPoint(-1.0f,-1.0f,0.0f);
@@ -189,9 +195,10 @@ cd::Mesh EffekseerProducerImpl::GenerateParticleMesh(cd::ParticleEmitterType pTy
 			particleMesh.SetVertexUV(0, topRightPointId, cd::UV(0.0f, 0.0f));
 			particleMesh.SetVertexUV(0, topLeftPointId, cd::UV(1.0f, 0.0f));
 			// The two triangle indices
-			particleMesh.SetPolygon(currentPolygonId++, { bottomLeftPointId, bottomRightPointId, topRightPointId });
-			particleMesh.SetPolygon(currentPolygonId++, { bottomLeftPointId, topRightPointId, topLeftPointId });
+			group.push_back({bottomLeftPointId, bottomRightPointId, topRightPointId });
+			group.push_back({ bottomLeftPointId, topRightPointId, topLeftPointId });
 		}
+		particleMesh.SetPolygonGroup(0, group);
 		// Set vertex attribute
 		cd::VertexFormat particleVertexFormat;
 		particleVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
