@@ -47,6 +47,7 @@ public:
 	void ShrinkToFit();
 
 	uint32_t GetVertexCount() const { return GetVertexPositionCount(); }
+	uint32_t GetVertexAttributeCount() const;
 	uint32_t GetPolygonCount() const;
 
 	void UpdateAABB();

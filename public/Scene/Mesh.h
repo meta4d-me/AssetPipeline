@@ -43,6 +43,7 @@ public:
 	void Init(uint32_t vertexCount, uint32_t vertexInstanceCount);
 
 	uint32_t GetVertexCount() const;
+	uint32_t GetVertexAttributeCount() const;
 	uint32_t GetPolygonCount() const;
 
 	void UpdateAABB();

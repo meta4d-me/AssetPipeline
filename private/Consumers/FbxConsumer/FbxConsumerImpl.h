@@ -8,8 +8,11 @@
 namespace fbxsdk
 {
 
+class FbxFileTexture;
 class FbxManager;
+class FbxNode;
 class FbxScene;
+class FbxSurfaceMaterial;
 
 }
 
@@ -36,7 +39,9 @@ public:
 
 	void Execute(const cd::SceneDatabase* pSceneDatabase);
 	fbxsdk::FbxScene* CreateScene(const cd::SceneDatabase* pSceneDatabase);
-	void ExportMesh(fbxsdk::FbxScene* pScene, const cd::Mesh& mesh, const cd::SceneDatabase* pSceneDatabase);
+	fbxsdk::FbxFileTexture* ExportTexture(fbxsdk::FbxScene* pScene, cd::TextureID textureID, const cd::SceneDatabase* pSceneDatabase);
+	fbxsdk::FbxSurfaceMaterial* ExportMaterial(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNode, cd::MaterialID materialID, const cd::SceneDatabase* pSceneDatabase);
+	void ExportMesh(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNode, const cd::Mesh& mesh, const cd::SceneDatabase* pSceneDatabase);
 	bool ExportFbxFile(fbxsdk::FbxScene* pScene);
 
 	cd::BitFlags<FbxConsumerOptions>& GetOptions() { return m_options; }

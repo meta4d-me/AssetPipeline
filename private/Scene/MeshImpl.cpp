@@ -206,20 +206,30 @@ void MeshImpl::ShrinkToFit()
 	GetVertexNormals().shrink_to_fit();
 	GetVertexTangents().shrink_to_fit();
 	GetVertexBiTangents().shrink_to_fit();
-	for (uint32_t setIndex = 0U; setIndex < GetVertexUVSetCount(); ++setIndex)
+	for (uint32_t setIndex = 0U, setCount = GetVertexUVSetCount(); setIndex < setCount; ++setIndex)
 	{
 		m_vertexUVSets[setIndex].shrink_to_fit();
 	}
-	for (uint32_t setIndex = 0U; setIndex < GetVertexColorSetCount(); ++setIndex)
+	for (uint32_t setIndex = 0U, setCount = GetVertexColorSetCount(); setIndex < setCount; ++setIndex)
 	{
 		m_vertexColorSets[setIndex].shrink_to_fit();
 	}
 
 	GetPolygonGroups().shrink_to_fit();
-	for (uint32_t polygonGroupIndex = 0U; polygonGroupIndex < GetPolygonGroupCount(); ++polygonGroupIndex)
+	for (auto& polygonGroup : GetPolygonGroups())
 	{
-		GetPolygonGroup(polygonGroupIndex).shrink_to_fit();
+		polygonGroup.shrink_to_fit();
+		for (auto& polygon : polygonGroup)
+		{
+			polygon.shrink_to_fit();
+		}
 	}
+}
+
+uint32_t MeshImpl::GetVertexAttributeCount() const
+{
+	uint32_t vertexAttributeCount = GetVertexInstanceToIDCount();
+	return vertexAttributeCount > 0U ? vertexAttributeCount : GetVertexPositionCount();
 }
 
 uint32_t MeshImpl::GetPolygonCount() const
@@ -357,7 +367,7 @@ void MeshImpl::SetVertexUVSetCount(uint32_t setCount)
 	m_vertexUVSetCount = setCount;
 	for(uint32_t setIndex = 0U; setIndex < m_vertexUVSetCount; ++setIndex)
 	{
-		m_vertexUVSets[setIndex].resize(GetVertexInstanceToIDCount());
+		m_vertexUVSets[setIndex].resize(GetVertexAttributeCount());
 	}
 }
 
@@ -371,7 +381,7 @@ void MeshImpl::SetVertexColorSetCount(uint32_t setCount)
 	m_vertexColorSetCount = setCount;
 	for (uint32_t setIndex = 0U; setIndex < m_vertexColorSetCount; ++setIndex)
 	{
-		m_vertexColorSets[setIndex].resize(GetVertexInstanceToIDCount());
+		m_vertexColorSets[setIndex].resize(GetVertexAttributeCount());
 	}
 }
 

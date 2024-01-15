@@ -46,6 +46,11 @@ uint32_t Mesh::GetVertexCount() const
 	return m_pMeshImpl->GetVertexCount();
 }
 
+uint32_t Mesh::GetVertexAttributeCount() const
+{
+	return m_pMeshImpl->GetVertexAttributeCount();
+}
+
 uint32_t Mesh::GetPolygonCount() const
 {
 	return m_pMeshImpl->GetPolygonCount();
