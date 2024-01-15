@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Consumers/FbxConsumer/FbxConsumerOptions.h"
 #include "Framework/IConsumer.h"
 
 namespace cd
@@ -25,6 +26,10 @@ public:
 	FbxConsumer& operator=(FbxConsumer&&) = delete;
 	virtual ~FbxConsumer();
 	virtual void Execute(const cd::SceneDatabase* pSceneDatabase) override;
+
+	void EnableOption(FbxConsumerOptions option);
+	void DisableOption(FbxConsumerOptions option);
+	bool IsOptionEnabled(FbxConsumerOptions option) const;
 
 private:
 	FbxConsumerImpl* m_pFbxConsumerImpl;

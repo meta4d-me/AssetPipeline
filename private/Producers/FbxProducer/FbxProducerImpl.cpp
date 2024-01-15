@@ -1064,10 +1064,11 @@ cd::MeshID FbxProducerImpl::ParseMesh(const fbxsdk::FbxMesh* pFbxMesh, cd::Scene
 		for (uint32_t polygonVertexIndex = 0U; polygonVertexIndex < polygonVertexCount; ++polygonVertexIndex)
 		{
 			uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
-			polygon.push_back(controlPointIndex);
-
 			uint32_t vertexInstanceID = polygonVertexBeginIndex + polygonVertexIndex;
-			mesh.SetVertexInstanceID(controlPointIndex, vertexInstanceID);
+			mesh.SetVertexIDToInstance(controlPointIndex, vertexInstanceID);
+			mesh.SetVertexInstanceToID(vertexInstanceID, controlPointIndex);
+
+			polygon.push_back(vertexInstanceID);
 		}
 
 		// Add polygon to according group split by material.

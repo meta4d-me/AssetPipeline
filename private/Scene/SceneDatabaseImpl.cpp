@@ -197,13 +197,15 @@ void SceneDatabaseImpl::Dump() const
 		for (const auto& mesh : GetMeshes())
 		{
 			printf("[Mesh %u] Name = %s, VertexCount = %u\n", mesh.GetID().Data(), mesh.GetName(), mesh.GetVertexCount());
+			printf("\tPolygonCount = %u, VertexInstanceCount = %u\n", mesh.GetPolygonCount(), mesh.GetVertexInstanceToIDCount());
 			const auto& polygonGroups = mesh.GetPolygonGroups();
 			for (uint32_t polygonGroupIndex = 0U; polygonGroupIndex < polygonGroups.size(); ++polygonGroupIndex)
 			{
 				auto& polygonGroup = polygonGroups[polygonGroupIndex];
-				auto materialID = mesh.GetMaterialID(polygonGroupIndex);
 				printf("\t[PolygonGroup %u] PolygonCount = %u\n", polygonGroupIndex, static_cast<uint32_t>(polygonGroup.size()));
-				printf("\t\t[Associated Material %u] Name = %s\n", materialID.Data(), GetMaterial(materialID.Data()).GetName());
+
+				auto materialID = mesh.GetMaterialID(polygonGroupIndex);
+				printf("\t\t[Associated Material %u] Name = %s\n", materialID.Data(), materialID.IsValid() ? GetMaterial(materialID.Data()).GetName() : "");
 				if (materialID.IsValid())
 				{
 					materialDrawMeshPolygonGroupIDs[materialID][mesh.GetID()].push_back(polygonGroupIndex);

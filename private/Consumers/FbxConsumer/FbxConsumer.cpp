@@ -23,4 +23,19 @@ void FbxConsumer::Execute(const cd::SceneDatabase* pSceneDatabase)
 	m_pFbxConsumerImpl->Execute(pSceneDatabase);
 }
 
+void FbxConsumer::EnableOption(FbxConsumerOptions option)
+{
+	m_pFbxConsumerImpl->GetOptions().Enable(option);
+}
+
+void FbxConsumer::DisableOption(FbxConsumerOptions option)
+{
+	m_pFbxConsumerImpl->GetOptions().Disable(option);
+}
+
+bool FbxConsumer::IsOptionEnabled(FbxConsumerOptions option) const
+{
+	return m_pFbxConsumerImpl->GetOptions().IsEnabled(option);
+}
+
 }

@@ -158,59 +158,78 @@ void MeshImpl::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrateg
 void MeshImpl::Init(uint32_t vertexCount)
 {
 	SetVertexPositionCount(vertexCount);
-	SetVertexInstanceIDCount(0U);
+	SetVertexIDToInstanceCount(0U);
+	SetVertexInstanceToIDCount(0U);
 
 	InitVertexAttributes(vertexCount);
 }
 
-void MeshImpl::Init(uint32_t vertexPositionCount, uint32_t vertexAttributeCount)
+void MeshImpl::Init(uint32_t vertexCount, uint32_t vertexInstanceCount)
 {
-	SetVertexPositionCount(vertexPositionCount);
-	SetVertexInstanceIDCount(vertexPositionCount);
+	if (0U == vertexInstanceCount)
+	{
+		Init(vertexCount);
+	}
+	else
+	{
+		SetVertexPositionCount(vertexCount);
+		SetVertexIDToInstanceCount(vertexCount);
+		SetVertexInstanceToIDCount(vertexInstanceCount);
 
-	InitVertexAttributes(vertexAttributeCount);
+		InitVertexAttributes(vertexInstanceCount);
+	}
 }
 
-void MeshImpl::InitVertexAttributes(uint32_t vertexAttributeCount)
+void MeshImpl::InitVertexAttributes(uint32_t vertexInstanceCount)
 {
-	SetVertexAttributeCount(vertexAttributeCount);
-	SetVertexNormalCount(GetVertexAttributeCount());
-	SetVertexTangentCount(GetVertexAttributeCount());
-	SetVertexBiTangentCount(GetVertexAttributeCount());
+	SetVertexNormalCount(vertexInstanceCount);
+	SetVertexTangentCount(vertexInstanceCount);
+	SetVertexBiTangentCount(vertexInstanceCount);
 
 	for (uint32_t setIndex = 0U; setIndex < GetVertexUVSetCount(); ++setIndex)
 	{
-		m_vertexUVSets[setIndex].resize(GetVertexAttributeCount());
+		m_vertexUVSets[setIndex].resize(vertexInstanceCount);
 	}
 
 	for (uint32_t setIndex = 0U; setIndex < m_vertexColorSetCount; ++setIndex)
 	{
-		m_vertexColorSets[setIndex].resize(GetVertexAttributeCount());
+		m_vertexColorSets[setIndex].resize(vertexInstanceCount);
 	}
 }
 
 void MeshImpl::ShrinkToFit()
 {
 	GetVertexPositions().shrink_to_fit();
-	GetVertexInstanceIDs().shrink_to_fit();
+	GetVertexInstanceToIDs().shrink_to_fit();
+	GetVertexIDToInstances().shrink_to_fit();
 
 	GetVertexNormals().shrink_to_fit();
 	GetVertexTangents().shrink_to_fit();
 	GetVertexBiTangents().shrink_to_fit();
-	for (uint32_t setIndex = 0U; setIndex < GetVertexUVSetCount(); ++setIndex)
+	for (uint32_t setIndex = 0U, setCount = GetVertexUVSetCount(); setIndex < setCount; ++setIndex)
 	{
 		m_vertexUVSets[setIndex].shrink_to_fit();
 	}
-	for (uint32_t setIndex = 0U; setIndex < GetVertexColorSetCount(); ++setIndex)
+	for (uint32_t setIndex = 0U, setCount = GetVertexColorSetCount(); setIndex < setCount; ++setIndex)
 	{
 		m_vertexColorSets[setIndex].shrink_to_fit();
 	}
 
 	GetPolygonGroups().shrink_to_fit();
-	for (uint32_t polygonGroupIndex = 0U; polygonGroupIndex < GetPolygonGroupCount(); ++polygonGroupIndex)
+	for (auto& polygonGroup : GetPolygonGroups())
 	{
-		GetPolygonGroup(polygonGroupIndex).shrink_to_fit();
+		polygonGroup.shrink_to_fit();
+		for (auto& polygon : polygonGroup)
+		{
+			polygon.shrink_to_fit();
+		}
 	}
+}
+
+uint32_t MeshImpl::GetVertexAttributeCount() const
+{
+	uint32_t vertexAttributeCount = GetVertexInstanceToIDCount();
+	return vertexAttributeCount > 0U ? vertexAttributeCount : GetVertexPositionCount();
 }
 
 uint32_t MeshImpl::GetPolygonCount() const

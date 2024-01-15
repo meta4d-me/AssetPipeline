@@ -30,7 +30,7 @@ std::optional<VertexBuffer> BuildVertexBufferForStaticMesh(const cd::Mesh& mesh,
 		vbDataSize += dataSize;
 	};
 
-	bool mappingSurfaceAttributes = mesh.GetVertexInstanceIDCount() > 0U;
+	bool mappingSurfaceAttributes = mesh.GetVertexIDToInstanceCount() > 0U;
 	for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex)
 	{
 		if (containsPosition)
@@ -42,7 +42,7 @@ std::optional<VertexBuffer> BuildVertexBufferForStaticMesh(const cd::Mesh& mesh,
 		uint32_t vertexInstanceID = vertexIndex;
 		if (mappingSurfaceAttributes)
 		{
-			vertexInstanceID = mesh.GetVertexInstanceID(vertexIndex);
+			vertexInstanceID = mesh.GetVertexIDToInstance(vertexIndex);
 		}
 
 		if (containsNormal)
@@ -147,7 +147,7 @@ std::optional<VertexBuffer> BuildVertexBufferForSkeletalMesh(const cd::Mesh& mes
 		vbDataSize += dataSize;
 	};
 
-	bool mappingSurfaceAttributes = mesh.GetVertexInstanceIDCount() > 0U;
+	bool mappingSurfaceAttributes = mesh.GetVertexIDToInstanceCount() > 0U;
 	for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex)
 	{
 		if (containsPosition)
@@ -159,7 +159,7 @@ std::optional<VertexBuffer> BuildVertexBufferForSkeletalMesh(const cd::Mesh& mes
 		uint32_t vertexInstanceID = vertexIndex;
 		if (mappingSurfaceAttributes)
 		{
-			vertexInstanceID = mesh.GetVertexInstanceID(vertexIndex);
+			vertexInstanceID = mesh.GetVertexIDToInstance(vertexIndex);
 		}
 
 		if (containsNormal)
@@ -246,23 +246,33 @@ std::optional<IndexBuffer> BuildIndexBufferesForPolygonGroup(const cd::Mesh& mes
 		ibDataSize += dataSize;
 	};
 
+	bool mappingInstanceToID = mesh.GetVertexInstanceToIDCount() > 0U;
 	for (const auto& polygon : mesh.GetPolygonGroup(polygonGroupIndex))
 	{
-		if (useU16Index)
+		for (auto instanceID : polygon)
 		{
-			// cd::Mesh always uses uint32_t to store index so it is not convenient to copy servals elements at the same time.
-			for (auto vertexID : polygon)
+			uint32_t vertexIndex;
+			if (mappingInstanceToID)
 			{
-				uint16_t vertexIndex = static_cast<uint16_t>(vertexID.Data());
+				vertexIndex = mesh.GetVertexInstanceToID(instanceID.Data());
+			}
+			else
+			{
+				vertexIndex = instanceID.Data();
+			}
+
+			if (useU16Index)
+			{
+				// Endian safe. Can optimize for little endian to avoid cast.
+				uint16_t vertexIndex16 = static_cast<uint16_t>(vertexIndex);
+				FillIndexBuffer(&vertexIndex16, indexTypeSize);
+			}
+			else
+			{
 				FillIndexBuffer(&vertexIndex, indexTypeSize);
 			}
 		}
-		else
-		{
-			FillIndexBuffer(polygon.data(), static_cast<uint32_t>(polygon.size() * indexTypeSize));
-		}
 	}
-
 
 	return indexBuffer;
 }
