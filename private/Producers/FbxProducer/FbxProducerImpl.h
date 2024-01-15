@@ -2,9 +2,7 @@
 
 #include "Base/Template.h"
 #include "Base/BitFlags.h"
-#include "Math/Transform.hpp"
 #include "Producers/FbxProducer/FbxProducerOptions.h"
-#include "Scene/MaterialTextureType.h"
 #include "Scene/ObjectIDGenerator.h"
 
 #include <cstdint>
@@ -103,9 +101,9 @@ private:
 	void ParseAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase);
 
 private:
-	std::string m_filePath;
 	cd::BitFlags<FbxProducerOptions> m_options;
-
+	std::string m_filePath;
+	
 	fbxsdk::FbxManager* m_pSDKManager = nullptr;
 	std::unique_ptr<fbxsdk::FbxGeometryConverter> m_pSDKGeometryConverter;
 

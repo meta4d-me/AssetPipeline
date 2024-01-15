@@ -149,7 +149,6 @@ struct MeshTypeTraits
 {
 	// Simple
 	using ID = cd::MeshID;
-	using VertexAttributeCount = uint32_t;
 
 	// String
 	using Name = std::string;
@@ -162,8 +161,9 @@ struct MeshTypeTraits
 	using MaterialID = cd::MaterialID;
 	using BlendShapeID = cd::BlendShapeID;
 	using SkinID = cd::SkinID;
+	using VertexInstanceToID = uint32_t;
+	using VertexIDToInstance = uint32_t;
 	using VertexPosition = cd::Point;
-	using VertexInstanceID = uint32_t;
 	using VertexNormal = cd::Direction;
 	using VertexTangent = cd::Direction;
 	using VertexBiTangent = cd::Direction;
