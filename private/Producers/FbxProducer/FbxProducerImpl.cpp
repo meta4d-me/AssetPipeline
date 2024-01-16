@@ -30,7 +30,7 @@ cd::Transform ConvertFbxNodeTransform(fbxsdk::FbxNode* pNode)
 	fbxsdk::FbxDouble3 scaling = pNode->LclScaling.EvaluateValue(FBXSDK_TIME_ZERO);
 	return cd::Transform(
 		cd::Vec3f(static_cast<float>(translation[0]), static_cast<float>(translation[1]), static_cast<float>(translation[2])),
-		cd::Quaternion::FromPitchYawRoll(static_cast<float>(rotation[0]), static_cast<float>(rotation[1]), static_cast<float>(rotation[2])),
+		cd::Quaternion::FromPitchYawRoll(static_cast<float>(rotation[1]), static_cast<float>(rotation[2]), static_cast<float>(rotation[0])),
 		cd::Vec3f(static_cast<float>(scaling[0]), static_cast<float>(scaling[1]), static_cast<float>(scaling[2])));
 }
 
@@ -576,7 +576,6 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 			}
 			else
 			{
-				// Root.
 				pSceneDatabase->AddRootNodeID(node.GetID());
 			}
 		}
@@ -727,6 +726,11 @@ cd::NodeID FbxProducerImpl::ParseNode(const fbxsdk::FbxNode* pSDKNode, cd::Scene
 		node.SetParentID(parentNodeID);
 	}
 	pSceneDatabase->AddNode(cd::MoveTemp(node));
+
+	for (int32_t childIndex = 0, childCount = pSDKNode->GetChildCount(); childIndex < childCount; ++childIndex)
+	{
+		ParseNode(pSDKNode->GetChild(childIndex), pSceneDatabase);
+	}
 
 	return nodeID;
 }

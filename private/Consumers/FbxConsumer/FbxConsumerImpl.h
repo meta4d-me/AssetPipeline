@@ -40,8 +40,8 @@ private:
 	fbxsdk::FbxScene* CreateScene(const cd::SceneDatabase* pSceneDatabase);
 	fbxsdk::FbxFileTexture* ExportTexture(fbxsdk::FbxScene* pScene, cd::TextureID textureID, const cd::SceneDatabase* pSceneDatabase);
 	fbxsdk::FbxSurfaceMaterial* ExportMaterial(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNode, cd::MaterialID materialID, const cd::SceneDatabase* pSceneDatabase);
-	void ExportMesh(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNode, const cd::Mesh& mesh, const cd::SceneDatabase* pSceneDatabase);
-	fbxsdk::FbxNode* ExportNodeRecursively(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pParentNode, cd::NodeID nodeID, const cd::SceneDatabase* pSceneDatabase);
+	void ExportMesh(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNode, cd::MeshID meshID, const cd::SceneDatabase* pSceneDatabase);
+	void ExportNodeRecursively(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pParentNode, cd::NodeID nodeID, const cd::SceneDatabase* pSceneDatabase);
 	fbxsdk::FbxNode* ExportNode(fbxsdk::FbxScene* pScene, const char* pName, const cd::Transform& transform, const cd::SceneDatabase* pSceneDatabase);
 	bool ExportFbxFile(fbxsdk::FbxScene* pScene);
 

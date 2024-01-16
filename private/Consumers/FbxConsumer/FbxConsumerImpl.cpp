@@ -50,16 +50,38 @@ void FbxConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
 	fbxsdk::FbxScene* pScene = CreateScene(pSceneDatabase);
 	assert(pScene);
 
-	// Create a root fbx node.
-	fbxsdk::FbxNode* pRootNode = ExportNode(pScene, "Root", cd::Transform::Identity(), pSceneDatabase);
-	pScene->GetRootNode()->AddChild(pRootNode);
+	// Init node hierarchy.
+	for (auto rootNodeID : pSceneDatabase->GetRootNodeIDs())
+	{
+		ExportNodeRecursively(pScene, pScene->GetRootNode(), rootNodeID, pSceneDatabase);
+	}
 
-	ExportNodeRecursively(pScene, pRootNode, 0U, pSceneDatabase);
+	// Query mesh's associated fbx node.
+	std::map<cd::MeshID, fbxsdk::FbxNode*> mapMeshIDToFbxNode;
+	for (const cd::Node& node : pSceneDatabase->GetNodes())
+	{
+		for (cd::MeshID meshID : node.GetMeshIDs())
+		{
+			auto itMapping = mapMeshIDToFbxNode.find(meshID);
+			if (itMapping == mapMeshIDToFbxNode.end())
+			{
+				fbxsdk::FbxNode* pFbxNode = pScene->FindNodeByName(node.GetName());
+				assert(pFbxNode);
+				mapMeshIDToFbxNode[meshID] = pFbxNode;
+			}
+			else
+			{
+				PrintLog("Error : Two node contains same mesh id?");
+			}
+		}
+	}
 
-	// Build fbx scene by converting SceneDatabase.
+	// Export meshes to according nodes.
 	for (const auto& mesh : pSceneDatabase->GetMeshes())
 	{
-		ExportMesh(pScene, pRootNode, mesh, pSceneDatabase);
+		auto itMapping = mapMeshIDToFbxNode.find(mesh.GetID());
+		fbxsdk::FbxNode* pNode = itMapping == mapMeshIDToFbxNode.end() ? nullptr : itMapping->second;
+		ExportMesh(pScene, pNode, mesh.GetID(), pSceneDatabase);
 	}
 
 	if (!ExportFbxFile(pScene))
@@ -92,9 +114,10 @@ fbxsdk::FbxScene* FbxConsumerImpl::CreateScene(const cd::SceneDatabase* pSceneDa
 
 fbxsdk::FbxFileTexture* FbxConsumerImpl::ExportTexture(fbxsdk::FbxScene* pScene, cd::TextureID textureID, const cd::SceneDatabase* pSceneDatabase)
 {
+	assert(pScene);
 	if (!textureID.IsValid() || textureID.Data() >= pSceneDatabase->GetTextureCount())
 	{
-		PrintLog(std::format("Warning : Texture missing at ID : {}", textureID.Data()));
+		PrintLog(std::format("Warning : [Texture {}] is invalid or lost reference data.", textureID.Data()));
 		return nullptr;
 	}
 
@@ -116,6 +139,7 @@ fbxsdk::FbxFileTexture* FbxConsumerImpl::ExportTexture(fbxsdk::FbxScene* pScene,
 
 fbxsdk::FbxSurfaceMaterial* FbxConsumerImpl::ExportMaterial(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNode, cd::MaterialID materialID, const cd::SceneDatabase* pSceneDatabase)
 {
+	assert(pScene && pNode);
 	bool useDefaultMaterial = !materialID.IsValid() || materialID.Data() >= pSceneDatabase->GetMaterialCount();
 	if (useDefaultMaterial)
 	{
@@ -173,8 +197,23 @@ fbxsdk::FbxSurfaceMaterial* FbxConsumerImpl::ExportMaterial(fbxsdk::FbxScene* pS
 	return pFbxMaterial;
 }
 
-void FbxConsumerImpl::ExportMesh(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNode, const cd::Mesh& mesh, const cd::SceneDatabase* pSceneDatabase)
+void FbxConsumerImpl::ExportMesh(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNode, cd::MeshID meshID, const cd::SceneDatabase* pSceneDatabase)
 {
+	assert(pScene);
+	if (!meshID.IsValid() || meshID.Data() >= pSceneDatabase->GetMeshCount())
+	{
+		PrintLog(std::format("Warning : [Mesh {}] is invalid or lost reference data.", meshID.Data()));
+		return;
+	}
+
+	const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
+
+	if (!pNode)
+	{
+		// FbxMesh is a derived class of FbxNodeAttribute which always need to add to FbxNode.
+		pNode = ExportNode(pScene, mesh.GetName(), cd::Transform::Identity(), pSceneDatabase);
+	}
+
 	uint32_t vertexCount = mesh.GetVertexCount();
 	uint32_t polygonCount = mesh.GetPolygonCount();
 	assert(vertexCount > 0U && polygonCount > 0U);
@@ -235,6 +274,7 @@ void FbxConsumerImpl::ExportMesh(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNod
 		const cd::PolygonGroup& polygonGroup = mesh.GetPolygonGroup(materialIndex);
 		for (const auto& polygon : polygonGroup)
 		{
+			assert(polygon.size() >= 3U);
 			pFbxMesh->BeginPolygon(actualMaterialIndex);
 			for (auto vertexID : polygon)
 			{
@@ -245,11 +285,11 @@ void FbxConsumerImpl::ExportMesh(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNod
 	}
 }
 
-fbxsdk::FbxNode* FbxConsumerImpl::ExportNodeRecursively(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pParentNode, cd::NodeID nodeID, const cd::SceneDatabase* pSceneDatabase)
+void FbxConsumerImpl::ExportNodeRecursively(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pParentNode, cd::NodeID nodeID, const cd::SceneDatabase* pSceneDatabase)
 {
 	if (!nodeID.IsValid() || nodeID.Data() >= pSceneDatabase->GetNodeCount())
 	{
-		return nullptr;
+		return;
 	}
 
 	const auto& node = pSceneDatabase->GetNode(nodeID.Data());
@@ -267,15 +307,19 @@ fbxsdk::FbxNode* FbxConsumerImpl::ExportNodeRecursively(fbxsdk::FbxScene* pScene
 
 fbxsdk::FbxNode* FbxConsumerImpl::ExportNode(fbxsdk::FbxScene* pScene, const char* pName, const cd::Transform& transform, const cd::SceneDatabase* pSceneDatabase)
 {
-	auto* pNode = fbxsdk::FbxNode::Create(pScene, pName);
-	pNode->SetShadingMode(fbxsdk::FbxNode::EShadingMode::eTextureShading);
+	fbxsdk::FbxNode* pNode = pScene->FindNodeByName(pName);
+	if (!pNode)
+	{
+		pNode = fbxsdk::FbxNode::Create(pScene, pName);
+		pNode->SetShadingMode(fbxsdk::FbxNode::EShadingMode::eTextureShading);
 
-	fbxsdk::FbxVector4 translation(0.0, 0.0, 0.0, 0.0);
-	fbxsdk::FbxVector4 rotation(0.0, 0.0, 0.0, 0.0);
-	fbxsdk::FbxVector4 scale(1.0, 1.0, 1.0, 1.0);
-	pNode->LclTranslation.Set(translation);
-	pNode->LclRotation.Set(rotation);
-	pNode->LclScaling.Set(scale);
+		const auto& translation = transform.GetTranslation();
+		const auto& rotation = transform.GetRotation();
+		const auto& scale = transform.GetScale();
+		pNode->LclTranslation.Set(fbxsdk::FbxVector4(translation.x(), translation.y(), translation.z()));
+		pNode->LclRotation.Set(fbxsdk::FbxVector4(rotation.Roll(), rotation.Pitch(), rotation.Yaw()));
+		pNode->LclScaling.Set(fbxsdk::FbxVector4(scale.x(), scale.y(), scale.z()));
+	}
 
 	return pNode;
 }
