@@ -30,7 +30,7 @@ cd::Transform ConvertFbxNodeTransform(fbxsdk::FbxNode* pNode)
 	fbxsdk::FbxDouble3 scaling = pNode->LclScaling.EvaluateValue(FBXSDK_TIME_ZERO);
 	return cd::Transform(
 		cd::Vec3f(static_cast<float>(translation[0]), static_cast<float>(translation[1]), static_cast<float>(translation[2])),
-		cd::Quaternion::FromPitchYawRoll(static_cast<float>(rotation[0]), static_cast<float>(rotation[1]), static_cast<float>(rotation[2])),
+		cd::Quaternion::FromPitchYawRoll(static_cast<float>(rotation[1]), static_cast<float>(rotation[2]), static_cast<float>(rotation[0])),
 		cd::Vec3f(static_cast<float>(scaling[0]), static_cast<float>(scaling[1]), static_cast<float>(scaling[2])));
 }
 
@@ -542,20 +542,12 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	FbxSceneInfo sceneInfo;
 	BuildSceneInfo(pSDKScene, sceneInfo);
 
-	if (IsOptionEnabled(FbxProducerOptions::ImportLight))
-	{
-		for (const auto& light : sceneInfo.lights)
-		{
-			ParseLight(light, pSceneDatabase);
-		}
-	}
-
 	if (IsOptionEnabled(FbxProducerOptions::ImportMaterial))
 	{
 		// TODO : ImportTexture logic is nested in ImportMaterial. If you want to only import textures, need to refact.
 		for (const auto& surfaceMaterial : sceneInfo.surfaceMaterials)
 		{
-			ParseMaterial(surfaceMaterial, pSceneDatabase);
+			ImportMaterial(surfaceMaterial, pSceneDatabase);
 		}
 	}
 
@@ -563,7 +555,7 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		// Convert transform hierarchy nodes.
 		for (const auto& transformNode : sceneInfo.transformNodes)
 		{
-			ParseNode(transformNode, pSceneDatabase);
+			ImportNode(transformNode, pSceneDatabase);
 		}
 
 		// Add child nodes to parent nodes.
@@ -574,6 +566,10 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 			{
 				pSceneDatabase->GetNode(node.GetParentID().Data()).AddChildID(node.GetID());
 			}
+			else
+			{
+				pSceneDatabase->AddRootNodeID(node.GetID());
+			}
 		}
 	}
 
@@ -581,17 +577,38 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 	{
 		for (const auto& staticMesh : sceneInfo.staticMeshes)
 		{
-			cd::MeshID meshID = ParseMesh(staticMesh->GetMesh(), pSceneDatabase);
-			AssociateMeshWithNode(staticMesh->GetMesh(), meshID, pSceneDatabase);
+			// In fbx scene graph, a node has a container named node attribute which is used to store mesh/light/...
+			cd::NodeID nodeID = ImportNode(staticMesh, pSceneDatabase);
+			cd::MeshID meshID = ImportMesh(staticMesh->GetMesh(), pSceneDatabase);
+
+			cd::Node& node = pSceneDatabase->GetNode(nodeID.Data());
+			node.AddMeshID(meshID);
+
+			if (fbxsdk::FbxNode* pParentNode = staticMesh->GetParent())
+			{
+				cd::NodeID parentNodeID = AllocateNodeID(pParentNode);
+				node.SetParentID(parentNodeID);
+				pSceneDatabase->GetNode(parentNodeID.Data()).AddChildID(nodeID);
+			}
+
 			AssociateMeshWithBlendShape(staticMesh->GetMesh(), meshID, pSceneDatabase);
 		}
 	}
 	
+	if (IsOptionEnabled(FbxProducerOptions::ImportLight))
+	{
+		for (const auto& light : sceneInfo.lights)
+		{
+			// TODO : support node hierarchy. Currently, it is always in global world space.
+			ImportLight(light, pSceneDatabase);
+		}
+	}
+
 	if (IsOptionEnabled(FbxProducerOptions::ImportSkeleton))
 	{
 		for (const auto& skeletalMeshArray : sceneInfo.skeletalMeshArrays)
 		{
-			ParseSkeletonBones(pSDKScene, skeletalMeshArray, pSceneDatabase);
+			ImportSkeletonBones(pSDKScene, skeletalMeshArray, pSceneDatabase);
 		}
 	}
 
@@ -601,7 +618,7 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		{
 			for (const auto& skeletalMesh : skeletalMeshArray)
 			{
-				ParseSkeletalMesh(skeletalMesh->GetMesh(), pSceneDatabase);
+				ImportSkeletalMesh(skeletalMesh->GetMesh(), pSceneDatabase);
 			}
 		}
 	}
@@ -611,7 +628,7 @@ void FbxProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		if (auto* pAnimStack = pSDKScene->GetSrcObject<fbxsdk::FbxAnimStack>(0))
 		{
 			pSDKScene->SetCurrentAnimationStack(pAnimStack);
-			ParseAnimation(pSDKScene, pSceneDatabase);
+			ImportAnimation(pSDKScene, pSceneDatabase);
 		}
 	}
 }
@@ -686,8 +703,6 @@ void FbxProducerImpl::TraverseSceneRecursively(fbxsdk::FbxNode* pNode, FbxSceneI
 
 		if (pMesh)
 		{
-			pMesh->RemoveBadPolygons();
-
 			int32_t skinCount = pMesh->GetDeformerCount(fbxsdk::FbxDeformer::eSkin);
 			if (skinCount == 0)
 			{
@@ -710,7 +725,7 @@ cd::NodeID FbxProducerImpl::AllocateNodeID(const fbxsdk::FbxNode* pSDKNode)
 	return m_nodeIDGenerator.AllocateID(static_cast<uint32_t>(pSDKNode->GetUniqueID()));
 }
 
-cd::NodeID FbxProducerImpl::ParseNode(const fbxsdk::FbxNode* pSDKNode, cd::SceneDatabase* pSceneDatabase)
+cd::NodeID FbxProducerImpl::ImportNode(const fbxsdk::FbxNode* pSDKNode, cd::SceneDatabase* pSceneDatabase)
 {
 	cd::NodeID nodeID = AllocateNodeID(pSDKNode);
 	cd::Node node(nodeID, pSDKNode->GetName());
@@ -721,29 +736,16 @@ cd::NodeID FbxProducerImpl::ParseNode(const fbxsdk::FbxNode* pSDKNode, cd::Scene
 		cd::NodeID parentNodeID = AllocateNodeID(pParentNode);
 		node.SetParentID(parentNodeID);
 	}
+
 	pSceneDatabase->AddNode(cd::MoveTemp(node));
 
 	return nodeID;
 }
 
-void FbxProducerImpl::AssociateMeshWithNode(fbxsdk::FbxMesh* pMesh, cd::MeshID meshID, cd::SceneDatabase* pSceneDatabase)
-{
-	fbxsdk::FbxNode* pParentNode = pMesh->GetNode()->GetParent();
-	if (pParentNode)
-	{
-		cd::Node& parentNode = pSceneDatabase->GetNode(AllocateNodeID(pParentNode).Data());
-		cd::NodeID parentNodeID = parentNode.GetID();
-		if (parentNodeID.IsValid())
-		{
-			parentNode.AddMeshID(meshID);
-		}
-	}
-}
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Light
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-cd::LightID FbxProducerImpl::ParseLight(const fbxsdk::FbxLight* pFbxLight, cd::SceneDatabase* pSceneDatabase)
+cd::LightID FbxProducerImpl::ImportLight(const fbxsdk::FbxLight* pFbxLight, cd::SceneDatabase* pSceneDatabase)
 {
 	cd::LightType lightType;
 	float lightIntensity = static_cast<float>(pFbxLight->Intensity.Get());
@@ -823,7 +825,7 @@ std::pair<cd::MaterialID, bool> FbxProducerImpl::AllocateMaterialID(const fbxsdk
 	return std::make_pair(materialID, isReused);
 }
 
-void FbxProducerImpl::ParseMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial)
+void FbxProducerImpl::ImportMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, const char* pPropertyName, cd::Material* pMaterial)
 {
 	// TODO
 	pSDKMaterial;
@@ -831,7 +833,7 @@ void FbxProducerImpl::ParseMaterialProperty(const fbxsdk::FbxSurfaceMaterial* pS
 	pMaterial;
 }
 
-void FbxProducerImpl::ParseMaterialTexture(const fbxsdk::FbxProperty& sdkProperty, cd::MaterialTextureType textureType, cd::Material& material, cd::SceneDatabase* pSceneDatabase)
+void FbxProducerImpl::ImportMaterialTexture(const fbxsdk::FbxProperty& sdkProperty, cd::MaterialTextureType textureType, cd::Material& material, cd::SceneDatabase* pSceneDatabase)
 {
 	if (material.IsTextureSetup(textureType))
 	{
@@ -869,7 +871,7 @@ void FbxProducerImpl::ParseMaterialTexture(const fbxsdk::FbxProperty& sdkPropert
 	}
 }
 
-cd::MaterialID FbxProducerImpl::ParseMaterial(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, cd::SceneDatabase* pSceneDatabase)
+cd::MaterialID FbxProducerImpl::ImportMaterial(const fbxsdk::FbxSurfaceMaterial* pSDKMaterial, cd::SceneDatabase* pSceneDatabase)
 {
 	auto [materialID, isReused] = AllocateMaterialID(pSDKMaterial);
 	if (isReused)
@@ -905,7 +907,7 @@ cd::MaterialID FbxProducerImpl::ParseMaterial(const fbxsdk::FbxSurfaceMaterial* 
 			const char* pFBXPropertyName = currentProperty.GetNameAsCStr();
 			if (const auto& itPropertyName = mapTexturePropertyFBXToCD.find(pFBXPropertyName); itPropertyName != mapTexturePropertyFBXToCD.end())
 			{
-				ParseMaterialTexture(currentProperty, itPropertyName->second, material, pSceneDatabase);
+				ImportMaterialTexture(currentProperty, itPropertyName->second, material, pSceneDatabase);
 			}
 
 			currentProperty = pSDKMaterial->GetNextProperty(currentProperty);
@@ -920,7 +922,7 @@ cd::MaterialID FbxProducerImpl::ParseMaterial(const fbxsdk::FbxSurfaceMaterial* 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Mesh
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-cd::MeshID FbxProducerImpl::ParseMesh(const fbxsdk::FbxMesh* pFbxMesh, cd::SceneDatabase* pSceneDatabase)
+cd::MeshID FbxProducerImpl::ImportMesh(const fbxsdk::FbxMesh* pFbxMesh, cd::SceneDatabase* pSceneDatabase)
 {
 	cd::MeshID meshID(m_meshIDGenerator.AllocateID());
 	const fbxsdk::FbxNode* pSDKNode = pFbxMesh->GetNode();
@@ -932,8 +934,10 @@ cd::MeshID FbxProducerImpl::ParseMesh(const fbxsdk::FbxMesh* pFbxMesh, cd::Scene
 	uint32_t materialCount = pSDKNode->GetMaterialCount();
 	bool isMaterialEmpty = 0U == materialCount;
 
+	// No mesh layer or multiple layers to parse?
+	// Currently, we only parse the first layer.
+	// assert(pFbxMesh->GetLayerCount() != 1);
 	const fbxsdk::FbxLayer* pMeshBaseLayer = pFbxMesh->GetLayer(0);
-	assert(pMeshBaseLayer);
 
 	// Init vertex position.
 	uint32_t controlPointCount = pFbxMesh->GetControlPointsCount();
@@ -1028,6 +1032,21 @@ cd::MeshID FbxProducerImpl::ParseMesh(const fbxsdk::FbxMesh* pFbxMesh, cd::Scene
 
 		mesh.SetPolygonGroupCount(materialCount);
 	}
+
+	// If smoothing group exists, convert to edge mapping mode.
+	// SoftEdge : one vertex position has only one normal which doesn't need to split.
+	// HardEdge : one vertex position has multiple normals which needs to split.
+	//fbxsdk::FbxLayerElementSmoothing* pSmoothing = pMeshBaseLayer->GetSmoothing();
+	//fbxsdk::FbxLayerElement::EMappingMode smoothingMappingMode = pSmoothing ? pSmoothing->GetMappingMode() : fbxsdk::FbxLayerElement::EMappingMode::eNone;
+	//fbxsdk::FbxLayerElement::EReferenceMode smoothingReferenceMode = pSmoothing ? pSmoothing->GetReferenceMode() : fbxsdk::FbxLayerElement::EReferenceMode::eDirect;
+	//if (fbxsdk::FbxLayerElement::EMappingMode::eByPolygon == smoothingMappingMode)
+	//{
+	//	m_pSDKGeometryConverter->ComputeEdgeSmoothingFromPolygonSmoothing(pFbxMesh);
+	//	pSmoothing = pMeshBaseLayer->GetSmoothing();
+	//	smoothingMappingMode = pSmoothing->GetMappingMode();
+	//	smoothingReferenceMode = pSmoothing->GetReferenceMode();
+	//}
+	//assert(fbxsdk::FbxLayerElement::EMappingMode::eByEdge == smoothingMappingMode || fbxsdk::FbxLayerElement::EMappingMode::eNone == smoothingMappingMode);
 
 	// Init vertex attributes.
 	uint32_t polygonCount = pFbxMesh->GetPolygonCount();
@@ -1162,7 +1181,7 @@ cd::MeshID FbxProducerImpl::ParseMesh(const fbxsdk::FbxMesh* pFbxMesh, cd::Scene
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Skeletal Mesh
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-void FbxProducerImpl::ParseSkeletonBones(fbxsdk::FbxScene* pScene, const std::vector<fbxsdk::FbxNode*>& skeletalMeshNodes, cd::SceneDatabase* pSceneDatabase)
+void FbxProducerImpl::ImportSkeletonBones(fbxsdk::FbxScene* pScene, const std::vector<fbxsdk::FbxNode*>& skeletalMeshNodes, cd::SceneDatabase* pSceneDatabase)
 {
 	// Collect all skin clusters.
 	std::vector<fbxsdk::FbxCluster*> skinClusters;
@@ -1402,15 +1421,15 @@ void FbxProducerImpl::ParseSkeletonBones(fbxsdk::FbxScene* pScene, const std::ve
 	}
 }
 
-cd::MeshID FbxProducerImpl::ParseSkeletalMesh(const fbxsdk::FbxMesh* pFbxMesh, cd::SceneDatabase* pSceneDatabase)
+cd::MeshID FbxProducerImpl::ImportSkeletalMesh(const fbxsdk::FbxMesh* pFbxMesh, cd::SceneDatabase* pSceneDatabase)
 {
-	cd::MeshID meshID = ParseMesh(pFbxMesh, pSceneDatabase);
+	cd::MeshID meshID = ImportMesh(pFbxMesh, pSceneDatabase);
 	auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
 	int32_t skinDeformerCount = pFbxMesh->GetDeformerCount(fbxsdk::FbxDeformer::eSkin);
 	for (int32_t skinIndex = 0; skinIndex < skinDeformerCount; ++skinIndex)
 	{
 		const auto* pSkin = static_cast<fbxsdk::FbxSkin*>(pFbxMesh->GetDeformer(skinIndex, fbxsdk::FbxDeformer::eSkin));
-		auto skinID = ParseSkin(pSkin, mesh, pSceneDatabase);
+		auto skinID = ImportSkin(pSkin, mesh, pSceneDatabase);
 		if (skinID.IsValid())
 		{
 			mesh.AddSkinID(skinID);
@@ -1420,7 +1439,7 @@ cd::MeshID FbxProducerImpl::ParseSkeletalMesh(const fbxsdk::FbxMesh* pFbxMesh, c
 	return meshID;
 }
 
-cd::SkinID FbxProducerImpl::ParseSkin(const fbxsdk::FbxSkin* pSkin, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase)
+cd::SkinID FbxProducerImpl::ImportSkin(const fbxsdk::FbxSkin* pSkin, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase)
 {
 	assert(pSkin);
 	assert(fbxsdk::FbxSkin::eLinear == pSkin->GetSkinningType() || fbxsdk::FbxSkin::eRigid == pSkin->GetSkinningType());
@@ -1503,7 +1522,7 @@ cd::SkinID FbxProducerImpl::ParseSkin(const fbxsdk::FbxSkin* pSkin, const cd::Me
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // BlendShape
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-cd::BlendShapeID FbxProducerImpl::ParseBlendShape(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase)
+cd::BlendShapeID FbxProducerImpl::ImportBlendShape(const fbxsdk::FbxBlendShape* pBlendShape, const cd::Mesh& sourceMesh, cd::SceneDatabase* pSceneDatabase)
 {
 	assert(pBlendShape);
 
@@ -1573,7 +1592,7 @@ void FbxProducerImpl::AssociateMeshWithBlendShape(fbxsdk::FbxMesh* pMesh, cd::Me
 	for (int32_t blendShapeIndex = 0; blendShapeIndex < blendShapeCount; ++blendShapeIndex)
 	{
 		const auto* pBlendShape = static_cast<fbxsdk::FbxBlendShape*>(pMesh->GetDeformer(blendShapeIndex, fbxsdk::FbxDeformer::eBlendShape));
-		auto blendShapeID = ParseBlendShape(pBlendShape, mesh, pSceneDatabase);
+		auto blendShapeID = ImportBlendShape(pBlendShape, mesh, pSceneDatabase);
 		if (blendShapeID.IsValid())
 		{
 			mesh.AddBlendShapeID(blendShapeID);
@@ -1584,7 +1603,7 @@ void FbxProducerImpl::AssociateMeshWithBlendShape(fbxsdk::FbxMesh* pMesh, cd::Me
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Animation
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-void FbxProducerImpl::ParseAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase)
+void FbxProducerImpl::ImportAnimation(fbxsdk::FbxScene* scene, cd::SceneDatabase* pSceneDatabase)
 {	
 	// Locates all skeleton nodes in the fbx scene. Some might be nullptr.
 	std::vector<FbxNode*> bones;

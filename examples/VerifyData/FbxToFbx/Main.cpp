@@ -20,6 +20,7 @@ int main(int argc, char** argv)
 	const char* pInputFilePath = argv[1];
 	const char* pOutputFilePath = argv[2];
 	FbxProducer producer(pInputFilePath);
+	producer.DisableOption(FbxProducerOptions::Triangulate);
 	FbxConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);
 	processor.Run();

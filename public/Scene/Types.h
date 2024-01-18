@@ -16,6 +16,7 @@ namespace cd
 
 // ID
 using VertexID = ObjectID<uint32_t, ObjectType::Vertex>;
+using VertexInstanceID = ObjectID<uint32_t, ObjectType::VertexInstance>;
 using EdgeID = ObjectID<uint32_t, ObjectType::Edge>;
 using HalfEdgeID = ObjectID<uint32_t, ObjectType::HalfEdge>;
 using FaceID = ObjectID<uint32_t, ObjectType::Face>;
