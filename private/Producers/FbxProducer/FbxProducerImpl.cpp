@@ -936,7 +936,7 @@ cd::MeshID FbxProducerImpl::ImportMesh(const fbxsdk::FbxMesh* pFbxMesh, cd::Scen
 
 	// No mesh layer or multiple layers to parse?
 	// Currently, we only parse the first layer.
-	assert(pFbxMesh->GetLayerCount() != 1);
+	// assert(pFbxMesh->GetLayerCount() != 1);
 	const fbxsdk::FbxLayer* pMeshBaseLayer = pFbxMesh->GetLayer(0);
 
 	// Init vertex position.
