@@ -383,10 +383,10 @@ void FbxConsumerImpl::ExportNodeRecursively(fbxsdk::FbxScene* pScene, fbxsdk::Fb
 
 	for (cd::MeshID meshID : node.GetMeshIDs())
 	{
-		// Try to find or create a mesh node to attach mesh as node attribute.
 		const cd::Mesh& mesh = pSceneDatabase->GetMesh(meshID.Data());
-		fbxsdk::FbxNode* pMeshNode = ExportNode(pScene, mesh.GetName(), cd::Transform::Identity(), pSceneDatabase);
+		fbxsdk::FbxNode* pMeshNode = ExportNode(pScene, std::format("{}Mesh", mesh.GetName()).c_str(), cd::Transform::Identity(), pSceneDatabase);
 		ExportMesh(pScene, pMeshNode, meshID, pSceneDatabase);
+		pNode->AddChild(pMeshNode);
 	}
 
 	for (cd::NodeID childID : node.GetChildIDs())
