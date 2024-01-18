@@ -159,16 +159,24 @@ struct MeshTypeTraits
 	using VertexFormat = cd::VertexFormat;
 
 	// Vector
-	using MaterialID = cd::MaterialID;
-	using BlendShapeID = cd::BlendShapeID;
-	using SkinID = cd::SkinID;
-	using VertexInstanceToID = uint32_t;
-	using VertexIDToInstance = uint32_t;
 	using VertexPosition = cd::Point;
+
+	using VertexInstanceToID = cd::VertexID;
+	using VertexIDToInstance = cd::VertexInstanceID;
 	using VertexNormal = cd::Direction;
 	using VertexTangent = cd::Direction;
 	using VertexBiTangent = cd::Direction;
+
+	//using VertexEdgeList = std::vector<cd::EdgeID>;
+	//using EdgeID = cd::EdgeID;
+	//using EdgeVertexPair = std::pair<cd::VertexID, cd::VertexID>;
+	//using EdgeHardness = bool;
+	
+	using MaterialID = cd::MaterialID;
 	using PolygonGroup = cd::PolygonGroup;
+
+	using BlendShapeID = cd::BlendShapeID;
+	using SkinID = cd::SkinID;
 };
 
 struct MorphTypeTraits

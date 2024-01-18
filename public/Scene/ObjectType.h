@@ -6,6 +6,7 @@ namespace cd
 enum class ObjectType
 {
 	Vertex,
+	VertexInstance,
 	Edge,
 	HalfEdge,
 	Face,

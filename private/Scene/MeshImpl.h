@@ -30,16 +30,16 @@ public:
 	IMPLEMENT_STRING_TYPE_APIS(Mesh, Name);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, AABB);
 	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
-	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, MaterialID);
-	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, BlendShapeID);
-	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, SkinID);
+	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexPosition);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexInstanceToID);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexIDToInstance);
-	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexPosition);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexNormal);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexTangent);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
+	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, MaterialID);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, PolygonGroup);
+	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, BlendShapeID);
+	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, SkinID);
 
 	void Init(uint32_t vertexCount);
 	void Init(uint32_t vertexCount, uint32_t vertexInstanceCount);
