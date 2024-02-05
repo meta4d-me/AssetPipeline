@@ -33,6 +33,16 @@ int main(int argc, char** argv)
 	}
 	
 	// Processing
+	std::map<cd::MeshID, cd::NodeID> mapMeshToNodeId;
+	for (uint32_t nodeIndex = 0U; nodeIndex < pSceneDatabase->GetNodeCount(); ++nodeIndex)
+	{
+		const auto& node = pSceneDatabase->GetNode(nodeIndex);
+		for (uint32_t meshIndex = 0U; meshIndex < node.GetMeshIDCount(); ++meshIndex)
+		{
+			mapMeshToNodeId[node.GetMeshID(meshIndex)] = nodeIndex;
+		}
+	}
+
 	uint32_t meshCount = pSceneDatabase->GetMeshCount();
 	for (uint32_t meshIndex = 0U; meshIndex < meshCount; ++meshIndex)
 	{
@@ -71,9 +81,15 @@ int main(int argc, char** argv)
 			pm.InitBoundary(intersection);
 		}
 
-		auto lodMesh = pm.GenerateLodMesh(0.1f, 2000, &mesh);
+		auto lodMesh = pm.GenerateLodMesh(0.5f, 3000, &mesh);
 		lodMesh.SetName(std::format("{}_reduced", mesh.GetName()).c_str());
-		lodMesh.SetID(pSceneDatabase->GetMeshCount());
+		cd::MeshID lodMeshID(pSceneDatabase->GetMeshCount());
+		lodMesh.SetID(lodMeshID);
+		lodMesh.AddMaterialID(cd::MaterialID::InvalidID);
+
+		cd::NodeID nodeID = mapMeshToNodeId[mesh.GetID()];
+		pSceneDatabase->GetNode(nodeID.Data()).AddMeshID(lodMeshID);
+
 		pSceneDatabase->AddMesh(cd::MoveTemp(lodMesh));
 	}
 
