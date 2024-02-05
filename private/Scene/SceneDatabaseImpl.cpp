@@ -213,11 +213,14 @@ void SceneDatabaseImpl::Dump() const
 				auto& polygonGroup = polygonGroups[polygonGroupIndex];
 				printf("\t[PolygonGroup %u] PolygonCount = %u\n", polygonGroupIndex, static_cast<uint32_t>(polygonGroup.size()));
 
-				auto materialID = mesh.GetMaterialID(polygonGroupIndex);
-				printf("\t\t[Associated Material %u] Name = %s\n", materialID.Data(), materialID.IsValid() ? GetMaterial(materialID.Data()).GetName() : "");
-				if (materialID.IsValid())
+				if (mesh.GetMaterialIDCount() > 0U)
 				{
-					materialDrawMeshPolygonGroupIDs[materialID][mesh.GetID()].push_back(polygonGroupIndex);
+					auto materialID = mesh.GetMaterialID(polygonGroupIndex);
+					printf("\t\t[Associated Material %u] Name = %s\n", materialID.Data(), materialID.IsValid() ? GetMaterial(materialID.Data()).GetName() : "");
+					if (materialID.IsValid())
+					{
+						materialDrawMeshPolygonGroupIDs[materialID][mesh.GetID()].push_back(polygonGroupIndex);
+					}
 				}
 			}
 

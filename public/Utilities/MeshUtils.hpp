@@ -8,7 +8,7 @@ namespace cd
 using VertexBuffer = std::vector<std::byte>;
 using IndexBuffer = std::vector<std::byte>;
 
-std::optional<VertexBuffer> BuildVertexBufferForStaticMesh(const cd::Mesh& mesh, const cd::VertexFormat& requiredVertexFormat)
+static std::optional<VertexBuffer> BuildVertexBufferForStaticMesh(const cd::Mesh& mesh, const cd::VertexFormat& requiredVertexFormat)
 {
 	const bool containsPosition = requiredVertexFormat.Contains(cd::VertexAttributeType::Position);
 	const bool containsNormal = requiredVertexFormat.Contains(cd::VertexAttributeType::Normal);
@@ -80,30 +80,16 @@ std::optional<VertexBuffer> BuildVertexBufferForStaticMesh(const cd::Mesh& mesh,
 	return vertexBuffer;
 }
 
-std::optional<VertexBuffer> BuildVertexBufferForSkeletalMesh(const cd::Mesh& mesh, const cd::VertexFormat& requiredVertexFormat, const cd::SceneDatabase* pSceneDatabase)
+static std::optional<VertexBuffer> BuildVertexBufferForSkeletalMesh(const cd::Mesh& mesh, const cd::VertexFormat& requiredVertexFormat, const cd::Skin& skin, const std::vector<const cd::Bone*>& skeletonBones)
 {
+	assert(skin.GetVertexBoneNameArrayCount() == skin.GetVertexBoneWeightArrayCount());
+
 	const bool containsBoneIndex = requiredVertexFormat.Contains(cd::VertexAttributeType::BoneIndex);
 	const bool containsBoneWeight = requiredVertexFormat.Contains(cd::VertexAttributeType::BoneWeight);
 	if (!containsBoneIndex || !containsBoneWeight)
 	{
 		return std::nullopt;
 	}
-
-	// One Skin is associated with one Skeleton and one Mesh.
-	// When multiple Skins happened, it means that one Mesh may have multiple Skeletons.
-	// Check if has multiple root bones? Currently, we don't support this case.
-	assert(mesh.GetSkinIDCount() == 1U);
-	if (!mesh.GetSkinID(0U).IsValid())
-	{
-		return std::nullopt;
-	}
-
-	const cd::Skin& skin = pSceneDatabase->GetSkin(mesh.GetSkinID(0U).Data());
-	if (!skin.GetSkeletonID().IsValid())
-	{
-		return std::nullopt;
-	}
-	assert(skin.GetVertexBoneNameArrayCount() == skin.GetVertexBoneWeightArrayCount());
 
 	// TODO : refine hardcoded 4 bones.
 	uint32_t vertexMaxInfluenceCount = 4U;
@@ -118,12 +104,11 @@ std::optional<VertexBuffer> BuildVertexBufferForSkeletalMesh(const cd::Mesh& mes
 	float defaultVertexBoneWeight = 0.0f;
 
 	// Building a mapping table from skeleton bone name to bone index in the skeleton bone tree.
-	const cd::Skeleton& skeleton = pSceneDatabase->GetSkeleton(skin.GetSkeletonID().Data());
 	std::map<std::string, uint16_t> skeletonBoneNameToIndex;
-	for (uint32_t boneIndex = 0U, boneCount = skeleton.GetBoneIDCount(); boneIndex < boneCount; ++boneIndex)
+	for (size_t boneIndex = 0U; boneIndex < skeletonBones.size(); ++boneIndex)
 	{
-		const auto& bone = pSceneDatabase->GetBone(boneIndex);
-		skeletonBoneNameToIndex[bone.GetName()] = static_cast<uint16_t>(boneIndex);
+		const cd::Bone* pBone = skeletonBones[boneIndex];
+		skeletonBoneNameToIndex[pBone->GetName()] = static_cast<uint16_t>(boneIndex);
 	}
 
 	// Build vertex buffer.
@@ -221,7 +206,7 @@ std::optional<VertexBuffer> BuildVertexBufferForSkeletalMesh(const cd::Mesh& mes
 	return vertexBuffer;
 }
 
-std::optional<IndexBuffer> BuildIndexBufferesForPolygonGroup(const cd::Mesh& mesh, uint32_t polygonGroupIndex, bool forceIndex32 = false)
+static std::optional<IndexBuffer> BuildIndexBufferesForPolygonGroup(const cd::Mesh& mesh, uint32_t polygonGroupIndex, bool forceIndex32 = false)
 {
 	if (polygonGroupIndex >= mesh.GetPolygonGroupCount())
 	{
@@ -281,7 +266,7 @@ std::optional<IndexBuffer> BuildIndexBufferesForPolygonGroup(const cd::Mesh& mes
 	return indexBuffer;
 }
 
-std::vector<std::optional<IndexBuffer>> BuildIndexBufferesForMesh(const cd::Mesh& mesh, bool forceIndex32 = false)
+static std::vector<std::optional<IndexBuffer>> BuildIndexBufferesForMesh(const cd::Mesh& mesh, bool forceIndex32 = false)
 {
 	std::vector<std::optional<IndexBuffer>> indexBufferes;
 
