@@ -290,36 +290,33 @@ void FbxConsumerImpl::ExportMesh(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNod
 		}
 	}
 
-	if (mappingSurfaceAttributes)
+	// If using vertex instance, then init vertex index to attribute index.
+	for (const auto& polygonGroup : mesh.GetPolygonGroups())
 	{
-		// If using vertex instance, then init vertex index to attribute index.
-		for (const auto& polygonGroup : mesh.GetPolygonGroups())
+		for (const auto& polygon : polygonGroup)
 		{
-			for (const auto& polygon : polygonGroup)
+			for (cd::VertexID instanceID : polygon)
 			{
-				for (cd::VertexID instanceID : polygon)
+				cd::VertexID vertexID = mappingSurfaceAttributes ? mesh.GetVertexInstanceToID(instanceID.Data()) : instanceID;
+
+				if (pNormalElement)
 				{
-					cd::VertexID vertexID = mesh.GetVertexInstanceToID(instanceID.Data());
-
-					if (pNormalElement)
-					{
-						pNormalElement->GetIndexArray().SetAt(vertexID.Data(), instanceID.Data());
-					}
+					pNormalElement->GetIndexArray().SetAt(vertexID.Data(), instanceID.Data());
+				}
 					
-					if (pBinormalElement)
-					{
-						pBinormalElement->GetIndexArray().SetAt(vertexID.Data(), instanceID.Data());
-					}
+				if (pBinormalElement)
+				{
+					pBinormalElement->GetIndexArray().SetAt(vertexID.Data(), instanceID.Data());
+				}
 
-					if (pTangentElement)
-					{
-						pTangentElement->GetIndexArray().SetAt(vertexID.Data(), instanceID.Data());
-					}
+				if (pTangentElement)
+				{
+					pTangentElement->GetIndexArray().SetAt(vertexID.Data(), instanceID.Data());
+				}
 
-					if (pAlbedoUVElement)
-					{
-						pAlbedoUVElement->GetIndexArray().SetAt(vertexID.Data(), instanceID.Data());
-					}
+				if (pAlbedoUVElement)
+				{
+					pAlbedoUVElement->GetIndexArray().SetAt(vertexID.Data(), instanceID.Data());
 				}
 			}
 		}
