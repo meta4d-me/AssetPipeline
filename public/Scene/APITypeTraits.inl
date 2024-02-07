@@ -160,9 +160,7 @@ struct MeshTypeTraits
 
 	// Vector
 	using VertexPosition = cd::Point;
-
 	using VertexInstanceToID = cd::VertexID;
-	using VertexIDToInstance = cd::VertexInstanceID;
 	using VertexNormal = cd::Direction;
 	using VertexTangent = cd::Direction;
 	using VertexBiTangent = cd::Direction;

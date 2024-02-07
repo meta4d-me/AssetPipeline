@@ -215,7 +215,7 @@ void FbxConsumerImpl::ExportMesh(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNod
 	}
 
 	// Check if mesh surface attributes are using instance mapping.
-	uint32_t vertexInstanceIDCount = mesh.GetVertexIDToInstanceCount();
+	uint32_t vertexInstanceIDCount = mesh.GetVertexInstanceToIDCount();
 	bool mappingSurfaceAttributes = vertexInstanceIDCount > 0U;
 	auto mappingMode = mappingSurfaceAttributes ? fbxsdk::FbxGeometryElement::eByPolygonVertex : fbxsdk::FbxGeometryElement::eByControlPoint;
 	// Actually, we should support normal/binormal/tangent mapping directly...

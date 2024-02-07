@@ -14,7 +14,6 @@ PIMPL_COMPLEX_TYPE_APIS(Mesh, AABB);
 PIMPL_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexPosition);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexInstanceToID);
-PIMPL_VECTOR_TYPE_APIS(Mesh, VertexIDToInstance);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexNormal);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexTangent);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);

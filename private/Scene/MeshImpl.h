@@ -32,7 +32,6 @@ public:
 	IMPLEMENT_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexPosition);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexInstanceToID);
-	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexIDToInstance);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexNormal);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexTangent);
 	IMPLEMENT_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
@@ -100,7 +99,6 @@ public:
 
 		Init(vertexCount, vertexInstanceCount);
 		inputArchive.ImportBuffer(GetVertexInstanceToIDs().data());
-		inputArchive.ImportBuffer(GetVertexIDToInstances().data());
 		inputArchive.ImportBuffer(GetVertexPositions().data());
 		inputArchive.ImportBuffer(GetVertexNormals().data());
 		inputArchive.ImportBuffer(GetVertexTangents().data());
@@ -151,7 +149,6 @@ public:
 		outputArchive.ExportBuffer(GetBlendShapeIDs().data(), GetBlendShapeIDs().size());
 		outputArchive.ExportBuffer(GetSkinIDs().data(), GetSkinIDs().size());
 		outputArchive.ExportBuffer(GetVertexInstanceToIDs().data(), GetVertexInstanceToIDs().size());
-		outputArchive.ExportBuffer(GetVertexIDToInstances().data(), GetVertexIDToInstances().size());
 		outputArchive.ExportBuffer(GetVertexPositions().data(), GetVertexPositions().size());
 		outputArchive.ExportBuffer(GetVertexNormals().data(), GetVertexNormals().size());
 		outputArchive.ExportBuffer(GetVertexTangents().data(), GetVertexTangents().size());
