@@ -158,7 +158,6 @@ void MeshImpl::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrateg
 void MeshImpl::Init(uint32_t vertexCount)
 {
 	SetVertexPositionCount(vertexCount);
-	SetVertexIDToInstanceCount(0U);
 	SetVertexInstanceToIDCount(0U);
 
 	InitVertexAttributes(vertexCount);
@@ -173,7 +172,6 @@ void MeshImpl::Init(uint32_t vertexCount, uint32_t vertexInstanceCount)
 	else
 	{
 		SetVertexPositionCount(vertexCount);
-		SetVertexIDToInstanceCount(vertexCount);
 		SetVertexInstanceToIDCount(vertexInstanceCount);
 
 		InitVertexAttributes(vertexInstanceCount);
@@ -201,7 +199,6 @@ void MeshImpl::ShrinkToFit()
 {
 	GetVertexPositions().shrink_to_fit();
 	GetVertexInstanceToIDs().shrink_to_fit();
-	GetVertexIDToInstances().shrink_to_fit();
 
 	GetVertexNormals().shrink_to_fit();
 	GetVertexTangents().shrink_to_fit();

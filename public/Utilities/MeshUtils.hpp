@@ -18,9 +18,10 @@ static std::optional<VertexBuffer> BuildVertexBufferForStaticMesh(const cd::Mesh
 	const bool containsColor = requiredVertexFormat.Contains(cd::VertexAttributeType::Color);
 
 	VertexBuffer vertexBuffer;
-	const uint32_t vertexCount = mesh.GetVertexCount();
+	bool mappingSurfaceAttributes = mesh.GetVertexInstanceToIDCount() > 0U;
+	const uint32_t vertexInstanceCount = mappingSurfaceAttributes ? mesh.GetVertexInstanceToIDCount() : mesh.GetVertexCount();
 	const uint32_t vertexFormatStride = requiredVertexFormat.GetStride();
-	vertexBuffer.resize(vertexCount * vertexFormatStride);
+	vertexBuffer.resize(vertexInstanceCount * vertexFormatStride);
 
 	uint32_t vbDataSize = 0U;
 	auto vbDataPtr = vertexBuffer.data();
@@ -30,49 +31,48 @@ static std::optional<VertexBuffer> BuildVertexBufferForStaticMesh(const cd::Mesh
 		vbDataSize += dataSize;
 	};
 
-	bool mappingSurfaceAttributes = mesh.GetVertexIDToInstanceCount() > 0U;
-	for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex)
+	for (uint32_t vertexInstance = 0; vertexInstance < vertexInstanceCount; ++vertexInstance)
 	{
 		if (containsPosition)
 		{
-			constexpr uint32_t dataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
-			FillVertexBuffer(mesh.GetVertexPosition(vertexIndex).begin(), dataSize);
-		}
+			uint32_t vertexID = vertexInstance;
+			if (mappingSurfaceAttributes)
+			{
+				vertexID = mesh.GetVertexInstanceToID(vertexInstance).Data();
+			}
 
-		cd::VertexInstanceID vertexInstanceID = vertexIndex;
-		if (mappingSurfaceAttributes)
-		{
-			vertexInstanceID = mesh.GetVertexIDToInstance(vertexIndex);
+			constexpr uint32_t dataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
+			FillVertexBuffer(mesh.GetVertexPosition(vertexID).begin(), dataSize);
 		}
 
 		if (containsNormal)
 		{
 			constexpr uint32_t dataSize = cd::Direction::Size * sizeof(cd::Direction::ValueType);
-			FillVertexBuffer(mesh.GetVertexNormal(vertexInstanceID.Data()).begin(), dataSize);
+			FillVertexBuffer(mesh.GetVertexNormal(vertexInstance).begin(), dataSize);
 		}
 
 		if (containsTangent)
 		{
 			constexpr uint32_t dataSize = cd::Direction::Size * sizeof(cd::Direction::ValueType);
-			FillVertexBuffer(mesh.GetVertexTangent(vertexInstanceID.Data()).begin(), dataSize);
+			FillVertexBuffer(mesh.GetVertexTangent(vertexInstance).begin(), dataSize);
 		}
 
 		if (containsBiTangent)
 		{
 			constexpr uint32_t dataSize = cd::Direction::Size * sizeof(cd::Direction::ValueType);
-			FillVertexBuffer(mesh.GetVertexBiTangent(vertexInstanceID.Data()).begin(), dataSize);
+			FillVertexBuffer(mesh.GetVertexBiTangent(vertexInstance).begin(), dataSize);
 		}
 
 		if (containsUV)
 		{
 			constexpr uint32_t dataSize = cd::UV::Size * sizeof(cd::UV::ValueType);
-			FillVertexBuffer(mesh.GetVertexUV(0)[vertexInstanceID.Data()].begin(), dataSize);
+			FillVertexBuffer(mesh.GetVertexUV(0)[vertexInstance].begin(), dataSize);
 		}
 
 		if (containsColor)
 		{
 			constexpr uint32_t dataSize = cd::Color::Size * sizeof(cd::Color::ValueType);
-			FillVertexBuffer(mesh.GetVertexColor(0)[vertexInstanceID.Data()].begin(), dataSize);
+			FillVertexBuffer(mesh.GetVertexColor(0)[vertexInstance].begin(), dataSize);
 		}
 	}
 
@@ -120,9 +120,10 @@ static std::optional<VertexBuffer> BuildVertexBufferForSkeletalMesh(const cd::Me
 	const bool containsColor = requiredVertexFormat.Contains(cd::VertexAttributeType::Color);
 
 	VertexBuffer vertexBuffer;
-	const uint32_t vertexCount = mesh.GetVertexCount();
+	bool mappingSurfaceAttributes = mesh.GetVertexInstanceToIDCount() > 0U;
+	const uint32_t vertexInstanceCount = mappingSurfaceAttributes ? mesh.GetVertexInstanceToIDCount() : mesh.GetVertexCount();
 	const uint32_t vertexFormatStride = requiredVertexFormat.GetStride();
-	vertexBuffer.resize(vertexCount * vertexFormatStride);
+	vertexBuffer.resize(vertexInstanceCount * vertexFormatStride);
 
 	uint32_t vbDataSize = 0U;
 	auto vbDataPtr = vertexBuffer.data();
@@ -132,53 +133,52 @@ static std::optional<VertexBuffer> BuildVertexBufferForSkeletalMesh(const cd::Me
 		vbDataSize += dataSize;
 	};
 
-	bool mappingSurfaceAttributes = mesh.GetVertexIDToInstanceCount() > 0U;
-	for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex)
+	for (uint32_t vertexInstance = 0; vertexInstance < vertexInstanceCount; ++vertexInstance)
 	{
+		uint32_t vertexID = vertexInstance;
+		if (mappingSurfaceAttributes)
+		{
+			vertexID = mesh.GetVertexInstanceToID(vertexInstance).Data();
+		}
+
 		if (containsPosition)
 		{
 			constexpr uint32_t dataSize = cd::Point::Size * sizeof(cd::Point::ValueType);
-			FillVertexBuffer(mesh.GetVertexPosition(vertexIndex).begin(), dataSize);
-		}
-
-		cd::VertexInstanceID vertexInstanceID = vertexIndex;
-		if (mappingSurfaceAttributes)
-		{
-			vertexInstanceID = mesh.GetVertexIDToInstance(vertexIndex);
+			FillVertexBuffer(mesh.GetVertexPosition(vertexID).begin(), dataSize);
 		}
 
 		if (containsNormal)
 		{
 			constexpr uint32_t dataSize = cd::Direction::Size * sizeof(cd::Direction::ValueType);
-			FillVertexBuffer(mesh.GetVertexNormal(vertexInstanceID.Data()).begin(), dataSize);
+			FillVertexBuffer(mesh.GetVertexNormal(vertexInstance).begin(), dataSize);
 		}
 
 		if (containsTangent)
 		{
 			constexpr uint32_t dataSize = cd::Direction::Size * sizeof(cd::Direction::ValueType);
-			FillVertexBuffer(mesh.GetVertexTangent(vertexInstanceID.Data()).begin(), dataSize);
+			FillVertexBuffer(mesh.GetVertexTangent(vertexInstance).begin(), dataSize);
 		}
 
 		if (containsBiTangent)
 		{
 			constexpr uint32_t dataSize = cd::Direction::Size * sizeof(cd::Direction::ValueType);
-			FillVertexBuffer(mesh.GetVertexBiTangent(vertexInstanceID.Data()).begin(), dataSize);
+			FillVertexBuffer(mesh.GetVertexBiTangent(vertexInstance).begin(), dataSize);
 		}
 
 		if (containsUV)
 		{
 			constexpr uint32_t dataSize = cd::UV::Size * sizeof(cd::UV::ValueType);
-			FillVertexBuffer(mesh.GetVertexUV(0)[vertexInstanceID.Data()].begin(), dataSize);
+			FillVertexBuffer(mesh.GetVertexUV(0)[vertexInstance].begin(), dataSize);
 		}
 
 		if (containsColor)
 		{
 			constexpr uint32_t dataSize = cd::Color::Size * sizeof(cd::Color::ValueType);
-			FillVertexBuffer(mesh.GetVertexColor(0)[vertexInstanceID.Data()].begin(), dataSize);
+			FillVertexBuffer(mesh.GetVertexColor(0)[vertexInstance].begin(), dataSize);
 		}
 
-		auto& vertexBoneNameArray = skin.GetVertexBoneNameArray(vertexIndex);
-		auto& vertexBoneWeightArray = skin.GetVertexBoneWeightArray(vertexIndex);
+		auto& vertexBoneNameArray = skin.GetVertexBoneNameArray(vertexID);
+		auto& vertexBoneWeightArray = skin.GetVertexBoneWeightArray(vertexID);
 		for (uint32_t vertexInfluenceIndex = 0U; vertexInfluenceIndex < vertexMaxInfluenceCount; ++vertexInfluenceIndex)
 		{
 			if (vertexInfluenceIndex < vertexBoneNameArray.size())

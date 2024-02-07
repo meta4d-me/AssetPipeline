@@ -1084,7 +1084,6 @@ cd::MeshID FbxProducerImpl::ImportMesh(const fbxsdk::FbxMesh* pFbxMesh, cd::Scen
 		{
 			uint32_t controlPointIndex = pFbxMesh->GetPolygonVertex(polygonIndex, polygonVertexIndex);
 			uint32_t vertexInstanceID = polygonVertexBeginIndex + polygonVertexIndex;
-			mesh.SetVertexIDToInstance(controlPointIndex, vertexInstanceID);
 			mesh.SetVertexInstanceToID(vertexInstanceID, controlPointIndex);
 
 			polygon.push_back(vertexInstanceID);

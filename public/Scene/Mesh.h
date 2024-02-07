@@ -30,7 +30,6 @@ public:
 	EXPORT_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexPosition);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexInstanceToID);
-	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexIDToInstance);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexNormal);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexTangent);
 	EXPORT_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
