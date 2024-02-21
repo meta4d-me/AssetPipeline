@@ -53,6 +53,7 @@ public:
 	EXPORT_VECTOR_TYPE_APIS_WITH_PLURAL(SceneDatabase, Mesh, es);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Morph);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Node);
+	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, RootNodeID);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, ParticleEmitter);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Skeleton);
 	EXPORT_VECTOR_TYPE_APIS(SceneDatabase, Skin);

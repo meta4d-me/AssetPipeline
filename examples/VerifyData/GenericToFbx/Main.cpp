@@ -20,8 +20,7 @@ int main(int argc, char** argv)
 	const char* pInputFilePath = argv[1];
 	const char* pOutputFilePath = argv[2];
 	GenericProducer producer(pInputFilePath);
-	producer.EnableOption(GenericProducerOptions::FlattenTransformHierarchy);
-
+	producer.DisableOption(GenericProducerOptions::TriangulateModel);
 	FbxConsumer consumer(pOutputFilePath);
 	Processor processor(&producer, &consumer);
 	processor.Run();

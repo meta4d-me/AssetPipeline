@@ -12,16 +12,15 @@ PIMPL_SIMPLE_TYPE_APIS(Mesh, ID);
 PIMPL_STRING_TYPE_APIS(Mesh, Name);
 PIMPL_COMPLEX_TYPE_APIS(Mesh, AABB);
 PIMPL_COMPLEX_TYPE_APIS(Mesh, VertexFormat);
-PIMPL_VECTOR_TYPE_APIS(Mesh, MaterialID);
-PIMPL_VECTOR_TYPE_APIS(Mesh, BlendShapeID);
-PIMPL_VECTOR_TYPE_APIS(Mesh, SkinID);
-PIMPL_VECTOR_TYPE_APIS(Mesh, VertexInstanceToID);
-PIMPL_VECTOR_TYPE_APIS(Mesh, VertexIDToInstance);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexPosition);
+PIMPL_VECTOR_TYPE_APIS(Mesh, VertexInstanceToID);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexNormal);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexTangent);
 PIMPL_VECTOR_TYPE_APIS(Mesh, VertexBiTangent);
+PIMPL_VECTOR_TYPE_APIS(Mesh, MaterialID);
 PIMPL_VECTOR_TYPE_APIS(Mesh, PolygonGroup);
+PIMPL_VECTOR_TYPE_APIS(Mesh, BlendShapeID);
+PIMPL_VECTOR_TYPE_APIS(Mesh, SkinID);
 
 Mesh Mesh::FromHalfEdgeMesh(const HalfEdgeMesh& halfEdgeMesh, ConvertStrategy strategy)
 {

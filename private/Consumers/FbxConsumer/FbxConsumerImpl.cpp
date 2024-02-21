@@ -42,7 +42,7 @@ FbxConsumerImpl::~FbxConsumerImpl()
 
 void FbxConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
 {
-	// Init settings
+	// Init settings.
 	m_pSDKManager = fbxsdk::FbxManager::Create();
 	auto* pIOSettings = fbxsdk::FbxIOSettings::Create(m_pSDKManager, IOSROOT);
 	m_pSDKManager->SetIOSettings(pIOSettings);
@@ -50,29 +50,13 @@ void FbxConsumerImpl::Execute(const cd::SceneDatabase* pSceneDatabase)
 	fbxsdk::FbxScene* pScene = CreateScene(pSceneDatabase);
 	assert(pScene);
 
-	// Create a root fbx node.
-	auto* pRootNode = fbxsdk::FbxNode::Create(pScene, "Root");
-	pRootNode->SetShadingMode(fbxsdk::FbxNode::EShadingMode::eTextureShading);
-
-	fbxsdk::FbxVector4 translation(0.0, 0.0, 0.0, 0.0);
-	fbxsdk::FbxVector4 rotation(0.0, 0.0, 0.0, 0.0);
-	fbxsdk::FbxVector4 scale(1.0, 1.0, 1.0, 1.0);
-	pRootNode->LclTranslation.Set(translation);
-	pRootNode->LclRotation.Set(rotation);
-	pRootNode->LclScaling.Set(scale);
-
-	pScene->GetRootNode()->AddChild(pRootNode);
-
-	// Build fbx scene by converting SceneDatabase
-	for (const auto& mesh : pSceneDatabase->GetMeshes())
+	// Init node hierarchy.
+	for (auto rootNodeID : pSceneDatabase->GetRootNodeIDs())
 	{
-		ExportMesh(pScene, pRootNode, mesh, pSceneDatabase);
+		ExportNodeRecursively(pScene, pScene->GetRootNode(), rootNodeID, pSceneDatabase);
 	}
-
-	if (!ExportFbxFile(pScene))
-	{
-		PrintLog("Error : Failed to export fbx file.");
-	}
+	
+	ExportFbxFile(pScene);
 }
 
 fbxsdk::FbxScene* FbxConsumerImpl::CreateScene(const cd::SceneDatabase* pSceneDatabase)
@@ -99,9 +83,10 @@ fbxsdk::FbxScene* FbxConsumerImpl::CreateScene(const cd::SceneDatabase* pSceneDa
 
 fbxsdk::FbxFileTexture* FbxConsumerImpl::ExportTexture(fbxsdk::FbxScene* pScene, cd::TextureID textureID, const cd::SceneDatabase* pSceneDatabase)
 {
+	assert(pScene);
 	if (!textureID.IsValid() || textureID.Data() >= pSceneDatabase->GetTextureCount())
 	{
-		PrintLog(std::format("Warning : Texture missing at ID : {}", textureID.Data()));
+		PrintLog(std::format("Warning : [Texture {}] is invalid or lost reference data.", textureID.Data()));
 		return nullptr;
 	}
 
@@ -123,6 +108,7 @@ fbxsdk::FbxFileTexture* FbxConsumerImpl::ExportTexture(fbxsdk::FbxScene* pScene,
 
 fbxsdk::FbxSurfaceMaterial* FbxConsumerImpl::ExportMaterial(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNode, cd::MaterialID materialID, const cd::SceneDatabase* pSceneDatabase)
 {
+	assert(pScene && pNode);
 	bool useDefaultMaterial = !materialID.IsValid() || materialID.Data() >= pSceneDatabase->GetMaterialCount();
 	if (useDefaultMaterial)
 	{
@@ -180,14 +166,44 @@ fbxsdk::FbxSurfaceMaterial* FbxConsumerImpl::ExportMaterial(fbxsdk::FbxScene* pS
 	return pFbxMaterial;
 }
 
-void FbxConsumerImpl::ExportMesh(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNode, const cd::Mesh& mesh, const cd::SceneDatabase* pSceneDatabase)
+void FbxConsumerImpl::ExportMesh(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNode, cd::MeshID meshID, const cd::SceneDatabase* pSceneDatabase)
 {
+	assert(pScene && pNode);
+	if (!meshID.IsValid() || meshID.Data() >= pSceneDatabase->GetMeshCount())
+	{
+		PrintLog(std::format("Warning : [Mesh {}] is invalid or lost reference data.", meshID.Data()));
+		return;
+	}
+
+	const auto& mesh = pSceneDatabase->GetMesh(meshID.Data());
+
 	uint32_t vertexCount = mesh.GetVertexCount();
 	uint32_t polygonCount = mesh.GetPolygonCount();
 	assert(vertexCount > 0U && polygonCount > 0U);
 
-	auto* pFbxMesh = fbxsdk::FbxMesh::Create(pScene, mesh.GetName());
+	auto* pFbxMesh = fbxsdk::FbxMesh::Create(pScene, std::format("{}Shape", mesh.GetName()).c_str());
+	assert(!pNode->GetNodeAttribute());
 	pNode->SetNodeAttribute(pFbxMesh);
+
+	// Create mesh base layer.
+	int baseLayerIndex = pFbxMesh->CreateLayer();
+	assert(0 == baseLayerIndex);
+	fbxsdk::FbxLayer* pBaseLayer = pFbxMesh->GetLayer(baseLayerIndex);
+
+	// Create material layer on mesh base layer.
+	auto* pMaterialLayer = FbxLayerElementMaterial::Create(pFbxMesh, "");
+	bool useSameMaterialForMesh = mesh.GetMaterialIDCount() <= 1U;
+	if (useSameMaterialForMesh)
+	{
+		pMaterialLayer->SetMappingMode(FbxLayerElement::eAllSame);
+		pMaterialLayer->SetReferenceMode(FbxLayerElement::eDirect);
+	}
+	else
+	{
+		pMaterialLayer->SetMappingMode(FbxLayerElement::eByPolygon);
+		pMaterialLayer->SetReferenceMode(FbxLayerElement::eIndexToDirect);
+	}
+	pBaseLayer->SetMaterials(pMaterialLayer);
 
 	// Export position.
 	pFbxMesh->InitControlPoints(vertexCount);
@@ -198,35 +214,111 @@ void FbxConsumerImpl::ExportMesh(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNod
 		pFbxVertices[vertexIndex].Set(position.x(), -position.y(), position.z(), 1.0f);
 	}
 
-	// Create mesh base layer.
-	int baseLayerIndex = pFbxMesh->CreateLayer();
-	assert(0 == baseLayerIndex);
-	fbxsdk::FbxLayer* pBaseLayer = pFbxMesh->GetLayer(baseLayerIndex);
+	// Check if mesh surface attributes are using instance mapping.
+	uint32_t vertexInstanceIDCount = mesh.GetVertexInstanceToIDCount();
+	bool mappingSurfaceAttributes = vertexInstanceIDCount > 0U;
+	auto mappingMode = mappingSurfaceAttributes ? fbxsdk::FbxGeometryElement::eByPolygonVertex : fbxsdk::FbxGeometryElement::eByControlPoint;
+	// Actually, we should support normal/binormal/tangent mapping directly...
+	// But cd::Mesh currently support IndexToDirect and Direct globally for all vertex surface attributes.
+	auto referenceMode = mappingSurfaceAttributes ? fbxsdk::FbxGeometryElement::eIndexToDirect : fbxsdk::FbxGeometryElement::eDirect;
+	uint32_t vertexAttributeCount = mappingSurfaceAttributes ? vertexInstanceIDCount : vertexCount;
 
 	// Create base normal for every vertex which directly maps to control point.
-	auto* pNormalElement = fbxsdk::FbxLayerElementNormal::Create(pFbxMesh, "BaseNormal");
-	pNormalElement->SetMappingMode(fbxsdk::FbxGeometryElement::eByControlPoint);
-	pNormalElement->SetReferenceMode(fbxsdk::FbxGeometryElement::eDirect);
-	pBaseLayer->SetNormals(pNormalElement);
-
-	for (uint32_t vertexIndex = 0U; vertexIndex < vertexCount; ++vertexIndex)
+	fbxsdk::FbxLayerElementNormal* pNormalElement = nullptr;
+	if (mesh.GetVertexNormalCount() > 0U)
 	{
-		const cd::Direction& normal = mesh.GetVertexNormal(vertexIndex);
-		pNormalElement->GetDirectArray().Add(fbxsdk::FbxVector4(normal.x(), normal.y(), normal.z(), 0.0f));
+		pNormalElement = fbxsdk::FbxLayerElementNormal::Create(pFbxMesh, "BaseNormal");
+		pNormalElement->SetMappingMode(mappingMode);
+		pNormalElement->SetReferenceMode(referenceMode);
+		pBaseLayer->SetNormals(pNormalElement);
 	}
 
-	// Create base color uv.
+	// Tangents
+	fbxsdk::FbxLayerElementBinormal* pBinormalElement = nullptr;
+	if (mesh.GetVertexBiTangentCount() > 0U)
+	{
+		pBinormalElement = fbxsdk::FbxLayerElementBinormal::Create(pFbxMesh, "BaseBinormal");
+		pBinormalElement->SetMappingMode(mappingMode);
+		pBinormalElement->SetReferenceMode(referenceMode);
+		pBaseLayer->SetBinormals(pBinormalElement);
+	}
+
+	fbxsdk::FbxLayerElementTangent* pTangentElement = nullptr;
+	if (mesh.GetVertexTangentCount() > 0U)
+	{
+		pTangentElement = fbxsdk::FbxLayerElementTangent::Create(pFbxMesh, "BaseTangent");
+		pTangentElement->SetMappingMode(mappingMode);
+		pTangentElement->SetReferenceMode(referenceMode);
+		pBaseLayer->SetTangents(pTangentElement);
+	}
+
+	// Create albedo uv.
+	fbxsdk::FbxLayerElementUV* pAlbedoUVElement = nullptr;
 	if (mesh.GetVertexUVSetCount() > 0U)
 	{
-		auto* pAlbedoUVElement = fbxsdk::FbxLayerElementUV::Create(pFbxMesh, "Albedo");
-		pAlbedoUVElement->SetMappingMode(fbxsdk::FbxGeometryElement::eByControlPoint);
-		pAlbedoUVElement->SetReferenceMode(fbxsdk::FbxGeometryElement::eDirect);
+		pAlbedoUVElement = fbxsdk::FbxLayerElementUV::Create(pFbxMesh, "Albedo");
+		pAlbedoUVElement->SetMappingMode(mappingMode);
+		pAlbedoUVElement->SetReferenceMode(referenceMode);
 		pBaseLayer->SetUVs(pAlbedoUVElement, fbxsdk::FbxLayerElement::eTextureDiffuse);
+	}
 
-		for (uint32_t vertexIndex = 0U; vertexIndex < vertexCount; ++vertexIndex)
+	// Init surface attribute data to the direct array.
+	for (uint32_t attributeIndex = 0U; attributeIndex < vertexAttributeCount; ++attributeIndex)
+	{
+		if (pNormalElement)
 		{
-			const cd::UV& uv = mesh.GetVertexUV(0U)[vertexIndex];
+			const cd::Direction& normal = mesh.GetVertexNormal(attributeIndex);
+			pNormalElement->GetDirectArray().Add(fbxsdk::FbxVector4(normal.x(), -normal.y(), normal.z(), 0.0f));
+		}
+
+		if (pBinormalElement)
+		{
+			const cd::Direction& binormal = mesh.GetVertexBiTangent(attributeIndex);
+			pBinormalElement->GetDirectArray().Add(fbxsdk::FbxVector4(binormal.x(), binormal.y(), -binormal.z(), 0.0f));
+		}
+
+		if (pTangentElement)
+		{
+			const cd::Direction& tangent = mesh.GetVertexTangent(attributeIndex);
+			pTangentElement->GetDirectArray().Add(fbxsdk::FbxVector4(tangent.x(), -tangent.y(), tangent.z(), 0.0f));
+		}
+
+		if (pAlbedoUVElement)
+		{
+			const cd::UV& uv = mesh.GetVertexUV(0U)[attributeIndex];
 			pAlbedoUVElement->GetDirectArray().Add(fbxsdk::FbxVector2(uv.x(), 1.0f - uv.y()));
+		}
+	}
+
+	// If using vertex instance, then init vertex index to attribute index.
+	for (const auto& polygonGroup : mesh.GetPolygonGroups())
+	{
+		for (const auto& polygon : polygonGroup)
+		{
+			for (cd::VertexID instanceID : polygon)
+			{
+				cd::VertexID vertexID = mappingSurfaceAttributes ? mesh.GetVertexInstanceToID(instanceID.Data()) : instanceID;
+
+				if (pNormalElement)
+				{
+					pNormalElement->GetIndexArray().SetAt(vertexID.Data(), instanceID.Data());
+				}
+					
+				if (pBinormalElement)
+				{
+					pBinormalElement->GetIndexArray().SetAt(vertexID.Data(), instanceID.Data());
+				}
+
+				if (pTangentElement)
+				{
+					pTangentElement->GetIndexArray().SetAt(vertexID.Data(), instanceID.Data());
+				}
+
+				if (pAlbedoUVElement)
+				{
+					pAlbedoUVElement->GetIndexArray().SetAt(vertexID.Data(), instanceID.Data());
+				}
+			}
 		}
 	}
 
@@ -242,14 +334,81 @@ void FbxConsumerImpl::ExportMesh(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pNod
 		const cd::PolygonGroup& polygonGroup = mesh.GetPolygonGroup(materialIndex);
 		for (const auto& polygon : polygonGroup)
 		{
-			pFbxMesh->BeginPolygon(actualMaterialIndex);
-			for (auto vertexID : polygon)
+			assert(polygon.size() >= 3U);
+			if (useSameMaterialForMesh)
 			{
-				pFbxMesh->AddPolygon(vertexID.Data());
+				pFbxMesh->BeginPolygon();
+			}
+			else
+			{
+				pFbxMesh->BeginPolygon(actualMaterialIndex);
+			}
+
+			for (auto vertexIndex : polygon)
+			{
+				if (mappingSurfaceAttributes)
+				{
+					vertexIndex = mesh.GetVertexInstanceToID(vertexIndex.Data());
+				}
+				pFbxMesh->AddPolygon(vertexIndex.Data());
 			}
 			pFbxMesh->EndPolygon();
 		}
 	}
+}
+
+void FbxConsumerImpl::ExportNodeRecursively(fbxsdk::FbxScene* pScene, fbxsdk::FbxNode* pParentNode, cd::NodeID nodeID, const cd::SceneDatabase* pSceneDatabase)
+{
+	if (!nodeID.IsValid() || nodeID.Data() >= pSceneDatabase->GetNodeCount())
+	{
+		return;
+	}
+
+	const auto& node = pSceneDatabase->GetNode(nodeID.Data());
+	fbxsdk::FbxNode* pNode = ExportNode(pScene, node.GetName(), node.GetTransform(), pSceneDatabase);
+	if (pParentNode)
+	{
+		// The reason to check if they are same mostly comes from the processing of scene root nodes.
+		// For example, FbxScene always have a node named "RootNode" so FbxProducer will generate a cd::Node named "RootNode".
+		// When FbxProducer connects to FbxConsumer, FbxConsumer firstly created a FbxScene with "RootNode". Then try to export a cd::Node named "RootNode".
+		// So current solution is to use name as Node id hash. Then use if branch to avoid graph cycle.
+		if (pParentNode != pNode)
+		{
+			pParentNode->AddChild(pNode);
+		}
+	}
+
+	for (cd::MeshID meshID : node.GetMeshIDs())
+	{
+		const cd::Mesh& mesh = pSceneDatabase->GetMesh(meshID.Data());
+		fbxsdk::FbxNode* pMeshNode = ExportNode(pScene, std::format("{}Mesh", mesh.GetName()).c_str(), cd::Transform::Identity(), pSceneDatabase);
+		ExportMesh(pScene, pMeshNode, meshID, pSceneDatabase);
+		pNode->AddChild(pMeshNode);
+	}
+
+	for (cd::NodeID childID : node.GetChildIDs())
+	{
+		ExportNodeRecursively(pScene, pNode, childID, pSceneDatabase);
+	}
+}
+
+fbxsdk::FbxNode* FbxConsumerImpl::ExportNode(fbxsdk::FbxScene* pScene, const char* pName, const cd::Transform& transform, const cd::SceneDatabase* pSceneDatabase)
+{
+	fbxsdk::FbxNode* pNode = pScene->FindNodeByName(pName);
+	if (!pNode)
+	{
+		pNode = fbxsdk::FbxNode::Create(pScene, pName);
+		pNode->SetShadingMode(fbxsdk::FbxNode::EShadingMode::eTextureShading);
+
+		const auto& translation = transform.GetTranslation();
+		const auto& rotation = transform.GetRotation();
+		const auto& scale = transform.GetScale();
+		pNode->LclTranslation.Set(fbxsdk::FbxVector4(translation.x(), translation.y(), translation.z()));
+		pNode->LclRotation.Set(fbxsdk::FbxVector4(rotation.Roll(), rotation.Pitch(), rotation.Yaw()));
+		pNode->LclScaling.Set(fbxsdk::FbxVector4(scale.x(), scale.y(), scale.z()));
+	}
+
+	return pNode;
 }
 
 bool FbxConsumerImpl::ExportFbxFile(fbxsdk::FbxScene* pScene)
@@ -272,7 +431,12 @@ bool FbxConsumerImpl::ExportFbxFile(fbxsdk::FbxScene* pScene)
 		return false;
 	}
 
-	return pExporter->Export(pScene);
+	if (!pExporter->Export(pScene))
+	{
+		PrintLog(std::format("Error : Failed to export fbx file : {}", pExporter->GetStatus().GetErrorString()));
+	}
+
+	return true;
 }
 
 }

@@ -116,7 +116,9 @@ void GenericProducerImpl::AddScene(cd::SceneDatabase* pSceneDatabase, const aiSc
 	{
 		// Add nodes and associated meshes to SceneDatabase.
 		// For assimp, bones are also treated as nodes.
-		AddNodeRecursively(pSceneDatabase, pSourceScene, pSourceScene->mRootNode, m_nodeIDGenerator.AllocateID().Data());
+		cd::NodeID rootNodeID = m_nodeIDGenerator.AllocateID();
+		AddNodeRecursively(pSceneDatabase, pSourceScene, pSourceScene->mRootNode, rootNodeID.Data());
+		pSceneDatabase->AddRootNodeID(rootNodeID);
 	}
 
 	// Prepare to add materials.
@@ -199,12 +201,16 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 
 	// Assimp seems not to create concepts for polygon groups. Only one material and one polygon group will be created.
 	cd::PolygonGroup polygonGroup;
-	for (uint32_t faceIndex = 0; faceIndex < pSourceMesh->mNumFaces; ++faceIndex)
+	for (uint32_t faceIndex = 0U; faceIndex < pSourceMesh->mNumFaces; ++faceIndex)
 	{
+		cd::Polygon polygon;
+		polygon.reserve(pSourceMesh->mFaces->mNumIndices);
 		const aiFace& face = pSourceMesh->mFaces[faceIndex];
-		assert(face.mNumIndices == 3 && "Do you forget to open importer's triangulate flag?");
-
-		polygonGroup.emplace_back(cd::Polygon{ face.mIndices[0], face.mIndices[1], face.mIndices[2] });
+		for (uint32_t cornerIndex = 0U; cornerIndex < pSourceMesh->mFaces->mNumIndices; ++cornerIndex)
+		{
+			polygon.push_back(face.mIndices[cornerIndex]);
+		}
+		polygonGroup.emplace_back(cd::MoveTemp(polygon));
 	}
 	mesh.AddMaterialID(materialID);
 	mesh.AddPolygonGroup(cd::MoveTemp(polygonGroup));
