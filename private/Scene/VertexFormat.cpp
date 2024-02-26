@@ -41,14 +41,24 @@ VertexFormat::~VertexFormat()
 	}
 }
 
-void VertexFormat::AddAttributeLayout(VertexAttributeType attributeType, AttributeValueType valueType, uint8_t count)
+void VertexFormat::AddVertexAttributeLayout(VertexAttributeType attributeType, AttributeValueType valueType, uint8_t count)
 {
-	m_pVertexFormatImpl->AddAttributeLayout(attributeType, valueType, count);
+	m_pVertexFormatImpl->AddVertexAttributeLayout(attributeType, valueType, count);
 }
 
-const std::vector<VertexAttributeLayout>& VertexFormat::GetVertexLayout() const
+void VertexFormat::AddVertexAttributeLayout(VertexAttributeLayout vertexLayout)
 {
-	return m_pVertexFormatImpl->GetVertexLayout();
+	m_pVertexFormatImpl->AddVertexAttributeLayout(cd::MoveTemp(vertexLayout));
+}
+
+const VertexAttributeLayout* VertexFormat::GetVertexAttributeLayout(VertexAttributeType attributeType) const
+{
+	return m_pVertexFormatImpl->GetVertexAttributeLayout(attributeType);
+}
+
+const std::vector<VertexAttributeLayout>& VertexFormat::GetVertexAttributeLayouts() const
+{
+	return m_pVertexFormatImpl->GetVertexAttributeLayouts();
 }
 
 bool VertexFormat::Contains(VertexAttributeType attributeType) const
