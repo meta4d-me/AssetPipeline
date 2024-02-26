@@ -19,8 +19,10 @@ public:
 	VertexFormatImpl& operator=(VertexFormatImpl&&) = default;
 	~VertexFormatImpl() = default;
 
-	void AddAttributeLayout(VertexAttributeType attributeType, AttributeValueType valueType, uint8_t count);
-	const std::vector<VertexAttributeLayout>& GetVertexLayout() const { return m_vertexLayouts; }
+	void AddVertexAttributeLayout(VertexAttributeType attributeType, AttributeValueType valueType, uint8_t count);
+	void AddVertexAttributeLayout(VertexAttributeLayout vertexLayout);
+	const VertexAttributeLayout* GetVertexAttributeLayout(VertexAttributeType attributeType) const;
+	const std::vector<VertexAttributeLayout>& GetVertexAttributeLayouts() const { return m_vertexLayouts; }
 
 	// Returns if vertex format contains vertex attribute type.
 	bool Contains(VertexAttributeType attributeType) const;
