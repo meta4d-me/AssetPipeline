@@ -200,9 +200,9 @@ cd::Mesh EffekseerProducerImpl::GenerateParticleMesh(cd::ParticleEmitterType pTy
 		particleMesh.SetPolygonGroup(0, group);
 		// Set vertex attribute
 		cd::VertexFormat particleVertexFormat;
-		particleVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
-		particleVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Color::ValueType>(), cd::Color::Size);
-		particleVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+		particleVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+		particleVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Color::ValueType>(), cd::Color::Size);
+		particleVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
 		particleMesh.SetVertexFormat(std::move(particleVertexFormat));
 		return particleMesh;
 	}
