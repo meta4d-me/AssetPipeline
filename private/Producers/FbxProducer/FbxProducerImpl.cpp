@@ -953,28 +953,28 @@ cd::MeshID FbxProducerImpl::ImportMesh(const fbxsdk::FbxMesh* pFbxMesh, cd::Scen
 	cd::VertexFormat meshVertexFormat;
 	if (controlPointCount > 0U)
 	{
-		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+		meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
 	}
 
 	const fbxsdk::FbxLayerElementNormal* pLayerElementNormalData = pMeshBaseLayer->GetNormals();
 	if (pLayerElementNormalData)
 	{
 		mesh.SetVertexNormalCount(vertexInstanceCount);
-		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+		meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
 	}
 
 	const fbxsdk::FbxLayerElementTangent* pLayerElementTangentData = pMeshBaseLayer->GetTangents();
 	if (pLayerElementTangentData)
 	{
 		mesh.SetVertexTangentCount(vertexInstanceCount);
-		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+		meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
 	}
 
 	const fbxsdk::FbxLayerElementBinormal* pLayerElementBinormalData = pMeshBaseLayer->GetBinormals();
 	if (pLayerElementBinormalData)
 	{
 		mesh.SetVertexBiTangentCount(vertexInstanceCount);
-		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Bitangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+		meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Bitangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
 	}
 
 	const fbxsdk::FbxLayerElementVertexColor* pLayerElementColorData = pMeshBaseLayer->GetVertexColors();
@@ -983,7 +983,7 @@ cd::MeshID FbxProducerImpl::ImportMesh(const fbxsdk::FbxMesh* pFbxMesh, cd::Scen
 		// TODO : Multiple vertex color sets if necessary.
 		mesh.SetVertexColorSetCount(1U);
 		mesh.GetVertexColors(0U).resize(vertexInstanceCount);
-		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Vec4f::ValueType>(), cd::Vec4f::Size);
+		meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Vec4f::ValueType>(), cd::Vec4f::Size);
 	}
 
 	std::vector<const fbxsdk::FbxLayerElementUV*> layerElementUVDatas;
@@ -1004,7 +1004,7 @@ cd::MeshID FbxProducerImpl::ImportMesh(const fbxsdk::FbxMesh* pFbxMesh, cd::Scen
 		{
 			mesh.GetVertexUVs(uvSetIndex).resize(vertexInstanceCount);
 		}
-		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+		meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
 	}
 	mesh.SetVertexFormat(cd::MoveTemp(meshVertexFormat));
 

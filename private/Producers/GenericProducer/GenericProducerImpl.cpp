@@ -223,7 +223,7 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 		const aiVector3D& position = pSourceMesh->mVertices[vertexDataIndex];
 		mesh.SetVertexPosition(vertexIndex, cd::Point(position.x, position.y, position.z));
 	}
-	meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
+	meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Position, cd::GetAttributeValueType<cd::Point::ValueType>(), cd::Point::Size);
 
 	if (pSourceMesh->HasNormals())
 	{
@@ -233,7 +233,7 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 			const aiVector3D& normal = pSourceMesh->mNormals[vertexDataIndex];
 			mesh.SetVertexNormal(vertexIndex, cd::Direction(normal.x, normal.y, normal.z));
 		}
-		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+		meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Normal, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
 
 		if (pSourceMesh->HasTangentsAndBitangents())
 		{
@@ -243,7 +243,7 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 				const aiVector3D& tangent = pSourceMesh->mTangents[vertexDataIndex];
 				mesh.SetVertexTangent(vertexIndex, cd::Direction(tangent.x, tangent.y, tangent.z));
 			}
-			meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+			meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Tangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
 
 
 			for (uint32_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex)
@@ -252,7 +252,7 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 				const aiVector3D& biTangent = pSourceMesh->mBitangents[vertexDataIndex];
 				mesh.SetVertexBiTangent(vertexIndex, cd::Direction(biTangent.x, biTangent.y, biTangent.z));
 			}
-			meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Bitangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
+			meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Bitangent, cd::GetAttributeValueType<cd::Direction::ValueType>(), cd::Direction::Size);
 		}
 	}
 
@@ -276,7 +276,7 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 			const aiVector3D& uv = vertexUVArray[vertexDataIndex];
 			mesh.SetVertexUV(uvSetIndex, vertexIndex, cd::UV(uv.x, uv.y));
 		}
-		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
+		meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::UV, cd::GetAttributeValueType<cd::UV::ValueType>(), cd::UV::Size);
 	}
 
 	uint32_t colorSetCount = pSourceMesh->GetNumColorChannels();
@@ -291,7 +291,7 @@ cd::MeshID GenericProducerImpl::AddMesh(cd::SceneDatabase* pSceneDatabase, const
 			const aiColor4D& color = vertexColorArray[vertexDataIndex];
 			mesh.SetVertexColor(colorSetIndex, vertexIndex, cd::Color(color.r, color.g, color.b, color.a));
 		}
-		meshVertexFormat.AddAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Color::ValueType>(), cd::Color::Size);
+		meshVertexFormat.AddVertexAttributeLayout(cd::VertexAttributeType::Color, cd::GetAttributeValueType<cd::Color::ValueType>(), cd::Color::Size);
 	}
 
 	mesh.SetVertexFormat(cd::MoveTemp(meshVertexFormat));

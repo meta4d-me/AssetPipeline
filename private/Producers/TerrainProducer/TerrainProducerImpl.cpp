@@ -395,8 +395,8 @@ Mesh TerrainProducerImpl::GenerateSectorAt(uint32_t sector_x, uint32_t sector_z,
 	}
 	// Set vertex attribute
 	VertexFormat meshVertexFormat;
-	meshVertexFormat.AddAttributeLayout(VertexAttributeType::Position, GetAttributeValueType<Point::ValueType>(), Point::Size);
-	meshVertexFormat.AddAttributeLayout(VertexAttributeType::UV, GetAttributeValueType<UV::ValueType>(), UV::Size);
+	meshVertexFormat.AddVertexAttributeLayout(VertexAttributeType::Position, GetAttributeValueType<Point::ValueType>(), Point::Size);
+	meshVertexFormat.AddVertexAttributeLayout(VertexAttributeType::UV, GetAttributeValueType<UV::ValueType>(), UV::Size);
 	terrain.SetVertexFormat(cd::MoveTemp(meshVertexFormat));
 
 	// Set aabb

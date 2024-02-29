@@ -423,7 +423,7 @@ cd::Mesh ProgressiveMeshImpl::GenerateLodMesh(uint32_t targetFaceCount, const cd
 	}
 	else
 	{
-		mesh.GetVertexFormat().AddAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
+		mesh.GetVertexFormat().AddVertexAttributeLayout(cd::VertexAttributeType::Position, cd::AttributeValueType::Float, 3);
 	}
 
 	const auto& vertexFormat = mesh.GetVertexFormat();
