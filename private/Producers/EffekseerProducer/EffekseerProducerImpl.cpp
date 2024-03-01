@@ -168,9 +168,9 @@ cd::Mesh EffekseerProducerImpl::GenerateParticleMesh(cd::ParticleEmitterType pTy
 		particleMesh.SetMaterialID(0, cd::MaterialID::Invalid().InvalidID);
 
 		cd::MeshTypeTraits::PolygonGroup group;
-		for (int i = 0; i < particleCount; ++i)
+		for (int i = 0;  i < particleCount; ++i)
 		{
-			const cd::Point bottomLeftPoint(-1.0f,-1.0f,0.0f);
+			const cd::Point bottomLeftPoint(-1.0f, -1.0f, 0.0f);
 			const cd::Point bottomRightPoint(1.0f,-1.0f,0.0f);
 			const cd::Point topRightPoint(1.0f,1.0f,0.0f);
 			const cd::Point topLeftPoint(-1.0f,1.0f,0.0f);
@@ -252,14 +252,11 @@ void EffekseerProducerImpl::Execute(cd::SceneDatabase* pSceneDatabase)
 		particleEmitter.SetFixedRotation(cd::Vec3f(m_fixedRotation[i].X, m_fixedRotation[i].Y, m_fixedRotation[i].Z));
 		particleEmitter.SetFixedScale(cd::Vec3f(m_fixedScale[i].X, m_fixedScale[i].Y, m_fixedScale[i].Z));
 
-		pSceneDatabase->AddParticleEmitter(cd::MoveTemp(particleEmitter));
-	}
-
-	//Get Mesh
-	for (int i = 0; i < pEffectData->GetRoot()->GetChildrenCount(); ++i)
-	{
-		cd::Mesh generatedMesh = GenerateParticleMesh(EffectNodeTypeMapping[static_cast<Effekseer::EffectNodeType>(m_particleType[i])], m_particleMaxCount[i], i);
+		cd::Mesh generatedMesh = GenerateParticleMesh(EffectNodeTypeMapping[m_particleType[i]], m_particleMaxCount[i], i);
+		particleEmitter.SetMeshID(generatedMesh.GetID());
 		pSceneDatabase->AddMesh(cd::MoveTemp(generatedMesh));
+
+		pSceneDatabase->AddParticleEmitter(cd::MoveTemp(particleEmitter));
 	}
 }
 
