@@ -60,16 +60,19 @@ public:
 
 	TMatrix<T, 4, 4> GetMatrix() const
 	{
-		TMatrix<T, 4, 4> result = m_rotation.ToMatrix4x4();
+		TMatrix<T, 4, 4> rotation = m_rotation.ToMatrix4x4();
+		TMatrix<T, 4, 4> scale = cd::Matrix4x4::Identity();
+		TMatrix<T, 4, 4> translation = cd::Matrix4x4::Identity();
 
-		result.GetColumn(3)[0] = m_translation.x();
-		result.GetColumn(3)[1] = m_translation.y();
-		result.GetColumn(3)[2] = m_translation.z();
+		translation.GetColumn(3)[0] = m_translation.x();
+		translation.GetColumn(3)[1] = m_translation.y();
+		translation.GetColumn(3)[2] = m_translation.z();
 
-		result.GetColumn(0)[0] *= m_scale.x();
-		result.GetColumn(1)[1] *= m_scale.y();
-		result.GetColumn(2)[2] *= m_scale.z();
-		
+		scale.GetColumn(0)[0] *= m_scale.x();
+		scale.GetColumn(1)[1] *= m_scale.y();
+		scale.GetColumn(2)[2] *= m_scale.z();
+		TMatrix<T, 4, 4> result = translation * rotation * scale;
+
 		return result;
 	}
 
