@@ -71,9 +71,8 @@ public:
 		scale.GetColumn(0)[0] *= m_scale.x();
 		scale.GetColumn(1)[1] *= m_scale.y();
 		scale.GetColumn(2)[2] *= m_scale.z();
-		TMatrix<T, 4, 4> result = translation * rotation * scale;
 
-		return result;
+		return translation * rotation * scale;
 	}
 
 private:
